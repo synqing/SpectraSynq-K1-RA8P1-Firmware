@@ -1,0 +1,27 @@
+# Build outputs
+build/
+out/
+Debug/
+Release/
+*.elf
+*.hex
+*.bin
+*.map
+*.o
+*.a
+
+# IDE / vendor generated state
+.DS_Store
+.vscode/
+.settings/
+.metadata/
+*.launch
+
+# Python / harness
+__pycache__/
+*.pyc
+.venv/
+
+# Scratch is deliberately non-authority
+scratch/*
+!scratch/.gitkeep
