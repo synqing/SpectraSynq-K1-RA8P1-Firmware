@@ -115,6 +115,21 @@ void finish_if_complete() {
     const bool npu_done=state.mode==K1_P4_DSP_ALONE || state.mode==K1_P4_SATURATION || state.next_npu>state.end;
     if(dsp_done && npu_done) { state.active=false; state.finished=true; }
 }
+bool format_mean(char* output,std::size_t capacity,std::uint64_t sum,std::uint32_t count) {
+    const std::uint64_t scaled=count?(sum*1000U+count/2U)/count:0;
+    const int n=std::snprintf(output,capacity,"%llu.%03llu",
+        (unsigned long long)(scaled/1000U),(unsigned long long)(scaled%1000U));
+    return n>0 && std::size_t(n)<capacity;
+}
+bool format_error(char* output,std::size_t capacity,double value) {
+    constexpr std::uint64_t scale=1000000000000ULL;
+    constexpr double maximum=1000000.0;
+    const std::uint64_t scaled=value>=maximum?1000000ULL*scale:
+        static_cast<std::uint64_t>(value*double(scale)+0.5);
+    const int n=std::snprintf(output,capacity,"%llu.%012llu",
+        (unsigned long long)(scaled/scale),(unsigned long long)(scaled%scale));
+    return n>0 && std::size_t(n)<capacity;
+}
 }
 
 void k1_p4_initialise(std::uint32_t hz) {
@@ -125,6 +140,7 @@ void k1_p4_initialise(std::uint32_t hz) {
 bool k1_p4_start(std::uint32_t releases,std::uint32_t mode,std::uint32_t flags) {
     if(state.active || !clock_hz || !releases || releases>14063U || mode<1U || mode>4U || (flags&~6U) || !k1_npu_ready()) return false;
     std::memset(&state,0,sizeof(state));
+    state.first_bad_bin=0xffffffffU;
     state.active=true; state.releases=releases; state.mode=mode; state.flags=flags;
     k1_semantic_reset(&state.semantic);
     state.last_cycle=k1_cycle_count();
@@ -161,20 +177,24 @@ void k1_p4_step() {
 size_t k1_p4_status(char *output,size_t capacity) {
     const std::uint32_t elapsed_us=microseconds(state.elapsed);
     const std::uint64_t duty_ppm=elapsed_us?(state.npu_time.sum_us*1000000U)/elapsed_us:0;
+    char goertzel_error[32],dsp_mean[32],npu_mean[32];
+    if(!format_error(goertzel_error,sizeof(goertzel_error),state.maximum_goertzel_error) ||
+       !format_mean(dsp_mean,sizeof(dsp_mean),state.dsp_time.sum_us,state.dsp_time.count) ||
+       !format_mean(npu_mean,sizeof(npu_mean),state.npu_time.sum_us,state.npu_time.count)) return 0;
     const int n=std::snprintf(output,capacity,
-        "{\"profile\":\"generic-p4-seed0-v1\",\"active\":%s,\"finished\":%s,\"mode\":%lu,\"flags\":%lu,\"elapsed_us\":%lu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"releases\":%lu,\"dsp_count\":%lu,\"npu_count\":%lu,\"numeric_failures\":%lu,\"deadline_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_failures\":%lu,\"npu_output_failures\":%lu,\"maximum_ulp\":%lu,\"first_bad_bin\":%lu,\"maximum_goertzel_error\":%.9g,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"npu_wall_sum_us\":%llu,\"npu_duty_ppm\":%llu,\"dsp_mean_us\":%.3f,\"dsp_p50_us\":%lu,\"dsp_p95_us\":%lu,\"dsp_p99_us\":%lu,\"dsp_max_us\":%lu,\"npu_mean_us\":%.3f,\"npu_p99_us\":%lu,\"npu_max_us\":%lu,\"lateness_p99_us\":%lu,\"lateness_max_us\":%lu,\"semantic_valid\":%s,\"semantic_loss\":%lu,\"semantic_recoveries\":%lu}",
+        "{\"profile\":\"generic-p4-seed0-v1\",\"active\":%s,\"finished\":%s,\"mode\":%lu,\"flags\":%lu,\"elapsed_us\":%lu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"releases\":%lu,\"dsp_count\":%lu,\"npu_count\":%lu,\"numeric_failures\":%lu,\"deadline_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_failures\":%lu,\"npu_output_failures\":%lu,\"maximum_ulp\":%lu,\"first_bad_bin\":%lu,\"maximum_goertzel_error\":%s,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"npu_wall_sum_us\":%llu,\"npu_duty_ppm\":%llu,\"dsp_mean_us\":%s,\"dsp_p50_us\":%lu,\"dsp_p95_us\":%lu,\"dsp_p99_us\":%lu,\"dsp_max_us\":%lu,\"npu_mean_us\":%s,\"npu_p99_us\":%lu,\"npu_max_us\":%lu,\"lateness_p99_us\":%lu,\"lateness_max_us\":%lu,\"semantic_valid\":%s,\"semantic_loss\":%lu,\"semantic_recoveries\":%lu}",
         state.active?"true":"false",state.finished?"true":"false",(unsigned long)state.mode,(unsigned long)state.flags,
         (unsigned long)elapsed_us,
         (unsigned long)state.releases,(unsigned long)state.dsp_count,(unsigned long)state.npu_count,
         (unsigned long)state.numeric_failures,(unsigned long)state.deadline_misses,(unsigned long)state.release_guard_failures,
         (unsigned long)state.backlog_highwater,(unsigned long)state.npu_failures,(unsigned long)state.npu_output_failures,
-        (unsigned long)state.maximum_ulp_seen,(unsigned long)state.first_bad_bin,state.maximum_goertzel_error,
+        (unsigned long)state.maximum_ulp_seen,(unsigned long)state.first_bad_bin,goertzel_error,
         (unsigned long long)state.npu_cycles,(unsigned long long)state.npu_active,(unsigned long long)state.mac_active,
         (unsigned long long)state.npu_time.sum_us,(unsigned long long)duty_ppm,
-        state.dsp_time.count?double(state.dsp_time.sum_us)/state.dsp_time.count:0.0,
+        dsp_mean,
         (unsigned long)state.dsp_time.percentile(50),(unsigned long)state.dsp_time.percentile(95),
         (unsigned long)state.dsp_time.percentile(99),(unsigned long)state.dsp_time.maximum_us,
-        state.npu_time.count?double(state.npu_time.sum_us)/state.npu_time.count:0.0,
+        npu_mean,
         (unsigned long)state.npu_time.percentile(99),(unsigned long)state.npu_time.maximum_us,
         (unsigned long)state.lateness.percentile(99),(unsigned long)state.lateness.maximum_us,
         state.semantic.valid?"true":"false",(unsigned long)state.semantic.loss,(unsigned long)state.semantic.recoveries);

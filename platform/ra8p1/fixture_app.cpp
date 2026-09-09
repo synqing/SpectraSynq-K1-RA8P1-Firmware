@@ -66,10 +66,18 @@ std::uint32_t microseconds64(std::uint64_t cycles) {
   const std::uint64_t value=(cycles*1000000U+clock_hz-1)/clock_hz;
   return value>0xffffffffU?0xffffffffU:static_cast<std::uint32_t>(value);
 }
+bool format_mean(char* output,std::size_t capacity,std::uint64_t sum,std::uint32_t count) {
+  const std::uint64_t scaled=count?(sum*1000U+count/2U)/count:0;
+  const int n=std::snprintf(output,capacity,"%llu.%03llu",
+    (unsigned long long)(scaled/1000U),(unsigned long long)(scaled%1000U));
+  return n>0 && std::size_t(n)<capacity;
+}
 template<class D> void distribution(char* output,std::size_t capacity,std::size_t& offset,const char* name,const D& d) {
+  char mean[32];
+  if(!format_mean(mean,sizeof(mean),d.sum,d.count)) { offset=capacity; return; }
   const int n=std::snprintf(output+offset,capacity-offset,
-    "\"%s\":{\"count\":%lu,\"mean_us\":%.3f,\"p50_us\":%lu,\"p95_us\":%lu,\"p99_us\":%lu,\"max_us\":%lu}",
-    name,(unsigned long)d.count,d.count?double(d.sum)/d.count:0.0,
+    "\"%s\":{\"count\":%lu,\"mean_us\":%s,\"p50_us\":%lu,\"p95_us\":%lu,\"p99_us\":%lu,\"max_us\":%lu}",
+    name,(unsigned long)d.count,mean,
     (unsigned long)d.percentile(50),(unsigned long)d.percentile(95),
     (unsigned long)d.percentile(99),(unsigned long)d.maximum);
   if(n<0 || std::size_t(n)>=capacity-offset) offset=capacity; else offset+=std::size_t(n);

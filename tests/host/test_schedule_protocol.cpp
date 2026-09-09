@@ -1,10 +1,28 @@
 #include "fixture_app.h"
 #include <cassert>
+#include <cstdarg>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
+
+static bool floating_status_format;
+extern "C" int snprintf(char* output,std::size_t capacity,const char* format,...) {
+  for(const char* cursor=format;*cursor;++cursor) {
+    if(*cursor!='%') continue;
+    ++cursor;
+    if(*cursor=='%') continue;
+    while(*cursor && std::strchr("-+ #0.*0123456789hlLjzt",*cursor)) ++cursor;
+    if(std::strchr("aAeEfFgG",*cursor)) floating_status_format=true;
+    if(!*cursor) break;
+  }
+  std::va_list arguments;
+  va_start(arguments,format);
+  const int count=std::vsnprintf(output,capacity,format,arguments);
+  va_end(arguments);
+  return count;
+}
 #ifdef K1_NPU_LOAD
 #include "npu_load.h"
 extern "C" bool k1_npu_ready() { return true; }
@@ -61,6 +79,7 @@ int main() {
   assert(json.find("\"loops_complete\":1")!=std::string::npos);
   assert(json.find("\"queue_capacity\":1")!=std::string::npos);
   assert(json.find("\"count\":1")!=std::string::npos);
+  assert(json.find("\"mean_us\":100.000")!=std::string::npos);
   cycles=0xfffffc00U;
   accepted=start(1,0); assert(get(accepted.data()+4)==0);
   for(unsigned i=0;i<1000 && k1_fixture_schedule_active();++i) k1_fixture_schedule_step();
@@ -74,5 +93,6 @@ int main() {
   assert(json.find("\"npu_invocations\":3")!=std::string::npos);
   assert(json.find("\"npu_ready\":true")!=std::string::npos);
 #endif
+  assert(!floating_status_format);
   std::puts("K1_RESIDENT_SCHEDULE_PROTOCOL=PASS bounds=PASS start_exclusion=PASS completion=PASS cycle_wrap=PASS npu_mode=PASS status=PASS");
 }
