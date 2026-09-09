@@ -91,7 +91,7 @@
       "saturation": 2,
       "npu-alone": 3
     },
-    "observer": "full compact AP/VP CRC each hop; PMU and wall counters; USB status polling outside measured work"
+    "observer": "prime one idle USB status response before the resource baseline; full compact AP/VP CRC each hop; PMU and wall counters; later USB status polling outside measured work"
   },
   "acceptance": {
     "correctness_failures": 0,

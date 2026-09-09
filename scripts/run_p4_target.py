@@ -99,6 +99,11 @@ def main():
             info['contract']!='sr24000.hop180.bins80.xover40' or info['clock_hz']<=0 or
             info['cpu1_actcsr']&0x80 or not info['u55_opened'] or not info['cpp_initialised']):
             raise RuntimeError('runtime identity/core state mismatch')
+        receipt['resources_pre_observer']=json.loads(transact(6))
+        idle_status=json.loads(transact(10))
+        if idle_status['active']:
+            raise RuntimeError('P4 schedule unexpectedly active before observer priming')
+        receipt['observer_prime']=idle_status
         receipt['resources_before']=json.loads(transact(6))
         transact(9,struct.pack('<III',0,MODES[args.mode],0),expected=3)
         transact(9,struct.pack('<III',releases,0,0),expected=3)

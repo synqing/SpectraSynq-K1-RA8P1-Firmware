@@ -49,7 +49,7 @@
     "wrap": "32-bit DWT values are extended by modulo deltas into uint64 schedule time; individual measured work remains below one wrap",
     "distributions": "one-microsecond histograms; count, mean, p50, p95, p99 and exact maximum",
     "classes": ["all", "tempo_updated", "ordinary", "render", "release_lateness", "telemetry"],
-    "observer_boundary": "USB polling and final JSON are outside processing measurements"
+    "observer_boundary": "Prime one idle USB status response before the resource baseline. Later USB polling and final JSON are outside processing measurements"
   },
   "acceptance": {
     "correctness_failures": 0,

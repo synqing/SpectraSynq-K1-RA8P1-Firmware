@@ -100,6 +100,11 @@ def main():
             info['protocol']!=1 or info['contract']!='sr24000.hop180.bins80.xover40' or
             info['clock_hz']<=0 or info['cpu1_actcsr']&0x80 or bool(info['u55_opened'])!=bool(build.get('npu')) or not info['cpp_initialised']):
             raise RuntimeError('runtime identity/parked baseline mismatch')
+        receipt['resources_pre_observer']=json.loads(transact(6))
+        idle_status=json.loads(transact(8))
+        if idle_status['active']:
+            raise RuntimeError('schedule unexpectedly active before observer priming')
+        receipt['observer_prime']=idle_status
         receipt['resources_before']=json.loads(transact(6))
         transact(7,struct.pack('<II',0,1),expected=3)
         transact(7,struct.pack('<II',args.loops,4),expected=3)

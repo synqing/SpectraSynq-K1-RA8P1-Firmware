@@ -9,10 +9,10 @@ repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
 - **F1 passes for the covered scalar slice.** The identified Titan executed all
   14,000 frozen hops and matched 7,364,000 typed fields exactly, including all
   320 pixels per hop. Epoch/time semantics and the million-beat probe passed.
-- **G4/F2 is implemented but not accepted.** The first complete O2 scalar schedule
-  failed its frozen 7.5 ms deadline on 2,005 of 6,000 hops. A safe O3 profile,
-  identified NPU load, bounded semantic failure seam and immutable target images
-  now exist, but ROM entry was not observed for the O3/NPU flashes.
+- **G4/F2 is implemented and failed.** O2 and O3 scalar schedules missed 2,005
+  and 2,006 of 6,000 frozen 7.5 ms deadlines. The identified NPU-alone,
+  scheduled, saturation and semantic-failure cells all executed; no concurrent
+  mode qualified for soak.
 - **Generic P4/E1 is implemented through a target image but remains ON-SILICON
   NOT_RUN.** Its host kernel comparison and target-scheduler tests pass. This is
   separate from K1 F1/F2 and cannot imply K1-A.
@@ -77,13 +77,35 @@ The preserved target mutation run reports exactly one correctness failure, so
 the full-output CRC comparator does go red. The dominant failure is actual
 tempo/ACF compute, not render, telemetry, queue growth or heap use.
 
-Three source-bound images are ready but not flashed:
+The O3 scalar preflight kept all 6,000 outputs exact but missed 2,006 deadlines.
+Tempo mean/max improved to 8,903.676/9,391 us and ordinary mean/max to
+4,080.121/4,553 us, which is still insufficient for the 7.5 ms contract. It was
+not extended into the frozen 30-minute soak.
 
-| Image | Build ID | text / data / BSS | HEX SHA-256 |
-| --- | --- | --- | --- |
-| O3 scalar | `52c1cf2c…de361a` | 425,852 / 18,104 / 351,812 | `06d12585…a80a9` |
-| K1 + identified U55 + failure seam | `690f3e20…8664fc` | 636,676 / 18,128 / 607,992 | `0417f481…74eac` |
-| Generic P4 + K1 + identified U55 | `0a154a78…6bb907` | 666,500 / 42,408 / 657,172 | `549fb6dd…13a04` |
+The identified NPU cells produced these target results:
+
+| Mode | Correct NPU calls | NPU duty | Deadline misses | Backlog high-water | Result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| NPU-alone, cold | 900 / 900 | 2.382% | 0 | 0 | FAIL: 264-byte first-use allocation |
+| NPU-alone, warm diagnostic | 900 / 900 | 2.382% | 0 | 0 | Diagnostic PASS; no recurring heap growth |
+| Scheduled K1 + NPU | 900 / 900 | 2.383% | 2,069 | 1 | FAIL |
+| Saturation K1 + NPU | 18,000 / 18,000 | 47.647% | 6,000 | 1,730 | FAIL |
+| Scheduled + semantic failures | 900 / 900 | 2.383% | 2,068 | 1 | FAIL |
+
+All K1 outputs remained exact and every NPU output matched. No scheduled or
+saturation mode qualified for soak. The fresh O3 and NPU boots each exposed the
+same one-time 264-byte increase before later runs stabilised; this is consistent
+with first-use status/formatting infrastructure rather than recurring workload
+allocation. The runners now prime one idle status response before the resource
+baseline while preserving zero-growth acceptance for the measured schedule.
+
+Three source-bound images were produced:
+
+| Image | Build ID | text / data / BSS | HEX SHA-256 | State |
+| --- | --- | --- | --- | --- |
+| O3 scalar | `52c1cf2c…de361a` | 425,852 / 18,104 / 351,812 | `06d12585…a80a9` | Flashed, verified, preflight failed |
+| K1 + identified U55 + failure seam | `690f3e20…8664fc` | 636,676 / 18,128 / 607,992 | `0417f481…74eac` | Flashed, verified, all bounded cells executed |
+| Generic P4 + K1 + identified U55 | `0a154a78…6bb907` | 666,500 / 42,408 / 657,172 | `549fb6dd…13a04` | Built; P4 ROM entry not observed |
 
 All use Arm GNU 13.3.1, scalar M85 FP, `-ffp-contract=off`, no fast-math,
 disabled vectorisers and no MVE. M33 remains parked. The NPU images bind the
@@ -91,11 +113,11 @@ same external generated graph sources and two alternating INT8 inputs; raw PMU
 cycle, NPU_ACTIVE and MAC_ACTIVE counters are recorded without a factor-of-two
 conversion.
 
-The semantic seam never feeds smoke output to lighting. Its deterministic host
-campaign accepts 309 controlled updates, fires each required rejection/error
-cell once, uses exactly one capacity-one pressure replacement, records nine
-fallback hops and nine recoveries, and finishes valid. Target execution is still
-required.
+The semantic seam never feeds smoke output to lighting. Its target campaign
+accepted 309 controlled updates, fired each required rejection/error cell once,
+used exactly one capacity-one pressure replacement, recorded nine fallback hops
+and nine recoveries, and finished valid. The enclosing coexistence cell still
+failed on 2,068 deadlines, so semantic recovery correctness does not pass F2.
 
 ## Generic P4/E1 boundary
 
@@ -138,11 +160,12 @@ Titan-S3 link. No connected PDM path, LED backend, bridge framing, clock mapping
 power or thermal instrument has been established. PDM remains dependency-blocked
 by E1. G5/K1-B stay open.
 
-The Titan currently runs O2 scalar schedule build
-`63e494ee67941d1337fcdd66ba5d654df90ece09063cf339d94f56f811b95a45`
-with M33/U55 parked. Four fresh programming attempts for the O3 image observed
-zero ROM devices and exited before opening, erasing or writing a target. No
-programmer remains running; application USB is present and unowned.
+The Titan currently runs identified NPU build
+`690f3e205e1ae1123a644ce4057dfec9900633fbc60c0960e687543cd38664fc`
+with M33 parked and U55 enabled. O3 and NPU programming completed with full
+readback verification. The first P4 programming attempt observed zero ROM
+devices and exited before opening, erasing or writing the target. No programmer
+remains running.
 
 ## G8 review and decision packet
 
@@ -155,12 +178,12 @@ following is an orchestrator self-red-team, not independent acceptance:
 | Stale board or source identity | Target runners require the exact UID, build, source pin, contract, M33 state, C++ startup and expected U55 state |
 | Partial-output comparison | F1 checks all 526 typed fields per hop; P4 checks all 1,025 bins of both FFT outputs plus Goertzel; end-field mutations go red |
 | Mismatched NPU graph/public inputs | Profiles and runners bind all nine generated source/header files, source ONNX, same-compilation TFLite, bundle/run identity and two packed inputs |
-| Dead-code workload | Build receipts require linked call symbols; target acceptance additionally requires exact invocation counts, raw PMU activity and measured NPU wall duty. The latter remains ON-SILICON NOT_RUN for the new images |
+| Dead-code workload | Build receipts require linked call symbols. Identified NPU target runs now prove exact invocation counts, raw PMU activity and measured wall duty; generic P4 execution remains pending |
 | Counter wrap or clock fiction | 32-bit wrap extension is host-tested; runners require DWT/tick agreement within 2%. Long target qualification remains pending |
 | Hidden fast-math or MVE | Compiler flags disable contraction, fast-math and vectorisers; ELF attributes and disassembly reject MVE |
 | Missed heavy frames | The 6,000-hop scalar corpus includes every heavy tempo update. O2 reports 2,005 deadline misses rather than averaging them away |
 | Queue or observer false pass | Capacity, backlog, drops and coalesces are checked; P4 polling-on/off preflights are separate and qualification is frozen polling-off |
-| Heap activity hidden by free-space reserve | Found in self-review and fixed: heap-pool, live-use and high-water growth now fail. Six negative tests cover the acceptance helper |
+| Heap activity hidden by free-space reserve | Found in self-review and fixed: heap-pool, live-use and high-water growth fail. Six negative tests cover the helper; idle observer priming separates first-use reporting infrastructure from the measured workload |
 | Event/availability or failure recovery confusion | Event and availability timestamps are distinct; wrong identity, non-finite, future, stale, ordering, pressure, error, timeout and recovery cells pass on HOST and remain required on target |
 | Future-context or candidate-generated semantic goldens | No semantic candidate qualified. G7 is not run; the smoke graph cannot pass E2 or feed lighting |
 | Physical claims inferred from HOST/USB | Capture, LED, S3 transport, power and thermal cells remain explicitly open |
@@ -169,10 +192,10 @@ The decision comparison is therefore:
 
 | Factor | RA8P1 evidence | Production comparison / decision effect |
 | --- | --- | --- |
-| Correctness and deadlines | F1 exact on 14,000 hops; O2 misses 2,005/6,000 frozen deadlines; O3 and coexistence are not run | No fresh comparable S3 campaign exists, so K1-A stays separate and open. The RA8P1 deadline result cannot justify migration |
-| Memory | F1 retains 24,920 stack bytes and shows no heap growth; larger NPU/P4 images only have build-time sizes so far | No fresh cross-platform memory receipt; target runners now require reserve and zero heap growth |
+| Correctness and deadlines | F1 exact on 14,000 hops; O2/O3 miss 2,005/2,006 deadlines; scheduled NPU misses 2,069 and saturation misses all 6,000 | No fresh comparable S3 campaign exists, so K1-A stays separate and open. Measured RA8P1 coexistence fails and cannot justify migration |
+| Memory | F1 retains 24,920 stack bytes. NPU runs retain at least 25,144 bytes after all cells; first-use allocations stabilise and do not recur | No fresh cross-platform memory receipt; measured schedules enforce reserve and zero post-prime heap growth |
 | Transfer and physical latency | Identified USB fixture transport works; the actual Titan-S3/capture/output path is unproved | K1-B and physical F3 stay open; host traffic is not substituted |
-| Tooling and recovery | The proven Titan route previously programmed and verified images; four current O3 attempts found no ROM device and made no write | Recovery is source-bound but physical ROM entry is presently the execution constraint |
+| Tooling and recovery | The proven route programmed and verified O3 and NPU images in this campaign; the first P4 attempt found no ROM device and made no write | Recovery is source-bound but physical ROM entry remains intermittent |
 | Power and thermal | No identified measurement exists | No production power/thermal conclusion is allowed |
 | Implementation complexity | Actual K1 M85, optional U55 load, failure seam and separate P4 workload now build reproducibly | A production move adds unqualified M85/U55/S3 integration and recovery surfaces while the current platform remains the mature choice |
 
@@ -191,11 +214,11 @@ is measured. The no-candidate outcome keeps E2, semantic F3 and K1-C unpassed.
 | G1 | PASS, HOST + identified target | Preserve timing/identity regression |
 | G2 | PASS for frozen HOST AP/VP slice | Preserve profile and scope |
 | G3 / F1 | PASS for covered modules | Physical capture/output explicitly separate |
-| G4 / F2 | FAILED O2; O3/NPU NOT_RUN | Flash O3; preflight; only soak passing modes; run NPU/failure cells |
+| G4 / F2 | FAILED O2, O3 and identified NPU cells | No soak: no required mode passed its bounded preflight |
 | G5 / physical F3 | OPEN / dependencies identified | E1, identified capture/output/bridge hardware and measured paths |
 | G6 | `NO_QUALIFYING_CANDIDATE` | New material evidence would be required to reopen |
 | G7 | `NOT_RUN_NO_CANDIDATE` | Correct terminal state for this candidate scope |
-| G8 | PARTIAL | Silicon campaigns, physical cells and independent review unavailable |
+| G8 | PARTIAL | Generic P4 silicon, physical cells and independent review unavailable |
 | E1 | HOST + target build PASS; ON-SILICON NOT_RUN | P4 preflights and 30-minute passing concurrent modes |
 | E2 / semantic F3 | UNPASSED | No qualifying selected/deployed candidate |
 | K1-A | OPEN, independent of F2 | E1 plus fresh comparable production-S3 campaign |
@@ -213,22 +236,21 @@ External root:
 `/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002`.
 `external-receipts.json` binds decisive receipts. Failed receipts are preserved.
 
-Next unused programming receipt is `programming-schedule-07`. From this repo:
+Next unused programming receipt is `programming-p4-02`. From this repo:
 
 ```sh
 python3 scripts/programme_scalar.py \
-  --build /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/scalar-schedule-build-06 \
-  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programming-schedule-07 \
+  --build /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/p4-structural-build-06 \
+  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programming-p4-02 \
   --wait-seconds 120 --execute
 ```
 
-Physical entry: hold USER/BOOT, press and release RESET, keep USER/BOOT held
-until `PROGRAMME_VERIFY_PASS`, then release and reset normally. After identity
-readback, run one O3 scalar preflight. A failed preflight is preserved and not
-extended. A passing preflight proceeds to the frozen 40-loop/30-minute scalar
-qualification, then the identified NPU image and its NPU-alone, concurrent,
-saturation and failure cells. Generic P4 follows in its separate image. Only
-passing required concurrent P4 modes receive 30-minute qualification.
+Physical entry: arm the programmer first, hold USER/BOOT, press and release
+RESET, keep USER/BOOT held until `PROGRAMME_VERIFY_PASS`, then release and reset
+normally. Run P4 DSP-alone, NPU-alone, concurrent and saturation preflights with
+polling on and off, plus the final-bin mutation. Only passing required concurrent
+P4 modes receive their frozen 30-minute qualification; failed preflights are
+preserved and not extended.
 
 Host regression:
 

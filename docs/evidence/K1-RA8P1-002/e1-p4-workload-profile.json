@@ -42,7 +42,7 @@
     "modes": {"dsp-alone": 1, "npu-alone": 2, "concurrent": 3, "saturation": 4},
     "priority": "single M85 foreground scheduler; DSP release admitted before NPU; NPU held inside the 2 ms DSP guard",
     "cold_warm": "first invocation retained; no discarded warm-up",
-    "observer": "USB status is outside measured work; any resulting next-release lateness still counts; run polling-on and polling-off preflights, then qualify required concurrent modes with polling off",
+    "observer": "Prime one idle USB status response before the resource baseline. Later USB status is outside measured work; any resulting next-release lateness still counts; run polling-on and polling-off preflights, then qualify required concurrent modes with polling off",
     "qualification_observer": "off",
     "counter_wrap": "32-bit DWT extended by modulo deltas into uint64"
   },
