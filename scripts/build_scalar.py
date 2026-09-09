@@ -17,6 +17,10 @@ BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
 TOOLCHAIN = ROOT.parent / 'toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin'
 SCALAR = '-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
 SAFETY = '-ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage'
+OPTIMISATIONS = {
+    'o2': '-O2',
+    'o3-unroll': '-O3 -funroll-loops -frename-registers',
+}
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -29,6 +33,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
     args=parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
@@ -51,8 +56,9 @@ def main():
                 if path!=args.resident_controls: raise
                 key='external/resident_controls.h'
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY,debug=args.debug,resident=bool(args.resident_controls)),sort_keys=True).encode()).hexdigest()
-        receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY,debug=args.debug,
+        optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls)),sort_keys=True).encode()).hexdigest()
+        receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -66,7 +72,11 @@ def main():
         assert text.count('-march=armv8.1-m.main+mve.fp+fp.dp')==1
         text=text.replace('-march=armv8.1-m.main+mve.fp+fp.dp','-march=armv8.1-m.main+fp.dp')
         text=text.replace("CFLAGS = DEVICE + ' -Dgcc'", "CFLAGS = DEVICE + ' -Dgcc "+SAFETY+"'")
-        if not args.debug: text=text.replace("BUILD = 'debug'", "BUILD = 'release'")
+        if not args.debug:
+            text=text.replace("BUILD = 'debug'", "BUILD = 'release'")
+            if optimisation!='-O2':
+                assert text.count("CFLAGS += ' -O2'")==1
+                text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
         rtconfig.write_text(text)
         config=stage/'rtconfig.h'
         text=config.read_text()

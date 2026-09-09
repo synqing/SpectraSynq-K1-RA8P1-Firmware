@@ -15,7 +15,10 @@ from verify_imports import ROOT, REFERENCE, PIN, verify
 from run_host import run
 from fixture_wire import read_schema, decode
 
-FLAGS = ['-std=c++17', '-O2', '-ffp-contract=off', '-fno-fast-math']
+BASE_FLAGS = ['-std=c++17', '-ffp-contract=off', '-fno-fast-math']
+OPTIMISATIONS = {'o2':['-O2'], 'o3-unroll':['-O3','-funroll-loops','-frename-registers']}
+# Compatibility name used by the independently compiled target-libm probe.
+FLAGS = BASE_FLAGS + OPTIMISATIONS['o2']
 
 def sha(path):
     with Path(path).open('rb') as source:
@@ -79,10 +82,12 @@ def main():
     parser.add_argument('--song', type=Path, action='append', default=[])
     parser.add_argument('--reuse-corpus',type=Path,help='reuse hash-checked PCM; never regenerate goldens in place')
     parser.add_argument('--math-probe-build',type=Path,help='explicit ELF-verified newlib HOST platform profile')
+    parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
     args = parser.parse_args()
+    flags=BASE_FLAGS+OPTIMISATIONS[args.optimisation]
     args.output.mkdir(parents=True, exist_ok=False)
     receipt = dict(label='HOST', start=datetime.now(timezone.utc).isoformat(), source_commit=PIN,
-                   candidate_commit=run(['git', 'rev-parse', 'HEAD'], cwd=ROOT).strip(), flags=FLAGS,
+                   candidate_commit=run(['git', 'rev-parse', 'HEAD'], cwd=ROOT).strip(), flags=flags,
                    contract='sr24000.hop180.bins80.xover40', ap_period_us=7500, render_rate_hz=120,
                    time_model='canonical 48k; zero-cost fixture publication; no physical latency claim',
                    float_acceptance='HOST exact textual roundtrip; integers and pixels exact; target budget NOT FROZEN',
@@ -146,7 +151,7 @@ def main():
             binaries = {}
             for label, source in [('reference', donor), ('candidate', ROOT / 'src/k1')]:
                 executable = args.output / label
-                command = ['c++', *FLAGS, *extra, '-I'+str(source), '-I'+str(ROOT / 'tests/target'),
+                command = ['c++', *flags, *extra, '-I'+str(source), '-I'+str(ROOT / 'tests/target'),
                            str(ROOT / 'tests/host/trajectory_main.cpp'), *[str(source / p) for p in names if p.endswith('.cpp')], '-o', str(executable)]
                 run(command)
                 binaries[label] = executable
