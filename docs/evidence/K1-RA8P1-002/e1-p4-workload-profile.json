@@ -1,0 +1,78 @@
+{
+  "profile_id": "generic-p4-seed0-v1",
+  "status": "FROZEN_BEFORE_ON_SILICON_CAPTURE",
+  "scope": "Generic EdgeAI P4/E1 only; never K1 F1, F2, K1-A or semantic E2",
+  "fixture": {
+    "sample_rate": 16000,
+    "samples": 2048,
+    "seed": 0,
+    "pcm_sha256": "0a01d1ffcb8ba09cf7e5af3dfca9cad3823490d8a59192201f733a5eca981885",
+    "rfft_sha256": "e06be946434134d2bb67404e1367e90f1c3c5f86d4f211db4b2932392e8b8b60",
+    "hann_rfft_sha256": "760bb7a8c54cde4b90d0837ccbeb0b43b3dd40b391bbbe5b985bcbf2f3a58051",
+    "meta_sha256": "1d735a0741969bcc57dbbab6a281643acbb86b5d9500fbe9a031243aea85a448",
+    "packed_header_sha256": "85ab79836f57148b8c4c957e3fb7ae097e673d17d1e8f45dc7dee39d7bd82158",
+    "goertzel_bin": 56,
+    "goertzel_hz": 437.5
+  },
+  "implementation": {
+    "kernels_c_sha256": "05276a0921a3c23ad31b6e306a2cb8bc9d3e72172d3556b247f4d719755f1733",
+    "kernels_h_sha256": "4a08fdfaee109a1a946142a652a6ea12897db943a8cc86a721b73b94948db80f",
+    "runtime_cpp_sha256": "9387238a8cde6d839e9bb36288586f75fa8ee2de73aefd7af12d3b14e2388a3f",
+    "runtime_h_sha256": "4195a7ebdfd1564c19625a80493c4a0adf8dbbbae06f9786b62e028a6e6d2dbe",
+    "compiler_flags": "-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage -O3 -funroll-loops -frename-registers",
+    "compiler": "arm-none-eabi-g++ (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
+    "bsp_pin": "6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7",
+    "mve": "disabled; scalar double implementation only",
+    "m33": "parked",
+    "cache": "D-cache disabled following P2/P3 policy"
+  },
+  "schedule": {
+    "pcm_block": 2048,
+    "pcm_hop": 2048,
+    "release_period_us": 128000,
+    "release_to_completion_deadline_us": 128000,
+    "allowed_release_lateness_us": 100,
+    "npu_period_us": 50000,
+    "npu_admission_guard_us": 2000,
+    "queue_capacity": 1,
+    "preflight_releases": 8,
+    "qualification_releases": 14063,
+    "qualification_seconds": 1800.064,
+    "required_qualification_modes": ["concurrent", "saturation"],
+    "modes": {"dsp-alone": 1, "npu-alone": 2, "concurrent": 3, "saturation": 4},
+    "priority": "single M85 foreground scheduler; DSP release admitted before NPU; NPU held inside the 2 ms DSP guard",
+    "cold_warm": "first invocation retained; no discarded warm-up",
+    "observer": "USB status is outside measured work; any resulting next-release lateness still counts; run polling-on and polling-off captures",
+    "counter_wrap": "32-bit DWT extended by modulo deltas into uint64"
+  },
+  "numerical": {
+    "rfft_all_bins_max_ulp": 2,
+    "hann_rfft_all_bins_max_ulp": 2,
+    "goertzel_absolute_error_max": 1e-6,
+    "non_finite_allowed": false,
+    "mutation": "xor 0x100 into the final rFFT expected word; comparator must report exactly one failed release"
+  },
+  "npu": {
+    "role": "identified constant-output platform load only",
+    "input_header_sha256": "02ec8d11bce9bacfea39b38574b9c7fde33ab996839f0c445ad07404f4285a89",
+    "alternating_inputs": 2,
+    "expected_raw_output": [127, 117, 123],
+    "pmu": "raw Ethos-U cycle, NPU_ACTIVE and MAC_ACTIVE counters; no factor-of-two conversion"
+  },
+  "failure_policy": {
+    "handoff": "capacity-one latest value with deterministic-only fallback",
+    "maximum_age_us": 250000,
+    "cells": ["loss", "delay", "stale", "out-of-order", "invalid identity", "non-finite", "queue pressure", "accelerator error", "accelerator timeout", "recovery"],
+    "boundary": "controlled logical timestamps; no qualifying semantic candidate and no lighting consumer"
+  },
+  "acceptance": {
+    "numeric_failures": 0,
+    "deadline_misses": 0,
+    "release_guard_failures": 0,
+    "backlog_highwater_max": 1,
+    "npu_failures": 0,
+    "npu_output_failures": 0,
+    "stack_untouched_min_bytes": 4096,
+    "heap_free_at_maximum_min_bytes": 32768
+  }
+}

@@ -14,6 +14,9 @@
 #ifdef K1_NPU_LOAD
 #include "npu_load.h"
 #endif
+#ifdef K1_P4_LOAD
+#include "p4_runtime.h"
+#endif
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
@@ -159,7 +162,11 @@ void execute() {
   else if(command==7 && size==8) {
     const std::uint32_t loops=get32(rx+32), flags=get32(rx+36);
     const std::uint32_t mode=(flags>>4)&3U;
-    if(schedule.active || !loops || loops>40 || (flags&~0x73U)) { error(3); return; }
+    if(schedule.active
+#ifdef K1_P4_LOAD
+       || k1_p4_active()
+#endif
+       || !loops || loops>40 || (flags&~0x73U)) { error(3); return; }
 #ifndef K1_NPU_LOAD
     if(mode || (flags&0x40U)) { error(3); return; }
 #else
@@ -172,6 +179,15 @@ void execute() {
     schedule.last_cycle=k1_cycle_count(); schedule.next_release=clock_hz/1000U;
     respond(0,0,"STARTED",7);
   } else if(command==8 && size==0) schedule_status();
+#endif
+#ifdef K1_P4_LOAD
+  else if(command==9 && size==12) {
+    if(k1_fixture_schedule_active() || !k1_p4_start(get32(rx+32),get32(rx+36),get32(rx+40))) error(3);
+    else respond(0,0,"STARTED",7);
+  } else if(command==10 && size==0) {
+    const std::size_t n=k1_p4_status(trace.data,sizeof(trace.data));
+    if(!n) error(8); else respond(0,0,trace.data,n);
+  }
 #endif
   else if((command==2 || command==5) && size==360) {
     if(get32(rx+12)!=trajectory.sequence+1) { error(6); return; }
@@ -191,6 +207,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   // Constructor witness: ChannelRenderState must have installed each channel ID.
   initialised=trajectory.b.channel()==k1::core::visual::PixelChannelId::kChannelB;
+#ifdef K1_P4_LOAD
+  k1_p4_initialise(hz);
+#endif
 }
 extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,std::uint32_t now) {
   if(tx_size) return; // Single outstanding transaction; USB read arm enforces backpressure.
@@ -210,7 +229,13 @@ extern "C" void k1_fixture_disconnect(void) { fill=0; wanted=32; tx_size=0; }
 extern "C" const std::uint8_t* k1_fixture_reply(std::size_t* count) { *count=tx_size; return tx; }
 extern "C" void k1_fixture_sent(void) { tx_size=0; }
 #ifdef K1_RESIDENT_SCHEDULE
-extern "C" bool k1_fixture_schedule_active(void) { return schedule.active; }
+extern "C" bool k1_fixture_schedule_active(void) {
+#ifdef K1_P4_LOAD
+  return schedule.active || k1_p4_active();
+#else
+  return schedule.active;
+#endif
+}
 #ifdef K1_NPU_LOAD
 void run_npu(unsigned count) {
   for(unsigned invocation=0;invocation<count;++invocation) {
@@ -227,6 +252,9 @@ void run_npu(unsigned count) {
 }
 #endif
 extern "C" void k1_fixture_schedule_step(void) {
+#ifdef K1_P4_LOAD
+  if(k1_p4_active()) { k1_p4_step(); return; }
+#endif
   if(!schedule.active) return;
   const std::uint32_t current=k1_cycle_count();
   schedule.elapsed_cycles+=static_cast<std::uint32_t>(current-schedule.last_cycle);

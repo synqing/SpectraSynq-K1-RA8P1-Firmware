@@ -30,6 +30,7 @@ PLATFORM_FILES = [
     'SConscript', 'fixture_app.cpp', 'fixture_app.h', 'hal_entry.c',
     'semantic_sidecar.cpp', 'semantic_sidecar.h',
 ]
+P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -46,6 +47,8 @@ def main():
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
     parser.add_argument('--npu-model',type=Path,help='hash-bound generated smoke-graph C source directory')
     parser.add_argument('--npu-input',type=Path,help='hash-bound generated NPU input header')
+    parser.add_argument('--p4-source',type=Path,help='hash-bound generic P4 kernels.c/kernels.h directory')
+    parser.add_argument('--p4-fixture',type=Path,help='hash-bound packed generic P4 fixture header')
     args=parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
@@ -56,6 +59,8 @@ def main():
         assert receipt['imports']['pass'], 'import gate failed'
         if bool(args.npu_model)!=bool(args.npu_input): raise RuntimeError('NPU model and input must be supplied together')
         if args.npu_model and not args.resident_controls: raise RuntimeError('NPU load requires the resident K1 schedule')
+        if bool(args.p4_source)!=bool(args.p4_fixture): raise RuntimeError('P4 source and fixture must be supplied together')
+        if args.p4_source and not args.npu_model: raise RuntimeError('P4/E1 target image requires the identified NPU load')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.resident_controls:
@@ -67,6 +72,12 @@ def main():
                 path=args.npu_model/name
                 if not path.is_file(): raise RuntimeError(f'missing NPU model source {name}')
                 material.append(path)
+        if args.p4_source:
+            material += [ROOT/'platform/ra8p1'/name for name in P4_PLATFORM_FILES]+[args.p4_fixture]
+            for name in ['kernels.c','kernels.h']:
+                path=args.p4_source/name
+                if not path.is_file(): raise RuntimeError(f'missing P4 source {name}')
+                material.append(path)
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
@@ -75,12 +86,14 @@ def main():
                 if path==args.resident_controls: key='external/resident_controls.h'
                 elif path==args.npu_input: key='external/npu_inputs.h'
                 elif args.npu_model and path.parent==args.npu_model: key='external/npu/'+path.name
+                elif path==args.p4_fixture: key='external/p4_fixture.h'
+                elif args.p4_source and path.parent==args.p4_source: key='external/p4/'+path.name
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model)),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source)),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
-                       resident=bool(args.resident_controls),npu=bool(args.npu_model),
+                       resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -101,6 +114,8 @@ def main():
                 text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
         if args.npu_model:
             text=text.replace("CFLAGS = DEVICE + ' -Dgcc", "CFLAGS = DEVICE + ' -DK1_NPU_LOAD=1 -Dgcc")
+        if args.p4_source:
+            text=text.replace('-DK1_NPU_LOAD=1 -Dgcc','-DK1_NPU_LOAD=1 -DK1_P4_LOAD=1 -Dgcc')
         rtconfig.write_text(text)
         config=stage/'rtconfig.h'
         text=config.read_text()
@@ -120,6 +135,12 @@ def main():
             model_stage=stage/'src/models'; model_stage.mkdir()
             for name in NPU_REQUIRED: shutil.copy2(args.npu_model/name,model_stage/name)
             (model_stage/'SConscript').write_text("from building import *\ncwd=GetCurrentDir()\nobjs=DefineGroup('K1 identified NPU load',Glob('*.c'),depend=[],CPPPATH=[cwd])\nReturn('objs')\n")
+        if args.p4_source:
+            for name in P4_PLATFORM_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+            shutil.copy2(args.p4_fixture,stage/'src/p4_fixture.h')
+            p4_stage=stage/'src/p4'; p4_stage.mkdir()
+            for name in ['kernels.c','kernels.h']: shutil.copy2(args.p4_source/name,p4_stage/name)
+            (p4_stage/'SConscript').write_text("from building import *\ncwd=GetCurrentDir()\nobjs=DefineGroup('Generic P4 kernels',Glob('*.c'),depend=[],CPPPATH=[cwd])\nReturn('objs')\n")
         (stage/'src/build_identity.h').write_text(f'#define K1_BUILD_ID "{identity}"\n#define K1_SOURCE_PIN "{PIN}"\n')
         for name in names:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
@@ -152,6 +173,9 @@ def main():
         else:
             assert 'RM_ETHOSU_Open' not in dump, 'NPU linked into scalar-only image'
         assert 'R_BSP_SecondaryCoreStart' not in dump, 'secondary core linked'
+        if args.p4_source:
+            for symbol in ['p4_kernels','k1_p4_step','k1_p4_status']:
+                assert symbol in dump, f'missing generic P4 target symbol {symbol}'
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])
         receipt['artifacts']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in args.output.iterdir() if p.is_file()}
