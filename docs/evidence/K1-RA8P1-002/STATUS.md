@@ -33,6 +33,8 @@ repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
 | RA8P1 `bf5185e` | Real generated U55 command stream and alternating exact inputs scheduled beside actual K1 |
 | RA8P1 `346646b` | Capacity-one semantic seam with loss/delay/stale/order/identity/finite/pressure/error/timeout recovery |
 | RA8P1 `1a0f62b` | Generic P4 target scheduler for rFFT, bin-56 Goertzel and symmetric Hann-rFFT under NPU load |
+| RA8P1 `b95e999` | P4 deadline guard, unused-flag rejection and explicit unresolved 6 ms authority |
+| RA8P1 `195c935` | Generated-NPU closure, measured NPU duty, observer-free qualification and fail-closed heap-growth acceptance |
 | EdgeAI `d79591d` | Completed bounded candidate admission and correct no-candidate branch |
 | EdgeAI `0b575f3` | Independent host implementation/comparison of the actual generic P4 kernels |
 
@@ -141,6 +143,45 @@ The Titan currently runs O2 scalar schedule build
 with M33/U55 parked. Four fresh programming attempts for the O3 image observed
 zero ROM devices and exited before opening, erasing or writing a target. No
 programmer remains running; application USB is present and unowned.
+
+## G8 review and decision packet
+
+The independent-review dispatch was rejected by the delegation guard. Per the
+Captain's instruction it was not retried and the guard was not changed. The
+following is an orchestrator self-red-team, not independent acceptance:
+
+| False-PASS risk challenged | Current disposition |
+| --- | --- |
+| Stale board or source identity | Target runners require the exact UID, build, source pin, contract, M33 state, C++ startup and expected U55 state |
+| Partial-output comparison | F1 checks all 526 typed fields per hop; P4 checks all 1,025 bins of both FFT outputs plus Goertzel; end-field mutations go red |
+| Mismatched NPU graph/public inputs | Profiles and runners bind all nine generated source/header files, source ONNX, same-compilation TFLite, bundle/run identity and two packed inputs |
+| Dead-code workload | Build receipts require linked call symbols; target acceptance additionally requires exact invocation counts, raw PMU activity and measured NPU wall duty. The latter remains ON-SILICON NOT_RUN for the new images |
+| Counter wrap or clock fiction | 32-bit wrap extension is host-tested; runners require DWT/tick agreement within 2%. Long target qualification remains pending |
+| Hidden fast-math or MVE | Compiler flags disable contraction, fast-math and vectorisers; ELF attributes and disassembly reject MVE |
+| Missed heavy frames | The 6,000-hop scalar corpus includes every heavy tempo update. O2 reports 2,005 deadline misses rather than averaging them away |
+| Queue or observer false pass | Capacity, backlog, drops and coalesces are checked; P4 polling-on/off preflights are separate and qualification is frozen polling-off |
+| Heap activity hidden by free-space reserve | Found in self-review and fixed: heap-pool, live-use and high-water growth now fail. Six negative tests cover the acceptance helper |
+| Event/availability or failure recovery confusion | Event and availability timestamps are distinct; wrong identity, non-finite, future, stale, ordering, pressure, error, timeout and recovery cells pass on HOST and remain required on target |
+| Future-context or candidate-generated semantic goldens | No semantic candidate qualified. G7 is not run; the smoke graph cannot pass E2 or feed lighting |
+| Physical claims inferred from HOST/USB | Capture, LED, S3 transport, power and thermal cells remain explicitly open |
+
+The decision comparison is therefore:
+
+| Factor | RA8P1 evidence | Production comparison / decision effect |
+| --- | --- | --- |
+| Correctness and deadlines | F1 exact on 14,000 hops; O2 misses 2,005/6,000 frozen deadlines; O3 and coexistence are not run | No fresh comparable S3 campaign exists, so K1-A stays separate and open. The RA8P1 deadline result cannot justify migration |
+| Memory | F1 retains 24,920 stack bytes and shows no heap growth; larger NPU/P4 images only have build-time sizes so far | No fresh cross-platform memory receipt; target runners now require reserve and zero heap growth |
+| Transfer and physical latency | Identified USB fixture transport works; the actual Titan-S3/capture/output path is unproved | K1-B and physical F3 stay open; host traffic is not substituted |
+| Tooling and recovery | The proven Titan route previously programmed and verified images; four current O3 attempts found no ROM device and made no write | Recovery is source-bound but physical ROM entry is presently the execution constraint |
+| Power and thermal | No identified measurement exists | No production power/thermal conclusion is allowed |
+| Implementation complexity | Actual K1 M85, optional U55 load, failure seam and separate P4 workload now build reproducibly | A production move adds unqualified M85/U55/S3 integration and recovery surfaces while the current platform remains the mature choice |
+
+**Recommendation:** retain the existing production platform and keep RA8P1 as a
+bench candidate. Reconsider an AP/VP migration only after O3 scalar and the
+identified NPU campaigns pass their frozen preflights/qualifications, generic E1
+passes separately, a fresh comparable production-S3 campaign closes K1-A, the
+identified Titan-S3/capture/output path closes K1-B/F3, and power/thermal evidence
+is measured. The no-candidate outcome keeps E2, semantic F3 and K1-C unpassed.
 
 ## Gate matrix
 
