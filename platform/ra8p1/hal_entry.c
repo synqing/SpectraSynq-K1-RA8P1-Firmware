@@ -8,6 +8,9 @@
 #include <usb_pcdc/usb_pcdc.h>
 #include <stdio.h>
 #include "fixture_app.h"
+#ifdef K1_NPU_LOAD
+#include "npu_load.h"
+#endif
 static uint8_t usb_read[64];
 static bool attached, read_armed, write_pending;
 uint32_t k1_cycle_count(void) { return DWT->CYCCNT; }
@@ -49,6 +52,9 @@ void hal_entry(void) {
     DWT->CYCCNT=0; DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
     uint8_t uid[16]; const uint8_t* raw=R_BSP_UniqueIdGet()->unique_id_bytes;
     for(unsigned i=0;i<16;++i) uid[i]=raw[15-i];
+#ifdef K1_NPU_LOAD
+    (void)k1_npu_initialise();
+#endif
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
     if(FSP_SUCCESS!=R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg)) return;

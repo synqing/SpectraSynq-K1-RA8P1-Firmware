@@ -10,6 +10,9 @@
 #ifdef K1_RESIDENT_SCHEDULE
 #include "resident_controls.h"
 #endif
+#ifdef K1_NPU_LOAD
+#include "npu_load.h"
+#endif
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
@@ -38,16 +41,25 @@ template<unsigned Maximum> struct Distribution {
 };
 struct ScheduleState {
   bool active=false, finished=false;
-  std::uint32_t loops=0, loop=0, hop=0, flags=0, next_release=0;
+  std::uint32_t loops=0, loop=0, hop=0, flags=0, last_cycle=0;
+  std::uint64_t elapsed_cycles=0, next_release=0;
   std::uint32_t correctness_failures=0, deadline_misses=0, render_misses=0;
   std::uint32_t release_guard_failures=0, backlog_highwater=0;
+  std::uint32_t npu_invocations=0, npu_invoke_failures=0, npu_output_failures=0;
+  std::uint64_t npu_cycles=0, npu_active_cycles=0, mac_active_cycles=0;
   Distribution<8000> total, tempo, ordinary;
   Distribution<2000> render;
   Distribution<1000> lateness;
   Distribution<4000> telemetry;
+  Distribution<8000> npu_wall;
 } schedule;
 std::uint32_t microseconds(std::uint32_t cycles) {
   return clock_hz?static_cast<std::uint32_t>((std::uint64_t(cycles)*1000000U+clock_hz-1)/clock_hz):0xffffffffU;
+}
+std::uint32_t microseconds64(std::uint64_t cycles) {
+  if(!clock_hz) return 0xffffffffU;
+  const std::uint64_t value=(cycles*1000000U+clock_hz-1)/clock_hz;
+  return value>0xffffffffU?0xffffffffU:static_cast<std::uint32_t>(value);
 }
 template<class D> void distribution(char* output,std::size_t capacity,std::size_t& offset,const char* name,const D& d) {
   const int n=std::snprintf(output+offset,capacity-offset,
@@ -60,13 +72,21 @@ template<class D> void distribution(char* output,std::size_t capacity,std::size_
 void schedule_status() {
   std::size_t n=0;
   const int first=std::snprintf(trace.data,sizeof(trace.data),
-    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,",
+    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,",
     schedule.active?"true":"false",schedule.finished?"true":"false",
-    (unsigned long)schedule.loops,(unsigned long)schedule.loop,(unsigned long)schedule.hop,
+    (unsigned long)schedule.loops,(unsigned long)schedule.loop,(unsigned long)schedule.hop,(unsigned long)((schedule.flags>>4)&3U),(unsigned long long)schedule.elapsed_cycles,
     (schedule.flags&2U)?"true":"false",
     (unsigned long)schedule.correctness_failures,(unsigned long)schedule.deadline_misses,
     (unsigned long)schedule.render_misses,(unsigned long)schedule.release_guard_failures,
-    (unsigned long)schedule.backlog_highwater);
+    (unsigned long)schedule.backlog_highwater,
+#ifdef K1_NPU_LOAD
+    k1_npu_ready()?"true":"false",
+#else
+    "false",
+#endif
+    (unsigned long)schedule.npu_invocations,(unsigned long)schedule.npu_invoke_failures,
+    (unsigned long)schedule.npu_output_failures,(unsigned long long)schedule.npu_cycles,
+    (unsigned long long)schedule.npu_active_cycles,(unsigned long long)schedule.mac_active_cycles);
   if(first<0 || std::size_t(first)>=sizeof(trace.data)) { error(8); return; }
   n=std::size_t(first);
   distribution(trace.data,sizeof(trace.data),n,"total",schedule.total); if(n<sizeof(trace.data)) trace.data[n++]=',';
@@ -75,6 +95,8 @@ void schedule_status() {
   distribution(trace.data,sizeof(trace.data),n,"render",schedule.render); if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"lateness",schedule.lateness); if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"telemetry",schedule.telemetry);
+  if(n<sizeof(trace.data)) trace.data[n++]=',';
+  distribution(trace.data,sizeof(trace.data),n,"npu_wall",schedule.npu_wall);
   if(n+2>sizeof(trace.data)) { error(8); return; }
   trace.data[n++]='}'; respond(0,0,trace.data,n);
 }
@@ -100,9 +122,14 @@ void execute() {
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
   if (command == 1 && size == 0) {
     char uid[33]; for(unsigned i=0;i<16;++i) std::snprintf(uid+i*2,3,"%02x",board_uid[i]);
+#ifdef K1_NPU_LOAD
+    const char* u55_opened=k1_npu_ready()?"true":"false";
+#else
+    const char* u55_opened="false";
+#endif
     const int n=std::snprintf(trace.data,sizeof(trace.data),
-      "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\"sr24000.hop180.bins80.xover40\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":false,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u}",
-      uid,K1_BUILD_ID,K1_SOURCE_PIN,(unsigned long)clock_hz,(unsigned long)cpu_wait,initialised?"true":"false",
+      "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\"sr24000.hop180.bins80.xover40\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u}",
+      uid,K1_BUILD_ID,K1_SOURCE_PIN,(unsigned long)clock_hz,(unsigned long)cpu_wait,u55_opened,initialised?"true":"false",
       (unsigned long)rejected,(unsigned long)trajectory.sequence,unsigned(sizeof(trajectory)),unsigned(sizeof(trace)));
     if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8); else respond(0,0,trace.data,std::size_t(n));
   } else if(command==6 && size==0) {
@@ -122,10 +149,16 @@ void execute() {
 #ifdef K1_RESIDENT_SCHEDULE
   else if(command==7 && size==8) {
     const std::uint32_t loops=get32(rx+32), flags=get32(rx+36);
-    if(schedule.active || !loops || loops>40 || flags>3) { error(3); return; }
+    const std::uint32_t mode=(flags>>4)&3U;
+    if(schedule.active || !loops || loops>40 || (flags&~0x33U)) { error(3); return; }
+#ifndef K1_NPU_LOAD
+    if(mode) { error(3); return; }
+#else
+    if(mode && !k1_npu_ready()) { error(10); return; }
+#endif
     std::memset(&schedule,0,sizeof(schedule)); schedule.active=true; schedule.loops=loops; schedule.flags=flags;
     trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=1;
-    schedule.next_release=k1_cycle_count()+clock_hz/1000U;
+    schedule.last_cycle=k1_cycle_count(); schedule.next_release=clock_hz/1000U;
     respond(0,0,"STARTED",7);
   } else if(command==8 && size==0) schedule_status();
 #endif
@@ -167,22 +200,56 @@ extern "C" const std::uint8_t* k1_fixture_reply(std::size_t* count) { *count=tx_
 extern "C" void k1_fixture_sent(void) { tx_size=0; }
 #ifdef K1_RESIDENT_SCHEDULE
 extern "C" bool k1_fixture_schedule_active(void) { return schedule.active; }
+#ifdef K1_NPU_LOAD
+void run_npu(unsigned count) {
+  for(unsigned invocation=0;invocation<count;++invocation) {
+    k1_npu_measurement_t measurement{};
+    k1_npu_invoke(schedule.npu_invocations&1U,&measurement);
+    ++schedule.npu_invocations;
+    schedule.npu_wall.add(microseconds(measurement.wall_cycles));
+    schedule.npu_cycles+=measurement.npu_cycles;
+    schedule.npu_active_cycles+=measurement.npu_active;
+    schedule.mac_active_cycles+=measurement.mac_active;
+    if(measurement.invoke_status) ++schedule.npu_invoke_failures;
+    if(!measurement.output_match) ++schedule.npu_output_failures;
+  }
+}
+#endif
 extern "C" void k1_fixture_schedule_step(void) {
   if(!schedule.active) return;
-  const std::uint32_t now=k1_cycle_count();
-  if(static_cast<std::int32_t>(now-schedule.next_release)<0) return;
-  const std::uint32_t lateness=now-schedule.next_release;
+  const std::uint32_t current=k1_cycle_count();
+  schedule.elapsed_cycles+=static_cast<std::uint32_t>(current-schedule.last_cycle);
+  schedule.last_cycle=current;
+  if(schedule.elapsed_cycles<schedule.next_release) return;
+  const std::uint64_t lateness=schedule.elapsed_cycles-schedule.next_release;
   const std::uint32_t period=static_cast<std::uint32_t>((std::uint64_t(clock_hz)*3U)/400U); // 7.5 ms.
   const std::uint32_t index=schedule.hop;
+  const std::uint32_t mode=(schedule.flags>>4)&3U;
+#ifdef K1_NPU_LOAD
+  if(mode==3U) {
+    const std::uint64_t media_us=(std::uint64_t(schedule.loop)*K1_RESIDENT_HOPS+index+1U)*7500U;
+    if(media_us/50000U>schedule.npu_invocations) run_npu(1);
+  } else
+#endif
+  {
   const std::int16_t* pcm=k1_resident_pcm[k1_resident_index[index]];
+  const std::uint32_t workload_started=k1_cycle_count();
   trajectory.process(pcm);
-  const std::uint32_t completion=lateness+trajectory.total_cycles;
-  const std::uint32_t total_us=microseconds(trajectory.total_cycles);
+#ifdef K1_NPU_LOAD
+  if(mode==1U) {
+    const std::uint64_t media_us=(std::uint64_t(schedule.loop)*K1_RESIDENT_HOPS+index+1U)*7500U;
+    if(media_us/50000U>schedule.npu_invocations) run_npu(1);
+  } else if(mode==2U) run_npu(3);
+#endif
+  const std::uint32_t workload_cycles=mode?k1_cycle_count()-workload_started:trajectory.total_cycles;
+  const std::uint64_t completion=lateness+workload_cycles;
+  const std::uint32_t total_us=microseconds(workload_cycles);
   schedule.total.add(total_us);
   (trajectory.output.tempo.updated?schedule.tempo:schedule.ordinary).add(total_us);
   if(trajectory.rendered) schedule.render.add(microseconds(trajectory.render_cycles));
-  schedule.lateness.add(microseconds(lateness));
-  const std::uint32_t backlog=1+lateness/period;
+  schedule.lateness.add(microseconds64(lateness));
+  const std::uint64_t backlog64=1+lateness/period;
+  const std::uint32_t backlog=backlog64>0xffffffffU?0xffffffffU:static_cast<std::uint32_t>(backlog64);
   if(backlog>schedule.backlog_highwater) schedule.backlog_highwater=backlog;
   if(completion>period) ++schedule.deadline_misses;
   if(trajectory.rendered && trajectory.render_cycles>clock_hz/500U) ++schedule.render_misses;
@@ -196,6 +263,7 @@ extern "C" void k1_fixture_schedule_step(void) {
        crc(reinterpret_cast<const std::uint8_t*>(trace.data),trace.size)!=expected_crc) ++schedule.correctness_failures;
     trace.format=fixture::Trace::Format::text;
     schedule.telemetry.add(microseconds(k1_cycle_count()-before));
+  }
   }
   schedule.next_release+=period;
   if(++schedule.hop==K1_RESIDENT_HOPS) {

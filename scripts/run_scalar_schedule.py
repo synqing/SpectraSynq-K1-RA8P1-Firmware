@@ -12,6 +12,7 @@ import zlib
 from datetime import datetime,timezone
 from run_scalar_target import packet,read_exact,UID
 from verify_imports import PIN
+MODES={'scalar':0,'scheduled':1,'saturation':2,'npu-alone':3}
 
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -24,10 +25,11 @@ def main():
     parser.add_argument('--loops',type=int,default=1)
     parser.add_argument('--qualification',action='store_true')
     parser.add_argument('--mutation',action='store_true',help='prove the target comparator rejects one deliberately wrong expected CRC')
+    parser.add_argument('--mode',choices=MODES,default='scalar')
     args=parser.parse_args()
     args.output.mkdir(parents=True,exist_ok=False)
     receipt=dict(label='ON-SILICON',gate='G4_SCALAR_SUBPROFILE',start=datetime.now(timezone.utc).isoformat(),
-                 loops=args.loops,qualification=args.qualification,mutation=args.mutation,**{'pass':False})
+                 loops=args.loops,qualification=args.qualification,mutation=args.mutation,mode=args.mode,**{'pass':False})
     port=None
     try:
         import serial
@@ -36,7 +38,7 @@ def main():
         resident=json.loads((args.resident/'receipt.json').read_text())
         receipt['identities']=dict(profile_sha256=sha(args.profile),build_receipt_sha256=sha(args.build/'receipt.json'),
                                   resident_receipt_sha256=sha(args.resident/'receipt.json'))
-        if profile['status']!='FROZEN_SCALAR_SUBPROFILE_NOT_YET_QUALIFIED' or profile['source_pin']!=PIN:
+        if profile['status'] not in ('FROZEN_SCALAR_SUBPROFILE_NOT_YET_QUALIFIED','FROZEN_NPU_LOAD_PROFILE_NOT_YET_QUALIFIED') or profile['source_pin']!=PIN:
             raise RuntimeError('wrong or unfrozen scalar profile')
         if not build['pass'] or build['source_pin']!=PIN or 'external/resident_controls.h' not in build['sources']:
             raise RuntimeError('build is not an accepted resident K1 image')
@@ -46,10 +48,22 @@ def main():
             raise RuntimeError('resident header identity mismatch')
         if resident['pcm_sha256']!=profile['fixture']['pcm_sha256'] or resident['hops']!=profile['fixture']['hops_per_loop']:
             raise RuntimeError('resident fixture identity mismatch')
-        if args.qualification and args.loops!=profile['schedule']['qualification_loops']:
+        mode=MODES[args.mode]
+        if mode and not build.get('npu'): raise RuntimeError('NPU mode requires an identified NPU build')
+        if profile['status'].startswith('FROZEN_NPU'):
+            if not mode: raise RuntimeError('NPU profile requires an NPU mode')
+            if build['sources'].get('external/npu_inputs.h')!=profile['npu']['input_header_sha256']:
+                raise RuntimeError('NPU input identity mismatch')
+            for name,digest in profile['npu']['generated_sources'].items():
+                if build['sources'].get('external/npu/'+name)!=digest: raise RuntimeError(f'NPU source mismatch {name}')
+        elif mode:
+            raise RuntimeError('scalar profile cannot run an NPU mode')
+        qualification_loops=profile['schedule'].get('qualification_loops',profile['schedule'].get('qualification_loops_per_mode'))
+        if args.qualification and args.loops!=qualification_loops:
             raise RuntimeError('qualification must use the exact frozen loop count')
         if args.qualification and args.mutation:
             raise RuntimeError('qualification cannot inject a comparator mutation')
+        if args.mutation and mode: raise RuntimeError('comparator mutation is scalar-only')
         if not args.qualification and args.loops!=1:
             raise RuntimeError('non-qualification validation is exactly one loop')
         matches=[p for p in list_ports.comports() if (p.vid,p.pid)==(0x045b,0x5310)]
@@ -74,12 +88,12 @@ def main():
         receipt['runtime']=info
         if (info['uid']!=UID or info['build']!=build['build_id'] or info['source']!=PIN or
             info['protocol']!=1 or info['contract']!='sr24000.hop180.bins80.xover40' or
-            info['clock_hz']<=0 or info['cpu1_actcsr']&0x80 or info['u55_opened'] or not info['cpp_initialised']):
+            info['clock_hz']<=0 or info['cpu1_actcsr']&0x80 or bool(info['u55_opened'])!=bool(build.get('npu')) or not info['cpp_initialised']):
             raise RuntimeError('runtime identity/parked baseline mismatch')
         receipt['resources_before']=json.loads(transact(6))
         transact(7,struct.pack('<II',0,1),expected=3)
         transact(7,struct.pack('<II',args.loops,4),expected=3)
-        flags=3 if args.mutation else 1
+        flags=(3 if args.mutation else 1)|(mode<<4)
         if transact(7,struct.pack('<II',args.loops,flags))!=b'STARTED': raise RuntimeError('schedule did not start')
         transact(7,struct.pack('<II',1,1),expected=3)
         deadline=time.monotonic()+args.loops*profile['fixture']['seconds_per_loop']+60
@@ -93,10 +107,12 @@ def main():
         receipt['result']=status
         receipt['resources_after']=json.loads(transact(6))
         acceptance=profile['acceptance']; expected=args.loops*profile['fixture']['hops_per_loop']
-        if status['total']['count']!=expected or status['tempo']['count']+status['ordinary']['count']!=expected:
+        expected_k1=0 if args.mode=='npu-alone' else expected
+        if status['total']['count']!=expected_k1 or status['tempo']['count']+status['ordinary']['count']!=expected_k1:
             raise RuntimeError('measurement count mismatch')
-        if status['render']['count']!=args.loops*profile['fixture']['renders_per_loop']:
-            raise RuntimeError('render measurement count mismatch')
+        expected_renders=0 if args.mode=='npu-alone' else args.loops*profile['fixture']['renders_per_loop']
+        if status['render']['count']!=expected_renders: raise RuntimeError('render measurement count mismatch')
+        if status['mode']!=mode: raise RuntimeError('target mode mismatch')
         if status['queue_capacity']!=profile['schedule']['queue_capacity'] or status['drops'] or status['coalesces']:
             raise RuntimeError('bounded queue contract failed')
         expected_correctness=1 if args.mutation else acceptance['correctness_failures']
@@ -104,7 +120,17 @@ def main():
             raise RuntimeError(f'correctness_failures={status["correctness_failures"]} expected={expected_correctness}')
         if bool(status['crc_mutation_injected'])!=args.mutation:
             raise RuntimeError('target mutation witness mismatch')
-        if not args.mutation:
+        if mode:
+            if not status['npu_ready'] or status['npu_invoke_failures']!=acceptance['npu_invoke_failures'] or status['npu_output_failures']!=acceptance['npu_output_failures']:
+                raise RuntimeError('NPU activity/correctness failed')
+            if args.mode in ('scheduled','npu-alone'):
+                expected_npu=args.loops*profile['fixture']['seconds_per_loop']*1000000//profile['schedule']['scheduled_npu_period_us']
+            else: expected_npu=expected*profile['schedule']['saturation_invocations_per_hop']
+            if status['npu_invocations']!=expected_npu or status['npu_wall']['count']!=expected_npu:
+                raise RuntimeError('NPU invocation count mismatch')
+            if not all(status[field]>0 for field in ('npu_cycles','npu_active_cycles','mac_active_cycles')):
+                raise RuntimeError('NPU PMU activity witness missing')
+        if not args.mutation and args.mode!='npu-alone':
             for field in ('deadline_misses','render_misses','release_guard_failures'):
                 if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')
         if status['backlog_highwater']>acceptance['backlog_highwater_max']: raise RuntimeError('backlog exceeded')
@@ -114,7 +140,7 @@ def main():
         for metrics in (receipt['resources_before'],after):
             observed=metrics['clock_check_cycles']*metrics['tick_hz']/metrics['clock_check_ticks']
             if abs(observed/info['clock_hz']-1)>0.02: raise RuntimeError('DWT/tick clock consistency failed')
-        receipt['gate']='G4_TARGET_COMPARATOR_NEGATIVE' if args.mutation else 'G4_SCALAR_SUBPROFILE'
+        receipt['gate']='G4_TARGET_COMPARATOR_NEGATIVE' if args.mutation else ('K1-RA8P1-002-NPU-COEXIST' if mode else 'G4_SCALAR_SUBPROFILE')
         receipt['pass']=True
     except Exception as error:
         receipt['error']=str(error); raise

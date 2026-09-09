@@ -21,6 +21,11 @@ OPTIMISATIONS = {
     'o2': '-O2',
     'o3-unroll': '-O3 -funroll-loops -frename-registers',
 }
+NPU_REQUIRED = [
+    'ethosu_common.h', 'sub_0001_command_stream.c', 'sub_0001_command_stream.h',
+    'sub_0001_invoke.c', 'sub_0001_invoke.h', 'sub_0001_model_data.c',
+    'sub_0001_model_data.h', 'sub_0001_tensors.c', 'sub_0001_tensors.h',
+]
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -35,6 +40,8 @@ def main():
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
+    parser.add_argument('--npu-model',type=Path,help='hash-bound generated smoke-graph C source directory')
+    parser.add_argument('--npu-input',type=Path,help='hash-bound generated NPU input header')
     args=parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
@@ -43,22 +50,33 @@ def main():
         assert not command(['git','-C',BSP,'status','--porcelain','--untracked-files=all']).strip(), 'BSP dirty'
         receipt['imports']=verify(ROOT,REFERENCE,'product',True)
         assert receipt['imports']['pass'], 'import gate failed'
+        if bool(args.npu_model)!=bool(args.npu_input): raise RuntimeError('NPU model and input must be supplied together')
+        if args.npu_model and not args.resident_controls: raise RuntimeError('NPU load requires the resident K1 schedule')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in ['SConscript','fixture_app.cpp','fixture_app.h','hal_entry.c']]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.resident_controls:
             if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
             material.append(args.resident_controls)
+        if args.npu_model:
+            material += [ROOT/'platform/ra8p1'/'npu_load.c',ROOT/'platform/ra8p1'/'npu_load.h',args.npu_input]
+            for name in NPU_REQUIRED:
+                path=args.npu_model/name
+                if not path.is_file(): raise RuntimeError(f'missing NPU model source {name}')
+                material.append(path)
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
             try: key=str(path.relative_to(ROOT))
             except ValueError:
-                if path!=args.resident_controls: raise
-                key='external/resident_controls.h'
+                if path==args.resident_controls: key='external/resident_controls.h'
+                elif path==args.npu_input: key='external/npu_inputs.h'
+                elif args.npu_model and path.parent==args.npu_model: key='external/npu/'+path.name
+                else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls)),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model)),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
+                       resident=bool(args.resident_controls),npu=bool(args.npu_model),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -77,6 +95,8 @@ def main():
             if optimisation!='-O2':
                 assert text.count("CFLAGS += ' -O2'")==1
                 text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
+        if args.npu_model:
+            text=text.replace("CFLAGS = DEVICE + ' -Dgcc", "CFLAGS = DEVICE + ' -DK1_NPU_LOAD=1 -Dgcc")
         rtconfig.write_text(text)
         config=stage/'rtconfig.h'
         text=config.read_text()
@@ -89,6 +109,13 @@ def main():
             shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
             scon=stage/'src/SConscript'
             scon.write_text(scon.read_text().replace("LOCAL_CXXFLAGS=' -std=c++17", "LOCAL_CXXFLAGS=' -DK1_RESIDENT_SCHEDULE=1 -std=c++17"))
+        if args.npu_model:
+            shutil.copy2(ROOT/'platform/ra8p1'/'npu_load.c',stage/'src/npu_load.c')
+            shutil.copy2(ROOT/'platform/ra8p1'/'npu_load.h',stage/'src/npu_load.h')
+            shutil.copy2(args.npu_input,stage/'src/npu_inputs.h')
+            model_stage=stage/'src/models'; model_stage.mkdir()
+            for name in NPU_REQUIRED: shutil.copy2(args.npu_model/name,model_stage/name)
+            (model_stage/'SConscript').write_text("from building import *\ncwd=GetCurrentDir()\nobjs=DefineGroup('K1 identified NPU load',Glob('*.c'),depend=[],CPPPATH=[cwd])\nReturn('objs')\n")
         (stage/'src/build_identity.h').write_text(f'#define K1_BUILD_ID "{identity}"\n#define K1_SOURCE_PIN "{PIN}"\n')
         for name in names:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
@@ -115,7 +142,12 @@ def main():
         if args.resident_controls:
             for symbol in ['k1_fixture_schedule_step','k1_resident_pcm','k1_resident_crc','k1_resident_length']:
                 assert symbol in symbols, f'missing resident schedule symbol {symbol}'
-        assert 'RM_ETHOSU_Open' not in dump and 'R_BSP_SecondaryCoreStart' not in dump, 'secondary compute linked'
+        if args.npu_model:
+            for symbol in ['RM_ETHOSU_Open','sub_0001_invoke','k1_npu_invoke']:
+                assert symbol in dump, f'missing NPU execution symbol {symbol}'
+        else:
+            assert 'RM_ETHOSU_Open' not in dump, 'NPU linked into scalar-only image'
+        assert 'R_BSP_SecondaryCoreStart' not in dump, 'secondary core linked'
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])
         receipt['artifacts']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in args.output.iterdir() if p.is_file()}

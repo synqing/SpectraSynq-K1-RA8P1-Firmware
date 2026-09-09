@@ -5,6 +5,16 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#ifdef K1_NPU_LOAD
+#include "npu_load.h"
+extern "C" bool k1_npu_ready() { return true; }
+extern "C" bool k1_npu_initialise() { return true; }
+extern "C" void k1_npu_invoke(std::uint32_t, k1_npu_measurement_t* measurement) {
+  measurement->invoke_status=0; measurement->wall_cycles=50;
+  measurement->npu_cycles=40; measurement->npu_active=30;
+  measurement->mac_active=20; measurement->output_match=true;
+}
+#endif
 
 static std::uint32_t cycles;
 extern "C" std::uint32_t k1_cycle_count() { return cycles+=100; }
@@ -37,6 +47,9 @@ int main() {
   std::uint8_t uid[16]{}; k1_fixture_initialise(uid,1000000,0);
   assert(get(start(0,0).data()+4)==3);
   assert(get(start(1,4).data()+4)==3);
+#ifndef K1_NPU_LOAD
+  assert(get(start(1,0x10).data()+4)==3);
+#endif
   auto accepted=start(1,0); assert(get(accepted.data()+4)==0);
   assert(std::string(reinterpret_cast<char*>(accepted.data()+32),accepted.size()-32)=="STARTED");
   assert(get(start(1,0).data()+4)==3);
@@ -48,5 +61,18 @@ int main() {
   assert(json.find("\"loops_complete\":1")!=std::string::npos);
   assert(json.find("\"queue_capacity\":1")!=std::string::npos);
   assert(json.find("\"count\":1")!=std::string::npos);
-  std::puts("K1_RESIDENT_SCHEDULE_PROTOCOL=PASS bounds=PASS start_exclusion=PASS completion=PASS status=PASS");
+  cycles=0xfffffc00U;
+  accepted=start(1,0); assert(get(accepted.data()+4)==0);
+  for(unsigned i=0;i<1000 && k1_fixture_schedule_active();++i) k1_fixture_schedule_step();
+  assert(!k1_fixture_schedule_active());
+#ifdef K1_NPU_LOAD
+  accepted=start(1,0x20); assert(get(accepted.data()+4)==0);
+  for(unsigned i=0;i<1000 && k1_fixture_schedule_active();++i) k1_fixture_schedule_step();
+  assert(!k1_fixture_schedule_active());
+  status=send(packet(8)); json.assign(reinterpret_cast<char*>(status.data()+32),status.size()-32);
+  assert(json.find("\"mode\":2")!=std::string::npos);
+  assert(json.find("\"npu_invocations\":3")!=std::string::npos);
+  assert(json.find("\"npu_ready\":true")!=std::string::npos);
+#endif
+  std::puts("K1_RESIDENT_SCHEDULE_PROTOCOL=PASS bounds=PASS start_exclusion=PASS completion=PASS cycle_wrap=PASS npu_mode=PASS status=PASS");
 }

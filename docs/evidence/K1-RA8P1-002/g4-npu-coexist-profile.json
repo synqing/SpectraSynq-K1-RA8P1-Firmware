@@ -1,0 +1,78 @@
+{
+  "profile_id": "K1-RA8P1-002-NPU-COEXIST-smoke-v1",
+  "status": "FROZEN_NPU_LOAD_PROFILE_NOT_YET_QUALIFIED",
+  "source_pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+  "scalar_baseline": {
+    "f1_build_id": "a07b6bba8f5479cdaa3aa75a6d65e4a25de787c7b2ab1e52590e5e938f58f0ec",
+    "host_reference_receipt_sha256": "11b34fe6d4a6984dd712b61c4a1159a98ed5845864a24abc6931bc876ccd69b6",
+    "resident_header_sha256": "5004033206cb9950374ec50ca0835481a21a03ea4059103862ff7bc29f7cccba",
+    "optimisation": "-O3 -funroll-loops -frename-registers",
+    "safety": "no MVE; -ffp-contract=off; -fno-fast-math; vectorisers disabled",
+    "m33": "parked"
+  },
+  "npu": {
+    "role": "identified platform load only; not a semantic candidate and not E2",
+    "source_onnx_sha256": "5d0097e83fe269acb6ce92c5ab84cfe897561d3858328f2f0c610262c3801bd6",
+    "same_compilation_tflite_sha256": "1fbdbb2878f5223697f70366036bf6260026f2e7ebbdb0dd0e0987d726f96fed",
+    "github_run_id": "34216631562",
+    "bundle_manifest_sha256": "dffbc0cc52b9d5e627deeb85635bc71e2b40447f9a6413c1428b9aa1b10b93ea",
+    "input_header_sha256": "02ec8d11bce9bacfea39b38574b9c7fde33ab996839f0c445ad07404f4285a89",
+    "inputs": 2,
+    "input_shape": [1, 6400],
+    "input_dtype": "int8",
+    "expected_raw_output": [127, 117, 123],
+    "generated_sources": {
+      "ethosu_common.h": "d880e8a85f548cc62d4164e5b8b407db1c03c9568402c4eb1acc5671d8bf4f91",
+      "sub_0001_command_stream.c": "823d29cb09ed2e23a364c8c8358766626c958b57579e2b91afe3d7e5d07d41fd",
+      "sub_0001_command_stream.h": "10deef801cbabe53d77995095d207d6fc3e8b106ef831e6a5eaaf1bf4b57334d",
+      "sub_0001_invoke.c": "653d050f757e0b11bb3f7cb279660c472bfcf521c9195ebdba48228340b519e9",
+      "sub_0001_invoke.h": "326be653edb79638200ba9112f5ebf93b12748050b91f7c62afa76cbdad03145",
+      "sub_0001_model_data.c": "1296a89a2a3579341dd656e022fea1bb6a545a08a1e63361a1151e331623eb13",
+      "sub_0001_model_data.h": "c67f019ca62380cdc9bdd20f6a07fff6b0c9f737a9e3b8492aa3d6114cb2553d",
+      "sub_0001_tensors.c": "ace7963f5bbc040b5c151d069bca3982ac812ff909fa5f577ea47748c4634320",
+      "sub_0001_tensors.h": "5682ef9ebca270e3484f9b5f9d40682d3a9bd9e55e1ce6b91033581e6f066447"
+    },
+    "pmu": "raw Ethos-U PMU cycle, NPU_ACTIVE and MAC_ACTIVE counters; no factor-of-two conversion"
+  },
+  "fixture": {
+    "pcm_sha256": "5970e8d26787f5c9ccdda50b95077d3da503b3826495ed7232d2854fecb8d394",
+    "hops_per_loop": 6000,
+    "renders_per_loop": 5400,
+    "seconds_per_loop": 45
+  },
+  "schedule": {
+    "hop_period_us": 7500,
+    "release_to_completion_deadline_us": 7500,
+    "release_lateness_guard_us": 100,
+    "dual_channel_render_budget_us": 2000,
+    "queue_capacity": 1,
+    "drops_allowed": 0,
+    "coalesces_allowed": 0,
+    "scheduled_npu_period_us": 50000,
+    "saturation_invocations_per_hop": 3,
+    "qualification_loops_per_mode": 40,
+    "qualification_seconds_per_mode": 1800,
+    "modes": {
+      "scheduled": 1,
+      "saturation": 2,
+      "npu-alone": 3
+    },
+    "observer": "full compact AP/VP CRC each hop; PMU and wall counters; USB status polling outside measured work"
+  },
+  "acceptance": {
+    "correctness_failures": 0,
+    "npu_invoke_failures": 0,
+    "npu_output_failures": 0,
+    "deadline_misses": 0,
+    "render_budget_misses": 0,
+    "release_guard_failures": 0,
+    "backlog_highwater_max": 1,
+    "stack_untouched_min_bytes": 4096,
+    "heap_free_at_maximum_min_bytes": 32768
+  },
+  "boundaries": {
+    "semantic": "NO_QUALIFYING_CANDIDATE; smoke output never reaches a lighting consumer",
+    "failure_campaign": "Loss, delay, identity, ordering, non-finite, timeout and recovery remain required controlled-seam cells",
+    "qualification": "Each passing required concurrent mode needs 40 loops; a failed one-loop preflight remains failed and is not extended merely to accumulate misses"
+  }
+}
