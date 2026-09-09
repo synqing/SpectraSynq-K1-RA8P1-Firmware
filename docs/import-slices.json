@@ -1,0 +1,11 @@
+{
+  "timing": [
+    "core/audio/media_time.h", "core/audio/media_time.cpp",
+    "core/audio/musical_time.h", "core/audio/musical_time.cpp",
+    "core/audio/clock_affine.h", "core/audio/clock_affine.cpp",
+    "core/audio/clock_exchange.h", "core/audio/clock_exchange.cpp",
+    "core/audio/peer_clock_sync.h", "core/audio/peer_clock_sync.cpp",
+    "core/system/media_time_correlation.h", "core/system/media_time_correlation.cpp",
+    "core/system/realtime_render_scheduler.h", "core/system/realtime_render_scheduler.cpp"
+  ]
+}

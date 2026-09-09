@@ -1,0 +1,41 @@
+{
+  "label": "HOST",
+  "source_commit": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+  "candidate_commit": "e21bad86a6c53477ae986899ad494459837537bc",
+  "compiler": "Apple clang version 17.0.0 (clang-1700.6.3.2)",
+  "imports": {
+    "slice": "timing",
+    "mode": "ACCEPTANCE",
+    "required": 14,
+    "checked": 14,
+    "missing": 0,
+    "divergent": 0,
+    "errors": [],
+    "pass": true
+  },
+  "tests": [
+    {
+      "name": "test/test_musical_time/test_main.cpp",
+      "fixture_sha256": "7b063bad008b6f447bbbec5914c39094e9ed52eadb4c63468a616ca5819b3fe6",
+      "pass": true,
+      "outputs": {
+        "reference": "K1-DM-141 MUSICAL_TIME + AFFINE CLOCK MAP\n  MT_DRIFT beats=50000 worst_err_frames=0.000000\n  MT_DRIFT integer_period_error_at_50k_beats=670.3 ms (this is what we avoid)\n  MT_LONG_RUN beats=1000000 frame=24000000000 old_signed_q32_boundary=CROSSED\n  MT_PORTABLE_MUL vectors=2000 wide_reference=MATCH\n  AFFINE known_ppm=   0.0 measured=   0.000 err=0.000 offset_err=0.0 fit_rms=0.00\n  AFFINE known_ppm=  20.0 measured=  20.006 err=0.006 offset_err=0.5 fit_rms=0.31\n  AFFINE known_ppm= -20.0 measured= -20.037 err=0.037 offset_err=0.3 fit_rms=0.29\n  AFFINE known_ppm=  50.0 measured=  50.000 err=0.000 offset_err=0.0 fit_rms=0.00\n  AFFINE outlier_test skew=20.017 accepted=12 fit_rms=0.31\n  AFFINE heavy_jitter accepted=14/24 skew=29.892 fit_rms=0.28 conf=0.77\n  FOUR_STAMP skew_expected=41.001 measured=40.993 target_err_ms=0.132\n  PEER_SYNC skew_expected=40.000 measured=40.674 beat_target_err_ms=0.103\n  INTEGRATED rel_ppm expected=40.001 measured=40.037 fit_rms=0.4 conf=0.74 n=14\n  INTEGRATED worst_target_frame_error=0.141 ms over 16 predicted beats\n  INTEGRATED predict_ahead=0.141 ms vs react_after_transport>=2.0 ms\n  VECTORS rows=90 mismatches=0 digest=0x685C16CF64C1B5C8 (independent Python, integer BPM)\n  BPM_QUANT best_integer_bpm err_beat1=1.59 ms err_beat100=159.4 ms ; fractional err_beat100=0.000000 ms\nK1_DM_141_MUSICAL_TIME=PASS canonical=MEDIA_TIME_48K period=Q32.32 affine=N_peer~a*N_local+b\n",
+        "candidate": "K1-DM-141 MUSICAL_TIME + AFFINE CLOCK MAP\n  MT_DRIFT beats=50000 worst_err_frames=0.000000\n  MT_DRIFT integer_period_error_at_50k_beats=670.3 ms (this is what we avoid)\n  MT_LONG_RUN beats=1000000 frame=24000000000 old_signed_q32_boundary=CROSSED\n  MT_PORTABLE_MUL vectors=2000 wide_reference=MATCH\n  AFFINE known_ppm=   0.0 measured=   0.000 err=0.000 offset_err=0.0 fit_rms=0.00\n  AFFINE known_ppm=  20.0 measured=  20.006 err=0.006 offset_err=0.5 fit_rms=0.31\n  AFFINE known_ppm= -20.0 measured= -20.037 err=0.037 offset_err=0.3 fit_rms=0.29\n  AFFINE known_ppm=  50.0 measured=  50.000 err=0.000 offset_err=0.0 fit_rms=0.00\n  AFFINE outlier_test skew=20.017 accepted=12 fit_rms=0.31\n  AFFINE heavy_jitter accepted=14/24 skew=29.892 fit_rms=0.28 conf=0.77\n  FOUR_STAMP skew_expected=41.001 measured=40.993 target_err_ms=0.132\n  PEER_SYNC skew_expected=40.000 measured=40.674 beat_target_err_ms=0.103\n  INTEGRATED rel_ppm expected=40.001 measured=40.037 fit_rms=0.4 conf=0.74 n=14\n  INTEGRATED worst_target_frame_error=0.141 ms over 16 predicted beats\n  INTEGRATED predict_ahead=0.141 ms vs react_after_transport>=2.0 ms\n  VECTORS rows=90 mismatches=0 digest=0x685C16CF64C1B5C8 (independent Python, integer BPM)\n  BPM_QUANT best_integer_bpm err_beat1=1.59 ms err_beat100=159.4 ms ; fractional err_beat100=0.000000 ms\nK1_DM_141_MUSICAL_TIME=PASS canonical=MEDIA_TIME_48K period=Q32.32 affine=N_peer~a*N_local+b\n"
+      }
+    },
+    {
+      "name": "test/test_musical_render_scheduler/test_main.cpp",
+      "fixture_sha256": "265e40fc76e8b03522b6a6471974a48aa3de9d0afcbeb0c286e1bdb415ddec47",
+      "pass": true,
+      "outputs": {
+        "reference": "K1-DM-142 MUSICAL RENDER SCHEDULER\nMEDIA_CORRELATION expected_ppm=22.000 measured_ppm=24.788 rms_us=19.13\nMUSICAL_RENDER_E2E worst_photon_target_error_us=99.0\nK1_DM_142=PASS TARGET_NEUTRAL=YES TRIGGER=MUSICAL_TARGET\n",
+        "candidate": "K1-DM-142 MUSICAL RENDER SCHEDULER\nMEDIA_CORRELATION expected_ppm=22.000 measured_ppm=24.788 rms_us=19.13\nMUSICAL_RENDER_E2E worst_photon_target_error_us=99.0\nK1_DM_142=PASS TARGET_NEUTRAL=YES TRIGGER=MUSICAL_TARGET\n"
+      }
+    }
+  ],
+  "fixtures": {
+    "test/fixtures/musical_time/generate_musical_time_vectors.py": "5bfeb7e5b0aeee94d5e383f33b8409893c27ca9467cdcfd90eadd95c53ac3041",
+    "test/fixtures/musical_time/musical_time_vectors.csv": "9d3cdd38c752f6d716fe4f08b96ae22f49dd22c258d08ed3cbe8370320f54d95"
+  },
+  "pass": true
+}
