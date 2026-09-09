@@ -1,0 +1,9 @@
+import os
+from building import *
+cwd = GetCurrentDir()
+src = Glob('*.cpp')
+for directory, _, files in os.walk(os.path.join(cwd, 'k1')):
+    src += [os.path.join(directory, f) for f in files if f.endswith('.cpp')]
+group = DefineGroup('K1Scalar', src, depend=[''], CPPPATH=[cwd, os.path.join(cwd, 'k1')],
+                    LOCAL_CXXFLAGS=' -std=c++17 -fno-exceptions -fno-rtti -fno-threadsafe-statics')
+Return('group')
