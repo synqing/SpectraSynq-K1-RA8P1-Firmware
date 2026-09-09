@@ -1,190 +1,210 @@
 # K1-RA8P1-002 current execution
 
-Captain explicitly authorised sequential implementation after delegation failed.
-No further launch attempts or guard changes followed that instruction. No children
-were launched. The orchestrator is the sole hardware operator. Both repositories use their existing
-checkout on `lane/k1-ra8p1-002`.
+Captain authorised sequential end-to-end implementation after delegation was
+rejected. No new agent launches or guard changes were attempted. The two existing
+repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
 
-## Implemented
+## What is true now
 
-| Commit | Material result |
+- **F1 passes for the covered scalar slice.** The identified Titan executed all
+  14,000 frozen hops and matched 7,364,000 typed fields exactly, including all
+  320 pixels per hop. Epoch/time semantics and the million-beat probe passed.
+- **G4/F2 is implemented but not accepted.** The first complete O2 scalar schedule
+  failed its frozen 7.5 ms deadline on 2,005 of 6,000 hops. A safe O3 profile,
+  identified NPU load, bounded semantic failure seam and immutable target images
+  now exist, but ROM entry was not observed for the O3/NPU flashes.
+- **Generic P4/E1 is implemented through a target image but remains ON-SILICON
+  NOT_RUN.** Its host kernel comparison and target-scheduler tests pass. This is
+  separate from K1 F1/F2 and cannot imply K1-A.
+- **G6 is `NO_QUALIFYING_CANDIDATE`; G7 is `NOT_RUN_NO_CANDIDATE`.** E2,
+  semantic F3 and K1-C remain unpassed. The U55 smoke graph is load only.
+- **Physical capture, LED output and Titan-S3 transport remain open.** USB
+  enumeration alone is not physical-path proof.
+
+## Implementation commits
+
+| Repository / commit | Material result |
 | --- | --- |
-| RA8P1 `2d4c73e` | Enforced nonempty import slices; 14 unchanged timing files; independent timing/scheduler assertions, million-beat and 90-vector tests |
-| RA8P1 `11c4b6d` | Cumulative product slice cannot omit timing files; ten disposable-fixture rejection tests |
-| RA8P1 `c9acaef` | 52 byte-exact cumulative imports; real AP/VP; 14,000-hop independent scalar HOST replay; all 526 observable fields/hop, including all 320 pixels, match |
-| RA8P1 `f4aa77b` | Scalar C++ M85 shell; bounded CRC/sequence USB fixture protocol; UID/build/source-gated client; epoch reset/time probe; proven ROM programmer wrapper |
-| RA8P1 `1123522` | Seven pinned native test entry points pass; tempo golden 6,400 records; compiler-profile sensitivity isolated and retained |
-| EdgeAI `d79591d` | Bounded existing semantic-tuple admission check and missing-prerequisite regression tests |
+| RA8P1 `2d4c73e`, `11c4b6d` | Enforced explicit nonempty import slices, cumulative timing retention and disposable negative fixtures |
+| RA8P1 `c9acaef`, `1123522` | Actual pinned time/AP/VP import, independent host replay, native tests and platform-math isolation |
+| RA8P1 `f4aa77b`, `e02525f` | C++ M85 shell, identity-gated USB/recovery, scalar startup and full target instrumentation |
+| RA8P1 `e218e7f`, `ab17385` | Lossless resident 6,000-hop replay and frozen scalar workload profile |
+| RA8P1 `a79ff5e`, `1a93de6` | Observer-distortion repair and byte-exact O3 scalar profile |
+| RA8P1 `bf5185e` | Real generated U55 command stream and alternating exact inputs scheduled beside actual K1 |
+| RA8P1 `346646b` | Capacity-one semantic seam with loss/delay/stale/order/identity/finite/pressure/error/timeout recovery |
+| RA8P1 `1a0f62b` | Generic P4 target scheduler for rFFT, bin-56 Goertzel and symmetric Hann-rFFT under NPU load |
+| EdgeAI `d79591d` | Completed bounded candidate admission and correct no-candidate branch |
+| EdgeAI `0b575f3` | Independent host implementation/comparison of the actual generic P4 kernels |
 
-HOST trajectory: 45 s synthetic controls and two 30 s MUSDB official-test song
-extracts; 7,364,000 field comparisons. Seven comparator corruptions rejected.
-AP release is 7.5 ms; render cadence is 120 Hz. No physical timing is implied.
-Thirteen HOST unit tests pass, including ten import tests. The actual C++ fixture
-parser passes seven chunk sizes, reset/repeat, null/non-finite AP input handling,
-CRC, sequence, oversized payload, timeout wrap and reconnect checks.
+## F1 evidence
 
-## Build and board
+`target-corpus-02/receipt.json` is ON-SILICON PASS on UID
+`545433931bd25436593630352d068363`, build
+`a07b6bba8f5479cdaa3aa75a6d65e4a25de787c7b2ab1e52590e5e938f58f0ec`,
+source `6b1e7bc5c9f9871e6ea4e900455bcb37d756304a` and the
+`sr24000.hop180.bins80.xover40` contract.
 
-Accepted release: external `scalar-build-04`.
-Build ID: `4412a2743fc7fc5f7da1d2046d6bf73769d8c6e52adf53a0cde33f06d21d3592`.
-HEX SHA-256: `bfe574628bb82a0c8f60044147ef5555d60788591d2b3281f8c4dd4b41ff9bac`.
-GNU Arm 13.3.1: text 184,756, data 18,096, BSS 195,540 bytes.
-Separate debug build: `scalar-debug-01`. Both builds pass C++ inclusion,
-constructor-table, compiler-macro, ELF-attribute and generated-instruction checks.
-MVE, automatic vectorisation, fast-math and application contraction are disabled.
-Precompiled scalar newlib uses double-precision FMA internally; see NUMERICAL-PROFILE.md.
-No U55-open or secondary-core-start call is linked. D-cache follows P2/P3's
-disabled policy. Runtime constructor/M33 checks passed on the identified board.
+The three cases are 6,000 synthetic-control hops and two 4,000-hop MUSDB
+official-test extracts. Each hop compares 526 fields. The complete target result
+is exact against the independent Arm-newlib-profile host reference. Stack
+untouched fell from 27,712 to 24,920 bytes; heap used/maximum remained 40,560
+bytes. M33 and U55 were parked and C++ constructor startup was witnessed.
 
-Main-thread stack is 32 KiB. Compiler frame reports: AP process 3,232 bytes,
-trajectory 984, renderer 328, time probe 1,552. These are individual static frames,
-not runtime high-water or whole-call-chain measurements.
+The same image's USB-paced diagnostics measured tempo-frame maxima around
+9.71 ms and ordinary-frame maxima around 4.40 ms. Those transfers were not the
+resident deadline test and do not themselves pass or fail G4.
 
-Programming-02 completed full read-back verification of scalar-build-04 on UID
-`545433931bd25436593630352d068363`. Normal reset returned application USB
-045B:5310 at location 1-1. Runtime build/source/contract, C++ constructor witness,
-M33 parked and U55 unopened all matched. The target million-beat/epoch/time probe
-and five transport rejection cases passed. Two complete AP/VP hops matched all
-1,052 fields exactly. These establish real execution, not complete F1.
+## G4 scalar result and corrected images
 
-The old native-math diagnostic replay was deliberately stopped after 3,280 complete
-hops to replace verbose transfer with a lossless compact protocol. Its failed/
-incomplete receipt and raw trace remain. First native-HOST difference: onset at
-hop 337. The independently isolated Arm logf/expf/log2f profile explains every
-collected difference: 1,725,280 fields match exactly under that diagnostic profile.
-This is not retrospective qualification. USB was closed before programming-03.
+The corrected O2 resident run `scalar-schedule-01` completed all 6,000 hops with
+zero correctness errors, zero render-budget misses, queue high-water one, zero
+drops/coalesces and no heap growth. It failed the frozen schedule:
 
-The next scalar image is scalar-build-05, build ID
-a07b6bba8f5479cdaa3aa75a6d65e4a25de787c7b2ab1e52590e5e938f58f0ec,
-HEX bf0c6a4ff7a9645c094d41489f19b29fabe285f9704ebac27d62056292d08945.
-It adds lossless compact full traces and stack/heap/clock-consistency readouts.
-Its size is text 184,436 / data 18,104 / BSS 195,532 bytes. Both native and explicit
-Arm-math HOST profiles pass all 14,000 hops plus complete compact round-trips.
-Twenty-three unit tests pass, including 30,000 independent math-function checks.
-Programming-03 timed out after 180 s without ROM entry and before opening/writing
-the device. No programming process remains. A bounded read-only drain discarded
-10,192 bytes of the interrupted response; a subsequent fresh INFO again matched
-UID, scalar-build-04, pinned source and parked M33/U55. USB is closed and unowned.
-The board has not been flashed with scalar-build-05 yet.
+| Measurement | O2 ON-SILICON result |
+| --- | ---: |
+| Deadline misses | 2,005 / 6,000 |
+| Release-guard failures | 2,008 / 6,000 |
+| Total mean / max | 5,637.503 / 9,684 us |
+| Tempo mean / max | 9,171.905 / 9,684 us |
+| Ordinary mean / max | 3,871.627 / 4,370 us |
+| Dual-channel render mean / max | 225.978 / 657 us |
+| Comparator telemetry mean / max | 245.866 / 250 us |
+| Lateness mean / max | 647.755 / 5,107 us |
 
-G4 preparation: the exact 45-second controls deduplicate to 346 unique hops.
-Input dictionary, 6,000 indices, full-output CRCs and lengths occupy 172,560 bytes.
-All 6,000 reconstructed inputs and donor-output round-trips pass. This prepares
-resident replay without making USB bandwidth a soak-test dependency; no scheduler
-or NPU qualification is implied. The generated data remain external.
+The preserved target mutation run reports exactly one correctness failure, so
+the full-output CRC comparator does go red. The dominant failure is actual
+tempo/ACF compute, not render, telemetry, queue growth or heap use.
 
-Separate generic E1 preparation in the Lab now implements actual rFFT, symmetric
-Hann-rFFT and bin-56 Goertzel C kernels against the existing 16 kHz/2,048/seed-0
-fixture. Both 1,025-bin arrays and the Goertzel magnitude match exactly on HOST.
-Fourteen comparator/candidate-gate tests pass. No P4 target, NPU-load or deadline
-result follows from these HOST kernels.
+Three source-bound images are ready but not flashed:
 
-## Failures and evidence boundaries
+| Image | Build ID | text / data / BSS | HEX SHA-256 |
+| --- | --- | --- | --- |
+| O3 scalar | `52c1cf2c…de361a` | 425,852 / 18,104 / 351,812 | `06d12585…a80a9` |
+| K1 + identified U55 + failure seam | `a31dd56a…7d45f3` | 636,484 / 18,128 / 607,992 | `ebf1e4df…e376` |
+| Generic P4 + K1 + identified U55 | `230f22ab…b10ea` | 665,876 / 42,408 / 657,172 | `e1c51e4…67570` |
 
-1. Initial timing harness omitted the pinned CSV. Fixed staging; no source or
-   golden change. Passing receipts: timing-host-02.json and timing-host-03.json.
-2. First build's scanner matched ASCII q7 in a literal pool. It now checks
-   instruction forms, with MVE-positive and scalar/data-negative unit controls.
-3. Stack reports followed BSP symlinks: six generated .su files appeared in the
-   reference checkout. Only those files were moved, recoverably, to
-   scalar-build-01/vendor-stack-usage/. BSP is clean. Staging now copies inputs.
-   scalar-build-02 retains the dirty-reference refusal.
-4. Strict -O2 reference tempo replay first fails its golden at step 12:
-   winner_bin 5 versus 4. The four-profile probe shows pinned native -O0 passes
-   6,400 rows; pinned native -O2 first differs at step 6027: confidence 0.45670
-   versus 0.45669. Disabling contraction first differs at step 12. No source,
-   golden or tolerance changed. Native test acceptance and scalar release
-   acceptance are separate. Cross-profile/M85 numerical acceptance remains open;
-   the target client stops on the first exact mismatch. Never borrow P3 tolerance.
-5. Inherited onset/saliency tests explicitly do not establish captured legacy
-   parity. The new long comparison is pinned-source HOST parity, not silicon.
-6. K1-DM-112 explicitly freezes AGC's 10 ms tuning clock and mood's 100 Hz
-   parameter, distinct from 7.5 ms AP releases. Those values remain unchanged.
-7. No independent specialist review/model diversity is claimed. The prior
-   launch was rejected with MISSING_WAVE_SIZE; Captain authorised sequential work.
+All use Arm GNU 13.3.1, scalar M85 FP, `-ffp-contract=off`, no fast-math,
+disabled vectorisers and no MVE. M33 remains parked. The NPU images bind the
+same external generated graph sources and two alternating INT8 inputs; raw PMU
+cycle, NPU_ACTIVE and MAC_ACTIVE counters are recorded without a factor-of-two
+conversion.
 
-## Semantic result
+The semantic seam never feeds smoke output to lighting. Its deterministic host
+campaign accepts 309 controlled updates, fires each required rejection/error
+cell once, uses exactly one capacity-one pressure replacement, records nine
+fallback hops and nine recoveries, and finishes valid. Target execution is still
+required.
 
-Completed scope: existing ShareStudent checkpoint + existing one-second,
-non-overlapping frontend/evaluation schedule; no alternative search or training.
-Exact checkpoint loaded; four-source input dependence checked on 48 cached
-official-test windows. Its 1 Hz schedule fails both admitted transport envelopes.
-Exact zero PCM yields shares [0.131588, 0.329106, 0.228604, 0.310702], not zeros.
-These are actual necessary-condition failures, not missing prerequisites.
+## Generic P4/E1 boundary
 
-`NO_QUALIFYING_CANDIDATE` applies only to this tuple; G7 is
-`NOT_RUN_NO_CANDIDATE`. The script's --enforce run exits 2. Missing prerequisites
-instead produce BLOCKED, tested separately. No I/O freeze, export, Titan model,
-new ontology, cadence/C1 replay or commercial clearance is claimed. Full
-nine-criterion acceptance and semantic-dependent product acceptance remain unpassed.
+The profile `e1-p4-workload-profile.json` was frozen before target capture. It
+binds 16 kHz, 2,048 samples, seed 0, bin 56 (437.5 Hz), all 1,025 output bins,
+the actual C kernels, packed fixture, compiler/BSP and identified NPU inputs.
+It uses a 128 ms non-overlap release/deadline, 50 ms NPU cadence, a 2 ms NPU
+admission guard and capacity-one scheduling. Concurrent and saturation
+qualification each require 14,063 releases (1,800.064 seconds). The comparator
+uses a predeclared two-ULP FFT limit and 1e-6 Goertzel absolute limit; a final-bin
+mutation must fail exactly one release.
 
-## Acceptance and decision
+The host runtime test passes numerical comparison, mutation, scheduling, NPU
+accounting and 32-bit DWT wrap. The linked target image exists, but no generic
+P4 target number or E1 PASS is claimed until it is flashed and run.
 
-| Gate | State | Next proof |
+## Semantic selection
+
+The completed scope is the existing ShareStudent checkpoint with the existing
+one-second non-overlapping frontend/evaluation schedule. Exact weights loaded;
+four-source dependence was checked on 48 cached official-test windows. The 1 Hz
+schedule fails both admitted transport envelopes, and exact zero PCM emits
+nonzero shares `[0.131588, 0.329106, 0.228604, 0.310702]`.
+
+That is a completed necessary-condition failure for this bounded tuple, not a
+missing prerequisite. `NO_QUALIFYING_CANDIDATE` and
+`NOT_RUN_NO_CANDIDATE` therefore apply. No student I/O freeze, export, Titan
+semantic deployment, new ontology or commercial clearance is claimed.
+
+## Physical inventory and board state
+
+Current enumeration shows:
+
+- Titan application USB: `045B:5310`, `/dev/cu.usbmodem00000000000011`, location `1-1`.
+- Espressif USB JTAG/serial endpoint: `303A:1001`, serial `B4:3A:45:A5:87:90`, location `0-1.4`.
+- Neither endpoint had a process owner at inventory time.
+
+The second endpoint is not accepted as production-S3 firmware identity or a
+Titan-S3 link. No connected PDM path, LED backend, bridge framing, clock mapping,
+power or thermal instrument has been established. PDM remains dependency-blocked
+by E1. G5/K1-B stay open.
+
+The Titan currently runs O2 scalar schedule build
+`63e494ee67941d1337fcdd66ba5d654df90ece09063cf339d94f56f811b95a45`
+with M33/U55 parked. Three fresh programming attempts for the O3 image observed
+zero ROM devices and exited before opening, erasing or writing a target. No
+programmer remains running; application USB is present and unowned.
+
+## Gate matrix
+
+| Gate | State | Remaining proof |
 | --- | --- | --- |
-| G0 | PASS, scoped build/implementation route | Preserve authorities |
-| G1 | HOST and identified target PASS | Preserve scalar identity and timing regression |
-| G2 | HOST parity in named profiles | Preserve profile limitations; no target inference |
-| G3 / F1 | OPEN, scalar startup passed | Fresh complete M85 replay under frozen platform-math profile; resource bounds |
-| G4 / F2 | NOT_RUN, depends on G3 | Frozen scheduled actual-K1 workload, NPU loads, bounded queues and recovery |
-| G5 / physical F3 | OPEN | Real capture/output/bridge after prerequisites |
-| G6 | NO_QUALIFYING_CANDIDATE, bounded tuple | New material evidence to reopen selection |
-| G7 | NOT_RUN_NO_CANDIDATE | No smoke-graph substitute |
-| G8 | Partial decision packet | Scalar/coexistence/physical evidence and independent review absent |
-| E1 | HOST kernels PASS / P4 silicon NOT_RUN | Separate generic P4 integration and load/failure campaign; orchestrator owns it |
+| G0 | PASS | Preserve source/import authorities |
+| G1 | PASS, HOST + identified target | Preserve timing/identity regression |
+| G2 | PASS for frozen HOST AP/VP slice | Preserve profile and scope |
+| G3 / F1 | PASS for covered modules | Physical capture/output explicitly separate |
+| G4 / F2 | FAILED O2; O3/NPU NOT_RUN | Flash O3; preflight; only soak passing modes; run NPU/failure cells |
+| G5 / physical F3 | OPEN / dependencies identified | E1, identified capture/output/bridge hardware and measured paths |
+| G6 | `NO_QUALIFYING_CANDIDATE` | New material evidence would be required to reopen |
+| G7 | `NOT_RUN_NO_CANDIDATE` | Correct terminal state for this candidate scope |
+| G8 | PARTIAL | Silicon campaigns, physical cells and independent review unavailable |
+| E1 | HOST + target build PASS; ON-SILICON NOT_RUN | P4 preflights and 30-minute passing concurrent modes |
 | E2 / semantic F3 | UNPASSED | No qualifying selected/deployed candidate |
-| K1-A | OPEN, separate from G4/F2 | Fresh comparable S3 campaign plus E1 |
-| K1-B | OPEN | Real bounded Titan/S3 transport after E1 |
-| K1-C | UNPASSED | Prerequisites, then Captain's production-role decision |
+| K1-A | OPEN, independent of F2 | E1 plus fresh comparable production-S3 campaign |
+| K1-B | OPEN | E1 plus identified real Titan-S3 transport |
+| K1-C | UNPASSED | E1/E2/K1-A/K1-B, then Captain decision |
 
-Recommendation now: retain the existing production platform; RA8P1 remains a
-bench candidate. The actual port and recovery-ready image exist, but scalar M85
-execution, deadlines, physical output, power and thermal advantages are unproved.
-Neither a build nor NPU smoke can justify migration. This is not campaign closure.
+Current recommendation remains: retain the existing production platform and
+treat RA8P1 as a bench candidate. F1 makes the port real; the O2 deadline failure,
+unrun coexistence/P4 images, missing physical evidence and no semantic candidate
+do not support production migration.
 
-## Evidence and continuation
+## Exact continuation
 
 External root:
 `/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002`.
-external-receipts.json binds decisive receipts; build receipts bind sources,
-artefacts, maps and disassembly. Large PCM/traces/binaries remain external.
-No screenshots/renders were needed at this memory-sink boundary: full pixel
-arrays are in the traces. Physical PDM/LED/bridge remain separate; the BSP PDM
-example is 16 kHz, not proof of 24 kHz K1 capture. PDM waits for E1. S3 USB
-enumeration is not evidence of Titan/S3 wiring.
+`external-receipts.json` binds decisive receipts. Failed receipts are preserved.
 
-From this repository, arm the next unused programming run:
+Next unused programming receipt is `programming-schedule-06`. From this repo:
+
 ```sh
-k1_artifacts=/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002
-/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/.venv/bin/python scripts/programme_scalar.py --build "$k1_artifacts/scalar-build-05" --output "$k1_artifacts/programming-04" --wait-seconds 180 --execute
+python3 scripts/programme_scalar.py \
+  --build /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/scalar-schedule-build-06 \
+  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programming-schedule-06 \
+  --wait-seconds 120 --execute
 ```
 
-Physical input: hold USER/BOOT, press/release RESET, keep USER/BOOT held through
-PROGRAMME_VERIFY_PASS; release and reset normally. No new approval is required.
-Then:
-```sh
-/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/.venv/bin/python scripts/run_scalar_target.py --build "$k1_artifacts/scalar-build-05" --output "$k1_artifacts/target-smoke-02" --corpus "$k1_artifacts/host-product-arm-math-01" --stage smoke --binary --metrics
-```
-If smoke passes, run --stage corpus --binary --metrics --collect-mismatches into
-target-corpus-02. Diagnose any mismatch
-without moving a threshold. Remaining path: (1) scalar target acceptance;
-(2) frozen actual-K1 NPU coexistence and separate E1; (3) available physical
-paths and fresh K1-A/K1-B; (4) complete G8/K1-C packet. G4/F2 does not wait for
-S3 comparison and cannot imply K1-A closure.
+Physical entry: hold USER/BOOT, press and release RESET, keep USER/BOOT held
+until `PROGRAMME_VERIFY_PASS`, then release and reset normally. After identity
+readback, run one O3 scalar preflight. A failed preflight is preserved and not
+extended. A passing preflight proceeds to the frozen 40-loop/30-minute scalar
+qualification, then the identified NPU image and its NPU-alone, concurrent,
+saturation and failure cells. Generic P4 follows in its separate image. Only
+passing required concurrent P4 modes receive 30-minute qualification.
 
-HOST regression:
+Host regression:
+
 ```sh
 python3 -m unittest discover -s tests/host -v
 python3 scripts/verify_imports.py --slice timing --enforce
 python3 scripts/verify_imports.py --slice product --enforce
 python3 scripts/test_fixture_protocol.py
-python3 scripts/run_host.py --slice product --profile pinned_native --output /tmp/k1-pinned-next.json
+python3 scripts/test_schedule_protocol.py
+python3 scripts/test_semantic_sidecar.py
+python3 scripts/test_p4_runtime.py \
+  --kernels /Users/spectrasynq/SpectraSynq-EdgeAI-Lab/deployment/ra8p1/titan_p4 \
+  --fixture /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/p4-fixture-01/p4_fixture.h
 ```
 
-DualMCU stays at 6b1e7bc5c9f9871e6ea4e900455bcb37d756304a; its existing
-_to_delete/ remains untouched. BSP stays clean at
-6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7. EdgeAI's existing untracked brief,
-strategic plan, review and test-results remain unstaged. No worktrees,
-production-S3 changes, retired cadence runs or audible loops. Missing old
-operating-brief/harness paths were recorded, not invented; current amendment
-and selection authorities were read.
+DualMCU remains at `6b1e7bc5c9f9871e6ea4e900455bcb37d756304a`; its `_to_delete/`
+is untouched. BSP remains clean at `6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7`.
+The Lab's unrelated untracked strategic plan, brief, review and `test-results/`
+remain unstaged. No retired cadence run, audible loop, worktree or production-S3
+mutation occurred.
