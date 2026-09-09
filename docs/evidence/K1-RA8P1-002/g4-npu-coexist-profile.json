@@ -8,6 +8,9 @@
     "resident_header_sha256": "5004033206cb9950374ec50ca0835481a21a03ea4059103862ff7bc29f7cccba",
     "optimisation": "-O3 -funroll-loops -frename-registers",
     "safety": "no MVE; -ffp-contract=off; -fno-fast-math; vectorisers disabled",
+    "compiler_flags": "-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage -O3 -funroll-loops -frename-registers",
+    "compiler": "arm-none-eabi-g++ (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
+    "bsp_pin": "6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7",
     "m33": "parked"
   },
   "npu": {
@@ -36,9 +39,40 @@
   },
   "fixture": {
     "pcm_sha256": "5970e8d26787f5c9ccdda50b95077d3da503b3826495ed7232d2854fecb8d394",
+    "resident_header_sha256": "5004033206cb9950374ec50ca0835481a21a03ea4059103862ff7bc29f7cccba",
+    "host_reference_receipt_sha256": "11b34fe6d4a6984dd712b61c4a1159a98ed5845864a24abc6931bc876ccd69b6",
     "hops_per_loop": 6000,
     "renders_per_loop": 5400,
     "seconds_per_loop": 45
+  },
+  "semantic": {
+    "boundary": "NO_QUALIFYING_CANDIDATE; controlled latest-value seam only; smoke outputs never reach the lighting consumer",
+    "policy": "capacity-one latest value; reject wrong identity, non-finite/negative, future availability, stale and out-of-order records; deterministic-only fallback",
+    "source_id": "0x4b315331",
+    "implementation_sha256": "8e4b8da5da13ac081e6700688fa7186a41935274a10a9ddab97a034c46b041e5",
+    "interface_sha256": "705158818f1397a3ee7b3d5dfc80af4bcd95f79d1ef6febe0890b31159aef781",
+    "maximum_age_us": 250000,
+    "queue_capacity": 1,
+    "failure_campaign": {
+      "loops": 1,
+      "mode": "scheduled",
+      "expected": {
+        "valid": true,
+        "accepted": 309,
+        "loss": 1,
+        "delayed": 1,
+        "stale": 1,
+        "out_of_order": 1,
+        "invalid_identity": 1,
+        "non_finite": 1,
+        "queue_pressure": 1,
+        "accelerator_errors": 1,
+        "accelerator_timeouts": 1,
+        "age_timeouts": 1,
+        "recoveries": 9,
+        "fallback_hops": 9
+      }
+    }
   },
   "schedule": {
     "hop_period_us": 7500,
@@ -72,7 +106,7 @@
   },
   "boundaries": {
     "semantic": "NO_QUALIFYING_CANDIDATE; smoke output never reaches a lighting consumer",
-    "failure_campaign": "Loss, delay, identity, ordering, non-finite, timeout and recovery remain required controlled-seam cells",
+    "failure_campaign": "Controlled latest-value seam cells are frozen above; their on-silicon result remains required",
     "qualification": "Each passing required concurrent mode needs 40 loops; a failed one-loop preflight remains failed and is not extended merely to accumulate misses"
   }
 }

@@ -13,6 +13,7 @@ with tempfile.TemporaryDirectory(prefix='k1-schedule-protocol-') as temp:
           '-I'+str(ROOT/'tests/host'),'-I'+str(ROOT/'src/k1'),'-I'+str(ROOT/'tests/target'),
           '-I'+str(ROOT/'platform/ra8p1'),'-I'+str(directory),
           str(ROOT/'tests/host/test_schedule_protocol.cpp'),str(ROOT/'platform/ra8p1/fixture_app.cpp'),
+          str(ROOT/'platform/ra8p1/semantic_sidecar.cpp'),
           *[str(ROOT/'src/k1'/p) for p in names if p.endswith('.cpp')]]
     for label,extra in [('scalar',[]),('npu',['-DK1_NPU_LOAD=1'])]:
         executable=directory/('test-'+label)

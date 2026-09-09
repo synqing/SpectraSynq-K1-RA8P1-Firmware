@@ -26,6 +26,10 @@ NPU_REQUIRED = [
     'sub_0001_invoke.c', 'sub_0001_invoke.h', 'sub_0001_model_data.c',
     'sub_0001_model_data.h', 'sub_0001_tensors.c', 'sub_0001_tensors.h',
 ]
+PLATFORM_FILES = [
+    'SConscript', 'fixture_app.cpp', 'fixture_app.h', 'hal_entry.c',
+    'semantic_sidecar.cpp', 'semantic_sidecar.h',
+]
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -53,7 +57,7 @@ def main():
         if bool(args.npu_model)!=bool(args.npu_input): raise RuntimeError('NPU model and input must be supplied together')
         if args.npu_model and not args.resident_controls: raise RuntimeError('NPU load requires the resident K1 schedule')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
-        material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in ['SConscript','fixture_app.cpp','fixture_app.h','hal_entry.c']]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
+        material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.resident_controls:
             if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
             material.append(args.resident_controls)
@@ -102,7 +106,7 @@ def main():
         text=config.read_text()
         assert text.count('#define RT_MAIN_THREAD_STACK_SIZE 2048')==1
         config.write_text(text.replace('#define RT_MAIN_THREAD_STACK_SIZE 2048','#define RT_MAIN_THREAD_STACK_SIZE 32768'))
-        for name in ['hal_entry.c','fixture_app.cpp','fixture_app.h','SConscript']:
+        for name in PLATFORM_FILES:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         for header in (ROOT/'tests/target').glob('*.h'): shutil.copy2(header,stage/'src'/header.name)
         if args.resident_controls:

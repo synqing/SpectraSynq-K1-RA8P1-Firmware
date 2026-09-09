@@ -26,10 +26,12 @@ def main():
     parser.add_argument('--qualification',action='store_true')
     parser.add_argument('--mutation',action='store_true',help='prove the target comparator rejects one deliberately wrong expected CRC')
     parser.add_argument('--mode',choices=MODES,default='scalar')
+    parser.add_argument('--failure-campaign',action='store_true',help='inject the frozen semantic-sidecar failure and recovery cells')
     args=parser.parse_args()
     args.output.mkdir(parents=True,exist_ok=False)
     receipt=dict(label='ON-SILICON',gate='G4_SCALAR_SUBPROFILE',start=datetime.now(timezone.utc).isoformat(),
-                 loops=args.loops,qualification=args.qualification,mutation=args.mutation,mode=args.mode,**{'pass':False})
+                 loops=args.loops,qualification=args.qualification,mutation=args.mutation,mode=args.mode,
+                 failure_campaign=args.failure_campaign,**{'pass':False})
     port=None
     try:
         import serial
@@ -52,10 +54,15 @@ def main():
         if mode and not build.get('npu'): raise RuntimeError('NPU mode requires an identified NPU build')
         if profile['status'].startswith('FROZEN_NPU'):
             if not mode: raise RuntimeError('NPU profile requires an NPU mode')
+            baseline=profile['scalar_baseline']
+            if build['flags']!=baseline['compiler_flags'] or build['compiler']!=baseline['compiler'] or build['bsp_pin']!=baseline['bsp_pin']:
+                raise RuntimeError('NPU build toolchain/profile mismatch')
             if build['sources'].get('external/npu_inputs.h')!=profile['npu']['input_header_sha256']:
                 raise RuntimeError('NPU input identity mismatch')
             for name,digest in profile['npu']['generated_sources'].items():
                 if build['sources'].get('external/npu/'+name)!=digest: raise RuntimeError(f'NPU source mismatch {name}')
+            if build['sources'].get('platform/ra8p1/semantic_sidecar.cpp')!=profile['semantic']['implementation_sha256'] or build['sources'].get('platform/ra8p1/semantic_sidecar.h')!=profile['semantic']['interface_sha256']:
+                raise RuntimeError('semantic seam identity mismatch')
         elif mode:
             raise RuntimeError('scalar profile cannot run an NPU mode')
         qualification_loops=profile['schedule'].get('qualification_loops',profile['schedule'].get('qualification_loops_per_mode'))
@@ -64,6 +71,8 @@ def main():
         if args.qualification and args.mutation:
             raise RuntimeError('qualification cannot inject a comparator mutation')
         if args.mutation and mode: raise RuntimeError('comparator mutation is scalar-only')
+        if args.failure_campaign and (args.mode!='scheduled' or args.qualification or args.loops!=1 or not profile['status'].startswith('FROZEN_NPU')):
+            raise RuntimeError('failure campaign is one non-qualification scheduled-NPU loop')
         if not args.qualification and args.loops!=1:
             raise RuntimeError('non-qualification validation is exactly one loop')
         matches=[p for p in list_ports.comports() if (p.vid,p.pid)==(0x045b,0x5310)]
@@ -93,7 +102,7 @@ def main():
         receipt['resources_before']=json.loads(transact(6))
         transact(7,struct.pack('<II',0,1),expected=3)
         transact(7,struct.pack('<II',args.loops,4),expected=3)
-        flags=(3 if args.mutation else 1)|(mode<<4)
+        flags=(3 if args.mutation else 1)|(mode<<4)|(0x40 if args.failure_campaign else 0)
         if transact(7,struct.pack('<II',args.loops,flags))!=b'STARTED': raise RuntimeError('schedule did not start')
         transact(7,struct.pack('<II',1,1),expected=3)
         deadline=time.monotonic()+args.loops*profile['fixture']['seconds_per_loop']+60
@@ -130,6 +139,11 @@ def main():
                 raise RuntimeError('NPU invocation count mismatch')
             if not all(status[field]>0 for field in ('npu_cycles','npu_active_cycles','mac_active_cycles')):
                 raise RuntimeError('NPU PMU activity witness missing')
+        if args.failure_campaign:
+            expected_semantic=profile['semantic']['failure_campaign']['expected']
+            for field,value in expected_semantic.items():
+                observed=status['semantic_'+field]
+                if observed!=value: raise RuntimeError(f'semantic_{field}={observed} expected={value}')
         if not args.mutation and args.mode!='npu-alone':
             for field in ('deadline_misses','render_misses','release_guard_failures'):
                 if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')

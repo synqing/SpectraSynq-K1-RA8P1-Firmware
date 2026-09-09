@@ -4,6 +4,7 @@
 #include "trajectory.h"
 #include "time_probe.h"
 #include "build_identity.h"
+#include "semantic_sidecar.h"
 #include <new>
 #include <cstdio>
 #include <cstring>
@@ -47,6 +48,7 @@ struct ScheduleState {
   std::uint32_t release_guard_failures=0, backlog_highwater=0;
   std::uint32_t npu_invocations=0, npu_invoke_failures=0, npu_output_failures=0;
   std::uint64_t npu_cycles=0, npu_active_cycles=0, mac_active_cycles=0;
+  k1_semantic_state_t semantic{};
   Distribution<8000> total, tempo, ordinary;
   Distribution<2000> render;
   Distribution<1000> lateness;
@@ -72,7 +74,7 @@ template<class D> void distribution(char* output,std::size_t capacity,std::size_
 void schedule_status() {
   std::size_t n=0;
   const int first=std::snprintf(trace.data,sizeof(trace.data),
-    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,",
+    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"semantic_valid\":%s,\"semantic_accepted\":%lu,\"semantic_loss\":%lu,\"semantic_delayed\":%lu,\"semantic_stale\":%lu,\"semantic_out_of_order\":%lu,\"semantic_invalid_identity\":%lu,\"semantic_non_finite\":%lu,\"semantic_queue_pressure\":%lu,\"semantic_accelerator_errors\":%lu,\"semantic_accelerator_timeouts\":%lu,\"semantic_age_timeouts\":%lu,\"semantic_recoveries\":%lu,\"semantic_fallback_hops\":%lu,",
     schedule.active?"true":"false",schedule.finished?"true":"false",
     (unsigned long)schedule.loops,(unsigned long)schedule.loop,(unsigned long)schedule.hop,(unsigned long)((schedule.flags>>4)&3U),(unsigned long long)schedule.elapsed_cycles,
     (schedule.flags&2U)?"true":"false",
@@ -86,7 +88,14 @@ void schedule_status() {
 #endif
     (unsigned long)schedule.npu_invocations,(unsigned long)schedule.npu_invoke_failures,
     (unsigned long)schedule.npu_output_failures,(unsigned long long)schedule.npu_cycles,
-    (unsigned long long)schedule.npu_active_cycles,(unsigned long long)schedule.mac_active_cycles);
+    (unsigned long long)schedule.npu_active_cycles,(unsigned long long)schedule.mac_active_cycles,
+    schedule.semantic.valid?"true":"false",(unsigned long)schedule.semantic.accepted,
+    (unsigned long)schedule.semantic.loss,(unsigned long)schedule.semantic.delayed,
+    (unsigned long)schedule.semantic.stale,(unsigned long)schedule.semantic.out_of_order,
+    (unsigned long)schedule.semantic.invalid_identity,(unsigned long)schedule.semantic.non_finite,
+    (unsigned long)schedule.semantic.queue_pressure,(unsigned long)schedule.semantic.accelerator_errors,
+    (unsigned long)schedule.semantic.accelerator_timeouts,(unsigned long)schedule.semantic.age_timeouts,
+    (unsigned long)schedule.semantic.recoveries,(unsigned long)schedule.semantic.fallback_hops);
   if(first<0 || std::size_t(first)>=sizeof(trace.data)) { error(8); return; }
   n=std::size_t(first);
   distribution(trace.data,sizeof(trace.data),n,"total",schedule.total); if(n<sizeof(trace.data)) trace.data[n++]=',';
@@ -150,14 +159,16 @@ void execute() {
   else if(command==7 && size==8) {
     const std::uint32_t loops=get32(rx+32), flags=get32(rx+36);
     const std::uint32_t mode=(flags>>4)&3U;
-    if(schedule.active || !loops || loops>40 || (flags&~0x33U)) { error(3); return; }
+    if(schedule.active || !loops || loops>40 || (flags&~0x73U)) { error(3); return; }
 #ifndef K1_NPU_LOAD
-    if(mode) { error(3); return; }
+    if(mode || (flags&0x40U)) { error(3); return; }
 #else
     if(mode && !k1_npu_ready()) { error(10); return; }
+    if((flags&0x40U) && mode!=1U) { error(3); return; }
 #endif
     std::memset(&schedule,0,sizeof(schedule)); schedule.active=true; schedule.loops=loops; schedule.flags=flags;
     trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=1;
+    k1_semantic_reset(&schedule.semantic);
     schedule.last_cycle=k1_cycle_count(); schedule.next_release=clock_hz/1000U;
     respond(0,0,"STARTED",7);
   } else if(command==8 && size==0) schedule_status();
@@ -240,6 +251,7 @@ extern "C" void k1_fixture_schedule_step(void) {
     const std::uint64_t media_us=(std::uint64_t(schedule.loop)*K1_RESIDENT_HOPS+index+1U)*7500U;
     if(media_us/50000U>schedule.npu_invocations) run_npu(1);
   } else if(mode==2U) run_npu(3);
+  if(schedule.flags&0x40U) k1_semantic_failure_step(&schedule.semantic,index);
 #endif
   const std::uint32_t workload_cycles=mode?k1_cycle_count()-workload_started:trajectory.total_cycles;
   const std::uint64_t completion=lateness+workload_cycles;
