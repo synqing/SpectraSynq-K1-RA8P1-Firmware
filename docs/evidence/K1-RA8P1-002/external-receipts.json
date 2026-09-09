@@ -1,0 +1,15 @@
+{
+  "root": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002",
+  "receipts": {
+    "host-product-01/receipt.json": "91d458520ef01c1280839c25e0e9dae377dced70970dea0207cd308d7b630764",
+    "scalar-build-04/receipt.json": "e4bbed4b6cefbf940cc18482be14a7132211af6ffb98c29f7ff8a039102172bb",
+    "scalar-debug-01/receipt.json": "0f6bf8d743e32796d23e66d99bd61bfe2f41ba6d0f775ddf3dbd6c27a93b1b11",
+    "programming-01/receipt.json": "b8acea44d794e1e001af66ce6e0a554bca1b4f03f6f05561ad489f513c8c321c",
+    "programming-preflight-02/receipt.json": "e81b4fa579245b91e64073bbf13b6dffaceaf4c27c9ab00f2bd2ab278b1556de",
+    "semantic-admission-02/receipt.json": "c584430378c92bad9b0db365c27ee1235af36792b3b52944372d1b052311589a",
+    "tempo-flags-01/receipt.json": "4cc8eba4b583a5b0f9e258d1058ed54b9e44e5051a0d4b280caa0f9886df5eab"
+  },
+  "physical_claims": false,
+  "scalar_target_executed": false,
+  "board_firmware_changed": false
+}
