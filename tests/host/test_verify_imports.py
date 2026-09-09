@@ -54,6 +54,17 @@ class ImportAcceptance(unittest.TestCase):
         self.assertFalse(result["pass"])
         self.assertEqual(result["divergent"], 1)
 
+    def test_initially_missing_rejected(self):
+        self.destination.unlink()
+        result = self.check()
+        self.assertEqual((result['required'], result['checked'], result['missing'], result['divergent']), (1, 0, 1, 0))
+        self.assertFalse(result['pass'])
+
+    def test_product_cannot_drop_timing_import(self):
+        (self.root / 'docs/import-slices.json').write_text(json.dumps({'timing': [self.name], 'product': ['core/audio/musical_time.h']}))
+        with self.assertRaisesRegex(ValueError, 'retain'):
+            verifier.verify(self.root, verifier.REFERENCE, 'product', True)
+
     def test_unknown_required_rejected(self):
         self.required(["missing.h"])
         with self.assertRaisesRegex(ValueError, "unknown"):

@@ -50,6 +50,8 @@ def verify(root: Path, reference: Path, slice_name: str, enforce: bool) -> dict:
         raise ValueError("duplicate required entry")
     if enforce and not required:
         raise ValueError("empty required set cannot pass acceptance")
+    if slice_name == "product" and not set(slices.get("timing", [])).issubset(required):
+        raise ValueError("product regression must retain every accepted timing import")
     result["required"] = len(required)
     for name in required:
         if name not in entries:
