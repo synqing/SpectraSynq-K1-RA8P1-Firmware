@@ -2,7 +2,7 @@
 
 Captain explicitly authorised sequential implementation after delegation failed.
 No further launch attempts or guard changes followed that instruction. No children
-or hardware processes remain active. Both owning repositories use their existing
+were launched. The orchestrator is the sole hardware operator. Both repositories use their existing
 checkout on `lane/k1-ra8p1-002`.
 
 ## Implemented
@@ -31,21 +31,53 @@ HEX SHA-256: `bfe574628bb82a0c8f60044147ef5555d60788591d2b3281f8c4dd4b41ff9bac`.
 GNU Arm 13.3.1: text 184,756, data 18,096, BSS 195,540 bytes.
 Separate debug build: `scalar-debug-01`. Both builds pass C++ inclusion,
 constructor-table, compiler-macro, ELF-attribute and generated-instruction checks.
-MVE, automatic vectorisation, fast-math and contraction are disabled for scalar.
+MVE, automatic vectorisation, fast-math and application contraction are disabled.
+Precompiled scalar newlib uses double-precision FMA internally; see NUMERICAL-PROFILE.md.
 No U55-open or secondary-core-start call is linked. D-cache follows P2/P3's
-disabled policy. Runtime constructor/M33 checks await execution.
+disabled policy. Runtime constructor/M33 checks passed on the identified board.
 
 Main-thread stack is 32 KiB. Compiler frame reports: AP process 3,232 bytes,
 trajectory 984, renderer 328, time probe 1,552. These are individual static frames,
 not runtime high-water or whole-call-chain measurements.
 
-Fresh application INFO matched canonical UID
-`545433931bd25436593630352d068363` and the historical P2 graph prefix. This
-identifies the board/protocol family, not a read-back runtime image hash.
-The P3 restore HEX is hash-verified. Programming waited 180 s for ROM USB
-`045B:0261`, found none, and exited before opening or writing the device.
-Titan stayed at application USB `045B:5310`, location `1-1`. The INFO port was
-closed; final lsof found no owner. Board firmware unchanged.
+Programming-02 completed full read-back verification of scalar-build-04 on UID
+`545433931bd25436593630352d068363`. Normal reset returned application USB
+045B:5310 at location 1-1. Runtime build/source/contract, C++ constructor witness,
+M33 parked and U55 unopened all matched. The target million-beat/epoch/time probe
+and five transport rejection cases passed. Two complete AP/VP hops matched all
+1,052 fields exactly. These establish real execution, not complete F1.
+
+The old native-math diagnostic replay was deliberately stopped after 3,280 complete
+hops to replace verbose transfer with a lossless compact protocol. Its failed/
+incomplete receipt and raw trace remain. First native-HOST difference: onset at
+hop 337. The independently isolated Arm logf/expf/log2f profile explains every
+collected difference: 1,725,280 fields match exactly under that diagnostic profile.
+This is not retrospective qualification. USB was closed before programming-03.
+
+The next scalar image is scalar-build-05, build ID
+a07b6bba8f5479cdaa3aa75a6d65e4a25de787c7b2ab1e52590e5e938f58f0ec,
+HEX bf0c6a4ff7a9645c094d41489f19b29fabe285f9704ebac27d62056292d08945.
+It adds lossless compact full traces and stack/heap/clock-consistency readouts.
+Its size is text 184,436 / data 18,104 / BSS 195,532 bytes. Both native and explicit
+Arm-math HOST profiles pass all 14,000 hops plus complete compact round-trips.
+Twenty-three unit tests pass, including 30,000 independent math-function checks.
+Programming-03 timed out after 180 s without ROM entry and before opening/writing
+the device. No programming process remains. A bounded read-only drain discarded
+10,192 bytes of the interrupted response; a subsequent fresh INFO again matched
+UID, scalar-build-04, pinned source and parked M33/U55. USB is closed and unowned.
+The board has not been flashed with scalar-build-05 yet.
+
+G4 preparation: the exact 45-second controls deduplicate to 346 unique hops.
+Input dictionary, 6,000 indices, full-output CRCs and lengths occupy 172,560 bytes.
+All 6,000 reconstructed inputs and donor-output round-trips pass. This prepares
+resident replay without making USB bandwidth a soak-test dependency; no scheduler
+or NPU qualification is implied. The generated data remain external.
+
+Separate generic E1 preparation in the Lab now implements actual rFFT, symmetric
+Hann-rFFT and bin-56 Goertzel C kernels against the existing 16 kHz/2,048/seed-0
+fixture. Both 1,025-bin arrays and the Goertzel magnitude match exactly on HOST.
+Fourteen comparator/candidate-gate tests pass. No P4 target, NPU-load or deadline
+result follows from these HOST kernels.
 
 ## Failures and evidence boundaries
 
@@ -91,15 +123,15 @@ nine-criterion acceptance and semantic-dependent product acceptance remain unpas
 | Gate | State | Next proof |
 | --- | --- | --- |
 | G0 | PASS, scoped build/implementation route | Preserve authorities |
-| G1 | HOST PASS / target BLOCKED | Physical ROM entry; readback and identified time probe |
+| G1 | HOST and identified target PASS | Preserve scalar identity and timing regression |
 | G2 | HOST parity in named profiles | Preserve profile limitations; no target inference |
-| G3 / F1 | BLOCKED by boot entry | M85 replay, numerical and resource acceptance |
+| G3 / F1 | OPEN, scalar startup passed | Fresh complete M85 replay under frozen platform-math profile; resource bounds |
 | G4 / F2 | NOT_RUN, depends on G3 | Frozen scheduled actual-K1 workload, NPU loads, bounded queues and recovery |
 | G5 / physical F3 | OPEN | Real capture/output/bridge after prerequisites |
 | G6 | NO_QUALIFYING_CANDIDATE, bounded tuple | New material evidence to reopen selection |
 | G7 | NOT_RUN_NO_CANDIDATE | No smoke-graph substitute |
 | G8 | Partial decision packet | Scalar/coexistence/physical evidence and independent review absent |
-| E1 | NOT_RUN | Separate generic P4; orchestrator owns it |
+| E1 | HOST kernels PASS / P4 silicon NOT_RUN | Separate generic P4 integration and load/failure campaign; orchestrator owns it |
 | E2 / semantic F3 | UNPASSED | No qualifying selected/deployed candidate |
 | K1-A | OPEN, separate from G4/F2 | Fresh comparable S3 campaign plus E1 |
 | K1-B | OPEN | Real bounded Titan/S3 transport after E1 |
@@ -124,16 +156,17 @@ enumeration is not evidence of Titan/S3 wiring.
 From this repository, arm the next unused programming run:
 ```sh
 k1_artifacts=/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002
-/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/.venv/bin/python scripts/programme_scalar.py --build "$k1_artifacts/scalar-build-04" --output "$k1_artifacts/programming-02" --wait-seconds 180 --execute
+/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/.venv/bin/python scripts/programme_scalar.py --build "$k1_artifacts/scalar-build-05" --output "$k1_artifacts/programming-04" --wait-seconds 180 --execute
 ```
 
 Physical input: hold USER/BOOT, press/release RESET, keep USER/BOOT held through
 PROGRAMME_VERIFY_PASS; release and reset normally. No new approval is required.
 Then:
 ```sh
-/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/.venv/bin/python scripts/run_scalar_target.py --build "$k1_artifacts/scalar-build-04" --output "$k1_artifacts/target-smoke-01" --corpus "$k1_artifacts/host-product-01" --stage smoke
+/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/.venv/bin/python scripts/run_scalar_target.py --build "$k1_artifacts/scalar-build-05" --output "$k1_artifacts/target-smoke-02" --corpus "$k1_artifacts/host-product-arm-math-01" --stage smoke --binary --metrics
 ```
-If smoke passes, run --stage corpus into target-corpus-01. Diagnose any mismatch
+If smoke passes, run --stage corpus --binary --metrics --collect-mismatches into
+target-corpus-02. Diagnose any mismatch
 without moving a threshold. Remaining path: (1) scalar target acceptance;
 (2) frozen actual-K1 NPU coexistence and separate E1; (3) available physical
 paths and fresh K1-A/K1-B; (4) complete G8/K1-C packet. G4/F2 does not wait for

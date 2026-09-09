@@ -12,11 +12,28 @@ using namespace k1::core::audio;
 using namespace k1::core::visual;
 
 struct Trace {
+  enum class Format { text, binary, schema };
+  Format format = Format::text;
   char data[16384]{};
   std::size_t size = 0;
   bool valid = true;
+  void packed(char tag, std::uint64_t value, unsigned bytes) {
+    if (!valid || size + bytes + 1 > sizeof(data)) { valid=false; return; }
+    data[size++]=tag;
+    for (unsigned i=0;i<bytes;++i) data[size++]=char(value>>(8*i));
+  }
+  void schema(const char* name, char type) {
+    if (!valid) return;
+    const int n=std::snprintf(data+size,sizeof(data)-size,"%s=%c\n",name,type);
+    if(n<0 || std::size_t(n)>=sizeof(data)-size) valid=false; else size+=std::size_t(n);
+  }
   void add(const char* name, double value) {
     if (!valid || !std::isfinite(value)) { valid = false; return; }
+    if (format==Format::schema) { schema(name,'f'); return; }
+    if (format==Format::binary) {
+      const float f=static_cast<float>(value); std::uint32_t bits; std::memcpy(&bits,&f,4);
+      packed('f',bits,4); return;
+    }
     const int n = std::snprintf(data + size, sizeof(data) - size, "%s=%.17g\n", name, value);
     if (n < 0 || static_cast<std::size_t>(n) >= sizeof(data) - size) valid = false;
     else size += static_cast<std::size_t>(n);
@@ -24,6 +41,11 @@ struct Trace {
   // Integer fields stay integer; never round 64-bit media/beat state through double.
   void integer(const char* name, std::uint64_t value) {
     if (!valid) return;
+    if (format==Format::schema) { schema(name,'i'); return; }
+    if (format==Format::binary) {
+      const unsigned bytes=value<=0xff?1:value<=0xffff?2:value<=0xffffff?3:value<=0xffffffff?4:8;
+      packed(char('0'+bytes),value,bytes); return;
+    }
     const int n = std::snprintf(data + size, sizeof(data) - size, "%s=%llu\n", name,
                               static_cast<unsigned long long>(value));
     if (n < 0 || static_cast<std::size_t>(n) >= sizeof(data) - size) valid = false;

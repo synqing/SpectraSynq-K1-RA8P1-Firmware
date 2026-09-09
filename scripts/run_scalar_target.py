@@ -9,9 +9,12 @@ import struct
 import subprocess
 import time
 import zlib
+import math
+import statistics
 from datetime import datetime, timezone
 from run_product_host import compare
 from verify_imports import PIN
+from fixture_wire import read_schema, decode
 UID='545433931bd25436593630352d068363'
 
 def packet(op,request,sequence=0,payload=b'',length=None,bad_crc=False):
@@ -30,6 +33,11 @@ def main():
     parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--corpus',type=Path)
     parser.add_argument('--stage',choices=['info','smoke','corpus'],default='smoke')
+    parser.add_argument('--case',type=int,action='append',choices=range(3),help='diagnostic selection; omitted means complete corpus')
+    parser.add_argument('--collect-mismatches',action='store_true',help='retain failures and finish other fixtures; exit remains nonzero')
+    parser.add_argument('--binary',action='store_true',help='lossless compact trace, requires the updated target shell')
+    parser.add_argument('--metrics',action='store_true',help='record actual stack/heap and clock consistency')
+    parser.add_argument('--drain-stale',action='store_true',help='bounded read-only drain after an interrupted single outstanding transaction')
     args=parser.parse_args()
     args.output.mkdir(parents=True,exist_ok=False)
     receipt=dict(label='ON-SILICON',stage=args.stage,start=datetime.now(timezone.utc).isoformat(),
@@ -48,6 +56,14 @@ def main():
         if owners.returncode not in (0,1) or owners.stdout.strip(): raise RuntimeError('USB has another owner')
         port=serial.Serial(device,115200,timeout=.2,write_timeout=2,exclusive=True)
         receipt['usb']=dict(path=device,location=matches[0].location,vid=matches[0].vid,pid=matches[0].pid)
+        if args.drain_stale:
+            discarded=0; quiet=0; deadline=time.monotonic()+5
+            while quiet<2 and time.monotonic()<deadline:
+                stale=port.read(1024); discarded+=len(stale)
+                quiet=0 if stale else quiet+1
+                if discarded>20000: raise RuntimeError('stale response exceeded the one-transaction bound')
+            if quiet<2: raise RuntimeError('USB did not quiesce before identity query')
+            receipt['stale_response_bytes_discarded']=discarded
         request=0
         def transact(op,sequence=0,payload=b'',expected_status=0,**kwargs):
             nonlocal request
@@ -72,6 +88,8 @@ def main():
         if info['cpu1_actcsr']&0x80 or info['u55_opened'] or not info['cpp_initialised']:
             raise RuntimeError('scalar park/startup contract failed')
         if args.stage=='info': receipt['pass']=True; return
+        if args.metrics:
+            receipt['resources_before']=json.loads(transact(6)[0])
         body,_,cycles=transact(4)
         receipt['time_probe']=dict(result=json.loads(body),cycles=cycles)
         if receipt['time_probe']['result']['time_probe_failure']: raise RuntimeError('target time assertions failed')
@@ -90,13 +108,26 @@ def main():
         if not corpus['pass']: raise RuntimeError('HOST corpus not accepted')
         # Exact compiled adapter binding. A changed harness requires new goldens.
         if corpus['adapter_sha256']!=build['sources']['tests/target/trajectory.h']: raise RuntimeError('fixture adapter mismatch')
+        schema=None
+        if args.binary:
+            schema_path=args.corpus/'trace-schema.txt'
+            if hashlib.sha256(schema_path.read_bytes()).hexdigest()!=corpus['schema_sha256']: raise RuntimeError('schema changed')
+            schema=read_schema(schema_path.read_text())
+        receipt['reference_profile']=corpus.get('platform_math',dict(profile='native'))
+        receipt['float_acceptance']=corpus['float_acceptance']
         receipt['cases']=[]
-        for fixture in corpus['fixtures'][:1] if args.stage=='smoke' else corpus['fixtures']:
+        fixtures=corpus['fixtures'][:1] if args.stage=='smoke' else corpus['fixtures']
+        if args.case is not None:
+            if args.stage!='corpus': raise RuntimeError('--case requires corpus stage')
+            fixtures=[corpus['fixtures'][i] for i in args.case]
+            receipt['scope']='selected cases only'
+        for fixture in fixtures:
             pcm=Path(fixture['path'])
             if hashlib.sha256(pcm.read_bytes()).hexdigest()!=fixture['sha256']: raise RuntimeError('PCM changed')
             transact(3,payload=struct.pack('<Q',1))
             trace=args.output/(pcm.stem+'-target.trace')
             samples=[]
+            classified={'tempo_updated':[],'ordinary':[]}
             with pcm.open('rb') as source,trace.open('wb') as output:
                 sequence=0
                 while True:
@@ -104,9 +135,11 @@ def main():
                     if not hop: break
                     if len(hop)!=360: raise RuntimeError('partial PCM hop')
                     sequence+=1
-                    body,seq,cycles=transact(2,sequence,hop)
+                    body,seq,cycles=transact(5 if args.binary else 2,sequence,hop)
                     if seq!=sequence: raise RuntimeError('output sequence mismatch')
+                    if schema is not None: body=decode(body,schema)
                     output.write(body+b'END\n'); samples.append(cycles)
+                    classified['tempo_updated' if b'\ntempo.updated=1\n' in body else 'ordinary'].append(cycles)
                     if sequence%500==0: print(f'TARGET_REPLAY {pcm.stem} hops={sequence}',flush=True)
                     if args.stage=='smoke' and sequence==2: break
             reference=args.corpus/(pcm.stem+'-reference.trace')
@@ -121,10 +154,28 @@ def main():
                         output.write(line); ends+=line=='END\n'
                         if ends==2: break
                 reference=limited
-            result=compare(reference,trace)
+            try: result=compare(reference,trace)
+            except ValueError as error:
+                if not args.collect_mismatches: raise
+                result=dict(error=str(error),**{'pass':False})
             result.update(fixture=fixture,trace_sha256=hashlib.sha256(trace.read_bytes()).hexdigest(),cycles_max=max(samples),cycles_min=min(samples))
+            def distribution(values):
+                if not values: return dict(count=0)
+                ordered=sorted(values)
+                return dict(count=len(values),mean=statistics.mean(values),minimum=ordered[0],maximum=ordered[-1],
+                            **{f'p{p}':ordered[max(0,math.ceil(len(values)*p/100)-1)] for p in (50,95,99)})
+            result['diagnostic_cycle_distributions']={key:distribution(values) for key,values in classified.items()}
             (args.output/(pcm.stem+'-cycles.json')).write_text(json.dumps(samples)+'\n')
             receipt['cases'].append(result)
+        if args.metrics:
+            metrics=json.loads(transact(6)[0]); receipt['resources_after']=metrics
+            if metrics['stack_untouched_bytes']<4096: raise RuntimeError('main stack reserve below frozen 4 KiB guard')
+            if metrics['heap_total']-metrics['heap_maximum']<32768: raise RuntimeError('heap reserve below frozen 32 KiB guard')
+            for m in (receipt['resources_before'],metrics):
+                observed=m['clock_check_cycles']*m['tick_hz']/m['clock_check_ticks']
+                if abs(observed/info['clock_hz']-1)>0.02: raise RuntimeError('DWT/tick clock consistency failed')
+        if any(case.get('pass') is False for case in receipt['cases']):
+            raise RuntimeError('exact comparison failed; all selected fixtures retained')
         receipt['pass']=True
     except Exception as error:
         receipt['error']=str(error)

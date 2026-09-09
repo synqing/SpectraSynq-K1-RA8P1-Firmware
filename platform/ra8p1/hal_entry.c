@@ -6,10 +6,31 @@
 #include "common_data.h"
 #include "core_cm85.h"
 #include <usb_pcdc/usb_pcdc.h>
+#include <stdio.h>
 #include "fixture_app.h"
 static uint8_t usb_read[64];
 static bool attached, read_armed, write_pending;
 uint32_t k1_cycle_count(void) { return DWT->CYCCNT; }
+size_t k1_platform_metrics(char* output, size_t capacity) {
+    const rt_thread_t self=rt_thread_self();
+    size_t untouched=0;
+    const uint8_t* stack=(const uint8_t*)self->stack_addr;
+    while(untouched<self->stack_size && stack[untouched]=='#') ++untouched;
+    rt_size_t total=0,used=0,maximum=0;
+    rt_memory_info(&total,&used,&maximum);
+    /* Consistency check against RT-Thread ticks, not an externally calibrated
+       oscillator measurement. This wait is outside all AP/render measurements. */
+    const uint32_t first_tick=rt_tick_get(), first_cycle=DWT->CYCCNT;
+    rt_thread_mdelay(100);
+    const uint32_t elapsed_cycles=DWT->CYCCNT-first_cycle;
+    const uint32_t elapsed_ticks=rt_tick_get()-first_tick;
+    const int n=snprintf(output,capacity,
+        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu}",
+        (unsigned long)self->stack_size,(unsigned long)untouched,(unsigned long)total,
+        (unsigned long)used,(unsigned long)maximum,(unsigned long)__get_FPSCR(),
+        (unsigned long)elapsed_cycles,(unsigned long)elapsed_ticks,(unsigned long)RT_TICK_PER_SECOND);
+    return n>0 && (size_t)n<capacity?(size_t)n:0;
+}
 static void k1_handle_request(const usb_event_info_t *event_info) {
     static usb_pcdc_linecoding_t line_coding;
     uint16_t request = (uint16_t)(event_info->setup.request_type & USB_BREQUEST);

@@ -39,6 +39,9 @@ void execute() {
       uid,K1_BUILD_ID,K1_SOURCE_PIN,(unsigned long)clock_hz,(unsigned long)cpu_wait,initialised?"true":"false",
       (unsigned long)rejected,(unsigned long)trajectory.sequence,unsigned(sizeof(trajectory)),unsigned(sizeof(trace)));
     if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8); else respond(0,0,trace.data,std::size_t(n));
+  } else if(command==6 && size==0) {
+    const std::size_t n=k1_platform_metrics(trace.data,sizeof(trace.data));
+    if(!n) error(8); else respond(0,0,trace.data,n);
   } else if(command==4 && size==0) {
     const auto before=k1_cycle_count(); const unsigned result=k1_time_probe();
     const auto cycles=k1_cycle_count()-before;
@@ -49,14 +52,16 @@ void execute() {
     if (!epoch) { error(5); return; }
     trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=epoch;
     respond(0,0,"RESET",5);
-  } else if(command==2 && size==360) {
+  } else if((command==2 || command==5) && size==360) {
     if(get32(rx+12)!=trajectory.sequence+1) { error(6); return; }
     alignas(4) std::int16_t hop[180]; std::memcpy(hop,rx+32,sizeof(hop));
     const std::uint32_t before=k1_cycle_count(); trajectory.process(hop);
     const std::uint32_t elapsed=k1_cycle_count()-before; // modulo difference, individual work must be < one wrap.
+    trace.format=command==5?fixture::Trace::Format::binary:fixture::Trace::Format::text;
     trajectory.trace(trace);
     if(!trace.valid || !trajectory.output.valid) error(7);
     else respond(0,elapsed,trace.data,trace.size);
+    trace.format=fixture::Trace::Format::text;
   } else error(3);
   fill=0; wanted=32;
 }

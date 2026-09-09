@@ -6,6 +6,10 @@
 #include <cstdio>
 #include <vector>
 extern "C" std::uint32_t k1_cycle_count() { static std::uint32_t counter=0; return counter+=100; }
+extern "C" std::size_t k1_platform_metrics(char* output,std::size_t capacity) {
+  const char* text="{\"label\":\"HOST_STUB\"}";
+  assert(capacity>std::strlen(text)); std::strcpy(output,text); return std::strlen(text);
+}
 static std::uint32_t crc(const std::uint8_t* p,std::size_t n) {
   std::uint32_t c=~0U; while(n--) { c^=*p++; for(unsigned i=0;i<8;++i)c=(c>>1)^((c&1)?0xedb88320U:0); } return ~c;
 }
@@ -58,5 +62,13 @@ int main() {
   k1_fixture_consume(p.data(),20,100); k1_fixture_disconnect();
   assert(get(send(packet(3,0,reset)).data()+4)==0);
   assert(send(packet(2,1,silence))==baseline);
+  assert(get(send(packet(6,0)).data()+4)==0);
+  assert(get(send(packet(3,0,reset)).data()+4)==0);
+  auto compact=send(packet(5,1,silence)); assert(get(compact.data()+4)==0);
+  static fixture::Trajectory separate; static fixture::Trace encoded;
+  std::int16_t zero[180]{}; separate.process(zero); encoded.format=fixture::Trace::Format::binary;
+  separate.trace(encoded);
+  assert(encoded.valid && compact.size()==32+encoded.size);
+  assert(!std::memcmp(compact.data()+32,encoded.data,encoded.size));
   std::puts("K1_FIXTURE_PROTOCOL=PASS chunks=7 reset=PASS crc=PASS sequence=PASS overflow=PASS timeout_wrap=PASS reconnect=PASS");
 }

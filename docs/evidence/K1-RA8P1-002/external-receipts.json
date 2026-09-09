@@ -7,9 +7,20 @@
     "programming-01/receipt.json": "b8acea44d794e1e001af66ce6e0a554bca1b4f03f6f05561ad489f513c8c321c",
     "programming-preflight-02/receipt.json": "e81b4fa579245b91e64073bbf13b6dffaceaf4c27c9ab00f2bd2ab278b1556de",
     "semantic-admission-02/receipt.json": "c584430378c92bad9b0db365c27ee1235af36792b3b52944372d1b052311589a",
-    "tempo-flags-01/receipt.json": "4cc8eba4b583a5b0f9e258d1058ed54b9e44e5051a0d4b280caa0f9886df5eab"
+    "tempo-flags-01/receipt.json": "4cc8eba4b583a5b0f9e258d1058ed54b9e44e5051a0d4b280caa0f9886df5eab",
+    "programming-02/receipt.json": "3330a6f4e1575522bd4df2d0fde2edbb3dfdec29f2b00bcc6596de5c41a2b8af",
+    "target-smoke-01/receipt.json": "7afd301437c197c2cccd4c842142a2185faf07a1afdc486d7903f8b8cc8013b9",
+    "scalar-build-05/receipt.json": "55dabba2de299f9c6b73cd2005ff3a24250bd6c297d749279c0089de4e0aeaaf",
+    "host-product-native-02/receipt.json": "b1606d577b10f119dbdec2e5e46beb7b07e6f5ca3f6c9e78fb48f9dd92c173c9",
+    "host-product-arm-math-01/receipt.json": "11b34fe6d4a6984dd712b61c4a1159a98ed5845864a24abc6931bc876ccd69b6",
+    "target-corpus-01/receipt.json": "5453a841ba205cd2948bca67024b1e0e40db801ab31c684c8dd8b6ad357ac124",
+    "target-libm-diagnostic-final.json": "e43571678a03aa9ca4a5cc8d630818948e15dc399e22d426c8b03af4b5aff1b2",
+    "programming-03/receipt.json": "0cfe75656abf47f1afa3a2482ce305e44a2c923343cfa301947f3e53aaf0cd44",
+    "scalar-final-identity-01/receipt.json": "03964a6fcbb278aa04bbc276e657c5b8665ee41fbbc67fe923d83f8971bb368c",
+    "resident-controls-01/receipt.json": "0d6870832d2b3b2f4edd689dfc1e5fb6ec70910fc8881400d8d0ddc4dd13db3d",
+    "p4-host-kernels-03/receipt.json": "bc6961d3d76da392d22c275632ef5c9ce760e87f418eb4367446a82332c27824"
   },
   "physical_claims": false,
-  "scalar_target_executed": false,
-  "board_firmware_changed": false
+  "scalar_target_executed": true,
+  "board_firmware_changed": true
 }

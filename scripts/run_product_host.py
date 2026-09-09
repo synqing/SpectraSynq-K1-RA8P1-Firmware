@@ -13,6 +13,7 @@ import tempfile
 from datetime import datetime, timezone
 from verify_imports import ROOT, REFERENCE, PIN, verify
 from run_host import run
+from fixture_wire import read_schema, decode
 
 FLAGS = ['-std=c++17', '-O2', '-ffp-contract=off', '-fno-fast-math']
 
@@ -76,6 +77,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--song', type=Path, action='append', default=[])
+    parser.add_argument('--reuse-corpus',type=Path,help='reuse hash-checked PCM; never regenerate goldens in place')
+    parser.add_argument('--math-probe-build',type=Path,help='explicit ELF-verified newlib HOST platform profile')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     receipt = dict(label='HOST', start=datetime.now(timezone.utc).isoformat(), source_commit=PIN,
@@ -93,7 +96,8 @@ def main():
         receipt['fixtures'] = []
         synthetic = args.output / 'controls.pcm'
         # 45 s: silence, impulses/transients, sustained tone, tempo switch, dropout/re-entry.
-        with synthetic.open('wb') as target:
+        if args.reuse_corpus is None:
+          with synthetic.open('wb') as target:
             for i in range(24000 * 45):
                 t = i / 24000
                 x = 0
@@ -106,7 +110,16 @@ def main():
                 if i in (24000, 120000, 1008000): x = .99
                 target.write(struct.pack('<h', round(x*32767)))
         inputs = [synthetic]
-        receipt['fixtures'].append(dict(path=str(synthetic), sha256=sha(synthetic), kind='synthetic controls', samples=24000*45))
+        if args.reuse_corpus is not None:
+            original=json.loads((args.reuse_corpus/'receipt.json').read_text())
+            if not original['pass'] or args.song: raise RuntimeError('invalid corpus reuse')
+            receipt['fixtures']=original['fixtures']
+            inputs=[Path(f['path']) for f in receipt['fixtures']]
+            for f in receipt['fixtures']:
+                if sha(f['path'])!=f['sha256']: raise RuntimeError('reused PCM changed')
+            receipt['original_corpus_receipt_sha256']=sha(args.reuse_corpus/'receipt.json')
+        else:
+            receipt['fixtures'].append(dict(path=str(synthetic), sha256=sha(synthetic), kind='synthetic controls', samples=24000*45))
         for index, song in enumerate(args.song):
             target = args.output / f'song-{index}.pcm'
             command = ['ffmpeg', '-nostdin', '-v', 'error', '-ss', '30', '-i', str(song), '-map', '0:a:0', '-t', '30', '-ac', '1', '-ar', '24000', '-f', 's16le', str(target)]
@@ -114,6 +127,16 @@ def main():
             receipt['fixtures'].append(dict(path=str(target), sha256=sha(target), source=str(song), source_sha256=sha(song), decode_command=command, kind='MUSDB mixture; research dataset, not commercial clearance'))
             inputs.append(target)
         receipt['ffmpeg'] = run(['ffmpeg', '-version']).splitlines()[0]
+        extra=[]
+        if args.math_probe_build is not None:
+            if args.reuse_corpus is None: raise RuntimeError('explicit math profile requires the original frozen corpus')
+            probe=args.output/'platform-math-proof'
+            run(['python3',str(ROOT/'scripts/probe_target_libm.py'),'--build',str(args.math_probe_build),
+                 '--corpus',str(args.reuse_corpus),'--output',str(probe)])
+            receipt['platform_math']=dict(profile='arm_newlib_4_4_fma',proof=json.loads((probe/'receipt.json').read_text()),
+                                         receipt_sha256=sha(probe/'receipt.json'))
+            receipt['float_acceptance']='exact against pinned K1 plus explicit verified platform math; no numerical tolerance'
+            extra=['-fno-builtin-logf','-fno-builtin-expf','-fno-builtin-log2f',str(ROOT/'tests/host/arm_logf_probe.cpp')]
         with tempfile.TemporaryDirectory(prefix='k1-product-host-') as scratch:
             donor = Path(scratch) / 'donor'
             for name in names:
@@ -123,10 +146,15 @@ def main():
             binaries = {}
             for label, source in [('reference', donor), ('candidate', ROOT / 'src/k1')]:
                 executable = args.output / label
-                command = ['c++', *FLAGS, '-I'+str(source), '-I'+str(ROOT / 'tests/target'),
+                command = ['c++', *FLAGS, *extra, '-I'+str(source), '-I'+str(ROOT / 'tests/target'),
                            str(ROOT / 'tests/host/trajectory_main.cpp'), *[str(source / p) for p in names if p.endswith('.cpp')], '-o', str(executable)]
                 run(command)
                 binaries[label] = executable
+            schema=args.output/'trace-schema.txt'
+            with inputs[0].open('rb') as source, schema.open('wb') as target:
+                subprocess.run([str(binaries['reference']),'--schema'],stdin=source,stdout=target,check=True)
+            schema_rows=read_schema(schema.read_text())
+            receipt['schema_sha256']=sha(schema)
             for pcm in inputs:
                 traces = {}
                 for label, executable in binaries.items():
@@ -139,6 +167,17 @@ def main():
                 if case['hops'] != pcm.stat().st_size // 360: raise RuntimeError('missing hops')
                 case.update(input=str(pcm), traces={k: dict(path=str(v), sha256=sha(v)) for k,v in traces.items()}, **{'pass': True})
                 receipt['cases'].append(case)
+                binary=args.output/(pcm.stem+'-binary.values')
+                with pcm.open('rb') as source,binary.open('wb') as output:
+                    subprocess.run([str(binaries['candidate']),'--binary'],stdin=source,stdout=output,check=True,timeout=240)
+                recovered=args.output/(pcm.stem+'-binary-roundtrip.trace')
+                with binary.open('rb') as source,recovered.open('wb') as output:
+                    while header:=source.read(4):
+                        if len(header)!=4: raise RuntimeError('truncated HOST binary header')
+                        size=struct.unpack('<I',header)[0]
+                        if size>16384: raise RuntimeError('oversized HOST binary trace')
+                        output.write(decode(source.read(size),schema_rows)+b'END\n')
+                case['binary_roundtrip']=compare(traces['candidate'],recovered)
                 print(f'K1_PRODUCT_HOST {pcm.stem} hops={case["hops"]} fields={case["fields"]} PASS', flush=True)
             receipt['mutations'] = mutation_checks(args.output / 'controls-reference.trace', args.output)
         receipt['pass'] = True
