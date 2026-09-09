@@ -59,6 +59,8 @@
     "backlog_highwater_max": 1,
     "stack_untouched_min_bytes": 4096,
     "heap_free_at_maximum_min_bytes": 32768,
+    "heap_used_growth_max_bytes": 0,
+    "heap_maximum_growth_max_bytes": 0,
     "expected_hops_per_qualification": 240000
   },
   "boundaries": {

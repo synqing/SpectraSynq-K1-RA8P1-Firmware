@@ -77,7 +77,7 @@ template<class D> void distribution(char* output,std::size_t capacity,std::size_
 void schedule_status() {
   std::size_t n=0;
   const int first=std::snprintf(trace.data,sizeof(trace.data),
-    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"semantic_valid\":%s,\"semantic_accepted\":%lu,\"semantic_loss\":%lu,\"semantic_delayed\":%lu,\"semantic_stale\":%lu,\"semantic_out_of_order\":%lu,\"semantic_invalid_identity\":%lu,\"semantic_non_finite\":%lu,\"semantic_queue_pressure\":%lu,\"semantic_accelerator_errors\":%lu,\"semantic_accelerator_timeouts\":%lu,\"semantic_age_timeouts\":%lu,\"semantic_recoveries\":%lu,\"semantic_fallback_hops\":%lu,",
+    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"npu_wall_sum_us\":%llu,\"npu_duty_ppm\":%llu,\"semantic_valid\":%s,\"semantic_accepted\":%lu,\"semantic_loss\":%lu,\"semantic_delayed\":%lu,\"semantic_stale\":%lu,\"semantic_out_of_order\":%lu,\"semantic_invalid_identity\":%lu,\"semantic_non_finite\":%lu,\"semantic_queue_pressure\":%lu,\"semantic_accelerator_errors\":%lu,\"semantic_accelerator_timeouts\":%lu,\"semantic_age_timeouts\":%lu,\"semantic_recoveries\":%lu,\"semantic_fallback_hops\":%lu,",
     schedule.active?"true":"false",schedule.finished?"true":"false",
     (unsigned long)schedule.loops,(unsigned long)schedule.loop,(unsigned long)schedule.hop,(unsigned long)((schedule.flags>>4)&3U),(unsigned long long)schedule.elapsed_cycles,
     (schedule.flags&2U)?"true":"false",
@@ -92,6 +92,8 @@ void schedule_status() {
     (unsigned long)schedule.npu_invocations,(unsigned long)schedule.npu_invoke_failures,
     (unsigned long)schedule.npu_output_failures,(unsigned long long)schedule.npu_cycles,
     (unsigned long long)schedule.npu_active_cycles,(unsigned long long)schedule.mac_active_cycles,
+    (unsigned long long)schedule.npu_wall.sum,
+    (unsigned long long)(schedule.loops?schedule.npu_wall.sum*1000000ULL/(std::uint64_t(schedule.loops)*45000000ULL):0),
     schedule.semantic.valid?"true":"false",(unsigned long)schedule.semantic.accepted,
     (unsigned long)schedule.semantic.loss,(unsigned long)schedule.semantic.delayed,
     (unsigned long)schedule.semantic.stale,(unsigned long)schedule.semantic.out_of_order,

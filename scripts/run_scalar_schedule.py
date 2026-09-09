@@ -11,6 +11,7 @@ import time
 import zlib
 from datetime import datetime,timezone
 from run_scalar_target import packet,read_exact,UID
+from target_resources import validate_resources
 from verify_imports import PIN
 MODES={'scalar':0,'scheduled':1,'saturation':2,'npu-alone':3}
 
@@ -139,6 +140,8 @@ def main():
                 raise RuntimeError('NPU invocation count mismatch')
             if not all(status[field]>0 for field in ('npu_cycles','npu_active_cycles','mac_active_cycles')):
                 raise RuntimeError('NPU PMU activity witness missing')
+            if status['npu_wall_sum_us']<=0 or not 0<status['npu_duty_ppm']<=1000000:
+                raise RuntimeError('NPU duty witness invalid')
         if args.failure_campaign:
             expected_semantic=profile['semantic']['failure_campaign']['expected']
             for field,value in expected_semantic.items():
@@ -148,9 +151,8 @@ def main():
             for field in ('deadline_misses','render_misses','release_guard_failures'):
                 if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')
         if status['backlog_highwater']>acceptance['backlog_highwater_max']: raise RuntimeError('backlog exceeded')
-        after=receipt['resources_after']
-        if after['stack_untouched_bytes']<acceptance['stack_untouched_min_bytes'] or after['heap_total']-after['heap_maximum']<acceptance['heap_free_at_maximum_min_bytes']:
-            raise RuntimeError('resource reserve failed')
+        before=receipt['resources_before']; after=receipt['resources_after']
+        validate_resources(before,after,acceptance,'K1')
         for metrics in (receipt['resources_before'],after):
             observed=metrics['clock_check_cycles']*metrics['tick_hz']/metrics['clock_check_ticks']
             if abs(observed/info['clock_hz']-1)>0.02: raise RuntimeError('DWT/tick clock consistency failed')

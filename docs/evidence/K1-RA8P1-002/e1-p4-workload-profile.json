@@ -17,7 +17,7 @@
   "implementation": {
     "kernels_c_sha256": "05276a0921a3c23ad31b6e306a2cb8bc9d3e72172d3556b247f4d719755f1733",
     "kernels_h_sha256": "4a08fdfaee109a1a946142a652a6ea12897db943a8cc86a721b73b94948db80f",
-    "runtime_cpp_sha256": "550a2ca4ac5d5fd810606886df3e10fb265b31a5d21beadd10ab21d1adaa87bb",
+    "runtime_cpp_sha256": "c3fc2a23eef0bf038158f07eeb7e93e82dbdb4d72497bfb05d3f61b84c9b75f4",
     "runtime_h_sha256": "4195a7ebdfd1564c19625a80493c4a0adf8dbbbae06f9786b62e028a6e6d2dbe",
     "compiler_flags": "-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage -O3 -funroll-loops -frename-registers",
     "compiler": "arm-none-eabi-g++ (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
@@ -42,10 +42,12 @@
     "modes": {"dsp-alone": 1, "npu-alone": 2, "concurrent": 3, "saturation": 4},
     "priority": "single M85 foreground scheduler; DSP release admitted before NPU; NPU held inside the 2 ms DSP guard",
     "cold_warm": "first invocation retained; no discarded warm-up",
-    "observer": "USB status is outside measured work; any resulting next-release lateness still counts; run polling-on and polling-off captures",
+    "observer": "USB status is outside measured work; any resulting next-release lateness still counts; run polling-on and polling-off preflights, then qualify required concurrent modes with polling off",
+    "qualification_observer": "off",
     "counter_wrap": "32-bit DWT extended by modulo deltas into uint64"
   },
   "numerical": {
+    "basis": "Fixed before target capture: scalar double internal arithmetic with Float32 public magnitudes; two ULP permits only the final Float32 rounding neighbourhood while still checking every bin",
     "rfft_all_bins_max_ulp": 2,
     "hann_rfft_all_bins_max_ulp": 2,
     "goertzel_absolute_error_max": 1e-6,
@@ -54,10 +56,25 @@
   },
   "npu": {
     "role": "identified constant-output platform load only",
+    "source_onnx_sha256": "5d0097e83fe269acb6ce92c5ab84cfe897561d3858328f2f0c610262c3801bd6",
+    "same_compilation_tflite_sha256": "1fbdbb2878f5223697f70366036bf6260026f2e7ebbdb0dd0e0987d726f96fed",
+    "github_run_id": "34216631562",
+    "bundle_manifest_sha256": "dffbc0cc52b9d5e627deeb85635bc71e2b40447f9a6413c1428b9aa1b10b93ea",
     "input_header_sha256": "02ec8d11bce9bacfea39b38574b9c7fde33ab996839f0c445ad07404f4285a89",
     "alternating_inputs": 2,
     "expected_raw_output": [127, 117, 123],
-    "pmu": "raw Ethos-U cycle, NPU_ACTIVE and MAC_ACTIVE counters; no factor-of-two conversion"
+    "pmu": "raw Ethos-U cycle, NPU_ACTIVE and MAC_ACTIVE counters; no factor-of-two conversion",
+    "generated_sources": {
+      "ethosu_common.h": "d880e8a85f548cc62d4164e5b8b407db1c03c9568402c4eb1acc5671d8bf4f91",
+      "sub_0001_command_stream.c": "823d29cb09ed2e23a364c8c8358766626c958b57579e2b91afe3d7e5d07d41fd",
+      "sub_0001_command_stream.h": "10deef801cbabe53d77995095d207d6fc3e8b106ef831e6a5eaaf1bf4b57334d",
+      "sub_0001_invoke.c": "653d050f757e0b11bb3f7cb279660c472bfcf521c9195ebdba48228340b519e9",
+      "sub_0001_invoke.h": "326be653edb79638200ba9112f5ebf93b12748050b91f7c62afa76cbdad03145",
+      "sub_0001_model_data.c": "1296a89a2a3579341dd656e022fea1bb6a545a08a1e63361a1151e331623eb13",
+      "sub_0001_model_data.h": "c67f019ca62380cdc9bdd20f6a07fff6b0c9f737a9e3b8492aa3d6114cb2553d",
+      "sub_0001_tensors.c": "ace7963f5bbc040b5c151d069bca3982ac812ff909fa5f577ea47748c4634320",
+      "sub_0001_tensors.h": "5682ef9ebca270e3484f9b5f9d40682d3a9bd9e55e1ce6b91033581e6f066447"
+    }
   },
   "failure_policy": {
     "handoff": "capacity-one latest value with deterministic-only fallback",
@@ -73,6 +90,8 @@
     "npu_failures": 0,
     "npu_output_failures": 0,
     "stack_untouched_min_bytes": 4096,
-    "heap_free_at_maximum_min_bytes": 32768
+    "heap_free_at_maximum_min_bytes": 32768,
+    "heap_used_growth_max_bytes": 0,
+    "heap_maximum_growth_max_bytes": 0
   }
 }

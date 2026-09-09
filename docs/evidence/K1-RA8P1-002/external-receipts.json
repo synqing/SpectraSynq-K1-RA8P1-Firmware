@@ -40,7 +40,11 @@
     "p4-fixture-01/receipt.json": "61ed10b86e1d227cbd6c157d56cf675ea2b5016a81d60fd3701cf18be4184f92",
     "p4-structural-build-01/receipt.json": "781d1ce3e226f518a4509102dc27ea959744c96088d7ec96f194daf55de6477a",
     "p4-structural-build-03/receipt.json": "b47f675d61e11acd2bf2d62b6b5154098dd6d75ed5b993986d365b3516b267a0",
-    "p4-structural-build-04/receipt.json": "7777b0e3aace15518b82f87addb81097059ab1c5695418e9a21e4d72cb99434a"
+    "p4-structural-build-04/receipt.json": "7777b0e3aace15518b82f87addb81097059ab1c5695418e9a21e4d72cb99434a",
+    "p4-structural-build-05/receipt.json": "96d47e3ed5bc21446b46eae1dce04011e87a69bad3f9a505cddef9ad1e787e5d",
+    "npu-structural-build-07/receipt.json": "eccb6abc40a259c090aa94e6f7dee26cc4259609c7e260e2cc58f10e2f63e3a2",
+    "p4-structural-build-06/receipt.json": "6a02d1c4b68216957e39dbecb960b5cf0f4d5cd92d675d38bad0a9ed1608d27f",
+    "programming-schedule-06/receipt.json": "818142d98230e26999f7309ccb32f59a0f84e98a29aabb755b2c819e3f245896"
   },
   "physical_claims": false,
   "scalar_target_executed": true,

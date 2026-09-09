@@ -80,8 +80,8 @@ Three source-bound images are ready but not flashed:
 | Image | Build ID | text / data / BSS | HEX SHA-256 |
 | --- | --- | --- | --- |
 | O3 scalar | `52c1cf2c…de361a` | 425,852 / 18,104 / 351,812 | `06d12585…a80a9` |
-| K1 + identified U55 + failure seam | `a31dd56a…7d45f3` | 636,484 / 18,128 / 607,992 | `ebf1e4df…e376` |
-| Generic P4 + K1 + identified U55 | `ca590b6f…add14` | 665,972 / 42,408 / 657,172 | `8e48ec98…ddc24` |
+| K1 + identified U55 + failure seam | `690f3e20…8664fc` | 636,676 / 18,128 / 607,992 | `0417f481…74eac` |
+| Generic P4 + K1 + identified U55 | `0a154a78…6bb907` | 666,500 / 42,408 / 657,172 | `549fb6dd…13a04` |
 
 All use Arm GNU 13.3.1, scalar M85 FP, `-ffp-contract=off`, no fast-math,
 disabled vectorisers and no MVE. M33 remains parked. The NPU images bind the
@@ -138,7 +138,7 @@ by E1. G5/K1-B stay open.
 
 The Titan currently runs O2 scalar schedule build
 `63e494ee67941d1337fcdd66ba5d654df90ece09063cf339d94f56f811b95a45`
-with M33/U55 parked. Three fresh programming attempts for the O3 image observed
+with M33/U55 parked. Four fresh programming attempts for the O3 image observed
 zero ROM devices and exited before opening, erasing or writing a target. No
 programmer remains running; application USB is present and unowned.
 
@@ -172,12 +172,12 @@ External root:
 `/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002`.
 `external-receipts.json` binds decisive receipts. Failed receipts are preserved.
 
-Next unused programming receipt is `programming-schedule-06`. From this repo:
+Next unused programming receipt is `programming-schedule-07`. From this repo:
 
 ```sh
 python3 scripts/programme_scalar.py \
   --build /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/scalar-schedule-build-06 \
-  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programming-schedule-06 \
+  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programming-schedule-07 \
   --wait-seconds 120 --execute
 ```
 
