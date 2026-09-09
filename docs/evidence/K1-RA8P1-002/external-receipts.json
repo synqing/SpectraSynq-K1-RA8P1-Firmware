@@ -39,7 +39,8 @@
     "npu-structural-build-06/receipt.json": "bdb6fbc5b2c50ab9541b52710a8a0bd93d1fff3709b9a72658e4bea6634cec6d",
     "p4-fixture-01/receipt.json": "61ed10b86e1d227cbd6c157d56cf675ea2b5016a81d60fd3701cf18be4184f92",
     "p4-structural-build-01/receipt.json": "781d1ce3e226f518a4509102dc27ea959744c96088d7ec96f194daf55de6477a",
-    "p4-structural-build-03/receipt.json": "b47f675d61e11acd2bf2d62b6b5154098dd6d75ed5b993986d365b3516b267a0"
+    "p4-structural-build-03/receipt.json": "b47f675d61e11acd2bf2d62b6b5154098dd6d75ed5b993986d365b3516b267a0",
+    "p4-structural-build-04/receipt.json": "7777b0e3aace15518b82f87addb81097059ab1c5695418e9a21e4d72cb99434a"
   },
   "physical_claims": false,
   "scalar_target_executed": true,

@@ -24,6 +24,7 @@ int main() {
     k1_p4_initialise(1000000U);
     assert(!k1_p4_start(0,K1_P4_DSP_ALONE,0));
     assert(!k1_p4_start(1,0,0));
+    assert(!k1_p4_start(1,K1_P4_DSP_ALONE,1));
     cycles=0xffff0000U;
     assert(k1_p4_start(1,K1_P4_DSP_ALONE,0));
     auto status=finish();

@@ -123,7 +123,7 @@ void k1_p4_initialise(std::uint32_t hz) {
 }
 
 bool k1_p4_start(std::uint32_t releases,std::uint32_t mode,std::uint32_t flags) {
-    if(state.active || !clock_hz || !releases || releases>14063U || mode<1U || mode>4U || (flags&~7U) || !k1_npu_ready()) return false;
+    if(state.active || !clock_hz || !releases || releases>14063U || mode<1U || mode>4U || (flags&~6U) || !k1_npu_ready()) return false;
     std::memset(&state,0,sizeof(state));
     state.active=true; state.releases=releases; state.mode=mode; state.flags=flags;
     k1_semantic_reset(&state.semantic);
@@ -149,6 +149,10 @@ void k1_p4_step() {
         return;
     }
     if(state.mode!=K1_P4_DSP_ALONE && due_npu()) {
+        if(state.mode==K1_P4_CONCURRENT && state.dsp_count<state.releases) {
+            const std::uint64_t until_dsp=state.next_dsp>state.elapsed?state.next_dsp-state.elapsed:0;
+            if(until_dsp<=cycles_for_us(npu_guard_us)) return;
+        }
         run_npu(); state.next_npu+=cycles_for_us(npu_period_us); finish_if_complete(); return;
     }
     finish_if_complete();

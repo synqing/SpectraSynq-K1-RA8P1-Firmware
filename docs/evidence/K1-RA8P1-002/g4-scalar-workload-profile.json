@@ -33,6 +33,7 @@
     "output": "two-channel 320-pixel memory sink; no LED transfer or physical latency claim",
     "release_lateness_guard_us": 100,
     "release_to_completion_deadline_us": 7500,
+    "deadline_basis": "Conservative complete AP plus memory-sink VP ceiling equal to the 7.5 ms release period. No current pinned source for the historical 6.0 ms p99 AP allocation was found; a stricter 6.0 ms check would also fail the recorded O2 result and remains unresolved authority, not silently relaxed acceptance.",
     "dual_channel_render_budget_us": 2000,
     "queue_capacity": 1,
     "drops_allowed": 0,
@@ -45,7 +46,7 @@
   },
   "measurement": {
     "clock": "DWT CYCCNT with runtime SystemCoreClock and RT-Thread tick consistency check",
-    "wrap": "uint32 modulo subtraction; each measured interval and release period is below half-range",
+    "wrap": "32-bit DWT values are extended by modulo deltas into uint64 schedule time; individual measured work remains below one wrap",
     "distributions": "one-microsecond histograms; count, mean, p50, p95, p99 and exact maximum",
     "classes": ["all", "tempo_updated", "ordinary", "render", "release_lateness", "telemetry"],
     "observer_boundary": "USB polling and final JSON are outside processing measurements"

@@ -17,7 +17,7 @@
   "implementation": {
     "kernels_c_sha256": "05276a0921a3c23ad31b6e306a2cb8bc9d3e72172d3556b247f4d719755f1733",
     "kernels_h_sha256": "4a08fdfaee109a1a946142a652a6ea12897db943a8cc86a721b73b94948db80f",
-    "runtime_cpp_sha256": "9387238a8cde6d839e9bb36288586f75fa8ee2de73aefd7af12d3b14e2388a3f",
+    "runtime_cpp_sha256": "550a2ca4ac5d5fd810606886df3e10fb265b31a5d21beadd10ab21d1adaa87bb",
     "runtime_h_sha256": "4195a7ebdfd1564c19625a80493c4a0adf8dbbbae06f9786b62e028a6e6d2dbe",
     "compiler_flags": "-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage -O3 -funroll-loops -frename-registers",
     "compiler": "arm-none-eabi-g++ (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",

@@ -81,7 +81,7 @@ Three source-bound images are ready but not flashed:
 | --- | --- | --- | --- |
 | O3 scalar | `52c1cf2c…de361a` | 425,852 / 18,104 / 351,812 | `06d12585…a80a9` |
 | K1 + identified U55 + failure seam | `a31dd56a…7d45f3` | 636,484 / 18,128 / 607,992 | `ebf1e4df…e376` |
-| Generic P4 + K1 + identified U55 | `230f22ab…b10ea` | 665,876 / 42,408 / 657,172 | `e1c51e4…67570` |
+| Generic P4 + K1 + identified U55 | `ca590b6f…add14` | 665,972 / 42,408 / 657,172 | `8e48ec98…ddc24` |
 
 All use Arm GNU 13.3.1, scalar M85 FP, `-ffp-contract=off`, no fast-math,
 disabled vectorisers and no MVE. M33 remains parked. The NPU images bind the
