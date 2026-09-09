@@ -73,6 +73,8 @@ void hal_entry(void) {
            FSP_SUCCESS==R_USB_Write(&g_basic0_ctrl,(uint8_t*)reply,(uint32_t)size,USB_CLASS_PCDC)) write_pending=true;
         if(attached && !size && !read_armed &&
            FSP_SUCCESS==R_USB_Read(&g_basic0_ctrl,usb_read,sizeof(usb_read),USB_CLASS_PCDC)) read_armed=true;
-        rt_thread_mdelay(1);
+        k1_fixture_schedule_step();
+        if(!k1_fixture_schedule_active()) rt_thread_mdelay(1);
+        else rt_thread_yield();
     }
 }

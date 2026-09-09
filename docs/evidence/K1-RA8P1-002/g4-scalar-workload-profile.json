@@ -1,0 +1,69 @@
+{
+  "profile_id": "k1-production-resident-v1",
+  "status": "FROZEN_SCALAR_SUBPROFILE_NOT_YET_QUALIFIED",
+  "source_pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+  "contract": {
+    "sample_rate_hz": 24000,
+    "hop_samples": 180,
+    "ap_period_us": 7500,
+    "gdft_bins": 80,
+    "crossover_bin": 40,
+    "media_time_rate_hz": 48000,
+    "render_rate_hz": 120,
+    "pixels_per_channel": 160,
+    "channels": 2
+  },
+  "fixture": {
+    "kind": "synthetic silence, impulses, tones, tempo transition, dropout and re-entry",
+    "pcm_sha256": "5970e8d26787f5c9ccdda50b95077d3da503b3826495ed7232d2854fecb8d394",
+    "hops_per_loop": 6000,
+    "renders_per_loop": 5400,
+    "seconds_per_loop": 45,
+    "unique_hops": 346,
+    "resident_header_sha256": "5004033206cb9950374ec50ca0835481a21a03ea4059103862ff7bc29f7cccba",
+    "host_reference_receipt_sha256": "11b34fe6d4a6984dd712b61c4a1159a98ed5845864a24abc6931bc876ccd69b6",
+    "reference_profile": "arm_newlib_4_4_fma"
+  },
+  "schedule": {
+    "task": "RT-Thread main thread",
+    "priority": 10,
+    "m33": "parked",
+    "u55": "parked",
+    "cache": "D-cache disabled following proven P2/P3 policy",
+    "output": "two-channel 320-pixel memory sink; no LED transfer or physical latency claim",
+    "release_lateness_guard_us": 100,
+    "release_to_completion_deadline_us": 7500,
+    "dual_channel_render_budget_us": 2000,
+    "queue_capacity": 1,
+    "drops_allowed": 0,
+    "coalesces_allowed": 0,
+    "telemetry": "full lossless typed output CRC and length checked against independent donor after each hop",
+    "telemetry_effect": "outside measured AP plus render execution; any induced next-release lateness still counts",
+    "warmup": "included; no samples discarded",
+    "qualification_loops": 40,
+    "qualification_duration_seconds": 1800
+  },
+  "measurement": {
+    "clock": "DWT CYCCNT with runtime SystemCoreClock and RT-Thread tick consistency check",
+    "wrap": "uint32 modulo subtraction; each measured interval and release period is below half-range",
+    "distributions": "one-microsecond histograms; count, mean, p50, p95, p99 and exact maximum",
+    "classes": ["all", "tempo_updated", "ordinary", "render", "release_lateness", "telemetry"],
+    "observer_boundary": "USB polling and final JSON are outside processing measurements"
+  },
+  "acceptance": {
+    "correctness_failures": 0,
+    "deadline_misses": 0,
+    "render_budget_misses": 0,
+    "release_guard_failures": 0,
+    "backlog_highwater_max": 1,
+    "stack_untouched_min_bytes": 4096,
+    "heap_free_at_maximum_min_bytes": 32768,
+    "expected_hops_per_qualification": 240000
+  },
+  "boundaries": {
+    "f1": "A passing complete M85 corpus plus this scalar subprofile can close covered scalar parity.",
+    "f2": "This scalar-only profile cannot close F2. K1-RA8P1-002-NPU-COEXIST is a separate identified campaign.",
+    "physical": "No PDM, LED electrical/optical output, bridge, power or thermal claim.",
+    "semantic": "NO_QUALIFYING_CANDIDATE remains; no semantic consumer or E2 claim."
+  }
+}

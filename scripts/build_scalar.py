@@ -29,6 +29,7 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
     args=parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
@@ -39,8 +40,18 @@ def main():
         assert receipt['imports']['pass'], 'import gate failed'
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in ['SConscript','fixture_app.cpp','fixture_app.h','hal_entry.c']]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
-        receipt['sources']={str(p.relative_to(ROOT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(material) if p.is_file()}
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY,debug=args.debug),sort_keys=True).encode()).hexdigest()
+        if args.resident_controls:
+            if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
+            material.append(args.resident_controls)
+        receipt['sources']={}
+        for path in sorted(material):
+            if not path.is_file(): continue
+            try: key=str(path.relative_to(ROOT))
+            except ValueError:
+                if path!=args.resident_controls: raise
+                key='external/resident_controls.h'
+            receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY,debug=args.debug,resident=bool(args.resident_controls)),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY,debug=args.debug,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
@@ -64,6 +75,10 @@ def main():
         for name in ['hal_entry.c','fixture_app.cpp','fixture_app.h','SConscript']:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         for header in (ROOT/'tests/target').glob('*.h'): shutil.copy2(header,stage/'src'/header.name)
+        if args.resident_controls:
+            shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
+            scon=stage/'src/SConscript'
+            scon.write_text(scon.read_text().replace("LOCAL_CXXFLAGS=' -std=c++17", "LOCAL_CXXFLAGS=' -DK1_RESIDENT_SCHEDULE=1 -std=c++17"))
         (stage/'src/build_identity.h').write_text(f'#define K1_BUILD_ID "{identity}"\n#define K1_SOURCE_PIN "{PIN}"\n')
         for name in names:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
@@ -79,12 +94,17 @@ def main():
             shutil.copy2(stage/name,args.output/name)
         dump=command([TOOLCHAIN/'arm-none-eabi-objdump','-d','-C',args.output/'rtthread.elf'])
         (args.output/'disassembly.txt').write_text(dump)
+        symbols=command([TOOLCHAIN/'arm-none-eabi-nm','-a','-C',args.output/'rtthread.elf'])
+        (args.output/'symbols.txt').write_text(symbols)
         attrs=command([TOOLCHAIN/'arm-none-eabi-readelf','-A',args.output/'rtthread.elf'])
         (args.output/'attributes.txt').write_text(attrs)
         # Scalar VFP s/d registers allowed. Q-register MVE and tail predication are not.
         assert_scalar_generated_code(dump,attrs)
         for symbol in ['AudioPipeline::process','renderProductChannel','k1_fixture_consume','k1_fixture_initialise']:
             assert symbol in dump, f'missing executed K1 symbol {symbol}'
+        if args.resident_controls:
+            for symbol in ['k1_fixture_schedule_step','k1_resident_pcm','k1_resident_crc','k1_resident_length']:
+                assert symbol in symbols, f'missing resident schedule symbol {symbol}'
         assert 'RM_ETHOSU_Open' not in dump and 'R_BSP_SecondaryCoreStart' not in dump, 'secondary compute linked'
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])

@@ -12,6 +12,8 @@ const uint8_t* k1_fixture_reply(size_t* count);
 void k1_fixture_sent(void);
 uint32_t k1_cycle_count(void);
 size_t k1_platform_metrics(char* output, size_t capacity);
+void k1_fixture_schedule_step(void);
+bool k1_fixture_schedule_active(void);
 #ifdef __cplusplus
 }
 #endif
