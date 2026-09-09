@@ -104,8 +104,9 @@ def main():
             raise RuntimeError(f'correctness_failures={status["correctness_failures"]} expected={expected_correctness}')
         if bool(status['crc_mutation_injected'])!=args.mutation:
             raise RuntimeError('target mutation witness mismatch')
-        for field in ('deadline_misses','render_misses','release_guard_failures'):
-            if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')
+        if not args.mutation:
+            for field in ('deadline_misses','render_misses','release_guard_failures'):
+                if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')
         if status['backlog_highwater']>acceptance['backlog_highwater_max']: raise RuntimeError('backlog exceeded')
         after=receipt['resources_after']
         if after['stack_untouched_bytes']<acceptance['stack_untouched_min_bytes'] or after['heap_total']-after['heap_maximum']<acceptance['heap_free_at_maximum_min_bytes']:

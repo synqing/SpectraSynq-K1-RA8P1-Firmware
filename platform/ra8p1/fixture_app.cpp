@@ -124,7 +124,7 @@ void execute() {
     const std::uint32_t loops=get32(rx+32), flags=get32(rx+36);
     if(schedule.active || !loops || loops>40 || flags>3) { error(3); return; }
     std::memset(&schedule,0,sizeof(schedule)); schedule.active=true; schedule.loops=loops; schedule.flags=flags;
-    trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=2;
+    trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=1;
     schedule.next_release=k1_cycle_count()+clock_hz/1000U;
     respond(0,0,"STARTED",7);
   } else if(command==8 && size==0) schedule_status();
@@ -201,7 +201,7 @@ extern "C" void k1_fixture_schedule_step(void) {
   if(++schedule.hop==K1_RESIDENT_HOPS) {
     schedule.hop=0;
     if(++schedule.loop==schedule.loops) { schedule.active=false; schedule.finished=true; return; }
-    trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=2;
+    trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=1;
   }
 }
 #else

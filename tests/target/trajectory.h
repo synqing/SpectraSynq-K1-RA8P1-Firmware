@@ -70,8 +70,14 @@ inline void serialise(Trace& trace, const AudioPipelineOutput& o) {
   F(features.novelty); F(features.spectral_energy); F(features.low_energy); F(features.mid_energy);
   F(features.high_energy); F(features.chroma_strength); F(features.nyquist_safe_bin_hi);
   char name[64];
-  for (unsigned i = 0; i < 80; ++i) { std::snprintf(name, sizeof(name), "features.spectrum[%u]", i); trace.field(name, o.features.spectrum[i]); }
-  for (unsigned i = 0; i < 12; ++i) { std::snprintf(name, sizeof(name), "features.chroma_a_origin[%u]", i); trace.field(name, o.features.chroma_a_origin[i]); }
+  for (unsigned i = 0; i < 80; ++i) {
+    if (trace.format == Trace::Format::binary) trace.field("", o.features.spectrum[i]);
+    else { std::snprintf(name, sizeof(name), "features.spectrum[%u]", i); trace.field(name, o.features.spectrum[i]); }
+  }
+  for (unsigned i = 0; i < 12; ++i) {
+    if (trace.format == Trace::Format::binary) trace.field("", o.features.chroma_a_origin[i]);
+    else { std::snprintf(name, sizeof(name), "features.chroma_a_origin[%u]", i); trace.field(name, o.features.chroma_a_origin[i]); }
+  }
   F(features.chord_type); F(features.chord_root_a_origin); F(features.chord_confidence);
   F(features.chord_root_strength); F(features.chord_third_strength); F(features.chord_fifth_strength);
   F(features.onset_event_id); F(features.onset_event_ms); F(features.onset_event_age_ms);
@@ -151,8 +157,12 @@ struct Trajectory {
     for (unsigned channel = 0; channel < 2; ++channel) {
       const auto pixels = (channel == 0 ? a.frame() : b.frame());
       for (unsigned i = 0; i < 160; ++i) {
-        std::snprintf(name, sizeof(name), "pixel[%u]", channel*160+i);
-        const auto p = pixels[i]; t.integer(name, (p.red << 16) | (p.green << 8) | p.blue);
+        const auto p = pixels[i];
+        if (t.format == Trace::Format::binary) t.integer("", (p.red << 16) | (p.green << 8) | p.blue);
+        else {
+          std::snprintf(name, sizeof(name), "pixel[%u]", channel*160+i);
+          t.integer(name, (p.red << 16) | (p.green << 8) | p.blue);
+        }
       }
     }
   }
