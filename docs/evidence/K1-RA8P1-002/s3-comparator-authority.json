@@ -1,0 +1,44 @@
+{
+  "schema": 1,
+  "gate": "F01_S3_COMPARATOR_IDENTITY",
+  "source_repo": "/Users/spectrasynq/SpectraSynq_K1_Firmware",
+  "product": {
+    "commit": "acaecaa8f1b4c3bc6f1863344da4808231e4cc7b",
+    "tree": "51b984c68272c50d0846294976f1f02fb2beb531",
+    "environment": "k1_main_rpl_im69d",
+    "device_chip_id": "9087A500",
+    "usb_identity": "B4:3A:45:A5:87:90",
+    "blobs": {
+      "platformio.ini": "decf2314d2a061ca83e10d19c2ad61ef072e6e7f23b22a014bde4621cfb88b01",
+      "SPECTRASYNQ_K1_FIRMWARE/SPECTRASYNQ_K1_FIRMWARE.ino": "e223e111b3a6182b0f0f38474fd0c058f32bae28874cc76f1739619fac5ecb60",
+      "SPECTRASYNQ_K1_FIRMWARE/system/constants.h": "3f1510e462ecf8216650fe30ddcd3e5eed8aa2246715fc7c46ce1aa353027891",
+      "SPECTRASYNQ_K1_FIRMWARE/audio/i2s_audio.h": "092cd24fd1ebb9bf61cbb4996fb07a499aca74ecef6bcaf5373e37c50570e8d4",
+      "SPECTRASYNQ_K1_FIRMWARE/audio/GDFT.h": "272d29880f25c3551ca44bb6d8e8a2f161f8936f1ced15cf9a4e5e900ecd82f0",
+      "SPECTRASYNQ_K1_FIRMWARE/audio/k1_tempo.cpp": "bc4a68338014d802c8f28b9deb58568a7c76fe1aa97acfce583dd4334fb21898"
+    }
+  },
+  "restore": {
+    "path": "docs/forensics/runtime-evidence/20260907T-pcm1808-st25-bringup/restore-pre-pcm-probe-0x0-2MB.bin",
+    "bytes": 2097152,
+    "sha256": "1e2744256eaaaf170f18600f5daafc39bc33bce1521bd1067f92f48a6a3a3a8e",
+    "scope": "full pre-probe flash dump including live calibration and NVS"
+  },
+  "factory_app": {
+    "expected_bytes": 728336,
+    "sha256": "4bd481f8356055ff1ab728b93431f226d5361ac9492f397a25cb8965a383fd72",
+    "hash_record_path": "docs/forensics/colour-lab-rtrace-20260827/rpl_product_firmware.sha256",
+    "binary_present": false
+  },
+  "current_authorities": {
+    "docs/hardware/device-build-registry.md": "39e8a2b9ee0a958749c72662204820a9d9cb73057bab7f8c2fa1bfb74ad71dd9",
+    ".claude/handoff.md": "f460d90a36eff3782bdd9f79e9d5e8cf4f38d50ff6bfa83cf49a5a3271769de6",
+    "docs/forensics/runtime-evidence/20260908T-audio-source-architecture/RESTORE_HASHES.md": "ab0219a0f5dc0830aacbbcef872d1a0624f96ee17157c7140a83ca0004ffff90"
+  },
+  "campaign_boundary": {
+    "current_live_image": "a08dc10e k1_main_rpl_pcm1808_shadow",
+    "current_live_image_is_product_comparator": false,
+    "same_workload_arm": "OPEN_REQUIRES_AUTHORISED_S3_HARNESS",
+    "as_shipped_arm": "OPEN_REQUIRES_IDENTIFIED_RESTORE_AND_FRESH_RUN",
+    "production_repo_mutation_authorised_here": false
+  }
+}

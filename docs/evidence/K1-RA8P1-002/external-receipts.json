@@ -92,7 +92,13 @@
     "led-build-04/receipt.json": "a18332ef4c7865c87c41ac046c3d395630ff23248d9cc4d0f8a0355cf5e00eae",
     "led-prog-03/receipt.json": "626e479de85ad94d314e3f55d3d2acc3cefc5f1b5dab3258470c324965c86477",
     "led-smoke-06/receipt.json": "4dff06e57957694678ec5e1c615c796c95a1df2f297c1566bb51e2793fb3809c",
-    "led-smoke-06/EXECUTION.md": "6d0413b0a9279a176a5f1275b00a417d70af522f383fee9db463eff1e57e426b"
+    "led-smoke-06/EXECUTION.md": "6d0413b0a9279a176a5f1275b00a417d70af522f383fee9db463eff1e57e426b",
+    "raw-stage-o3-profile-03/receipt.json": "1b7ad824188d5b0513c315b78b867aceae3fc0f8431247d85ff25e79104da66e",
+    "raw-stage-o3-control-03/receipt.json": "22a7ddd92ba8b25952920819a490061dcfa9ed19963aaddb0d0ab200c97fb557",
+    "raw-stage-o3-dcache-profile-01/receipt.json": "89a6d8862a350ba8ece5fe37298b9b9f0178be8ef4b5dc21d5ddf78ae084aab3",
+    "raw-stage-o3-dcache-control-01/receipt.json": "cf4959277966dd1707c574d650f0fad94639653a67ddc50f546bd2f1f4f16bcb",
+    "raw-stage-o3-profile-prog-01/receipt.json": "3c9d0491adfa341366ab3b81a610e2542ee1d3edd57bfc37206532b3ddfaa398",
+    "s3-comparator-freeze-01/receipt.json": "1a0213e97fac0ea1fca611c7b4567bc12b9714611ec9111939e131c9b05d6a1d"
   },
   "physical_claims": false,
   "scalar_target_executed": true,
