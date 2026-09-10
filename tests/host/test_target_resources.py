@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'scripts'))
-from target_resources import validate_resources
+from target_resources import validate_cache_state, validate_resources
 
 
 class TargetResourceAcceptanceTests(unittest.TestCase):
@@ -48,6 +48,34 @@ class TargetResourceAcceptanceTests(unittest.TestCase):
     def test_heap_highwater_growth_rejected(self):
         with self.assertRaisesRegex(RuntimeError, 'heap growth'):
             self.validate(heap_maximum=12001)
+
+
+class TargetCacheAcceptanceTests(unittest.TestCase):
+    def test_disabled_readback_passes(self):
+        validate_cache_state({'scb_ccr': 1 << 17,
+                              'dcache_enabled': False,
+                              'icache_enabled': True}, 'disabled', 'test')
+
+    def test_enabled_readback_passes(self):
+        validate_cache_state({'scb_ccr': (1 << 17) | (1 << 16),
+                              'dcache_enabled': True,
+                              'icache_enabled': True}, 'enabled', 'test')
+
+    def test_missing_readback_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, 'readback missing'):
+            validate_cache_state({}, 'disabled', 'test')
+
+    def test_inconsistent_readback_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, 'readback inconsistent'):
+            validate_cache_state({'scb_ccr': 0,
+                                  'dcache_enabled': True,
+                                  'icache_enabled': False}, 'disabled', 'test')
+
+    def test_wrong_mode_rejected(self):
+        with self.assertRaisesRegex(RuntimeError, 'mode mismatch'):
+            validate_cache_state({'scb_ccr': 1 << 16,
+                                  'dcache_enabled': True,
+                                  'icache_enabled': False}, 'disabled', 'test')
 
 
 if __name__ == '__main__':

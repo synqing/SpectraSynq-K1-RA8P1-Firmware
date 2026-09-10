@@ -49,6 +49,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--debug', action='store_true')
     parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
+    parser.add_argument('--dcache',choices=('disabled','enabled'),default='disabled',
+                        help='retain the proven disabled default or build an identified BSP-enabled experiment')
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
     parser.add_argument('--npu-model',type=Path,help='hash-bound generated smoke-graph C source directory')
     parser.add_argument('--npu-input',type=Path,help='hash-bound generated NPU input header')
@@ -100,9 +102,10 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,dcache=args.dcache),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
+                       dcache=args.dcache,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -125,6 +128,9 @@ def main():
             text=text.replace("CFLAGS = DEVICE + ' -Dgcc", "CFLAGS = DEVICE + ' -DK1_NPU_LOAD=1 -Dgcc")
         if args.p4_source:
             text=text.replace('-DK1_NPU_LOAD=1 -Dgcc','-DK1_NPU_LOAD=1 -DK1_P4_LOAD=1 -Dgcc')
+        if args.dcache=='enabled':
+            assert text.count('-Dgcc')==1
+            text=text.replace('-Dgcc','-DK1_KEEP_DCACHE_ENABLED=1 -Dgcc')
         rtconfig.write_text(text)
         config=stage/'rtconfig.h'
         text=config.read_text()

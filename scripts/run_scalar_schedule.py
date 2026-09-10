@@ -11,7 +11,7 @@ import time
 import zlib
 from datetime import datetime,timezone
 from run_scalar_target import packet,read_exact,UID
-from target_resources import validate_resources
+from target_resources import validate_cache_state,validate_resources
 from verify_imports import PIN
 MODES={'scalar':0,'scheduled':1,'saturation':2,'npu-alone':3}
 
@@ -345,6 +345,7 @@ def main():
         before=receipt['resources_before']; after=receipt['resources_after']
         validate_resources(before,after,acceptance,'K1')
         for metrics in (receipt['resources_before'],after):
+            validate_cache_state(metrics,build.get('dcache'),'K1')
             observed=metrics['clock_check_cycles']*metrics['tick_hz']/metrics['clock_check_ticks']
             if abs(observed/info['clock_hz']-1)>0.02: raise RuntimeError('DWT/tick clock consistency failed')
         receipt['measurement_validated']=True

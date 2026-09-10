@@ -39,10 +39,14 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
     rt_thread_mdelay(100);
     const uint32_t elapsed_cycles=DWT->CYCCNT-first_cycle;
     const uint32_t elapsed_ticks=rt_tick_get()-first_tick;
+    const uint32_t scb_ccr=SCB->CCR;
     const int n=snprintf(output,capacity,
-        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu}",
+        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu}",
         (unsigned long)self->stack_size,(unsigned long)untouched,(unsigned long)total,
         (unsigned long)used,(unsigned long)maximum,(unsigned long)__get_FPSCR(),
+        (unsigned long)scb_ccr,
+        (scb_ccr&SCB_CCR_DC_Msk)?"true":"false",
+        (scb_ccr&SCB_CCR_IC_Msk)?"true":"false",
         (unsigned long)elapsed_cycles,(unsigned long)elapsed_ticks,(unsigned long)RT_TICK_PER_SECOND);
     return n>0 && (size_t)n<capacity?(size_t)n:0;
 }
@@ -57,7 +61,7 @@ static void k1_handle_request(const usb_event_info_t *event_info) {
         (void)R_USB_PeriControlStatusSet(&g_basic0_ctrl,USB_SETUP_STATUS_ACK);
 }
 void hal_entry(void) {
-#if BSP_CFG_DCACHE_ENABLED
+#if BSP_CFG_DCACHE_ENABLED && !defined(K1_KEEP_DCACHE_ENABLED)
     SCB_DisableDCache(); __DSB(); __ISB();
 #endif
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
