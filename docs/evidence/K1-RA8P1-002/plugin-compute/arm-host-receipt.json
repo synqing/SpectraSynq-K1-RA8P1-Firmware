@@ -1,0 +1,281 @@
+{
+  "arm_current_target": "NOT_RUN",
+  "blocked_cells": [
+    "arm-current-target",
+    "arm-executed-numerics"
+  ],
+  "claims_executed_arm": false,
+  "completed_at": "2026-09-10T06:12:34.339011+00:00",
+  "contract_version": "RA8P1-SOL-1.0.0",
+  "errors": [],
+  "execution": {
+    "arm_binary_executed": false,
+    "compiler_facts_only": false,
+    "host_language": "c",
+    "host_library": true,
+    "python_numerics": false
+  },
+  "identities": {
+    "adapter_id": "k1-ra8p1-arm-numeric-v1",
+    "source_sha256": "c97ed5833581ff6fcd5a1cdda0bc0080594862acd8b5805c579419bc7450e8d4"
+  },
+  "limitations": [
+    "HOST/CROSS_COMPILED work does not execute Arm on the identified target.",
+    "Independent reference is binary64 math.fsum, not C accumulation.",
+    "Qualification remains engineering-preview."
+  ],
+  "numerical": {
+    "arm_binary_executed": false,
+    "campaign": {
+      "arm_binary_executed": false,
+      "chunked_vs_ref": 8.084391618368159e-07,
+      "count": 256,
+      "host_chunked": -2.143177032470703,
+      "host_classify_scalar": "finite",
+      "host_scalar": -2.1431777477264404,
+      "independent_f64": -2.143177840909865,
+      "independent_ref_not_executed_arm": true,
+      "independent_ref_recorded": true,
+      "input_sha256": "3b54abb8fe7ad52cbd948b1da95b1080b50be6e92eb660b11c3b5ad385d977dd",
+      "name": "campaign",
+      "python_f32_accum": -2.1431777477264404,
+      "python_vs_ref": 9.318342453212836e-08,
+      "qualification_level": "HOST",
+      "scalar_vs_ref": 9.318342453212836e-08,
+      "score": {
+        "absolute_error": 7.152557373046875e-07,
+        "claimed_tol": 1e-05,
+        "predeclared_abs_tol": 1e-05,
+        "scored_as_executed_arm": false,
+        "widened": false,
+        "within_predeclared": true
+      }
+    },
+    "cancellation": {
+      "arm_binary_executed": false,
+      "chunked_vs_ref": 3.0,
+      "count": 12,
+      "host_chunked": 1.0,
+      "host_classify_scalar": "+0",
+      "host_scalar": 0.0,
+      "independent_f64": 4.0,
+      "input_sha256": "d675d7caf50fdd8a45f28de9c5ba5318cefc0e7f1b820153de644abdd36a4398",
+      "name": "cancellation",
+      "python_f32_accum": 0.0,
+      "python_vs_ref": 4.0,
+      "qualification_level": "HOST",
+      "scalar_vs_ref": 4.0,
+      "score": {
+        "not_widened": true,
+        "predeclared_abs_tol": 1e-05,
+        "reason": "Prepared fixture; new numerical contract would need Astra before Arm scoring.",
+        "scored": false
+      }
+    },
+    "magnitude": {
+      "arm_binary_executed": false,
+      "chunked_vs_ref": 4.438187945816517e-19,
+      "count": 16,
+      "host_chunked": 1.5999999936067155e-11,
+      "host_classify_scalar": "finite",
+      "host_scalar": 1.6000003405514107e-11,
+      "independent_f64": 1.599999949224836e-11,
+      "input_sha256": "bb462a81a6c9c4bc4ec1b4fb625f6eb3f0b2f71e040538827ad1cf5051bfa16e",
+      "name": "magnitude",
+      "python_f32_accum": 1.6000003405514107e-11,
+      "python_vs_ref": 3.913265746535266e-18,
+      "qualification_level": "HOST",
+      "scalar_vs_ref": 3.913265746535266e-18,
+      "score": {
+        "not_widened": true,
+        "predeclared_abs_tol": 1e-05,
+        "reason": "Prepared fixture; new numerical contract would need Astra before Arm scoring.",
+        "scored": false
+      }
+    },
+    "qualification_level": "HOST",
+    "semantics": {
+      "cancellation": "Alternating 1e8, 1, -1e8 against ones; HOST observation, not Arm pass.",
+      "finite": "Campaign seed 0x8A8F1 / 256 samples uses frozen 1e-05 absolute tolerance on HOST only.",
+      "independent_reference": "math.fsum of Python-float (IEEE binary64) products, not C accumulation.",
+      "magnitude": "1e8*1e-20 mixed with 1e-20*1e8; HOST observation, not Arm pass.",
+      "specials": {
+        "0": {
+          "expect_class": 1,
+          "name": "nan_times_one",
+          "score_with_abs_tol": false
+        },
+        "1": {
+          "expect_class": 2,
+          "name": "pos_inf_times_two",
+          "score_with_abs_tol": false
+        },
+        "2": {
+          "expect_class": 3,
+          "name": "neg_inf_times_two",
+          "score_with_abs_tol": false
+        },
+        "3": {
+          "expect_class": 1,
+          "name": "pos_inf_times_zero",
+          "score_with_abs_tol": false
+        },
+        "4": {
+          "expect_class": 5,
+          "name": "pos_zero_times_one",
+          "score_with_abs_tol": false
+        },
+        "5": {
+          "expect_class": [
+            4,
+            5
+          ],
+          "name": "neg_zero_times_one",
+          "score_with_abs_tol": false
+        },
+        "6": {
+          "expect_class": [
+            0,
+            6
+          ],
+          "name": "denormal_times_two",
+          "score_with_abs_tol": false
+        }
+      },
+      "tails": "Count 5, not a multiple of 4; leftover scalar loop is required."
+    },
+    "specials": [
+      {
+        "arm_binary_executed": false,
+        "case_id": 0,
+        "class_match": true,
+        "expect_class": 1,
+        "name": "nan_times_one",
+        "observed_class": 1,
+        "observed_class_name": "nan",
+        "score_with_abs_tol": false
+      },
+      {
+        "arm_binary_executed": false,
+        "case_id": 1,
+        "class_match": true,
+        "expect_class": 2,
+        "name": "pos_inf_times_two",
+        "observed_class": 2,
+        "observed_class_name": "+inf",
+        "score_with_abs_tol": false
+      },
+      {
+        "arm_binary_executed": false,
+        "case_id": 2,
+        "class_match": true,
+        "expect_class": 3,
+        "name": "neg_inf_times_two",
+        "observed_class": 3,
+        "observed_class_name": "-inf",
+        "score_with_abs_tol": false
+      },
+      {
+        "arm_binary_executed": false,
+        "case_id": 3,
+        "class_match": true,
+        "expect_class": 1,
+        "name": "pos_inf_times_zero",
+        "observed_class": 1,
+        "observed_class_name": "nan",
+        "score_with_abs_tol": false
+      },
+      {
+        "arm_binary_executed": false,
+        "case_id": 4,
+        "class_match": true,
+        "expect_class": 5,
+        "name": "pos_zero_times_one",
+        "observed_class": 5,
+        "observed_class_name": "+0",
+        "score_with_abs_tol": false
+      },
+      {
+        "arm_binary_executed": false,
+        "case_id": 5,
+        "class_match": true,
+        "expect_class": [
+          4,
+          5
+        ],
+        "name": "neg_zero_times_one",
+        "observed_class": 5,
+        "observed_class_name": "+0",
+        "score_with_abs_tol": false
+      },
+      {
+        "arm_binary_executed": false,
+        "case_id": 6,
+        "class_match": true,
+        "expect_class": [
+          0,
+          6
+        ],
+        "name": "denormal_times_two",
+        "observed_class": 6,
+        "observed_class_name": "denormal",
+        "score_with_abs_tol": false
+      }
+    ],
+    "tail": {
+      "arm_binary_executed": false,
+      "chunked_vs_ref": 0.0,
+      "count": 5,
+      "host_chunked": 15.0,
+      "host_classify_scalar": "finite",
+      "host_scalar": 15.0,
+      "independent_f64": 15.0,
+      "input_sha256": "9b8e18f182d60f6e4fb76645f72b5ec01713c002a2d9967e91e092c37e90cfbd",
+      "name": "tail",
+      "python_f32_accum": 15.0,
+      "python_vs_ref": 0.0,
+      "qualification_level": "HOST",
+      "scalar_vs_ref": 0.0,
+      "score": {
+        "not_widened": true,
+        "predeclared_abs_tol": 1e-05,
+        "reason": "Prepared fixture; new numerical contract would need Astra before Arm scoring.",
+        "scored": false
+      }
+    }
+  },
+  "ok": true,
+  "p99_pass_fail": "unscored",
+  "p99_us": 6000,
+  "qualification_level": "HOST",
+  "receipt_id": "wp14-arm-host-fixtures",
+  "recipe": {
+    "id": "arm-numeric",
+    "version": "1"
+  },
+  "schema_version": 2,
+  "started_at": "2026-09-10T06:12:34.338860+00:00",
+  "status": "PASS",
+  "tools": [
+    {
+      "argv": [
+        "cc",
+        "-std=c11",
+        "-shared",
+        "-fPIC",
+        "-O2",
+        "-ffp-contract=off",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/arm_numeric_probe.c",
+        "-o",
+        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-arm-host-dvexpvwc/libarm_numeric_probe.dylib"
+      ],
+      "exit_code": 0,
+      "name": "cc",
+      "sha256": "4da622b71aa3ef0ac8c7115f8fc2e66e2f02ffa510cf2f83801f3c33f07e41e0"
+    }
+  ]
+}

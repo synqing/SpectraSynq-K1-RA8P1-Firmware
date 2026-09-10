@@ -1,0 +1,14 @@
+{
+  "adapter_class": "arm_numeric_probe",
+  "campaign_count": 256,
+  "campaign_seed": "0x8a8f1",
+  "cannot_satisfy": "executed-arm",
+  "id": "k1-ra8p1-arm-numeric-v1",
+  "independent_reference": "math.fsum binary64 products",
+  "note": "Prepared scalar/chunked/MVE fixtures. Host C is HOST. Disassembly is CROSS_COMPILED.",
+  "predeclared_abs_tol": 1e-05,
+  "qualification_level": "HOST",
+  "source": "platform/ra8p1/arm_numeric_probe.c",
+  "source_sha256": "c97ed5833581ff6fcd5a1cdda0bc0080594862acd8b5805c579419bc7450e8d4",
+  "version": "1"
+}

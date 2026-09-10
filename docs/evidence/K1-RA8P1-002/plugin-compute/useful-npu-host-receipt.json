@@ -1,0 +1,158 @@
+{
+  "blocked_cells": [
+    "u55-useful-inference",
+    "u55-current-target"
+  ],
+  "claims_useful_inference": false,
+  "completed_at": "2026-09-10T06:12:35.157011+00:00",
+  "contract_version": "RA8P1-SOL-1.0.0",
+  "errors": [],
+  "execution": {
+    "arm_binary_executed": false,
+    "load_only": true,
+    "npu_role": "identified-platform-load-only"
+  },
+  "g6": "NO_QUALIFYING_CANDIDATE",
+  "identities": {
+    "adapter_id": "k1-ra8p1-useful-npu-v1",
+    "bsp_commit": "6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7"
+  },
+  "limitations": [
+    "Load-only graph cannot satisfy useful inference.",
+    "Original same-compilation goldens were not located.",
+    "G6 remains NO_QUALIFYING_CANDIDATE.",
+    "Licence UNKNOWN stays UNKNOWN."
+  ],
+  "npu": {
+    "expected_raw_output": [
+      127,
+      117,
+      123
+    ],
+    "face_detector_decline": "MISSING_MODEL",
+    "g6": "NO_QUALIFYING_CANDIDATE",
+    "inspection": {
+      "bsp_commit": "6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7",
+      "do_not_substitute": [
+        {
+          "onnx_sha256": "5d0097e83fe269acb6ce92c5ab84cfe897561d3858328f2f0c610262c3801bd6",
+          "role": "identified-platform-load-only",
+          "tflite_sha256": "1fbdbb2878f5223697f70366036bf6260026f2e7ebbdb0dd0e0987d726f96fed"
+        },
+        {
+          "reason": "G6 already NO_QUALIFYING_CANDIDATE; not this acquisition lead",
+          "role": "ShareStudent-semantic-checkpoint"
+        }
+      ],
+      "exists": true,
+      "found_original_artefacts": {
+        "allocation": [],
+        "golden": [],
+        "npy": [],
+        "onnx": [],
+        "tflite": [],
+        "vela": []
+      },
+      "generated_c": {
+        "src/models/model.h": {
+          "bytes": 3217,
+          "exists": true,
+          "sha256": "17380f314e77c2ba128790b794e383ac4c9e6446e85d54c81258565743a49901"
+        },
+        "src/models/sub_0000_command_stream.c": {
+          "bytes": 66012,
+          "exists": true,
+          "sha256": "98d966d713fd9fcda2d0a9965c56e969b99511fdcda4fad276593b958d4a28a6"
+        },
+        "src/models/sub_0000_invoke.c": {
+          "bytes": 2530,
+          "exists": true,
+          "sha256": "b8e151a797abf2543c698da563286b9c16e15e5831e36b569e4780c607260d75"
+        },
+        "src/models/sub_0000_model_data.c": {
+          "bytes": 2667958,
+          "exists": true,
+          "sha256": "a9c8335d175e157414069279b80dff3220787b89c37dceae682132975790803a"
+        },
+        "src/models/sub_0000_tensors.c": {
+          "bytes": 924,
+          "exists": true,
+          "sha256": "27b93b54ace597be15b0a1e26ffaef7a565ebe0e285981d72624467370d39427"
+        }
+      },
+      "generated_c_extents_observation": {
+        "arena_bytes": 442368,
+        "input_bytes": 36864,
+        "is_original_allocation_report": false,
+        "model_data_bytes": 440048,
+        "output0_bytes": 2592,
+        "output1_bytes": 648,
+        "source": "src/models/sub_0000_invoke.c generated comments"
+      },
+      "licence": "UNKNOWN",
+      "licence_cleared": false,
+      "missing": {
+        "allocation_report": true,
+        "golden_inputs": true,
+        "golden_outputs": true,
+        "operator_fallback_report": true,
+        "original_model_licence": true,
+        "same_compilation_tflite": true,
+        "separate_code_weight_data_permissions": true,
+        "source_onnx": true
+      },
+      "root": "/Users/spectrasynq/Workspace_Management/Software/sdk-bsp-ra8p1-titan-mini/project/Titan_Mini_npu_ai_face_detection",
+      "student": "Titan_Mini_npu_ai_face_detection YOLO-Fastest 192x192 INT8"
+    },
+    "invoke_rc": -1,
+    "licence": "UNKNOWN",
+    "load_only_decline": "LOAD_ONLY",
+    "original_goldens_located": false,
+    "probe_decline": "LOAD_ONLY",
+    "snapshot": {
+      "admitted": false,
+      "g6": "NO_QUALIFYING_CANDIDATE",
+      "g6_no_qualifying": true,
+      "identity": "0000000000000000000000000000000000000000000000000000000000000000",
+      "identity_set": false,
+      "invoked": false,
+      "last_decline": 1,
+      "last_decline_name": "LOAD_ONLY",
+      "licence_unknown": true
+    }
+  },
+  "ok": true,
+  "p99_pass_fail": "unscored",
+  "p99_us": 6000,
+  "qualification_level": "HOST",
+  "receipt_id": "wp14-useful-npu-host",
+  "recipe": {
+    "id": "useful-npu",
+    "version": "1"
+  },
+  "schema_version": 2,
+  "started_at": "2026-09-10T06:12:35.156851+00:00",
+  "status": "PASS",
+  "tools": [
+    {
+      "argv": [
+        "cc",
+        "-std=c11",
+        "-shared",
+        "-fPIC",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/useful_npu_probe.c",
+        "-o",
+        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-useful-npu-host-4evlife7/libuseful_npu_probe.dylib"
+      ],
+      "exit_code": 0,
+      "name": "cc",
+      "sha256": "2cb7529a5a96f70fd334b2a28bfde09a57d224ae0ffece88382e14f550b616bd"
+    }
+  ],
+  "u55_current_target": "NOT_RUN"
+}

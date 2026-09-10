@@ -1,0 +1,33 @@
+{
+  "cannot_satisfy": "useful-inference",
+  "command": [
+    "/Users/spectrasynq/Workspace_Management/Software/toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gcc",
+    "-std=c11",
+    "-c",
+    "-mcpu=cortex-m85+nomve",
+    "-mthumb",
+    "-mfpu=fpv5-sp-d16",
+    "-mfloat-abi=hard",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-fno-tree-vectorize",
+    "-fno-tree-slp-vectorize",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/useful_npu_probe.c",
+    "-o",
+    "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-useful-npu-cross-4b70og0r/useful_npu_probe.o"
+  ],
+  "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
+  "executed": false,
+  "exit_code": 0,
+  "linked": false,
+  "object": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/plugin-compute/useful_npu_probe.cross.o",
+  "object_sha256": "cb0648852cc597997446ca25105f2ce4aabb49729657903f12fa14a085c6c4e0",
+  "ok": true,
+  "qualification_level": "CROSS_COMPILED",
+  "source_sha256": "5795cf21eb41e301b4106b5ade363393fdc7d0b0d273ed67622f92bd518bfac7",
+  "status": "PASS"
+}

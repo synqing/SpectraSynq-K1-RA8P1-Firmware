@@ -1,0 +1,67 @@
+{
+  "bsp_commit": "6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7",
+  "candidate": "Titan_Mini_npu_ai_face_detection YOLO-Fastest 192x192 INT8",
+  "do_not_pick_a_different_student": true,
+  "found_original_artefacts": {
+    "allocation": [],
+    "golden": [],
+    "npy": [],
+    "onnx": [],
+    "tflite": [],
+    "vela": []
+  },
+  "g6": "NO_QUALIFYING_CANDIDATE",
+  "generated_c_extents_are_not_allocation_report": true,
+  "licence": "UNKNOWN",
+  "load_only_cannot_satisfy": "useful-inference",
+  "load_only_graph": {
+    "expected_raw_output": [
+      127,
+      117,
+      123
+    ],
+    "role": "identified-platform-load-only",
+    "same_compilation_tflite_sha256": "1fbdbb2878f5223697f70366036bf6260026f2e7ebbdb0dd0e0987d726f96fed",
+    "source_onnx_sha256": "5d0097e83fe269acb6ce92c5ab84cfe897561d3858328f2f0c610262c3801bd6"
+  },
+  "present_but_insufficient": {
+    "src/models/model.h": {
+      "bytes": 3217,
+      "exists": true,
+      "sha256": "17380f314e77c2ba128790b794e383ac4c9e6446e85d54c81258565743a49901"
+    },
+    "src/models/sub_0000_command_stream.c": {
+      "bytes": 66012,
+      "exists": true,
+      "sha256": "98d966d713fd9fcda2d0a9965c56e969b99511fdcda4fad276593b958d4a28a6"
+    },
+    "src/models/sub_0000_invoke.c": {
+      "bytes": 2530,
+      "exists": true,
+      "sha256": "b8e151a797abf2543c698da563286b9c16e15e5831e36b569e4780c607260d75"
+    },
+    "src/models/sub_0000_model_data.c": {
+      "bytes": 2667958,
+      "exists": true,
+      "sha256": "a9c8335d175e157414069279b80dff3220787b89c37dceae682132975790803a"
+    },
+    "src/models/sub_0000_tensors.c": {
+      "bytes": 924,
+      "exists": true,
+      "sha256": "27b93b54ace597be15b0a1e26ffaef7a565ebe0e285981d72624467370d39427"
+    }
+  },
+  "qualification_level": "HOST",
+  "receipt_id": "wp14-useful-u55-acquisition",
+  "request": [
+    "Original same-compilation TensorFlow Lite INT8 that produced sub_0000_command_stream.c and sub_0000_model_data.c for Titan_Mini_npu_ai_face_detection (YOLO-Fastest, 192x192).",
+    "Compiler/runtime identity for that compilation: Vela or RUHMI version, Ethos-U driver version, FSP version.",
+    "Operator list and CPU-fallback report from that compilation.",
+    "Original allocation report (arena/SRAM extents as emitted by the compiler, not reconstructed from generated C).",
+    "Golden input tensors and golden output tensors bound to that compilation.",
+    "Separate code / weight / data permission map for the compiled graph.",
+    "Original model licence. Generated EdgeCortix/TF Apache-2.0 headers do not clear the student weights. UNKNOWN stays UNKNOWN."
+  ],
+  "schema_version": 2,
+  "status": "BLOCKED"
+}

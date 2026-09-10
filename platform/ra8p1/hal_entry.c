@@ -14,6 +14,12 @@
 #ifdef K1_PDM_CAPTURE
 #include "pdm_capture.h"
 #endif
+#ifdef K1_ARM_NUMERIC
+extern int k1_arm_numeric_prepare(void);
+#endif
+#ifdef K1_USEFUL_NPU
+extern int k1_useful_npu_probe(void);
+#endif
 static uint8_t usb_read[64];
 static bool attached, read_armed, write_pending;
 uint32_t k1_cycle_count(void) { return DWT->CYCCNT; }
@@ -62,6 +68,14 @@ void hal_entry(void) {
     /* Accounting probe only. Does not open R_PDM or replace the CDC fixture. */
     (void)k1_pdm_configure(16000u, 1u, 4u, 2u, 2u, 4000u);
     k1_pdm_start();
+#endif
+#ifdef K1_ARM_NUMERIC
+    /* Host-equivalent prepare only. Does not claim executed Arm numerics. */
+    (void)k1_arm_numeric_prepare();
+#endif
+#ifdef K1_USEFUL_NPU
+    /* Admission only. Does not invoke Ethos-U or replace the CDC fixture. */
+    (void)k1_useful_npu_probe();
 #endif
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
