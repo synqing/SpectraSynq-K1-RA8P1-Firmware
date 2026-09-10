@@ -17,6 +17,38 @@ MODES={'scalar':0,'scheduled':1,'saturation':2,'npu-alone':3}
 
 def sha(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
+PROFILE_FULL_HOP_STAGES={
+    'ap_total','gdft_raw','gdft_postprocess','features','onset_saliency',
+    'tempo_total','musical_time','telemetry',
+}
+PROFILE_UPDATE_STAGES={
+    'tempo_history','tempo_acf_total','acf_prepare','acf_correlate','acf_comb',
+    'acf_normalise','tempo_bank','tempo_flywheel','tempo_output',
+}
+
+def validate_stage_profile(status,expected_hops,expected_renders):
+    profile=status.get('stage_profile')
+    if not isinstance(profile,dict) or profile.get('bin_width_cycles')!=16384:
+        raise RuntimeError('stage profile metadata missing or divergent')
+    stages=profile.get('stages')
+    expected=PROFILE_FULL_HOP_STAGES|PROFILE_UPDATE_STAGES|{'vp_render'}
+    if not isinstance(stages,dict) or set(stages)!=expected:
+        raise RuntimeError('stage profile stage set missing or divergent')
+    for name in PROFILE_FULL_HOP_STAGES:
+        if stages[name].get('count')!=expected_hops:
+            raise RuntimeError(f'stage profile count mismatch: {name}')
+    if stages['vp_render'].get('count')!=expected_renders:
+        raise RuntimeError('stage profile count mismatch: vp_render')
+    update_counts={stages[name].get('count') for name in PROFILE_UPDATE_STAGES}
+    if len(update_counts)!=1 or not update_counts or next(iter(update_counts))<=0:
+        raise RuntimeError('tempo-update stage counts missing or divergent')
+    if next(iter(update_counts))>expected_hops:
+        raise RuntimeError('tempo-update stage count exceeds hop count')
+    for name,measurement in stages.items():
+        required={'count','mean_cycles','p50_bin_lower_cycles','p95_bin_lower_cycles','p99_bin_lower_cycles','max_cycles'}
+        if set(measurement)!=required or any(measurement[field]<0 for field in required):
+            raise RuntimeError(f'invalid stage profile measurement: {name}')
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--build',type=Path,required=True)
@@ -127,6 +159,11 @@ def main():
             raise RuntimeError('measurement count mismatch')
         expected_renders=0 if args.mode=='npu-alone' else args.loops*profile['fixture']['renders_per_loop']
         if status['render']['count']!=expected_renders: raise RuntimeError('render measurement count mismatch')
+        if build.get('stage_profile'):
+            if args.mode=='npu-alone': raise RuntimeError('stage profile does not support npu-alone mode')
+            validate_stage_profile(status,expected_k1,expected_renders)
+        elif 'stage_profile' in status:
+            raise RuntimeError('unexpected stage profile from ordinary build')
         if status['mode']!=mode: raise RuntimeError('target mode mismatch')
         if status['queue_capacity']!=profile['schedule']['queue_capacity'] or status['drops'] or status['coalesces']:
             raise RuntimeError('bounded queue contract failed')

@@ -5,6 +5,9 @@
 #include "time_probe.h"
 #include "build_identity.h"
 #include "semantic_sidecar.h"
+#ifdef K1_ENABLE_STAGE_PROBE
+#include "stage_probe.h"
+#endif
 #include <new>
 #include <cstdio>
 #include <cstring>
@@ -43,6 +46,36 @@ template<unsigned Maximum> struct Distribution {
     return Maximum;
   }
 };
+#ifdef K1_ENABLE_STAGE_PROBE
+constexpr unsigned kStageBinShift=14;
+constexpr unsigned kStageBinWidthCycles=1U<<kStageBinShift;
+constexpr unsigned kStageOverflowBin=256;
+struct StageDistribution {
+  std::uint32_t bins[kStageOverflowBin+1]{};
+  std::uint64_t sum=0;
+  std::uint32_t count=0, maximum=0;
+  void add(std::uint32_t cycles) {
+    const unsigned bin=cycles>>kStageBinShift;
+    ++bins[bin>kStageOverflowBin?kStageOverflowBin:bin];
+    sum+=cycles; ++count; if(cycles>maximum) maximum=cycles;
+  }
+  std::uint32_t percentileLower(unsigned numerator) const {
+    if(!count) return 0;
+    const std::uint32_t wanted=(count*numerator+99)/100;
+    std::uint32_t seen=0;
+    for(unsigned i=0;i<=kStageOverflowBin;++i)
+      if((seen+=bins[i])>=wanted) return i*kStageBinWidthCycles;
+    return kStageOverflowBin*kStageBinWidthCycles;
+  }
+};
+constexpr const char* kStageNames[k1_stage_count]={
+  "ap_total","gdft_raw","gdft_postprocess","features","onset_saliency",
+  "tempo_total","tempo_history","tempo_acf_total","acf_prepare",
+  "acf_correlate","acf_comb","acf_normalise","tempo_bank",
+  "tempo_flywheel","tempo_output","musical_time","vp_render","telemetry"
+};
+static_assert(sizeof(kStageNames)/sizeof(kStageNames[0])==k1_stage_count);
+#endif
 struct ScheduleState {
   bool active=false, finished=false;
   std::uint32_t loops=0, loop=0, hop=0, flags=0, last_cycle=0;
@@ -57,6 +90,9 @@ struct ScheduleState {
   Distribution<1000> lateness;
   Distribution<4000> telemetry;
   Distribution<8000> npu_wall;
+#ifdef K1_ENABLE_STAGE_PROBE
+  StageDistribution stages[k1_stage_count];
+#endif
 } schedule;
 std::uint32_t microseconds(std::uint32_t cycles) {
   return clock_hz?static_cast<std::uint32_t>((std::uint64_t(cycles)*1000000U+clock_hz-1)/clock_hz):0xffffffffU;
@@ -82,6 +118,18 @@ template<class D> void distribution(char* output,std::size_t capacity,std::size_
     (unsigned long)d.percentile(99),(unsigned long)d.maximum);
   if(n<0 || std::size_t(n)>=capacity-offset) offset=capacity; else offset+=std::size_t(n);
 }
+#ifdef K1_ENABLE_STAGE_PROBE
+void stage_distribution(char* output,std::size_t capacity,std::size_t& offset,const char* name,const StageDistribution& d) {
+  char mean[32];
+  if(!format_mean(mean,sizeof(mean),d.sum,d.count)) { offset=capacity; return; }
+  const int n=std::snprintf(output+offset,capacity-offset,
+    "\"%s\":{\"count\":%lu,\"mean_cycles\":%s,\"p50_bin_lower_cycles\":%lu,\"p95_bin_lower_cycles\":%lu,\"p99_bin_lower_cycles\":%lu,\"max_cycles\":%lu}",
+    name,(unsigned long)d.count,mean,
+    (unsigned long)d.percentileLower(50),(unsigned long)d.percentileLower(95),
+    (unsigned long)d.percentileLower(99),(unsigned long)d.maximum);
+  if(n<0 || std::size_t(n)>=capacity-offset) offset=capacity; else offset+=std::size_t(n);
+}
+#endif
 void schedule_status() {
   std::size_t n=0;
   const int first=std::snprintf(trace.data,sizeof(trace.data),
@@ -119,6 +167,19 @@ void schedule_status() {
   distribution(trace.data,sizeof(trace.data),n,"telemetry",schedule.telemetry);
   if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"npu_wall",schedule.npu_wall);
+#ifdef K1_ENABLE_STAGE_PROBE
+  if(n<sizeof(trace.data)) trace.data[n++]=',';
+  const int profile=std::snprintf(trace.data+n,sizeof(trace.data)-n,
+    "\"stage_profile\":{\"bin_width_cycles\":%u,\"stages\":{",kStageBinWidthCycles);
+  if(profile<0 || std::size_t(profile)>=sizeof(trace.data)-n) { error(8); return; }
+  n+=std::size_t(profile);
+  for(unsigned stage=0;stage<k1_stage_count;++stage) {
+    stage_distribution(trace.data,sizeof(trace.data),n,kStageNames[stage],schedule.stages[stage]);
+    if(stage+1<k1_stage_count && n<sizeof(trace.data)) trace.data[n++]=',';
+  }
+  if(n+2>sizeof(trace.data)) { error(8); return; }
+  trace.data[n++]='}'; trace.data[n++]='}';
+#endif
   if(n+2>sizeof(trace.data)) { error(8); return; }
   trace.data[n++]='}'; respond(0,0,trace.data,n);
 }
@@ -213,6 +274,15 @@ void execute() {
   fill=0; wanted=32;
 }
 }
+#ifdef K1_ENABLE_STAGE_PROBE
+extern "C" std::uint32_t k1_stage_probe_begin(unsigned) noexcept {
+  return k1_cycle_count();
+}
+extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcept {
+  if(schedule.active && stage<k1_stage_count)
+    schedule.stages[stage].add(k1_cycle_count()-started);
+}
+#endif
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   // Constructor witness: ChannelRenderState must have installed each channel ID.
@@ -306,12 +376,18 @@ extern "C" void k1_fixture_schedule_step(void) {
   if(lateness>clock_hz/10000U) ++schedule.release_guard_failures; // predeclared 100 us start guard.
   if(schedule.flags&1U) {
     const std::uint32_t before=k1_cycle_count();
+#ifdef K1_ENABLE_STAGE_PROBE
+    K1_STAGE_BEGIN(telemetry, k1_stage_telemetry);
+#endif
     trace.format=fixture::Trace::Format::binary; trajectory.trace(trace);
     const std::uint32_t expected_crc=k1_resident_crc[index] ^
       ((schedule.flags&2U) && schedule.loop==0 && schedule.hop==0 ? 1U : 0U);
     if(!trace.valid || trace.size!=k1_resident_length[index] ||
        crc(reinterpret_cast<const std::uint8_t*>(trace.data),trace.size)!=expected_crc) ++schedule.correctness_failures;
     trace.format=fixture::Trace::Format::text;
+#ifdef K1_ENABLE_STAGE_PROBE
+    K1_STAGE_END(telemetry, k1_stage_telemetry);
+#endif
     schedule.telemetry.add(microseconds(k1_cycle_count()-before));
   }
   }

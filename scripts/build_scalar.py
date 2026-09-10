@@ -11,6 +11,7 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from verify_imports import ROOT, verify, REFERENCE, PIN
+from stage_profile import instrument_stage_sources
 
 BSP = ROOT.parent / 'sdk-bsp-ra8p1-titan-mini'
 BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
@@ -49,6 +50,7 @@ def main():
     parser.add_argument('--npu-input',type=Path,help='hash-bound generated NPU input header')
     parser.add_argument('--p4-source',type=Path,help='hash-bound generic P4 kernels.c/kernels.h directory')
     parser.add_argument('--p4-fixture',type=Path,help='hash-bound packed generic P4 fixture header')
+    parser.add_argument('--stage-profile',action='store_true',help='instrument disposable K1 copies with the fixed stage probe')
     args=parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
@@ -61,6 +63,7 @@ def main():
         if args.npu_model and not args.resident_controls: raise RuntimeError('NPU load requires the resident K1 schedule')
         if bool(args.p4_source)!=bool(args.p4_fixture): raise RuntimeError('P4 source and fixture must be supplied together')
         if args.p4_source and not args.npu_model: raise RuntimeError('P4/E1 target image requires the identified NPU load')
+        if args.stage_profile and not args.resident_controls: raise RuntimeError('stage profiling requires the resident K1 schedule')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.resident_controls:
@@ -78,6 +81,8 @@ def main():
                 path=args.p4_source/name
                 if not path.is_file(): raise RuntimeError(f'missing P4 source {name}')
                 material.append(path)
+        if args.stage_profile:
+            material += [ROOT/'platform/ra8p1/stage_probe.h',ROOT/'scripts/stage_profile.py']
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
@@ -91,9 +96,9 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source)),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
-                       resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),
+                       resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -128,6 +133,12 @@ def main():
             shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
             scon=stage/'src/SConscript'
             scon.write_text(scon.read_text().replace("LOCAL_CXXFLAGS=' -std=c++17", "LOCAL_CXXFLAGS=' -DK1_RESIDENT_SCHEDULE=1 -std=c++17"))
+        if args.stage_profile:
+            shutil.copy2(ROOT/'platform/ra8p1/stage_probe.h',stage/'src/stage_probe.h')
+            scon=stage/'src/SConscript'
+            text=scon.read_text()
+            assert text.count("LOCAL_CXXFLAGS=' ")==1
+            scon.write_text(text.replace("LOCAL_CXXFLAGS=' ","LOCAL_CXXFLAGS=' -DK1_ENABLE_STAGE_PROBE=1 "))
         if args.npu_model:
             shutil.copy2(ROOT/'platform/ra8p1'/'npu_load.c',stage/'src/npu_load.c')
             shutil.copy2(ROOT/'platform/ra8p1'/'npu_load.h',stage/'src/npu_load.h')
@@ -145,6 +156,8 @@ def main():
         for name in names:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
+        if args.stage_profile:
+            receipt['instrumented_sources']=instrument_stage_sources(stage/'src/k1')
         macros=command([TOOLCHAIN/'arm-none-eabi-g++',*SCALAR.split(),'-dM','-E','-x','c++','/dev/null'])
         (args.output/'compiler-macros.txt').write_text(macros)
         assert '__ARM_FEATURE_MVE ' not in macros, 'compiler enables MVE'

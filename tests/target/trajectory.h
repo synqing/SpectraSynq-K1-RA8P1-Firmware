@@ -5,6 +5,9 @@
 #include <cstring>
 #include "core/audio/audio_pipeline.h"
 #include "core/visual/product_effect_renderer.h"
+#ifdef K1_ENABLE_STAGE_PROBE
+#include "stage_probe.h"
+#endif
 #ifndef K1_TRAJECTORY_CYCLE_COUNT
 #define K1_TRAJECTORY_CYCLE_COUNT() 0U
 #endif
@@ -117,6 +120,9 @@ struct Trajectory {
   void process(const std::int16_t* hop) {
     const std::uint32_t total_started=K1_TRAJECTORY_CYCLE_COUNT();
     const std::uint32_t ap_started=K1_TRAJECTORY_CYCLE_COUNT();
+#ifdef K1_ENABLE_STAGE_PROBE
+    K1_STAGE_BEGIN(ap_total, k1_stage_ap_total);
+#endif
     std::memmove(window.data(), window.data() + 180, (window.size() - 180) * sizeof(std::int16_t));
     std::memcpy(window.data() + window.size() - 180, hop, 180 * sizeof(std::int16_t));
     float peak = 0, energy = 0;
@@ -131,11 +137,17 @@ struct Trajectory {
     output = ap.process(input);
     pushVisualWaveform(waveform, hop, 180, peak * 32768.0F, peak, sequence);
     a.prepareAudio(output.features); b.prepareAudio(output.features);
+#ifdef K1_ENABLE_STAGE_PROBE
+    K1_STAGE_END(ap_total, k1_stage_ap_total);
+#endif
     ap_cycles=K1_TRAJECTORY_CYCLE_COUNT()-ap_started;
     rendered = 0;
     // AP at n*360; render at m*400. Consume only already published AP state.
     if (next_render < input.media_time.frame_index + 360) {
       const std::uint32_t render_started=K1_TRAJECTORY_CYCLE_COUNT();
+#ifdef K1_ENABLE_STAGE_PROBE
+      K1_STAGE_BEGIN(vp_render, k1_stage_vp_render);
+#endif
       auto& ca = a.controls(); auto& cb = b.controls();
       ca.mode_id = modes[(sequence / 120) % 23]; cb.mode_id = modes[((sequence / 120) + 11) % 23];
       ca.palette_id = (sequence / 240) % 44; cb.palette_id = (ca.palette_id + 9) % 44;
@@ -143,6 +155,9 @@ struct Trajectory {
       const auto ra = renderProductChannel(a, view, 1.0F / 120.0F);
       const auto rb = renderProductChannel(b, view, 1.0F / 120.0F);
       rendered = ra.rendered && rb.rendered;
+#ifdef K1_ENABLE_STAGE_PROBE
+      K1_STAGE_END(vp_render, k1_stage_vp_render);
+#endif
       render_cycles=K1_TRAJECTORY_CYCLE_COUNT()-render_started;
       next_render += 400;
     } else render_cycles=0;
