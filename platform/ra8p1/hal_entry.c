@@ -147,11 +147,6 @@ void hal_entry(void) {
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
     if(FSP_SUCCESS!=R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg)) return;
-#ifdef K1_PDM_TARGET
-    /* Start capture only after all potentially long fixture/USB setup. The
-       two-slot ring has a 15 ms capacity and must have an active poller. */
-    (void)k1_pdm_target_initialise();
-#endif
     for(;;) {
         usb_event_info_t info={0}; usb_status_t event=USB_STATUS_NONE;
         (void)R_USB_EventGet(&info,&event);
@@ -167,6 +162,13 @@ void hal_entry(void) {
             attached=false; read_armed=false; write_pending=false; k1_fixture_disconnect(); break;
         default: break;
         }
+#ifdef K1_PDM_TARGET
+        /* USB enumeration can occupy more than the bounded 15 ms PDM ring.
+           Start capture only once CONFIGURED has been observed and this loop
+           can immediately become its active consumer. */
+        if(attached && !k1_pdm_target_initialised())
+            (void)k1_pdm_target_initialise();
+#endif
         k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
 #ifdef K1_PDM_TARGET
         k1_pdm_target_poll();

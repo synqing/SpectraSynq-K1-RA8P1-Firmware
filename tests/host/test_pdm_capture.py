@@ -500,6 +500,16 @@ def test_pdm_probe_is_default_off_and_cdc_path_remains():
     assert "r_pdm" not in SOURCE_C.read_text(encoding="utf-8")
 
 
+def test_dual_pdm_starts_only_after_usb_configuration_is_observed():
+    entry = (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
+    usb_open = entry.index("R_USB_Open")
+    configured = entry.index("case USB_STATUS_CONFIGURED")
+    pdm_start = entry.index("if(attached && !k1_pdm_target_initialised())")
+    pdm_poll = entry.index("k1_pdm_target_poll();", pdm_start)
+    assert usb_open < configured < pdm_start < pdm_poll
+    assert entry[:configured].count("k1_pdm_target_initialise()") == 0
+
+
 def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
     target = (ROOT / "platform/ra8p1/pdm_target.c").read_text(encoding="utf-8")
     header = (ROOT / "platform/ra8p1/pdm_target.h").read_text(encoding="utf-8")
