@@ -272,6 +272,37 @@ Build ID:
 `3decd1541b7a5fb1b77b65343542a6562d2286be69c3871713fca1d1b762bdb6`
 
 Cross-build passes: text 198,612; data 18,104; BSS 204,332 bytes.
-The current board still runs the earlier morph build until this new image is
-programmed. This image retains the GPIO bench transmitter; live capture,
+The new image is now programmed and verified; see the live result below. This image retains the GPIO bench transmitter; live capture,
 production AP timing, DMA output and U55 coexistence are separate outstanding work.
+
+### Live centre-effects verification — 2026-09-10
+
+Programmed build `3decd1541b7a5fb1b77b65343542a6562d2286be69c3871713fca1d1b762bdb6`
+on UID `545433931bd25436593630352d068363` with complete readback PASS.
+The first programmer wait expired without finding ROM; `centre-effects-programme-02`
+completed successfully. Normal reset then returned the exact expected application identity.
+
+One exclusive CDC session checked all four new modes in both directions (eight
+cells), both complete 160-pixel native channel frames, nonzero output, exact
+mirror symmetry, advancing physical-output callbacks and zero emission errors.
+This checks selected live frames; host trajectory checks provide the direction
+comparison. No host-generated pixel frames were sent.
+
+The requested 1,500 ms palette fade progressed monotonically through intermediate
+Q16 values and completed at the host's 1.690689 s observation, including request,
+response and polling overhead. This is an improvement over the previous 2.166862 s
+host observation, not a calibrated optical timing result.
+
+Final status: 16,576 rendered frames, 16,565 emissions, zero skipped releases and
+zero emission errors at that observation. Showcase and all-44 automatic palette
+cycle remain enabled, centre-out, four-second travel, 1,500 ms palette fades,
+brightness 24/255, output channel A. The CDC session is closed.
+
+Receipts and reproducible checker:
+`/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/centre-effects-programme-02/receipt.json`
+`/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/centre-effects-live-01/receipt.json`
+`/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/centre-effects-live-01/check.py`
+
+The installed path remains the 128-pixel WS2812 GPIO bench backend. This does not
+prove optical fidelity, the WS2816 TRUE16 shipping path, physical audio-to-light
+operation, production AP deadlines, or simultaneous U55 operation.
