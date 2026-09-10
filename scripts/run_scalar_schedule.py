@@ -189,15 +189,16 @@ def main():
             for field,value in expected_semantic.items():
                 observed=status['semantic_'+field]
                 if observed!=value: raise RuntimeError(f'semantic_{field}={observed} expected={value}')
-        if not args.mutation and args.mode!='npu-alone':
-            for field in ('deadline_misses','render_misses','release_guard_failures'):
-                if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')
         if status['backlog_highwater']>acceptance['backlog_highwater_max']: raise RuntimeError('backlog exceeded')
         before=receipt['resources_before']; after=receipt['resources_after']
         validate_resources(before,after,acceptance,'K1')
         for metrics in (receipt['resources_before'],after):
             observed=metrics['clock_check_cycles']*metrics['tick_hz']/metrics['clock_check_ticks']
             if abs(observed/info['clock_hz']-1)>0.02: raise RuntimeError('DWT/tick clock consistency failed')
+        receipt['measurement_validated']=True
+        if not args.mutation and args.mode!='npu-alone':
+            for field in ('deadline_misses','render_misses','release_guard_failures'):
+                if status[field]!=0: raise RuntimeError(f'{field}={status[field]}')
         receipt['gate']='G4_TARGET_COMPARATOR_NEGATIVE' if args.mutation else ('K1-RA8P1-002-NPU-COEXIST' if mode else 'G4_SCALAR_SUBPROFILE')
         receipt['pass']=True
     except Exception as error:
