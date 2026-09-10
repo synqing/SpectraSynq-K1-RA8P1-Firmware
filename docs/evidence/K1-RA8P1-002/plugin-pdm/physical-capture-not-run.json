@@ -1,0 +1,52 @@
+{
+  "blocked_cells": [
+    "pdm-current-target"
+  ],
+  "completed_at": "2026-09-10T05:55:46.178218+00:00",
+  "contract_version": "RA8P1-SOL-1.0.0",
+  "errors": [],
+  "execution": {
+    "arm_binary_executed": false,
+    "hardware_session": false
+  },
+  "identities": {
+    "last_identified_build_id": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
+    "last_identified_level": "HISTORICAL_TARGET",
+    "last_identified_uid": "545433931bd25436593630352d068363",
+    "live_loaded_image": "unknown-no-reenumeration",
+    "live_target": "NOT_VERIFIED"
+  },
+  "limitations": [
+    "live_target is NOT_VERIFIED; last UID is HISTORICAL_TARGET.",
+    "Physical PDM cell is NOT_RUN, not a host-pass.",
+    "Blocked until: re-enumeration of UID; exact loaded-image identity; exclusive ownership record.",
+    "No USB, flash, serial, audio, cadence runner, or song loop."
+  ],
+  "ok": true,
+  "pdm": {
+    "capture_bytes": 64000,
+    "capture_channels": 1,
+    "capture_element_bytes": 4,
+    "captured_signal": null,
+    "conversion_bytes": 64000,
+    "final_stopped_count": null,
+    "first_data_does_not_prove_complete": true,
+    "full_buffer_completion": "unknown",
+    "output_duration_s": null,
+    "output_element_bytes": 2,
+    "requested_frames": 16000,
+    "stop_tail": null,
+    "submission_bytes": 64000
+  },
+  "physical_capture": "NOT_RUN",
+  "qualification_level": "HOST",
+  "receipt_id": "wp13-pdm-physical-not-run",
+  "recipe": {
+    "id": "pdm-capture",
+    "version": "1"
+  },
+  "schema_version": 2,
+  "started_at": "2026-09-10T05:55:46.178204+00:00",
+  "status": "PASS",
+  "tools": []
+}

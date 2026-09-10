@@ -1,0 +1,39 @@
+{
+  "command": [
+    "/Users/spectrasynq/Workspace_Management/Software/toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gcc",
+    "-std=c11",
+    "-c",
+    "-mcpu=cortex-m85",
+    "-mthumb",
+    "-mfpu=fpv5-sp-d16",
+    "-mfloat-abi=hard",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-fno-tree-vectorize",
+    "-fno-tree-slp-vectorize",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/pdm_capture.c",
+    "-o",
+    "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-pdm-cross-nifk8wwc/pdm_capture.o"
+  ],
+  "compiler": "arm-none-eabi-gcc (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
+  "compiler_path": "/Users/spectrasynq/Workspace_Management/Software/toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-gcc",
+  "executed": false,
+  "exit_code": 0,
+  "header_sha256": "c690550cf9c2cedb9b825c127b04a906f693c672f5ffd1d93bcdf2e684d8ddd6",
+  "limitations": [
+    "Compile-only. The object was not linked or executed.",
+    "CROSS_COMPILED is not CURRENT_TARGET and not a microphone measurement."
+  ],
+  "linked": false,
+  "object": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/plugin-pdm/pdm_capture.cross.o",
+  "object_sha256": "e12709a9e569b5e6d447a2c3c92cf70af6362e4392ec12195fd3637d2455f302",
+  "ok": true,
+  "physical_capture": "NOT_RUN",
+  "qualification_level": "CROSS_COMPILED",
+  "source_sha256": "bb6a8514bcb88ed5710d2167d31376d8ec70be3e421ed480d6e6a740a9dbf543",
+  "status": "PASS"
+}

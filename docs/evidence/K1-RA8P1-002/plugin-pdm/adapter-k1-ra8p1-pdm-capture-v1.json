@@ -1,0 +1,46 @@
+{
+  "adapter_class": "pdm_cpu_isr",
+  "do_not_copy_vendor_defect": true,
+  "expressions": {
+    "capture_bytes": "requested_frames * capture_channels * capture_element_bytes",
+    "conversion_bytes": "requested_frames * output_channels * output_element_bytes",
+    "submission_bytes": "conversion_bytes"
+  },
+  "flow": {
+    "active_data_callback": true,
+    "conversion": {
+      "duplicate_mono_to_stereo_int16": true,
+      "submission_equals_conversion": true
+    },
+    "dmac_enabled": false,
+    "events": {
+      "PDM_EVENT_DATA": {
+        "actions": [
+          "accumulate_received_elements"
+        ],
+        "active": true,
+        "proves_full_buffer": false
+      }
+    },
+    "producer": "cortex-m85-isr",
+    "stop": {
+      "final_count_retained": true,
+      "idle_callback": false
+    }
+  },
+  "id": "k1-ra8p1-pdm-capture-v1",
+  "inputs": {
+    "application": {
+      "path": "platform/ra8p1/pdm_capture.c",
+      "sha256": "bb6a8514bcb88ed5710d2167d31376d8ec70be3e421ed480d6e6a740a9dbf543"
+    },
+    "application_header": {
+      "path": "platform/ra8p1/pdm_capture.h",
+      "sha256": "c690550cf9c2cedb9b825c127b04a906f693c672f5ffd1d93bcdf2e684d8ddd6"
+    }
+  },
+  "instance": "g_pdm0",
+  "note": "Current-source corrected PDM completion/units in the RA8P1 firmware repository. Not the vendor Titan_Mini_pdm snapshot. Not CURRENT_TARGET.",
+  "qualification_level": "HOST",
+  "version": "1"
+}

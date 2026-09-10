@@ -1,0 +1,326 @@
+"""WP13 HOST PDM capture: units, first-interval refusal, adapter bind, fail-closed current-target."""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from run_pdm_capture import (  # noqa: E402
+    ADAPTER_ID,
+    ARM_GCC,
+    CORRECTED_UNITS,
+    CURRENT_TARGET_IDENTITY,
+    REQUIRED_PDM_FIELDS,
+    SOURCE_C,
+    SOURCE_H,
+    VENDOR_16000_SUBMISSION_BYTES,
+    bind_adapter,
+    build_adapter_document,
+    compile_host_library,
+    cross_compile_pdm_capture,
+    derive_units,
+    load_adapter,
+    load_host_pdm,
+    make_receipt,
+    missing_current_target_fields,
+    observed_source_hashes,
+    physical_capture_not_run,
+    run_host_fixture,
+)
+
+
+@pytest.fixture(scope="module")
+def host_pdm():
+    pdm, receipt = load_host_pdm()
+    assert receipt["qualification_level"] == "HOST"
+    assert receipt["exit_code"] == 0
+    return pdm
+
+
+@pytest.mark.parametrize(
+    "frames,channels",
+    [(16000, 2), (16000, 1), (8000, 2), (8000, 1)],
+)
+def test_ac1_host_fixtures_derive_corrected_units(host_pdm, frames, channels):
+    result = run_host_fixture(host_pdm, frames, channels)
+    expected = CORRECTED_UNITS[(frames, channels)]
+    after_stop = result["after_stop"]
+    units = derive_units(frames, channels)
+    assert result["qualification_level"] == "HOST"
+    assert after_stop["capture_bytes"] == expected["capture_bytes"] == units["capture_bytes"]
+    assert after_stop["conversion_bytes"] == expected["conversion_bytes"] == units["conversion_bytes"]
+    assert after_stop["submission_bytes"] == expected["submission_bytes"] == units["submission_bytes"]
+    assert after_stop["submission_bytes"] == after_stop["conversion_bytes"]
+    assert after_stop["callback_interval"] == expected["callback_interval"]
+    assert after_stop["capture_channels"] == 1
+    assert after_stop["capture_element_bytes"] == 4
+    assert after_stop["output_element_bytes"] == 2
+    assert after_stop["output_channels"] == channels
+    if frames == 16000 and channels == 2:
+        assert after_stop["submission_bytes"] != VENDOR_16000_SUBMISSION_BYTES
+
+
+def test_ac1_8000_changes_bytes_from_16000(host_pdm):
+    stereo_16k = run_host_fixture(host_pdm, 16000, 2)["after_stop"]
+    stereo_8k = run_host_fixture(host_pdm, 8000, 2)["after_stop"]
+    mono_16k = run_host_fixture(host_pdm, 16000, 1)["after_stop"]
+    assert stereo_8k["requested_frames"] != stereo_16k["requested_frames"]
+    assert stereo_8k["capture_bytes"] != stereo_16k["capture_bytes"]
+    assert stereo_8k["callback_interval"] != stereo_16k["callback_interval"]
+    assert mono_16k["conversion_bytes"] != stereo_16k["conversion_bytes"]
+    assert mono_16k["submission_bytes"] == 16000 * 1 * 2
+    assert stereo_8k["submission_bytes"] == 8000 * 2 * 2
+
+
+def test_ac1_first_data_is_not_complete(host_pdm):
+    host_pdm.configure(16000, 2)
+    host_pdm.on_data(4000)
+    snap = host_pdm.snapshot()
+    assert snap["first_data_seen"] is True
+    assert snap["received_elements"] == 4000
+    assert snap["full_buffer_completion"] is False
+    assert snap["first_data_does_not_prove_complete"] is True
+    assert snap["ownership_transferred"] is False
+    assert snap["final_stopped_count"] is None
+    assert snap["stop_tail"] is None
+    from ctypes import c_int16, c_int32
+
+    capture = (c_int32 * 16000)()
+    output = (c_int16 * 32000)()
+    rc = host_pdm.lib.k1_pdm_convert(capture, 16000, output, 32000)
+    assert rc != 0
+
+
+def test_ac1_convert_refuses_until_stop_matches(host_pdm):
+    from ctypes import c_int16, c_int32
+
+    host_pdm.configure(8000, 1)
+    host_pdm.on_data(2000)
+    host_pdm.on_data(2000)
+    host_pdm.on_data(2000)
+    host_pdm.on_data(2000)
+    assert host_pdm.snapshot()["full_buffer_completion"] is True
+    capture = (c_int32 * 8000)()
+    output = (c_int16 * 8000)()
+    assert host_pdm.lib.k1_pdm_convert(capture, 8000, output, 8000) != 0
+    host_pdm.stop(7999)
+    assert host_pdm.snapshot()["ownership_transferred"] is False
+    assert host_pdm.lib.k1_pdm_convert(capture, 8000, output, 8000) != 0
+
+
+def test_ac2_changed_source_hash_invalidates_old_adapter():
+    adapter = build_adapter_document()
+    observed = observed_source_hashes()
+    assert bind_adapter(observed, adapter)["ok"] is True
+    tampered = dict(observed)
+    tampered["application"] = "ab" * 32
+    declined = bind_adapter(tampered, adapter)
+    assert declined["ok"] is False
+    assert declined["declined"] == "unrecognised_source_hash"
+    assert "application" in declined["mismatched"]
+    header = dict(observed)
+    header["application_header"] = "cd" * 32
+    declined_header = bind_adapter(header, adapter)
+    assert declined_header["ok"] is False
+    assert "application_header" in declined_header["mismatched"]
+
+
+def test_ac2_adapter_file_matches_current_sources():
+    on_disk = load_adapter()
+    assert on_disk["id"] == ADAPTER_ID
+    bind = bind_adapter(observed_source_hashes(), on_disk)
+    assert bind["ok"] is True
+    assert bind["declined"] is None
+
+
+def test_ac2_levels_remain_distinct(tmp_path):
+    host_receipt = make_receipt(
+        qualification_level="HOST",
+        pdm=_host_pdm_fields(),
+        identities={"adapter_id": ADAPTER_ID},
+        execution={"arm_binary_executed": False},
+    )
+    assert host_receipt["qualification_level"] == "HOST"
+    assert host_receipt["ok"] is True
+    assert "pdm-current-target" in host_receipt["blocked_cells"]
+    assert host_receipt["physical_capture"] == "NOT_RUN"
+    cross = cross_compile_pdm_capture(tmp_path / "pdm_capture.o")
+    if ARM_GCC.is_file():
+        assert cross["qualification_level"] == "CROSS_COMPILED"
+        assert cross["ok"] is True
+        assert cross["executed"] is False
+        assert cross["linked"] is False
+        assert cross["physical_capture"] == "NOT_RUN"
+        assert cross["qualification_level"] != "HOST"
+        assert cross["qualification_level"] != "CURRENT_TARGET"
+    else:
+        assert cross["status"] == "NOT_RUN"
+        assert cross["missing_tool"] == str(ARM_GCC)
+    current = make_receipt(
+        qualification_level="CURRENT_TARGET",
+        pdm=_host_pdm_fields(),
+        identities={},
+        execution={"arm_binary_executed": False},
+    )
+    assert current["ok"] is False
+    assert current["status"] == "FAIL_CLOSED"
+    assert current["qualification_level"] == "CURRENT_TARGET"
+    assert current["qualification_level"] != host_receipt["qualification_level"]
+    assert current["qualification_level"] != "CROSS_COMPILED"
+
+
+def test_ac3_current_target_schema_fails_closed_when_absent():
+    pdm = _host_pdm_fields()
+    receipt = make_receipt(qualification_level="CURRENT_TARGET", pdm=pdm, identities={})
+    codes = {item["code"] for item in receipt["errors"]}
+    messages = {item["message"] for item in receipt["errors"]}
+    assert receipt["ok"] is False
+    assert receipt["status"] == "FAIL_CLOSED"
+    assert "current-target-identity-missing" in codes
+    assert "pdm-current-target-incomplete" in codes
+    for field in CURRENT_TARGET_IDENTITY:
+        assert field in messages
+    for field in ("final_stopped_count", "stop_tail", "output_duration_s"):
+        assert field in messages
+    assert receipt["physical_capture"] == "NOT_RUN"
+
+
+def test_ac3_current_target_partial_identity_still_fails():
+    pdm = dict(_host_pdm_fields())
+    pdm.update(
+        {
+            "full_buffer_completion": True,
+            "final_stopped_count": 16000,
+            "stop_tail": 0,
+            "output_duration_s": 1.0,
+        }
+    )
+    identities = {
+        "target_uid": "545433931bd25436593630352d068363",
+        "build_id": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
+        "ownership_record": {"exclusive_owner": "nobody", "method": "re-enumeration"},
+    }
+    missing = missing_current_target_fields(identities)
+    assert "loaded_image_sha256" in missing
+    assert "measurement_method_id" in missing
+    assert "input_identities" in missing
+    assert "runtime_identity_method" in missing
+    receipt = make_receipt(qualification_level="CURRENT_TARGET", pdm=pdm, identities=identities)
+    assert receipt["ok"] is False
+    assert receipt["status"] == "FAIL_CLOSED"
+
+
+def test_ac3_port_name_is_not_identity():
+    pdm = dict(_host_pdm_fields())
+    pdm.update(
+        {
+            "full_buffer_completion": True,
+            "final_stopped_count": 16000,
+            "stop_tail": 0,
+            "output_duration_s": 1.0,
+        }
+    )
+    identities = {
+        "target_uid": "545433931bd25436593630352d068363",
+        "loaded_image_sha256": "00" * 32,
+        "build_id": "11" * 32,
+        "measurement_method_id": "pdm-loopback",
+        "input_identities": {"tone": "1khz"},
+        "runtime_identity_method": "uid-readback",
+        "ownership_record": {"exclusive_owner": "agent", "method": "port-name"},
+        "port": "/dev/cu.usbmodem21401",
+    }
+    receipt = make_receipt(qualification_level="CURRENT_TARGET", pdm=pdm, identities=identities)
+    assert receipt["ok"] is False
+    assert any(item["code"] == "port-name-is-not-identity" for item in receipt["errors"])
+
+
+def test_ac3_physical_capture_is_not_run_without_exclusive_target():
+    receipt = physical_capture_not_run()
+    assert receipt["physical_capture"] == "NOT_RUN"
+    assert receipt["qualification_level"] == "HOST"
+    assert receipt["identities"]["live_target"] == "NOT_VERIFIED"
+    assert receipt["identities"]["last_identified_level"] == "HISTORICAL_TARGET"
+    assert receipt["pdm"]["stop_tail"] is None
+    assert receipt["pdm"]["final_stopped_count"] is None
+    assert receipt["pdm"]["full_buffer_completion"] == "unknown"
+    assert "pdm-current-target" in receipt["blocked_cells"]
+    assert receipt["status"] != "PASS" or receipt["physical_capture"] == "NOT_RUN"
+
+
+def test_ac3_compiler_facts_cannot_claim_current_target():
+    receipt = make_receipt(
+        qualification_level="CURRENT_TARGET",
+        pdm=_host_pdm_fields(),
+        identities={},
+        execution={"compiler_facts_only": True, "arm_binary_executed": False},
+    )
+    assert receipt["ok"] is False
+    assert any(item["code"] == "compiler-facts-as-current-target" for item in receipt["errors"])
+
+
+def test_ac4_first_interval_claim_is_rejected():
+    pdm = dict(_host_pdm_fields())
+    pdm["first_data_does_not_prove_complete"] = False
+    receipt = make_receipt(qualification_level="HOST", pdm=pdm)
+    assert receipt["ok"] is False
+    assert any(item["code"] == "pdm-first-interval-as-completion" for item in receipt["errors"])
+
+
+def test_ac4_missing_required_pdm_field_fails():
+    pdm = dict(_host_pdm_fields())
+    del pdm["stop_tail"]
+    receipt = make_receipt(qualification_level="HOST", pdm=pdm)
+    assert receipt["ok"] is False
+    assert any(item["code"] == "pdm-field-missing" for item in receipt["errors"])
+    for field in REQUIRED_PDM_FIELDS:
+        assert field in _host_pdm_fields()
+
+
+def test_sconscript_does_not_glob_all_c():
+    text = (ROOT / "platform/ra8p1/SConscript").read_text(encoding="utf-8")
+    assert "Glob('*.c')" not in text
+    assert 'Glob("*.c")' not in text
+    assert "Glob('pdm_capture.c')" in text
+    assert "Glob('npu_load.c')" in text
+
+
+def test_pdm_probe_is_default_off_and_cdc_path_remains():
+    entry = (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
+    scon = (ROOT / "platform/ra8p1/SConscript").read_text(encoding="utf-8")
+    assert "#ifdef K1_PDM_CAPTURE" in entry
+    assert "k1_pdm_configure" in entry
+    assert "R_USB_Open" in entry
+    assert "R_USB_Read" in entry
+    assert "R_USB_Write" in entry
+    assert "k1_fixture_consume" in entry
+    assert "K1_PDM_CAPTURE=1" not in scon
+    assert "-DK1_PDM_CAPTURE" not in scon
+    assert not SOURCE_C.read_text(encoding="utf-8").count("R_PDM_")
+    assert "r_pdm" not in SOURCE_C.read_text(encoding="utf-8")
+
+
+def test_host_library_builds_with_werror(tmp_path):
+    receipt = compile_host_library(tmp_path / ("libpdm_capture.dylib" if sys.platform == "darwin" else "libpdm_capture.so"))
+    assert receipt["exit_code"] == 0
+    assert Path(receipt["output"]).is_file()
+
+
+def _host_pdm_fields() -> dict:
+    return {
+        "requested_frames": 16000,
+        "capture_bytes": 64000,
+        "conversion_bytes": 64000,
+        "submission_bytes": 64000,
+        "capture_channels": 1,
+        "capture_element_bytes": 4,
+        "output_element_bytes": 2,
+        "first_data_does_not_prove_complete": True,
+        "full_buffer_completion": "unknown",
+        "final_stopped_count": None,
+        "stop_tail": None,
+    }

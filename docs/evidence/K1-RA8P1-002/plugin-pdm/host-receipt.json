@@ -1,0 +1,156 @@
+{
+  "blocked_cells": [
+    "pdm-current-target"
+  ],
+  "completed_at": "2026-09-10T05:55:46.064657+00:00",
+  "contract_version": "RA8P1-SOL-1.0.0",
+  "errors": [],
+  "execution": {
+    "arm_binary_executed": false,
+    "compiler_facts_only": false,
+    "host_library": true
+  },
+  "identities": {
+    "adapter_id": "k1-ra8p1-pdm-capture-v1",
+    "firmware_head": "8ce7e47af4392037dac23f8ec7b9d90a455fa964"
+  },
+  "limitations": [
+    "HOST/CROSS_COMPILED work does not measure a microphone.",
+    "Stop tail is not invented.",
+    "Qualification remains engineering-preview."
+  ],
+  "ok": true,
+  "pdm": {
+    "callback_interval": 4000,
+    "capture_bytes": 64000,
+    "capture_channels": 1,
+    "capture_element_bytes": 4,
+    "conversion_bytes": 64000,
+    "final_stopped_count": 16000,
+    "first_data_does_not_prove_complete": true,
+    "first_data_seen": true,
+    "fixtures": {
+      "16000-mono": {
+        "callback_interval": 4000,
+        "capture_bytes": 64000,
+        "capture_channels": 1,
+        "capture_element_bytes": 4,
+        "conversion_bytes": 32000,
+        "final_stopped_count": 16000,
+        "first_data_does_not_prove_complete": true,
+        "first_data_seen": true,
+        "full_buffer_completion": true,
+        "output_channels": 1,
+        "output_element_bytes": 2,
+        "ownership_transferred": true,
+        "received_elements": 16000,
+        "requested_frames": 16000,
+        "stop_tail": null,
+        "stop_tail_known": false,
+        "stopped": true,
+        "submission_bytes": 32000
+      },
+      "16000-stereo": {
+        "callback_interval": 4000,
+        "capture_bytes": 64000,
+        "capture_channels": 1,
+        "capture_element_bytes": 4,
+        "conversion_bytes": 64000,
+        "final_stopped_count": 16000,
+        "first_data_does_not_prove_complete": true,
+        "first_data_seen": true,
+        "full_buffer_completion": true,
+        "output_channels": 2,
+        "output_element_bytes": 2,
+        "ownership_transferred": true,
+        "received_elements": 16000,
+        "requested_frames": 16000,
+        "stop_tail": null,
+        "stop_tail_known": false,
+        "stopped": true,
+        "submission_bytes": 64000
+      },
+      "8000-mono": {
+        "callback_interval": 2000,
+        "capture_bytes": 32000,
+        "capture_channels": 1,
+        "capture_element_bytes": 4,
+        "conversion_bytes": 16000,
+        "final_stopped_count": 8000,
+        "first_data_does_not_prove_complete": true,
+        "first_data_seen": true,
+        "full_buffer_completion": true,
+        "output_channels": 1,
+        "output_element_bytes": 2,
+        "ownership_transferred": true,
+        "received_elements": 8000,
+        "requested_frames": 8000,
+        "stop_tail": null,
+        "stop_tail_known": false,
+        "stopped": true,
+        "submission_bytes": 16000
+      },
+      "8000-stereo": {
+        "callback_interval": 2000,
+        "capture_bytes": 32000,
+        "capture_channels": 1,
+        "capture_element_bytes": 4,
+        "conversion_bytes": 32000,
+        "final_stopped_count": 8000,
+        "first_data_does_not_prove_complete": true,
+        "first_data_seen": true,
+        "full_buffer_completion": true,
+        "output_channels": 2,
+        "output_element_bytes": 2,
+        "ownership_transferred": true,
+        "received_elements": 8000,
+        "requested_frames": 8000,
+        "stop_tail": null,
+        "stop_tail_known": false,
+        "stopped": true,
+        "submission_bytes": 32000
+      }
+    },
+    "full_buffer_completion": true,
+    "output_channels": 2,
+    "output_element_bytes": 2,
+    "ownership_transferred": true,
+    "received_elements": 16000,
+    "requested_frames": 16000,
+    "stop_tail": null,
+    "stop_tail_known": false,
+    "stopped": true,
+    "submission_bytes": 64000
+  },
+  "physical_capture": "NOT_RUN",
+  "qualification_level": "HOST",
+  "receipt_id": "wp13-pdm-host-fixtures",
+  "recipe": {
+    "id": "pdm-capture",
+    "version": "1"
+  },
+  "schema_version": 2,
+  "started_at": "2026-09-10T05:55:46.064476+00:00",
+  "status": "PASS",
+  "tools": [
+    {
+      "argv": [
+        "cc",
+        "-std=c11",
+        "-shared",
+        "-fPIC",
+        "-O2",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/pdm_capture.c",
+        "-o",
+        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-pdm-host-0krda0gt/libpdm_capture.dylib"
+      ],
+      "exit_code": 0,
+      "name": "cc",
+      "sha256": "5a31e01c48ab8832b9d7055a82459f89345f9309ba56521ad42cbfd0f91b357e"
+    }
+  ]
+}

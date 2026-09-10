@@ -11,6 +11,9 @@
 #ifdef K1_NPU_LOAD
 #include "npu_load.h"
 #endif
+#ifdef K1_PDM_CAPTURE
+#include "pdm_capture.h"
+#endif
 static uint8_t usb_read[64];
 static bool attached, read_armed, write_pending;
 uint32_t k1_cycle_count(void) { return DWT->CYCCNT; }
@@ -54,6 +57,11 @@ void hal_entry(void) {
     for(unsigned i=0;i<16;++i) uid[i]=raw[15-i];
 #ifdef K1_NPU_LOAD
     (void)k1_npu_initialise();
+#endif
+#ifdef K1_PDM_CAPTURE
+    /* Accounting probe only. Does not open R_PDM or replace the CDC fixture. */
+    (void)k1_pdm_configure(16000u, 1u, 4u, 2u, 2u, 4000u);
+    k1_pdm_start();
 #endif
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
