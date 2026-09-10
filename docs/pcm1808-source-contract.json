@@ -42,6 +42,12 @@
     "u18_complete_ssie_route": false,
     "direct_wire_route": false,
     "required_hardware": "U11_MATING_BREAKOUT_OR_DIGITAL_AUDIO_BRIDGE",
+    "u11_mating_header": {
+      "manufacturer": "Hirose",
+      "part": "DF12NB(3.0)-36DP-0.5V(51)",
+      "hrs_number": "CL0537-0391-0-51",
+      "function": "36-position 0.5 mm pitch 3.0 mm mated-height header for a custom breakout PCB"
+    },
     "camera_coexistence": "MUTUALLY_EXCLUSIVE_WITH_THIS_PIN_ROUTE",
     "physical_access": "U11 is a fine-pitch camera connector and is not a wire-soldering point",
     "u18_rejection": {

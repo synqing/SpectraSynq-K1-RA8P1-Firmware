@@ -23,6 +23,11 @@ requires either:
 
 No direct soldering to U11 is proposed or required.
 
+The exact mating connector for a custom breakout PCB is Hirose
+`DF12NB(3.0)-36DP-0.5V(51)` (`CL0537-0391-0-51`): 36 positions, 0.5 mm pitch,
+3.0 mm mated height. The Titan part is the matching `DS` receptacle; the breakout
+must use the `DP` header. This is a board-to-board connector, not an FFC socket.
+
 ## Superseded pre-silicon build record
 
 The working PCM1808 ingress from the existing K1 firmware was compiled into
