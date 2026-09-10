@@ -512,6 +512,9 @@ def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
     assert "capture_fall_pdm_cfg.dat_irq = FSP_INVALID_VECTOR" in target
     assert "capture_rise_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_RISE" in target
     assert "capture_fall_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_FALL" in target
+    assert target.count("interrupt_threshold = PDM_INTERRUPT_THRESHOLD_8") == 2
+    assert "capture_rise_pdm_cfg.p_extend = &capture_rise_pdm_extend" in target
+    assert "capture_fall_pdm_cfg.p_extend = &capture_fall_pdm_extend" in target
     assert "const int16_t sample = (int16_t) (raw << 1)" in target
     assert "K1_PDM_TARGET_PROGRAMME_LANE 0u" in header
     assert "K1_PDM_TARGET_MEASUREMENT_LANE 1u" in header

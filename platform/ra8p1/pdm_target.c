@@ -137,6 +137,8 @@ static const transfer_instance_t capture_fall_transfer = {
 
 static pdm_cfg_t capture_rise_pdm_cfg;
 static pdm_cfg_t capture_fall_pdm_cfg;
+static pdm_extended_cfg_t capture_rise_pdm_extend;
+static pdm_extended_cfg_t capture_fall_pdm_extend;
 static volatile int capture_initialised;
 static volatile int capture_running;
 static volatile int capture_restart_requested;
@@ -347,18 +349,24 @@ int k1_pdm_target_initialise(void) {
         }
     }
 
+    capture_rise_pdm_extend = *(pdm_extended_cfg_t const *) g_pdm0_cfg.p_extend;
+    capture_rise_pdm_extend.interrupt_threshold = PDM_INTERRUPT_THRESHOLD_8;
     capture_rise_pdm_cfg = g_pdm0_cfg;
     capture_rise_pdm_cfg.channel = K1_PDM_TARGET_RISE_CHANNEL;
     capture_rise_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_RISE;
+    capture_rise_pdm_cfg.p_extend = &capture_rise_pdm_extend;
     capture_rise_pdm_cfg.p_transfer_rx = &capture_rise_transfer;
     capture_rise_pdm_cfg.p_callback = pdm_callback;
     capture_rise_pdm_cfg.p_context = &capture_context[K1_PDM_TARGET_PROGRAMME_LANE];
     capture_rise_pdm_cfg.dat_irq = FSP_INVALID_VECTOR;
     capture_rise_pdm_cfg.dat_ipl = BSP_IRQ_DISABLED;
 
+    capture_fall_pdm_extend = *(pdm_extended_cfg_t const *) g_pdm0_cfg.p_extend;
+    capture_fall_pdm_extend.interrupt_threshold = PDM_INTERRUPT_THRESHOLD_8;
     capture_fall_pdm_cfg = g_pdm0_cfg;
     capture_fall_pdm_cfg.channel = K1_PDM_TARGET_FALL_CHANNEL;
     capture_fall_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_FALL;
+    capture_fall_pdm_cfg.p_extend = &capture_fall_pdm_extend;
     capture_fall_pdm_cfg.p_transfer_rx = &capture_fall_transfer;
     capture_fall_pdm_cfg.p_callback = pdm_callback;
     capture_fall_pdm_cfg.p_context = &capture_context[K1_PDM_TARGET_MEASUREMENT_LANE];

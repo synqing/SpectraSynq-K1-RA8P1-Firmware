@@ -293,6 +293,7 @@ def main():
                 'sample_rate_parity':False,
                 'slot_elements':120,
                 'slot_duration_us':7500,
+                'dma_interrupt_threshold_samples':8,
                 'slot_count':2,
                 'lane_count':2,
                 'programme_lane':{'microphone':'IM1','select':'HIGH','pdm_channel':2,
