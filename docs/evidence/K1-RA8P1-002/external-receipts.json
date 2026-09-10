@@ -78,14 +78,24 @@
     "p4-structural-build-08/receipt.json": "15d6d8add728440416839478fbdbd8e624341c4971895a8e565b6c4523741e1a",
     "programming-p4-04/receipt.json": "8ac63432bf17347c212f1ed2d347f09ab56730a78f10f473eaa91f6db381ae09",
     "programming-p4-05/receipt.json": "f4d64f66f23a3e58b46219b7bab333724238020722e23dc3a79849513b0a56de",
-    "p4-structural-build-09/receipt.json": "621c6d3ec1efe5da3d4a1c9bdf3f0e412b932c803a9b7d95b48c524e0fea26ef"
+    "p4-structural-build-09/receipt.json": "621c6d3ec1efe5da3d4a1c9bdf3f0e412b932c803a9b7d95b48c524e0fea26ef",
+    "programming-p4-06/receipt.json": "e8d104de1885cd5ebc38b1f6c66a2f2345d25ff00c085a385911c45514f577d5",
+    "p4-dsp-alone-observer-on-03/receipt.json": "dcc07676dd969427aec2c50de3e5b5e434ec07ed307bf90b6c46b262701fea93",
+    "p4-dsp-alone-observer-off-03/receipt.json": "2a0216516063e2b034c285ae144ef3a9710e4204e6ffbbbfce890a0f4df0f886",
+    "p4-npu-alone-observer-on-02/receipt.json": "f2024ca541b8951e420af0ce9d0fec13d74ebef24d51a27b61b0658a175dac03",
+    "p4-npu-alone-observer-off-02/receipt.json": "313c5e08525a5658bd4559c0cd3cad927833047dce9d9345df8765808f670245",
+    "p4-concurrent-observer-on-02/receipt.json": "543f1919d336b401b86d9c7c444d5d78703e00c7acd1671273cd5e249f3f1db9",
+    "p4-concurrent-observer-off-02/receipt.json": "acfa7fae77a172861f2ff707a00c6435bdb657285d6b73211ba149c73dfe7a75",
+    "p4-saturation-observer-on-02/receipt.json": "f3d1591f602fd348cf1fee36b96548163e68c22fdde2ccade2cd6a1686136fca",
+    "p4-saturation-observer-off-02/receipt.json": "6568014bb260607472ad010b6fafd9e021a8d90dcba3980d612b12025ad1e3ad",
+    "p4-mutation-03/receipt.json": "c6f22e7b940ef81424c66c62349d1e636ab9163cdd49c51fc186f1d1fe8a73d4"
   },
   "physical_claims": false,
   "scalar_target_executed": true,
   "board_firmware_changed": true,
   "board_uid": "545433931bd25436593630352d068363",
-  "current_board_build_id": "4e72847c95ecd7e0bf29070873be41c94c4da1a248b2cc34727a7c1b90bc6565",
-  "current_board_image": "p4-structural-build-07; generic P4 plus actual K1 and identified U55 load; M33 parked",
-  "latest_on_silicon_state": "F1 pass; G4 O2 and O3 scalar failed deadlines; identified NPU cells executed; generic P4 build 07 passed both required 30-minute qualifications but its cold reporter cell exposed one 264-byte newlib dtoa allocation; integer-only reporting fix is host/build verified as build 09 and awaits physical ROM entry",
+  "current_board_build_id": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
+  "current_board_image": "p4-structural-build-09; generic P4 plus actual K1 and identified U55 load; M33 parked",
+  "latest_on_silicon_state": "F1 pass; G4 O2 and O3 scalar failed deadlines; identified NPU cells executed; generic P4 build 09 passed the complete bounded observer-on/off matrix with stable 40640-byte heap and final-bin mutation detection; no new generic soak is required; physical paths remain open",
   "usb_owner_released": true
 }

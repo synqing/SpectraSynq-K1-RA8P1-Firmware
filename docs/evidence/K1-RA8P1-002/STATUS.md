@@ -13,13 +13,14 @@ repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
   and 2,006 of 6,000 frozen 7.5 ms deadlines. The identified NPU-alone,
   scheduled, saturation and semantic-failure cells all executed; no concurrent
   mode qualified for soak.
-- **Generic P4/E1 has completed its build-07 silicon campaign.** Concurrent and
-  saturation each passed 14,063 releases over 1,800.064 seconds with exact
-  numerics, zero misses, bounded queues and real U55 PMU activity. The cold DSP
-  cell still fails the frozen zero-growth rule because its first nonzero status
-  response retained 264 bytes in newlib `_dtoa_r`; the integer-only reporter fix
-  is committed and built as build 09, but awaits physical ROM entry. E1 is not
-  promoted until that exact image passes the affected cells.
+- **Generic P4/E1 passes its bounded build-09 scheduled-coexistence campaign.**
+  The exact image was programmed with full 709,344-byte readback. DSP-alone,
+  NPU-alone, scheduled concurrent and saturation preflights passed with polling
+  on and off; heap remained 40,640 bytes and the final-bin mutation failed
+  exactly once at bin 1,024. The historical build-07 30-minute runs remain valid
+  observations, but no unexplained duration minimum is carried forward. This
+  campaign interleaves DSP and synchronous NPU calls; it does not prove
+  simultaneous M85/U55 shared-memory contention or actual-K1 F2.
 - **G6 is `NO_QUALIFYING_CANDIDATE`; G7 is `NOT_RUN_NO_CANDIDATE`.** E2,
   semantic F3 and K1-C remain unpassed. The U55 smoke graph is load only.
 - **Physical capture, LED output and Titan-S3 transport remain open.** USB
@@ -114,7 +115,7 @@ resident schedule reporter:
 | K1 + identified U55 + failure seam | `690f3e20…8664fc` | 636,676 / 18,128 / 607,992 | `0417f481…74eac` | Flashed, verified, all bounded cells executed |
 | Generic P4 + K1 + identified U55, build 07 | `4e72847c…bc6565` | 666,500 / 42,408 / 657,172 | `e604a4dc…c148c` | Flashed and verified; full P4 campaign executed |
 | Generic P4 reporter repair, build 08 | `a6c93438…63eeee` | 666,852 / 42,408 / 657,172 | `be08cd34…5a2b78` | Two 120-second ROM-entry windows expired without a device or write; superseded before flashing |
-| Generic P4 integer-only reporters, build 09 | `c4ceebe7…0e87bb` | 666,932 / 42,408 / 657,172 | `82e72f58…ede320` | Built; not flashed |
+| Generic P4 integer-only reporters, build 09 | `c4ceebe7…0e87bb` | 666,932 / 42,408 / 657,172 | `82e72f58…ede320` | Flashed with full 709,344-byte readback; bounded source-bound campaign PASS |
 
 All use Arm GNU 13.3.1, scalar M85 FP, `-ffp-contract=off`, no fast-math,
 disabled vectorisers and no MVE. M33 remains parked. The NPU images bind the
@@ -144,13 +145,13 @@ bin 1,024. DSP-alone, NPU-alone, concurrent and saturation preflights pass with
 polling on and off except the first cold DSP cell's 264-byte heap increase. All
 numerics, deadlines, guard checks and queue bounds pass in that cold cell.
 
-The cold increase is now traced to the first nonzero floating status response,
+The cold increase was traced to the first nonzero floating status response,
 not the static DSP workspace: the linked call path is newlib
-`_svfprintf_r -> _dtoa_r -> _malloc_r`, while the following runs remain at
+`_svfprintf_r -> _dtoa_r -> _malloc_r`, while the following runs remained at
 40,904 bytes. Commit `5a19e2e` replaces P4 and resident-schedule timing fields
 with bounded integer fixed-point formatting. Host tests intercept `snprintf`
-and reject any floating conversion; build 09 binds that change but is not yet on
-the board.
+and reject any floating conversion. Build 09 binds that change, and its cold
+target run retains the 40,640-byte heap baseline.
 
 Build 07 completed both frozen qualifications:
 
@@ -161,9 +162,21 @@ Build 07 completed both frozen qualifications:
 
 The concurrent qualification also finished semantic-valid with one injected
 loss and nine recoveries. Both runs used the identified U55 and recorded nonzero
-raw cycle, NPU-active and MAC-active counters. These results close the long-run
-workload question for build 07, but E1 remains unpassed until the exact build-09
-reporter fix passes the affected cold cell and source-bound regression campaign.
+raw cycle, NPU-active and MAC-active counters. They remain historical build-07
+observations. Build 09 subsequently passed the complete affected short matrix:
+
+| Build-09 bounded cell | Observer | Result |
+| --- | --- | --- |
+| DSP alone | on / off | PASS / PASS |
+| NPU alone | on / off | PASS / PASS |
+| Scheduled concurrent | on / off | PASS / PASS |
+| Saturation | on / off | PASS / PASS |
+| Final-bin mutation | on | PASS: one detected failure at bin 1,024 |
+
+Every non-mutation cell reported zero numeric/NPU/deadline/guard failures,
+queue high-water at most one, and heap 40,640 -> 40,640. Saturation recorded
+59.7449% measured harness duty. Generic E1 is therefore accepted for this
+bounded scheduled-coexistence profile. There is no new generic soak requirement.
 
 ## Semantic selection
 
@@ -180,24 +193,16 @@ semantic deployment, new ontology or commercial clearance is claimed.
 
 ## Physical inventory and board state
 
-Current enumeration shows:
+The latest inventory probe found no Titan application or ROM USB endpoint and
+no Titan programmer/target runner. The most recent identified board state is
+build 09, `c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb`,
+from `programming-p4-06/receipt.json` on canonical UID
+`545433931bd25436593630352d068363`. Re-enumeration and runtime identity are
+required before the next board operation; port names are not identity.
 
-- Titan application USB: `045B:5310`, `/dev/cu.usbmodem00000000000011`, location `1-1`.
-- Espressif USB JTAG/serial endpoint: `303A:1001`, serial `B4:3A:45:A5:87:90`, location `0-1.4`.
-- Neither endpoint had a process owner at inventory time.
-
-The second endpoint is not accepted as production-S3 firmware identity or a
-Titan-S3 link. No connected PDM path, LED backend, bridge framing, clock mapping,
-power or thermal instrument has been established. PDM remains dependency-blocked
-by E1. G5/K1-B stay open.
-
-The Titan currently runs P4 build
-`4e72847c95ecd7e0bf29070873be41c94c4da1a248b2cc34727a7c1b90bc6565`
-with M33 parked and U55 enabled. Programming receipt `programming-p4-03`
-records full write/readback verification. Two later 120-second attempts to load
-the first reporter repair found zero ROM devices and exited before opening,
-erasing or writing the target. Build 09 is the current fix candidate; no
-programmer or serial owner remains running.
+No connected PDM path, LED backend, bridge framing, clock mapping, power or
+thermal instrument has been established. Generic E1 is no longer a prerequisite
+blocker, but G5/K1-B remain open on their actual physical dependencies.
 
 ## G8 review and decision packet
 
@@ -215,7 +220,7 @@ following is an orchestrator self-red-team, not independent acceptance:
 | Hidden fast-math or MVE | Compiler flags disable contraction, fast-math and vectorisers; ELF attributes and disassembly reject MVE |
 | Missed heavy frames | The 6,000-hop scalar corpus includes every heavy tempo update. O2 reports 2,005 deadline misses rather than averaging them away |
 | Queue or observer false pass | Capacity, backlog, drops and coalesces are checked; P4 polling-on/off preflights are separate and qualification is frozen polling-off |
-| Heap activity hidden by free-space reserve | Heap-pool, live-use and high-water growth fail. The cold P4 cell exposed newlib floating-report allocation rather than being waived; integer-only reporters and format-interception regressions are built but still need cold target proof |
+| Heap activity hidden by free-space reserve | Heap-pool, live-use and high-water growth fail. Build 09's cold target cell proved the integer-only reporter retains the 40,640-byte baseline |
 | Event/availability or failure recovery confusion | Event and availability timestamps are distinct; wrong identity, non-finite, future, stale, ordering, pressure, error, timeout and recovery cells pass on HOST and remain required on target |
 | Future-context or candidate-generated semantic goldens | No semantic candidate qualified. G7 is not run; the smoke graph cannot pass E2 or feed lighting |
 | Physical claims inferred from HOST/USB | Capture, LED, S3 transport, power and thermal cells remain explicitly open |
@@ -248,20 +253,20 @@ is measured. The no-candidate outcome keeps E2, semantic F3 and K1-C unpassed.
 | G2 | PASS for frozen HOST AP/VP slice | Preserve profile and scope |
 | G3 / F1 | PASS for covered modules | Physical capture/output explicitly separate |
 | G4 / F2 | FAILED O2, O3 and identified NPU cells | No soak: no required mode passed its bounded preflight |
-| G5 / physical F3 | OPEN / dependencies identified | E1 cold-fix closure, identified capture/output/bridge hardware and measured paths |
+| G5 / physical F3 | OPEN / dependencies identified | Identified capture/output/bridge hardware and measured paths |
 | G6 | `NO_QUALIFYING_CANDIDATE` | New material evidence would be required to reopen |
 | G7 | `NOT_RUN_NO_CANDIDATE` | Correct terminal state for this candidate scope |
-| G8 | PARTIAL | P4 build-09 target verification, physical cells and independent review unavailable |
-| E1 | PARTIAL: build-07 long qualifications PASS; cold resource cell FAIL | Flash build 09, pass affected preflights and repeat source-bound qualifications |
+| G8 | PARTIAL | Physical cells, fresh S3 comparison and independent review unavailable |
+| E1 | PASS for bounded generic scheduled coexistence | Build 09 short matrix is source-bound; simultaneous contention is explicitly unproved |
 | E2 / semantic F3 | UNPASSED | No qualifying selected/deployed candidate |
 | K1-A | OPEN, independent of F2 | E1 plus fresh comparable production-S3 campaign |
 | K1-B | OPEN | E1 plus identified real Titan-S3 transport |
 | K1-C | UNPASSED | E1/E2/K1-A/K1-B, then Captain decision |
 
 Current recommendation remains: retain the existing production platform and
-treat RA8P1 as a bench candidate. F1 and the P4 long runs are real; the actual-K1
-O2/O3 deadline failures, pending P4 cold-fix target proof, missing physical
-evidence and no semantic candidate do not support production migration.
+treat RA8P1 as a bench candidate. F1 and bounded generic E1 are real; the
+actual-K1 O2/O3 deadline failures, missing physical evidence and no semantic
+candidate do not support production migration.
 
 ## Exact continuation
 
@@ -269,25 +274,11 @@ External root:
 `/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002`.
 `external-receipts.json` binds decisive receipts. Failed receipts are preserved.
 
-Next unused programming receipt is `programming-p4-06`. Build 09 removes
-floating conversion from both schedule reporters while preserving numeric JSON.
-From this repo:
-
-```sh
-python3 scripts/programme_scalar.py \
-  --build /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/p4-structural-build-09 \
-  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programming-p4-06 \
-  --wait-seconds 120 --execute
-```
-
-Physical entry: arm the programmer first, hold USER/BOOT, press and release
-RESET, keep USER/BOOT held until `PROGRAMME_VERIFY_PASS`, then release and reset
-normally. First run the cold DSP-alone polling-on cell as
-`p4-dsp-alone-observer-on-03`; it must retain the 40,640-byte baseline and pass.
-Then rerun P4 DSP-alone, NPU-alone, concurrent and saturation preflights with
-polling on and off, plus the final-bin mutation, all against build 09. Only if
-the required preflights pass, repeat both frozen 30-minute observer-off
-qualifications so the decisive receipts share the corrected build identity.
+Build 09 is programmed and its bounded source-bound campaign is complete. Do
+not repeat generic P4 or extend it by duration. The next implementation task is
+stage-level profiling of the actual K1 tempo-heavy hop, followed by the smallest
+exact-behaviour change that reduces its measured cost. Rebind the board by UID
+before target execution.
 
 Host regression:
 
