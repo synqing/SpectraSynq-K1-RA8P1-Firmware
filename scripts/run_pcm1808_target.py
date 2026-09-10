@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Short identity-gated Titan PCM1808 SSIE1 capture proof."""
+"""Reserved identity-gated PCM1808 proof; blocked until adapter hardware exists."""
 from __future__ import annotations
 
 import argparse
@@ -79,6 +79,13 @@ def main() -> int:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--observe-seconds", type=float, default=3.0)
     args = parser.parse_args()
+    contract_path = Path(__file__).resolve().parents[1] / "docs/pcm1808-source-contract.json"
+    contract = json.loads(contract_path.read_text())
+    if contract.get("status") == "BLOCKED_NO_PRACTICAL_CONNECTOR_ROUTE":
+        raise SystemExit(
+            "PCM1808 silicon run blocked: Titan U18 has no complete framed input; "
+            "fit a proper U11 mating breakout or a digital-audio bridge first"
+        )
     if not 0.25 <= args.observe_seconds <= 10.0:
         raise SystemExit("--observe-seconds must be between 0.25 and 10 seconds")
     args.output.mkdir(parents=True, exist_ok=False)

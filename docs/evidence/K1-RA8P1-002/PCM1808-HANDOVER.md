@@ -1,8 +1,31 @@
 # Titan PCM1808 AUX/line-in handover
 
-## What is true now
+## Corrected status — 2026-09-10
 
-The working PCM1808 ingress from the existing K1 firmware has been ported into
+The prior direct-wiring handover was wrong. U11 is a fine-pitch camera connector,
+not a practical wire-soldering point. The build below proved that the SSIE/DTC
+software linked; it did not establish a usable physical route and is superseded.
+
+U18 does **not** expose a complete SSIE group. Its apparent SPI_B alternative is
+also not a valid framed slave receiver: U18 exposes `SSLB2` and `SSLB3`, while
+RA8P1 SPI_B slave mode requires `SSLB0` as the slave-select input. `SSLB1` to
+`SSLB3` are outputs in slave mode. `P000`, `P001`, and `P002` cannot substitute
+for these peripheral signals.
+
+Therefore the honest state is `BLOCKED_NO_PRACTICAL_CONNECTOR_ROUTE`. The build
+tool now fails closed if `--pcm1808-target` is requested. Physical PCM1808 work
+requires either:
+
+1. a proper mating breakout for U11 `DF12NB(3.0)-36DS-0.5V(51)`, carrying the
+   three native SSIE1 signals; or
+2. a small digital-audio bridge board that presents a fully framed interface on
+   pins Titan can actually receive.
+
+No direct soldering to U11 is proposed or required.
+
+## Superseded pre-silicon build record
+
+The working PCM1808 ingress from the existing K1 firmware was compiled into
 the Titan build as a bounded SSIE1/DTC capture target. The donor files are pinned
 to `/Users/spectrasynq/SpectraSynq_K1_Firmware` commit
 `0b542364abeec1337bd74d7b3b9010e37b969401`; the imported resampler and mapping
@@ -17,10 +40,10 @@ and external PCM1808 capture:
 - onboard PDM metrics: fixture opcode 6
 - PCM1808 metrics: fixture opcode 15
 
-This is a successful cross-build, not physical-capture proof. It has not been
-flashed as a PCM1808 image because the PCM1808 is not yet connected to Titan.
+This was a successful cross-build only. It must not be flashed or treated as a
+wiring-ready image until one of the two physical adapters above exists.
 
-## Exact wiring
+## Wiring after a proper U11 mating breakout exists
 
 Power the boards off before making or changing these connections.
 

@@ -1,5 +1,7 @@
 #include "pcm1808_target.h"
 
+#error "PCM1808 target blocked: no practical framed input route exists on U18; use a proper U11 mating breakout or bridge board"
+
 #include <board.h>
 #include <limits.h>
 #include <stdbool.h>

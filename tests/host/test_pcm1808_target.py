@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import sys
 from pathlib import Path
 
@@ -51,3 +52,14 @@ def test_no_progress_or_route_drift_rejects():
     assert any("data changed" in error for error in errors)
     assert any("callbacks did not advance" in error for error in errors)
     assert any("hash did not change" in error for error in errors)
+
+
+def test_silicon_runner_fails_closed_before_hardware_access(tmp_path):
+    result = subprocess.run([
+        sys.executable, str(ROOT / "scripts/run_pcm1808_target.py"),
+        "--build", str(tmp_path / "unused-build"),
+        "--output", str(tmp_path / "unused-output"),
+    ], capture_output=True, text=True)
+    assert result.returncode != 0
+    assert "proper U11 mating breakout or a digital-audio bridge" in result.stderr
+    assert not (tmp_path / "unused-output").exists()

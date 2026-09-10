@@ -29,7 +29,7 @@ def test_pcm1808_donor_headers_are_exact_pinned_copies():
         assert hashlib.sha256(local).digest() == hashlib.sha256(source).digest()
 
 
-def test_pcm1808_contract_names_complete_ssie1_route_and_open_gates():
+def test_pcm1808_contract_fails_closed_on_impractical_titan_route():
     contract = json.loads((ROOT / "docs/pcm1808-source-contract.json").read_text())
     route = contract["titan_route"]
     assert route["peripheral"] == "SSIE1"
@@ -41,6 +41,9 @@ def test_pcm1808_contract_names_complete_ssie1_route_and_open_gates():
         ("P700/SSIDATA1_B", 26),
     }
     assert route["u18_complete_ssie_route"] is False
+    assert route["direct_wire_route"] is False
+    assert route["required_hardware"] == "U11_MATING_BREAKOUT_OR_DIGITAL_AUDIO_BRIDGE"
+    assert contract["status"] == "BLOCKED_NO_PRACTICAL_CONNECTOR_ROUTE"
     assert contract["admission"]["wired_titan"] == "NOT_RUN"
     boundary = contract["production_ap_boundary"]
     assert boundary["direct_connection_to_production_ap"] is False
@@ -59,21 +62,17 @@ def test_pcm1808_core_compiles_and_runs(tmp_path):
     subprocess.check_call([str(executable)])
 
 
-def test_pcm1808_disposable_stage_allocates_ssie1_vectors(tmp_path):
+def test_pcm1808_disposable_stage_refuses_false_u11_direct_wire_route(tmp_path):
     stage = tmp_path / "stage"
     (stage / "ra_gen").mkdir(parents=True)
     for name in ("vector_data.h", "vector_data.c"):
         shutil.copy2(BSP / "FSPConfiguration/ra_gen" / name, stage / "ra_gen" / name)
-    stage_pcm1808_vectors(stage)
-    header = (stage / "ra_gen/vector_data.h").read_text()
-    source = (stage / "ra_gen/vector_data.c").read_text()
-    assert "VECTOR_DATA_IRQ_COUNT    (76)" in header
-    assert "PCM1808_SSI1_RXI_IRQn ((IRQn_Type) 74)" in header
-    assert "PCM1808_SSI1_INT_IRQn ((IRQn_Type) 75)" in header
-    assert "[74] = ssi_rxi_isr" in source
-    assert "[75] = ssi_int_isr" in source
-    assert "EVENT_SSI1_RXI" in source
-    assert "EVENT_SSI1_INT" in source
+    try:
+        stage_pcm1808_vectors(stage)
+    except RuntimeError as error:
+        assert "proper U11 mating breakout or a bridge board" in str(error)
+    else:
+        raise AssertionError("impractical PCM1808 route was accepted")
 
 
 def test_pcm1808_target_starts_after_usb_and_is_continuously_polled():

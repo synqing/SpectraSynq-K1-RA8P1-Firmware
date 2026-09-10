@@ -113,57 +113,13 @@ def stage_dual_pdm_vectors(stage: Path) -> None:
     source.write_text(text)
 
 def stage_pcm1808_vectors(stage: Path) -> None:
-    """Allocate SSIE1 receive/error vectors in the disposable build only."""
-    header = stage / 'ra_gen/vector_data.h'
-    text = header.read_text()
-    count_match = re.search(r'#define VECTOR_DATA_IRQ_COUNT\s+\((\d+)\)', text)
-    assert count_match, 'vector count missing'
-    count = int(count_match.group(1))
-    assert count in (74, 76), 'unexpected vector count before PCM1808 allocation'
-    marker = '        /* The number of entries required for the ICU vector table. */'
-    assert text.count(marker) == 1
-    additions = (
-        f'        #define PCM1808_SSI1_RXI_IRQn ((IRQn_Type) {count}) '
-        '/* SSI1 RXI (Receive data full) */\n'
-        f'        #define PCM1808_SSI1_INT_IRQn ((IRQn_Type) {count + 1}) '
-        '/* SSI1 INT (Error interrupt) */\n'
+    """Fail closed: U18 has no complete, framed PCM1808 receive route."""
+    del stage
+    raise RuntimeError(
+        'PCM1808 target is blocked: SSIE1 is only on the inaccessible U11 camera '
+        'connector and U18 SPI_B exposes SSLB2/3, not the SSLB0 input required in '
+        'slave mode. Use a proper U11 mating breakout or a bridge board.'
     )
-    text = text.replace(f'#define VECTOR_DATA_IRQ_COUNT    ({count})',
-                        f'#define VECTOR_DATA_IRQ_COUNT    ({count + 2})')
-    text = text.replace(marker, additions + marker)
-    text = text.replace(f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({count})',
-                        f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({count + 2})')
-    header.write_text(text)
-
-    source = stage / 'ra_gen/vector_data.c'
-    text = source.read_text()
-    declaration_marker = '#if VECTOR_DATA_IRQ_COUNT > 0\n'
-    assert text.count(declaration_marker) == 1
-    text = text.replace(declaration_marker,
-                        'void ssi_rxi_isr(void);\nvoid ssi_int_isr(void);\n' + declaration_marker)
-    if count == 74:
-        isr_marker = '            [73] = ipc_isr, /* IPC IRQ1 (CPU Mutual Interrupt 1) */\n        };'
-        event_marker = ('            [73] = BSP_PRV_VECT_ENUM(EVENT_IPC_IRQ1,FIXED), '
-                        '/* IPC IRQ1 (CPU Mutual Interrupt 1) */\n        };')
-    else:
-        isr_marker = '            [75] = pdm_err_isr, /* PDM ERR0 (Error detection interrupt channel 0) */\n        };'
-        event_marker = ('            [75] = BSP_PRV_VECT_ENUM(EVENT_PDM_ERR0,FIXED), '
-                        '/* PDM ERR0 (Error detection interrupt channel 0) */\n        };')
-    assert text.count(isr_marker) == 1
-    assert text.count(event_marker) == 1
-    text = text.replace(isr_marker,
-        isr_marker[:-len('        };')] +
-        f'            [{count}] = ssi_rxi_isr, /* SSI1 RXI (Receive data full) */\n'
-        f'            [{count + 1}] = ssi_int_isr, /* SSI1 INT (Error interrupt) */\n'
-        '        };')
-    text = text.replace(event_marker,
-        event_marker[:-len('        };')] +
-        f'            [{count}] = BSP_PRV_VECT_ENUM(EVENT_SSI1_RXI,FIXED), '
-        '/* SSI1 RXI (Receive data full) */\n'
-        f'            [{count + 1}] = BSP_PRV_VECT_ENUM(EVENT_SSI1_INT,FIXED), '
-        '/* SSI1 INT (Error interrupt) */\n'
-        '        };')
-    source.write_text(text)
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -179,13 +135,15 @@ def main():
     parser.add_argument('--p4-fixture',type=Path,help='hash-bound packed generic P4 fixture header')
     parser.add_argument('--stage-profile',action='store_true',help='instrument disposable K1 copies with the fixed stage probe')
     parser.add_argument('--pdm-target',action='store_true',help='bind both IM69D130 edge lanes to bounded DMAC capture')
-    parser.add_argument('--pcm1808-target',action='store_true',help='bind external PCM1808 to SSIE1 slave receive on U11')
+    parser.add_argument('--pcm1808-target',action='store_true',help='fail closed until a practical PCM1808 adapter route exists')
     parser.add_argument('--palette-runtime',action='store_true',help='enable all K1 palettes and the native VP palette controls')
     parser.add_argument('--palette-autostart',action='store_true',help='boot into native all-palette preview on the identified WS2812/P601 bench strip')
     parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
     args=parser.parse_args()
     if args.palette_morph and not args.palette_runtime: parser.error('--palette-morph requires --palette-runtime')
     if args.palette_autostart and not args.palette_runtime: parser.error('--palette-autostart requires --palette-runtime')
+    if args.pcm1808_target:
+        stage_pcm1808_vectors(Path('.'))
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
     try:

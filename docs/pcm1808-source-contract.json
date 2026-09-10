@@ -1,6 +1,6 @@
 {
   "contract": "k1-ra8p1-pcm1808-aux-v1",
-  "status": "PRE_SILICON_IMPLEMENTATION",
+  "status": "BLOCKED_NO_PRACTICAL_CONNECTOR_ROUTE",
   "donor": {
     "repository": "/Users/spectrasynq/SpectraSynq_K1_Firmware",
     "commit": "0b542364abeec1337bd74d7b3b9010e37b969401",
@@ -40,12 +40,20 @@
     ],
     "titan_mclk_connection": "NONE",
     "u18_complete_ssie_route": false,
-    "camera_coexistence": "MUTUALLY_EXCLUSIVE_WITH_THIS_PIN_ROUTE"
+    "direct_wire_route": false,
+    "required_hardware": "U11_MATING_BREAKOUT_OR_DIGITAL_AUDIO_BRIDGE",
+    "camera_coexistence": "MUTUALLY_EXCLUSIVE_WITH_THIS_PIN_ROUTE",
+    "physical_access": "U11 is a fine-pitch camera connector and is not a wire-soldering point",
+    "u18_rejection": {
+      "ssie": "No complete SSIE0 or SSIE1 pin group is exposed on U18",
+      "spi_b": "U18 exposes P102/RSPCKB_A, P708/MOSIB_B and SSLB2/SSLB3, but RA8P1 SPI_B slave mode requires SSLB0 as its input; SSLB2 and SSLB3 are outputs",
+      "gpio": "P000, P001 and P002 do not provide SSIE or a complete synchronous receive peripheral"
+    }
   },
   "admission": {
     "donor_behaviour": "MEASURED_ON_DONOR_SILICON",
     "host_core": "REQUIRES_TEST",
-    "cross_compiled_titan_receiver": "NOT_RUN",
+    "cross_compiled_titan_receiver": "SUPERSEDED_BUILD_ONLY_U11_ROUTE_REJECTED",
     "wired_titan": "NOT_RUN",
     "identified_titan_capture": "NOT_RUN",
     "channel_map": "MUST_REVALIDATE_ON_TITAN",
