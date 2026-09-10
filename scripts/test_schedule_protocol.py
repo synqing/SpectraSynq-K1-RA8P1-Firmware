@@ -15,7 +15,8 @@ with tempfile.TemporaryDirectory(prefix='k1-schedule-protocol-') as temp:
           str(ROOT/'tests/host/test_schedule_protocol.cpp'),str(ROOT/'platform/ra8p1/fixture_app.cpp'),
           str(ROOT/'platform/ra8p1/semantic_sidecar.cpp'),
           *[str(ROOT/'src/k1'/p) for p in names if p.endswith('.cpp')]]
-    for label,extra in [('scalar',[]),('npu',['-DK1_NPU_LOAD=1'])]:
+    for label,extra in [('scalar',[]),('npu',['-DK1_NPU_LOAD=1']),
+                        ('profile',['-DK1_ENABLE_STAGE_PROBE=1'])]:
         executable=directory/('test-'+label)
         run([*base,*extra,'-o',str(executable)])
         print(label.upper()+' '+run([str(executable)]),end='')

@@ -21,6 +21,7 @@ def instrument_stage_sources(k1_root: Path) -> dict[str, str]:
     audio = k1_root / "core/audio/audio_pipeline.cpp"
     tracker = k1_root / "core/audio/tempo_tracker.cpp"
     acf = k1_root / "core/audio/tempo_acf.cpp"
+    clock = k1_root / "core/audio/clock_affine.cpp"
 
     _replace_once(
         audio,
@@ -55,17 +56,30 @@ def instrument_stage_sources(k1_root: Path) -> dict[str, str]:
     )
     _replace_once(
         audio,
+        "    features.chroma_strength =\n"
+        "        chroma_sum > 0.0001F ? chroma_max / chroma_sum : 0.0F;\n"
+        "    const ChordDetection chord = detectChord(chroma);\n",
+        "    features.chroma_strength =\n"
+        "        chroma_sum > 0.0001F ? chroma_max / chroma_sum : 0.0F;\n"
+        "    K1_STAGE_END(features, k1_stage_features);\n"
+        "    K1_STAGE_BEGIN(chord_detect, k1_stage_chord_detect);\n"
+        "    const ChordDetection chord = detectChord(chroma);\n",
+    )
+    _replace_once(
+        audio,
         "    features.chord_fifth_strength = chord.fifth_strength;\n\n"
         "    output.onset = onset_.update(features);\n"
         "    publishOnset(output.onset, features);\n"
         "    output.saliency = saliency_.update(features);\n",
         "    features.chord_fifth_strength = chord.fifth_strength;\n"
-        "    K1_STAGE_END(features, k1_stage_features);\n\n"
-        "    K1_STAGE_BEGIN(onset_saliency, k1_stage_onset_saliency);\n"
+        "    K1_STAGE_END(chord_detect, k1_stage_chord_detect);\n\n"
+        "    K1_STAGE_BEGIN(onset_beat, k1_stage_onset_beat);\n"
         "    output.onset = onset_.update(features);\n"
         "    publishOnset(output.onset, features);\n"
+        "    K1_STAGE_END(onset_beat, k1_stage_onset_beat);\n"
+        "    K1_STAGE_BEGIN(musical_saliency, k1_stage_musical_saliency);\n"
         "    output.saliency = saliency_.update(features);\n"
-        "    K1_STAGE_END(onset_saliency, k1_stage_onset_saliency);\n",
+        "    K1_STAGE_END(musical_saliency, k1_stage_musical_saliency);\n",
     )
     _replace_once(
         audio,
@@ -197,8 +211,19 @@ def instrument_stage_sources(k1_root: Path) -> dict[str, str]:
         "    K1_STAGE_END(acf_normalise, k1_stage_acf_normalise);\n",
     )
 
+    _replace_once(
+        clock,
+        '#include "core/audio/clock_affine.h"\n',
+        '#include "core/audio/clock_affine.h"\n#include "stage_probe.h"\n',
+    )
+    _replace_once(
+        clock,
+        "void AffineClockEstimator::refit() noexcept {\n",
+        "void AffineClockEstimator::refit() noexcept {\n"
+        "  K1_STAGE_SCOPE(clock_affine, k1_stage_clock_affine);\n",
+    )
+
     return {
         str(path.relative_to(k1_root)): hashlib.sha256(path.read_bytes()).hexdigest()
-        for path in (audio, tracker, acf)
+        for path in (audio, tracker, acf, clock)
     }
-

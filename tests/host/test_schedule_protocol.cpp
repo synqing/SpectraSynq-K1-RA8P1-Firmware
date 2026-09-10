@@ -1,5 +1,8 @@
 #include "fixture_app.h"
 #include "ws2816_gpio_emit.h"
+#ifdef K1_ENABLE_STAGE_PROBE
+#include "stage_probe.h"
+#endif
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
@@ -98,7 +101,23 @@ int main() {
   assert(json.find("\"loops_complete\":1")!=std::string::npos);
   assert(json.find("\"queue_capacity\":1")!=std::string::npos);
   assert(json.find("\"count\":1")!=std::string::npos);
+#ifdef K1_ENABLE_STAGE_PROBE
+  assert(json.find("\"raw_trace\":{\"version\":1,\"records\":1")!=std::string::npos);
+  std::vector<std::uint8_t> raw_request(8);
+  put(raw_request.data(),0); put(raw_request.data()+4,1);
+  auto raw=send(packet(12,raw_request));
+  assert(get(raw.data()+4)==0);
+  const auto* body=raw.data()+32;
+  assert(std::memcmp(body,"K1T1",4)==0);
+  assert(get(body+4)==1 && get(body+8)==0 && get(body+12)==1);
+  assert(get(body+16)==(5U+k1_stage_count)*4U);
+  assert(get(body+20)==k1_stage_count);
+  assert(get(body+24)==0 && get(body+28)>0);
+  put(raw_request.data()+4,0);
+  assert(get(send(packet(12,raw_request)).data()+4)==3);
+#else
   assert(json.find("\"mean_us\":100.000")!=std::string::npos);
+#endif
   cycles=0xfffffc00U;
   accepted=start(1,0); assert(get(accepted.data()+4)==0);
   for(unsigned i=0;i<1000 && k1_fixture_schedule_active();++i) k1_fixture_schedule_step();

@@ -71,12 +71,23 @@ struct StageDistribution {
   }
 };
 constexpr const char* kStageNames[k1_stage_count]={
-  "ap_total","gdft_raw","gdft_postprocess","features","onset_saliency",
+  "ap_total","gdft_raw","gdft_postprocess","features","chord_detect",
+  "onset_beat","musical_saliency",
   "tempo_total","tempo_history","tempo_acf_total","acf_prepare",
   "acf_correlate","acf_comb","acf_normalise","tempo_bank",
-  "tempo_flywheel","tempo_output","musical_time","vp_render","telemetry"
+  "tempo_flywheel","tempo_output","clock_affine","musical_time",
+  "vp_render","telemetry"
 };
 static_assert(sizeof(kStageNames)/sizeof(kStageNames[0])==k1_stage_count);
+struct RawHop {
+  std::uint32_t total_cycles, lateness_cycles, flags;
+  std::uint32_t injected_delay_cycles;
+  std::uint32_t stages[k1_stage_count];
+};
+constexpr std::uint32_t kRawTraceVersion=1;
+constexpr std::uint32_t kRawTraceWords=5+k1_stage_count;
+constexpr std::uint32_t kRawTraceStride=kRawTraceWords*sizeof(std::uint32_t);
+constexpr std::uint32_t kRawTraceChunk=128;
 #endif
 struct ScheduleState {
   bool active=false, finished=false;
@@ -94,6 +105,8 @@ struct ScheduleState {
   Distribution<8000> npu_wall;
 #ifdef K1_ENABLE_STAGE_PROBE
   StageDistribution stages[k1_stage_count];
+  RawHop raw[K1_RESIDENT_HOPS];
+  std::uint32_t raw_count=0, raw_active=0xffffffffU;
 #endif
 } schedule;
 std::uint32_t microseconds(std::uint32_t cycles) {
@@ -135,10 +148,11 @@ void stage_distribution(char* output,std::size_t capacity,std::size_t& offset,co
 void schedule_status() {
   std::size_t n=0;
   const int first=std::snprintf(trace.data,sizeof(trace.data),
-    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"npu_wall_sum_us\":%llu,\"npu_duty_ppm\":%llu,\"semantic_valid\":%s,\"semantic_accepted\":%lu,\"semantic_loss\":%lu,\"semantic_delayed\":%lu,\"semantic_stale\":%lu,\"semantic_out_of_order\":%lu,\"semantic_invalid_identity\":%lu,\"semantic_non_finite\":%lu,\"semantic_queue_pressure\":%lu,\"semantic_accelerator_errors\":%lu,\"semantic_accelerator_timeouts\":%lu,\"semantic_age_timeouts\":%lu,\"semantic_recoveries\":%lu,\"semantic_fallback_hops\":%lu,",
+    "{\"profile\":\"k1-production-resident-v1\",\"active\":%s,\"finished\":%s,\"loops_requested\":%lu,\"loops_complete\":%lu,\"hop\":%lu,\"mode\":%lu,\"elapsed_cycles\":%llu,\"queue_capacity\":1,\"drops\":0,\"coalesces\":0,\"crc_mutation_injected\":%s,\"timing_mutation_injected\":%s,\"correctness_failures\":%lu,\"deadline_misses\":%lu,\"render_misses\":%lu,\"release_guard_failures\":%lu,\"backlog_highwater\":%lu,\"npu_ready\":%s,\"npu_invocations\":%lu,\"npu_invoke_failures\":%lu,\"npu_output_failures\":%lu,\"npu_cycles\":%llu,\"npu_active_cycles\":%llu,\"mac_active_cycles\":%llu,\"npu_wall_sum_us\":%llu,\"npu_duty_ppm\":%llu,\"semantic_valid\":%s,\"semantic_accepted\":%lu,\"semantic_loss\":%lu,\"semantic_delayed\":%lu,\"semantic_stale\":%lu,\"semantic_out_of_order\":%lu,\"semantic_invalid_identity\":%lu,\"semantic_non_finite\":%lu,\"semantic_queue_pressure\":%lu,\"semantic_accelerator_errors\":%lu,\"semantic_accelerator_timeouts\":%lu,\"semantic_age_timeouts\":%lu,\"semantic_recoveries\":%lu,\"semantic_fallback_hops\":%lu,",
     schedule.active?"true":"false",schedule.finished?"true":"false",
     (unsigned long)schedule.loops,(unsigned long)schedule.loop,(unsigned long)schedule.hop,(unsigned long)((schedule.flags>>4)&3U),(unsigned long long)schedule.elapsed_cycles,
     (schedule.flags&2U)?"true":"false",
+    (schedule.flags&0x80U)?"true":"false",
     (unsigned long)schedule.correctness_failures,(unsigned long)schedule.deadline_misses,
     (unsigned long)schedule.render_misses,(unsigned long)schedule.release_guard_failures,
     (unsigned long)schedule.backlog_highwater,
@@ -172,7 +186,9 @@ void schedule_status() {
 #ifdef K1_ENABLE_STAGE_PROBE
   if(n<sizeof(trace.data)) trace.data[n++]=',';
   const int profile=std::snprintf(trace.data+n,sizeof(trace.data)-n,
-    "\"stage_profile\":{\"bin_width_cycles\":%u,\"stages\":{",kStageBinWidthCycles);
+    "\"stage_profile\":{\"bin_width_cycles\":%u,\"raw_trace\":{\"version\":%lu,\"records\":%lu,\"stride\":%lu},\"stages\":{",
+    kStageBinWidthCycles,(unsigned long)kRawTraceVersion,
+    (unsigned long)schedule.raw_count,(unsigned long)kRawTraceStride);
   if(profile<0 || std::size_t(profile)>=sizeof(trace.data)-n) { error(8); return; }
   n+=std::size_t(profile);
   for(unsigned stage=0;stage<k1_stage_count;++stage) {
@@ -235,11 +251,18 @@ void execute() {
   else if(command==7 && size==8) {
     const std::uint32_t loops=get32(rx+32), flags=get32(rx+36);
     const std::uint32_t mode=(flags>>4)&3U;
+    std::uint32_t allowed_flags=0x73U;
+#ifdef K1_ENABLE_STAGE_PROBE
+    allowed_flags|=0x80U;
+#endif
     if(schedule.active
 #ifdef K1_P4_LOAD
        || k1_p4_active()
 #endif
-       || !loops || loops>40 || (flags&~0x73U)) { error(3); return; }
+       || !loops || loops>40 || (flags&~allowed_flags)) { error(3); return; }
+#ifdef K1_ENABLE_STAGE_PROBE
+    if((flags&0x80U) && (loops!=1U || mode!=0U)) { error(3); return; }
+#endif
 #ifndef K1_NPU_LOAD
     if(mode || (flags&0x40U)) { error(3); return; }
 #else
@@ -247,11 +270,40 @@ void execute() {
     if((flags&0x40U) && mode!=1U) { error(3); return; }
 #endif
     std::memset(&schedule,0,sizeof(schedule)); schedule.active=true; schedule.loops=loops; schedule.flags=flags;
+#ifdef K1_ENABLE_STAGE_PROBE
+    schedule.raw_active=0xffffffffU;
+#endif
     trajectory.~Trajectory(); new (&trajectory) fixture::Trajectory(); trajectory.epoch=1;
     k1_semantic_reset(&schedule.semantic);
     schedule.last_cycle=k1_cycle_count(); schedule.next_release=clock_hz/1000U;
     respond(0,0,"STARTED",7);
   } else if(command==8 && size==0) schedule_status();
+#ifdef K1_ENABLE_STAGE_PROBE
+  else if(command==12 && size==8) {
+    const std::uint32_t first=get32(rx+32), count=get32(rx+36);
+    if(schedule.active || !schedule.finished || schedule.loop!=1U || !count ||
+       count>kRawTraceChunk || first>=schedule.raw_count ||
+       count>schedule.raw_count-first) { error(3); return; }
+    auto* output=reinterpret_cast<std::uint8_t*>(trace.data);
+    std::memcpy(output,"K1T1",4);
+    put32(output+4,kRawTraceVersion); put32(output+8,first);
+    put32(output+12,count); put32(output+16,kRawTraceStride);
+    put32(output+20,k1_stage_count);
+    std::size_t offset=24;
+    for(std::uint32_t index=first;index<first+count;++index) {
+      const RawHop& raw=schedule.raw[index];
+      put32(output+offset,index); offset+=4;
+      put32(output+offset,raw.total_cycles); offset+=4;
+      put32(output+offset,raw.lateness_cycles); offset+=4;
+      put32(output+offset,raw.flags); offset+=4;
+      put32(output+offset,raw.injected_delay_cycles); offset+=4;
+      for(unsigned stage=0;stage<k1_stage_count;++stage) {
+        put32(output+offset,raw.stages[stage]); offset+=4;
+      }
+    }
+    respond(0,0,trace.data,offset);
+  }
+#endif
 #endif
 #ifdef K1_P4_LOAD
   else if(command==9 && size==12) {
@@ -344,8 +396,12 @@ extern "C" std::uint32_t k1_stage_probe_begin(unsigned) noexcept {
   return k1_cycle_count();
 }
 extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcept {
-  if(schedule.active && stage<k1_stage_count)
-    schedule.stages[stage].add(k1_cycle_count()-started);
+  if(schedule.active && stage<k1_stage_count) {
+    const std::uint32_t cycles=k1_cycle_count()-started;
+    schedule.stages[stage].add(cycles);
+    if(schedule.loop==0U && schedule.raw_active<K1_RESIDENT_HOPS)
+      schedule.raw[schedule.raw_active].stages[stage]=cycles;
+  }
 }
 #endif
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
@@ -418,7 +474,22 @@ extern "C" void k1_fixture_schedule_step(void) {
 #endif
   {
   const std::int16_t* pcm=k1_resident_pcm[k1_resident_index[index]];
+#ifdef K1_ENABLE_STAGE_PROBE
+  if(schedule.loop==0U) {
+    std::memset(&schedule.raw[index],0,sizeof(schedule.raw[index]));
+    schedule.raw_active=index;
+  } else schedule.raw_active=0xffffffffU;
+#endif
   const std::uint32_t workload_started=k1_cycle_count();
+#ifdef K1_ENABLE_STAGE_PROBE
+  if((schedule.flags&0x80U) && schedule.loop==0U && index==136U) {
+    const std::uint32_t delay_started=k1_cycle_count();
+    const std::uint32_t delay_cycles=clock_hz/200U; // Declared 5 ms negative.
+    while((k1_cycle_count()-delay_started)<delay_cycles) {
+    }
+    schedule.raw[index].injected_delay_cycles=k1_cycle_count()-delay_started;
+  }
+#endif
   trajectory.process(pcm);
 #ifdef K1_NPU_LOAD
   if(mode==1U) {
@@ -427,7 +498,11 @@ extern "C" void k1_fixture_schedule_step(void) {
   } else if(mode==2U) run_npu(3);
   if(schedule.flags&0x40U) k1_semantic_failure_step(&schedule.semantic,index);
 #endif
-  const std::uint32_t workload_cycles=mode?k1_cycle_count()-workload_started:trajectory.total_cycles;
+  std::uint32_t workload_cycles=mode?k1_cycle_count()-workload_started:trajectory.total_cycles;
+#ifdef K1_ENABLE_STAGE_PROBE
+  if(mode==0U && schedule.loop==0U)
+    workload_cycles+=schedule.raw[index].injected_delay_cycles;
+#endif
   const std::uint64_t completion=lateness+workload_cycles;
   const std::uint32_t total_us=microseconds(workload_cycles);
   schedule.total.add(total_us);
@@ -440,6 +515,18 @@ extern "C" void k1_fixture_schedule_step(void) {
   if(completion>period) ++schedule.deadline_misses;
   if(trajectory.rendered && trajectory.render_cycles>clock_hz/500U) ++schedule.render_misses;
   if(lateness>clock_hz/10000U) ++schedule.release_guard_failures; // predeclared 100 us start guard.
+#ifdef K1_ENABLE_STAGE_PROBE
+  if(schedule.loop==0U) {
+    RawHop& raw=schedule.raw[index];
+    raw.total_cycles=workload_cycles;
+    raw.lateness_cycles=lateness>0xffffffffU?0xffffffffU:static_cast<std::uint32_t>(lateness);
+    raw.flags=(trajectory.output.tempo.updated?1U:0U) |
+              (trajectory.rendered?2U:0U) |
+              (completion>period?4U:0U) |
+              (lateness>clock_hz/10000U?8U:0U) |
+              (raw.injected_delay_cycles?16U:0U);
+  }
+#endif
   if(schedule.flags&1U) {
     const std::uint32_t before=k1_cycle_count();
 #ifdef K1_ENABLE_STAGE_PROBE
@@ -456,6 +543,10 @@ extern "C" void k1_fixture_schedule_step(void) {
 #endif
     schedule.telemetry.add(microseconds(k1_cycle_count()-before));
   }
+#ifdef K1_ENABLE_STAGE_PROBE
+  if(schedule.loop==0U) schedule.raw_count=index+1U;
+  schedule.raw_active=0xffffffffU;
+#endif
   }
   schedule.next_release+=period;
   if(++schedule.hop==K1_RESIDENT_HOPS) {
