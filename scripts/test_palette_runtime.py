@@ -29,7 +29,7 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
                 str(ROOT/'platform/ra8p1/palette_runtime.cpp'),
                 *[str(sources/p) for p in names if p.endswith('.cpp')]]
         if morph: common+=['-DK1_PALETTE_MORPH=1']
-        for suite in (('runtime','protocol','transition') if morph else ('runtime','protocol')):
+        for suite in (('runtime','protocol','transition','centre') if morph else ('runtime','protocol')):
             executable=out/(suite+str(morph))
             command=common+[str(ROOT/f'tests/host/test_palette_{suite}.cpp'),'-o',str(executable)]
             if suite=='protocol': command+=['-DK1_PALETTE_RUNTIME=1',str(ROOT/'platform/ra8p1/fixture_app.cpp')]

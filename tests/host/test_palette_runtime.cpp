@@ -29,7 +29,7 @@ int main() {
       const auto selected = ch ? 43U-id : id;
       assert(runtime.channel(ch).controls().palette_mode_enabled);
       for (unsigned i = 0; i < 160; ++i) {
-        const auto expected = sampleProductPaletteFastLed16(selected, i*255U/159U);
+        const auto expected = sampleProductPaletteFastLed16(selected, (i<80U?79U-i:i-80U)*255U/79U);
         assert(!std::memcmp(&frame[i], &expected, sizeof(Pixel8)));
         ++compared;
       }
@@ -100,6 +100,11 @@ int main() {
         bool visible=false;
         for (unsigned pixel_index=0; pixel_index<160; ++pixel_index) {
           const auto pixel = ref.frame()[pixel_index];
+          const auto opposite = ref.frame()[159U-pixel_index];
+          if (std::memcmp(&pixel,&opposite,sizeof(Pixel8))) {
+            std::fprintf(stderr,"CENTRE_MIRROR_FAILURE mode=%u palette=%u pixel=%u\n",mode,id,pixel_index);
+            assert(false);
+          }
           visible |= pixel.red || pixel.green || pixel.blue;
           for (auto value : {pixel.red,pixel.green,pixel.blue}) {
             digest ^= value; digest *= 1099511628211ULL;

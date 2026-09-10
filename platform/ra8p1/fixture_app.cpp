@@ -25,6 +25,7 @@
 #include "ws281x_diag.h"
 #ifdef K1_PALETTE_RUNTIME
 #include "palette_runtime.h"
+#include "palette_clock.h"
 #endif
 #ifdef K1_PCM1808_TARGET
 #include "pcm1808_target.h"
@@ -36,8 +37,7 @@ fixture::Trace trace;
 k1::titan::PaletteRuntime palettes;
 std::uint32_t palette_clock_hz = 0;
 std::uint64_t palette_time_us = 0;
-std::uint32_t palette_last_ms = 0;
-bool palette_clock_seen = false;
+k1::titan::PaletteClock palette_clock;
 void palette_step(bool emit) {
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
@@ -253,17 +253,18 @@ void execute() {
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
-  } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U)) {
+  } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U || size == 40U)) {
 #ifdef K1_RESIDENT_SCHEDULE
     if (k1_fixture_schedule_active()) { error(10); return; }
 #endif
     const auto* p = rx + 32;
     if ((size == 32U && get32(p) != 1U) ||
-        (size == 36U && get32(p) != 2U)) { error(3); return; }
+        (size == 36U && get32(p) != 2U) ||
+        (size == 40U && get32(p) != 3U)) { error(3); return; }
     const k1::titan::PaletteConfig config{
         get32(p), get32(p+4), get32(p+8), get32(p+12),
         get32(p+16), get32(p+20), get32(p+24), get32(p+28),
-        size == 36U ? get32(p+32) : 0U};
+        size >= 36U ? get32(p+32) : 0U, size == 40U ? get32(p+36) : 4000U};
     if (!palettes.configure(config, palette_time_us)) { error(3); return; }
     palette_step(false);
     const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
@@ -508,7 +509,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   k1::titan::PaletteConfig config;
   config.flags = 7U;
 #ifdef K1_PALETTE_MORPH
-  config.version = 2U; config.transition_ms = 1500U;
+  config.version = 3U; config.transition_ms = 1500U;
+  config.mode_a = 100U; config.mode_b = 101U; config.flags |= 16U;
+  config.palette_a = 33U; config.palette_b = 43U;
 #endif
   palettes.configure(config, 0U);
 #endif
@@ -535,8 +538,7 @@ extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,s
 extern "C" void k1_fixture_poll(std::uint32_t now) {
   if(fill && now-started>2000) error(9);
 #ifdef K1_PALETTE_RUNTIME
-  if (palette_clock_seen) palette_time_us += std::uint64_t(std::uint32_t(now-palette_last_ms))*1000U;
-  palette_last_ms = now; palette_clock_seen = true;
+  palette_time_us = palette_clock.sample(k1_cycle_count(), palette_clock_hz);
 #ifdef K1_RESIDENT_SCHEDULE
   if (k1_fixture_schedule_active()) return;
 #endif

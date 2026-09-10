@@ -60,10 +60,10 @@ int main() {
   assert(runtime.configure(c,0) && runtime.step(0,nullptr));
   c.version=2; c.transition_ms=1000; c.palette_a=43; c.palette_b=0;
   assert(runtime.configure(c,10000) && runtime.step(10000,nullptr));
-  assert(same(runtime.channel(0).frame()[0],sampleProductPaletteFastLed16(0,0)));
-  assert(same(runtime.channel(1).frame()[0],sampleProductPaletteFastLed16(43,0)));
+  assert(same(runtime.channel(0).frame()[0],sampleProductPaletteFastLed16(0,255)));
+  assert(same(runtime.channel(1).frame()[0],sampleProductPaletteFastLed16(43,255)));
   assert(runtime.step(510000,nullptr));
-  const auto offset=static_cast<std::uint8_t>(510000/20000);
+  const auto offset=static_cast<std::uint8_t>(255U - 510000/20000);
   const auto a=sampleProductPaletteFastLed16(0,offset), b=sampleProductPaletteFastLed16(43,offset);
   const Pixel8 mid{static_cast<std::uint8_t>((unsigned(a.red)+b.red+1)/2),
                    static_cast<std::uint8_t>((unsigned(a.green)+b.green+1)/2),

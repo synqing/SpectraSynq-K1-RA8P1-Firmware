@@ -11,6 +11,9 @@ using namespace core::visual;
 namespace {
 bool supportedMode(std::uint32_t mode) noexcept {
   if (mode == 0U) return true;
+#ifdef K1_PALETTE_MORPH
+  if (isCentreEffect(mode)) return true;
+#endif
   constexpr unsigned modes[]{3,7,8,9,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,32};
   for (const auto item : modes) if (item == mode) return true;
   return false;
@@ -27,30 +30,41 @@ std::uint32_t frameCrc(ConstPixelSpan frame) noexcept {
   }
   return ~crc;
 }
-void preview(ChannelRenderState& channel, std::uint64_t now_us) noexcept {
+void preview(ChannelRenderState& channel, std::uint64_t now_us, bool inward) noexcept {
   const unsigned offset = static_cast<unsigned>((now_us / 20000U) & 255U);
   for (unsigned i = 0; i < kPixelsPerChannel; ++i) {
-    const unsigned position = i * 255U / (kPixelsPerChannel - 1U);
+    const unsigned radial = i < 80U ? 79U-i : i-80U;
+    const unsigned position = (inward ? 79U-radial : radial) * 255U / 79U;
 #ifdef K1_PALETTE_MORPH
     channel.frame()[i] = channel.controls().palette_transition->fast(
-        static_cast<std::uint8_t>(position + offset));
+        static_cast<std::uint8_t>(position + 256U - offset));
 #else
     channel.frame()[i] = sampleProductPaletteFastLed16(
-        channel.controls().palette_id, static_cast<std::uint8_t>(position + offset));
+        channel.controls().palette_id, static_cast<std::uint8_t>(position + 256U - offset));
 #endif
   }
 }
 }
 bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us) noexcept {
 #ifdef K1_PALETTE_MORPH
-  const bool version_ok = (config.version == 1U && config.transition_ms == 0U) ||
-      (config.version == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs);
+  const bool version_ok = ((config.version == 1U && config.transition_ms == 0U) ||
+      (config.version == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs))
+      ? config.travel_ms == 4000U
+      : config.version == 3U && config.transition_ms <= PaletteTransition::kMaximumDurationMs &&
+        config.travel_ms >= 500U && config.travel_ms <= 30000U;
+  if ((isCentreEffect(config.mode_a) || isCentreEffect(config.mode_b)) && config.version != 3U)
+    return false;
+  if ((config.flags & 8U) &&
+      ((config.mode_a && !isCentreEffect(config.mode_a)) ||
+       (config.mode_b && !isCentreEffect(config.mode_b)))) return false;
+  if ((config.flags & 16U) &&
+      (!isCentreEffect(config.mode_a) || !isCentreEffect(config.mode_b))) return false;
 #else
-  const bool version_ok = config.version == 1U && config.transition_ms == 0U;
+  const bool version_ok = config.version == 1U && config.transition_ms == 0U && config.travel_ms == 4000U;
 #endif
   if (!version_ok || config.palette_a >= kProductPaletteCount ||
       config.palette_b >= kProductPaletteCount || !supportedMode(config.mode_a) ||
-      !supportedMode(config.mode_b) || (config.flags & ~7U) ||
+      !supportedMode(config.mode_b) || (config.flags & ~(config.version == 3U ? 31U : 7U)) ||
       config.brightness > 255U || config.output_channel > 1U)
     return false;
   const bool cut = config.mode_a != config_.mode_a || config.mode_b != config_.mode_b;
@@ -90,6 +104,11 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   a_.controls().palette_id = static_cast<std::uint16_t>((config_.palette_a + cycle) % kProductPaletteCount);
   b_.controls().palette_id = static_cast<std::uint16_t>((config_.palette_b + cycle) % kProductPaletteCount);
 #ifdef K1_PALETTE_MORPH
+  if (config_.flags & 16U) {
+    const auto stage = unsigned((now_us-cycle_start_us_)/12000000U % kCentreEffectCount);
+    a_.controls().mode_id = kCentreEffectFirst + (config_.mode_a-kCentreEffectFirst+stage)%kCentreEffectCount;
+    b_.controls().mode_id = kCentreEffectFirst + (config_.mode_b-kCentreEffectFirst+stage)%kCentreEffectCount;
+  }
   transitions_[0].select(a_.controls().palette_id, config_.transition_ms, now_us);
   transitions_[1].select(b_.controls().palette_id, config_.transition_ms, now_us);
 #endif
@@ -98,7 +117,19 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   last_us_ = now_us;
   waiting_for_audio_ = false;
   for (auto* channel : {&a_, &b_}) {
-    if (channel->controls().mode_id == 0U) preview(*channel, now_us);
+    if (channel->controls().mode_id == 0U) preview(*channel, now_us, config_.flags & 8U);
+#ifdef K1_PALETTE_MORPH
+    else if (isCentreEffect(channel->controls().mode_id)) {
+      const auto age = now_us-cycle_start_us_;
+      const float t = float(age % 12000000U)/800000.0F;
+      const bool blending = (config_.flags & 16U) && age >= 12000000U && t < 1.0F;
+      const unsigned previous = kCentreEffectFirst +
+          (channel->controls().mode_id-kCentreEffectFirst+kCentreEffectCount-1U)%kCentreEffectCount;
+      renderCentreEffect(*channel, *channel->controls().palette_transition,
+                         now_us, config_.travel_ms, config_.flags & 8U,
+                         blending ? previous : 0U, blending ? t*t*(3.0F-2.0F*t) : 1.0F);
+    }
+#endif
     else if (audio) {
       channel->prepareAudio(audio->audio);
       (void)renderProductChannel(*channel, *audio, dt);
@@ -160,7 +191,9 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"bench_pixels\":128,\"host_pixel_stream_required\":false"
 #ifdef K1_PALETTE_MORPH
       ",\"morph_supported\":true,\"transition_ms\":%lu,\"transition_a_q16\":%u,"
-      "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u"
+      "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u,"
+      "\"centre_effects_supported\":true,\"direction\":\"%s\",\"travel_ms\":%lu,"
+      "\"showcase\":%s,\"effect_a\":\"%s\",\"effect_b\":\"%s\""
 #else
       ",\"morph_supported\":false"
 #endif
@@ -170,7 +203,7 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       waiting_for_audio_ ? "true" : "false", unsigned(a_.controls().palette_id),
       unsigned(b_.controls().palette_id), productPalette(a_.controls().palette_id).name,
       productPalette(b_.controls().palette_id).name,
-      (unsigned long)config_.mode_a, (unsigned long)config_.mode_b,
+      (unsigned long)a_.controls().mode_id, (unsigned long)b_.controls().mode_id,
       (unsigned long)config_.brightness, (unsigned long)config_.output_channel,
       (unsigned long)kPalettePeriodUs, (unsigned long long)frames_, (unsigned long long)skipped_,
       (unsigned long long)emitted_, (unsigned long long)emit_errors_,
@@ -178,7 +211,10 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
 #ifdef K1_PALETTE_MORPH
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),
-      transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors()
+      transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors(),
+      (config_.flags & 8U) ? "edges_in" : "centre_out", (unsigned long)config_.travel_ms,
+      (config_.flags & 16U) ? "true" : "false", centreEffectName(a_.controls().mode_id),
+      centreEffectName(b_.controls().mode_id)
 #endif
       );
   return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;

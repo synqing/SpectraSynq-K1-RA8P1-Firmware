@@ -176,3 +176,102 @@ remain unverified. The earlier palette programmer timed out without flashing;
 application USB enumeration subsequently returned. The next physical action
 is ROM boot, complete programming/readback, then native catalogue and transition
 checks. No new silicon, pin, DMA or timing fact is asserted by this feature.
+
+## Centre-origin expansion — 2026-09-10
+
+User mandate: all VP motion originates at the centre and travels outward, or
+originates at the edges and travels inward. Native geometry is 160 pixels,
+centre pair 79/80. The current 128-pixel adapter retains centre pair 63/64.
+
+The earlier morph image `d354879b…` was programmed with complete readback and
+verified by live UID/build identity. All 44 palette selections passed on Titan.
+A single CDC session observed eased fade progress from 54 through 65,535 and
+an interrupted fade retaining three palette contributors on each channel,
+with zero reported emission errors. Captain confirmed that the visible result
+looked good. No photometric measurement or audio-reactive physical claim follows.
+
+Evidence under `/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002`:
+
+- `palette-morph-programme-01/receipt.json`: programming/readback pass.
+- `palette-morph-live-01/receipt.json`: all 44 IDs selected on Titan.
+- `palette-morph-transition-live-02/receipt.json`: intermediate progress,
+  completion and interrupted retarget pass.
+- `palette-morph-transition-live-01/receipt.json`: earlier observer failed to
+  catch an intermediate frame because it reopened the CLI for each sample.
+  That negative record is retained; the single-session observation supersedes it.
+
+The 1,500 ms transition completed after approximately 2.17 host seconds in that
+image. The old animation timebase used RTOS ticks while the GPIO transmitter
+masked interrupts. This build instead extends the existing free-running DWT
+cycle count with fractional conversion and unsigned wrap handling. It never
+resets DWT. Polling must occur more often than one 32-bit wrap (4.295 seconds
+at 1 GHz); debugger halts and deep sleep are outside this bench clock contract.
+Protocol timeout behaviour still uses its original clock. This is not a DMA fix
+or a claim of externally calibrated oscillator accuracy.
+
+### Implemented native effects
+
+| ID | CLI name | Behaviour |
+|---|---|---|
+| 100 | ribbons | Broad flowing colour bands with narrow palette-derived highlights |
+| 101 | aurora | Overlapping soft colour curtains |
+| 102 | embers | Narrow bright crests with trailing colour |
+| 103 | pulse | Travelling pulse fronts with a wider halo |
+
+These four effects run autonomously without an audio fixture. They are ambient
+effects, not fabricated musical analysis. Their background, body and highlight
+colours all come from the selected palette mixture. Composition uses floats
+until the existing RGB8 frame boundary; the bench gain and WS2812 quantisation
+remain. No new temporal dither or TRUE16 physical path is introduced.
+
+Each effect evaluates one radial coordinate and copies the result to both
+halves. Reversing travel reverses the radial coordinate; it does not reverse the
+whole 160-pixel strip into a horizontal wipe. The original preview mode 0 now
+also obeys the centre-origin mapping. That intentional preview change is
+separate from the pinned K1 musical effects, which remain unchanged.
+
+Showcase mode moves to the next effect every 12 seconds, blending old and new
+effect envelopes over 800 ms at the same current time. Palette cycling remains
+every four seconds with the selected palette-transition duration. Autostart
+uses showcase mode, 1,500 ms palette fades and four-second centre-to-edge travel.
+New effects add no frame history, allocation or queue.
+
+### Controls and protocol
+
+```sh
+python scripts/run_titan_palettes.py --build <centre-build> --showcase --cycle --palette 33 --palette-b 43 --transition-ms 1500
+python scripts/run_titan_palettes.py --build <centre-build> --effect-a aurora --effect-b embers --palette 2 --palette-b 23 --transition-ms 1500
+python scripts/run_titan_palettes.py --build <centre-build> --effect-a pulse --effect-b ribbons --inward --travel-ms 3000
+```
+
+Version 3 of opcode 16 is exactly ten little-endian u32 words:
+version=3, palette A, palette B, mode A, mode B, flags, brightness, output channel,
+transition milliseconds, travel milliseconds. New flags: bit 3 inward travel;
+bit 4 effect showcase. Travel range is 500–30,000 ms for the four new effects.
+Mode 0 retains its existing preview colour-scroll rate.
+Versions 1/2 retain their earlier payload lengths and controls.
+Inward/showcase controls are rejected for unsupported legacy effect selections.
+Status reports effective effect IDs/names, direction, travel duration and showcase.
+
+### Checked result
+
+The host suite covers all 352 new effect/palette/direction combinations,
+337,920 mirror/direction comparisons and the physical 128-pixel mapping.
+All 4,224 sampled outward frames contain visible values. A pulse front is at
+radial index 20 outward and 59 inward after one quarter of the journey.
+All 8,096 existing effect comparison frames also satisfy mirror symmetry for
+the supplied fixtures and retain digest `d3a379fc7b760bb5`.
+Mirror checks alone are not a proof of every legacy mode's temporal trajectory.
+Clock tests cover wrap, fractional conversion, and actual protocol transitions
+while the mocked RTOS tick is frozen.
+
+Built image:
+`/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/centre-effects-build-01`
+
+Build ID:
+`3decd1541b7a5fb1b77b65343542a6562d2286be69c3871713fca1d1b762bdb6`
+
+Cross-build passes: text 198,612; data 18,104; BSS 204,332 bytes.
+The current board still runs the earlier morph build until this new image is
+programmed. This image retains the GPIO bench transmitter; live capture,
+production AP timing, DMA output and U55 coexistence are separate outstanding work.

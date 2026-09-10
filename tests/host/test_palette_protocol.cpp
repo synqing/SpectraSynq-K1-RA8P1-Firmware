@@ -11,7 +11,9 @@
 using namespace k1::core::visual;
 static unsigned emits;
 static std::vector<std::uint8_t> last_wire;
-extern "C" std::uint32_t k1_cycle_count() { static std::uint32_t cycles; return cycles+=100; }
+static std::uint32_t hardware_cycles;
+extern "C" std::uint32_t k1_cycle_count() { return hardware_cycles; }
+static void poll(unsigned ms) { hardware_cycles=ms*1000000U; k1_fixture_poll(ms); }
 extern "C" std::size_t k1_platform_metrics(char*,std::size_t) { return 0; }
 void k1_ws2816_set_clock(std::uint32_t) {}
 packed_submit_result_t k1_ws2816_submit_packed_lanes(const std::uint8_t*,std::size_t,const std::uint8_t*,std::size_t,packed_lane_completion_t*) { return kPackedWrongCount; }
@@ -50,7 +52,7 @@ int main() {
       std::vector<std::uint8_t> which(4); put(which.data(),ch);
       auto frame=request(18,which); assert(get(frame.data()+4)==0 && frame.size()==512);
       for(unsigned i=0;i<160;++i) {
-        const auto p=sampleProductPaletteFastLed16(ch?43-id:id,i*255U/159U);
+        const auto p=sampleProductPaletteFastLed16(ch?43-id:id,(i<80U?79U-i:i-80U)*255U/79U);
         assert(frame[32+i*3]==p.red && frame[33+i*3]==p.green && frame[34+i*3]==p.blue);
       }
     }
@@ -66,13 +68,28 @@ int main() {
 #endif
   assert(emits==0);
   assert(get(request(16,config(43,0,5)).data()+4)==0);
-  k1_fixture_poll(0); k1_fixture_poll(10); assert(emits==1 && last_wire.size()==384);
+  poll(0); poll(10); assert(emits==1 && last_wire.size()==384);
   k1_fixture_disconnect();
-  k1_fixture_poll(20); assert(emits==2); // Autonomous output survives CDC disconnect.
+  poll(20); assert(emits==2); // Autonomous output survives CDC disconnect.
   assert(get(request(16,config(43,0,0)).data()+4)==0);
-  k1_fixture_poll(40); assert(emits==2);
+  poll(40); assert(emits==2);
   const auto stopped=request(17);
   const std::string body(reinterpret_cast<const char*>(stopped.data()+32),stopped.size()-32);
   assert(body.find("\"active\":false")!=std::string::npos);
+#ifdef K1_PALETTE_MORPH
+  auto c3=config(33,43,5); c3.resize(40); put(c3.data(),3);
+  put(c3.data()+12,100); put(c3.data()+16,101); put(c3.data()+36,4000);
+  assert(get(request(16,c3).data()+4)==0);
+  put(c3.data()+4,43); put(c3.data()+8,33); put(c3.data()+32,1500);
+  assert(get(request(16,c3).data()+4)==0);
+  hardware_cycles+=750000000U; k1_fixture_poll(40); // RTOS tick deliberately frozen.
+  auto half=request(17);
+  std::string half_body(reinterpret_cast<const char*>(half.data()+32),half.size()-32);
+  assert(half_body.find("\"transition_a_q16\":32767")!=std::string::npos);
+  hardware_cycles+=750000000U; k1_fixture_poll(40);
+  auto full=request(17);
+  std::string full_body(reinterpret_cast<const char*>(full.data()+32),full.size()-32);
+  assert(full_body.find("\"transition_a_q16\":65535")!=std::string::npos);
+#endif
   std::puts("PALETTE_PROTOCOL_PASS palettes=44 channels=2 native_output_after_disconnect=true");
 }

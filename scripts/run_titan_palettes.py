@@ -31,7 +31,18 @@ def main():
     parser.add_argument('--cycle',action='store_true',help='advance through all 44 palettes every four seconds on Titan')
     parser.add_argument('--no-emit',action='store_true',help='render on-device without physical GPIO emission')
     parser.add_argument('--transition-ms',type=int,default=0,help='0: cut; 1..10000: native smooth palette transition')
+    effects={'ribbons':100,'aurora':101,'embers':102,'pulse':103}
+    parser.add_argument('--effect-a',choices=effects)
+    parser.add_argument('--effect-b',choices=effects)
+    parser.add_argument('--inward',action='store_true',help='new centre effects travel from both edges towards the centre')
+    parser.add_argument('--showcase',action='store_true',help='cycle four native centre effects every 12 seconds')
+    parser.add_argument('--travel-ms',type=int,default=4000,help='500..30000 ms from centre to edge (or edge to centre)')
     args=parser.parse_args()
+    if not 500<=args.travel_ms<=30000: parser.error('travel-ms must be 500..30000')
+    if args.effect_a: args.mode_a=effects[args.effect_a]
+    elif args.showcase: args.mode_a=100
+    if args.effect_b: args.mode_b=effects[args.effect_b]
+    elif args.showcase: args.mode_b=101
     if not 0<=args.transition_ms<=10000: parser.error('transition-ms must be 0..10000')
     if not 0<=args.brightness<=255: parser.error('brightness must be 0..255')
     if args.verify_all and args.output is None: parser.error('--verify-all requires --output')
@@ -93,6 +104,9 @@ def main():
                    args.mode_b if mode_b is None else mode_b,flags,
                    args.brightness if brightness is None else brightness,args.output_channel)
             duration=args.transition_ms if transition_ms is None else transition_ms
+            if args.inward or args.showcase or args.travel_ms!=4000 or words[3]>=100 or words[4]>=100:
+                words=(3,*words[1:],duration,args.travel_ms)
+                return transact(16,struct.pack('<10I',*words))
             if duration:
                 words=(2,*words[1:],duration)
                 return transact(16,struct.pack('<9I',*words))
@@ -129,7 +143,7 @@ def main():
             receipt['all_44_selected']=True
             print('K1_NATIVE_PALETTES_PASS count=44; autonomous catalogue cycle remains running.')
         else:
-            flags=1 | (2 if args.cycle else 0) | (0 if args.no_emit else 4)
+            flags=1 | (2 if args.cycle else 0) | (0 if args.no_emit else 4) | (8 if args.inward else 0) | (16 if args.showcase else 0)
             receipt['final']=configure(a,b,flags)
             print(json.dumps(receipt['final'],indent=2))
         receipt['pass']=True

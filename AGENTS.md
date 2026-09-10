@@ -12,3 +12,7 @@
 10. Do not silently change frameworks. Audit the live Titan bring-up/toolchain first. Any RT-Thread/FSP/bare-metal choice must be evidence-backed and documented.
 11. Keep commits narrow. Do not use `git add -A` without proving every path belongs to the current slice.
 12. A green build is necessary, never sufficient. Each major gate needs at least one negative/mutation proof that it can fail.
+
+## Centre-origin mandate — user instruction, 2026-09-10
+
+All exposed VP motion must originate at the centre and travel outward, or originate at the edges and travel inward. Native centre is pixels 79/80 of 160; the current 128-pixel bench centre is 63/64. Apply this to previews and new effects as well as musical modes. Verify mirror geometry and travel direction separately; mirror symmetry alone does not prove motion origin. Preserve the pinned reference and identify any required behavioural correction explicitly.

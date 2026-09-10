@@ -5,6 +5,7 @@
 #include "core/visual/visual_audio_frame.h"
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
+#include "centre_palette_engine.h"
 #endif
 
 namespace k1::titan {
@@ -19,7 +20,8 @@ struct PaletteConfig {
   std::uint32_t palette_a = 0U, palette_b = 1U;
   std::uint32_t mode_a = 0U, mode_b = 0U; // 0 = native palette preview.
   std::uint32_t flags = 0U, brightness = 24U, output_channel = 0U;
-  std::uint32_t transition_ms = 0U; // Version 2 only; 0 is an immediate cut.
+  std::uint32_t transition_ms = 0U; // Versions 2/3; 0 is an immediate cut.
+  std::uint32_t travel_ms = 4000U; // Version 3: centre-to-edge travel duration.
 };
 class PaletteRuntime {
  public:

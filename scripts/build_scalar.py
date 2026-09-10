@@ -37,8 +37,8 @@ PLATFORM_FILES = [
 RA8P1_LOCAL_K1_FILES = [
     'core/visual/ws2816_pack.h',
 ]
-PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h']
-PALETTE_MORPH_FILES = ['palette_transition.h']
+PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h', 'palette_clock.h']
+PALETTE_MORPH_FILES = ['palette_transition.h', 'centre_palette_engine.h']
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_target.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/dual-im69d130-source-contract.json'
