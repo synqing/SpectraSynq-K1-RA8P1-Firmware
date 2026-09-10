@@ -57,6 +57,13 @@ int main() {
     assert(get(request(16,config(id,44,1)).data()+4)==3);
     const auto state=request(17); assert(get(state.data()+4)==0);
   }
+#ifdef K1_PALETTE_MORPH
+  auto v2=config(33,43,1); v2.resize(36); put(v2.data(),2); put(v2.data()+32,1000);
+  assert(get(request(16,v2).data()+4)==0);
+  auto bad=v2; put(bad.data()+32,10001); assert(get(request(16,bad).data()+4)==3);
+  bad=v2; put(bad.data(),1); assert(get(request(16,bad).data()+4)==3);
+  bad=v2; bad.resize(32); assert(get(request(16,bad).data()+4)==3);
+#endif
   assert(emits==0);
   assert(get(request(16,config(43,0,5)).data()+4)==0);
   k1_fixture_poll(0); k1_fixture_poll(10); assert(emits==1 && last_wire.size()==384);

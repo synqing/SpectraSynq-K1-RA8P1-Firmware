@@ -12,6 +12,7 @@ import subprocess
 from datetime import datetime, timezone
 from verify_imports import ROOT, verify, REFERENCE, PIN
 from stage_profile import instrument_stage_sources
+from palette_renderer_overlay import apply_palette_overlay
 
 BSP = ROOT.parent / 'sdk-bsp-ra8p1-titan-mini'
 BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
@@ -37,6 +38,7 @@ RA8P1_LOCAL_K1_FILES = [
     'core/visual/ws2816_pack.h',
 ]
 PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h']
+PALETTE_MORPH_FILES = ['palette_transition.h']
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_target.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/dual-im69d130-source-contract.json'
@@ -118,7 +120,9 @@ def main():
     parser.add_argument('--pdm-target',action='store_true',help='bind both IM69D130 edge lanes to bounded DMAC capture')
     parser.add_argument('--palette-runtime',action='store_true',help='enable all K1 palettes and the native VP palette controls')
     parser.add_argument('--palette-autostart',action='store_true',help='boot into native all-palette preview on the identified WS2812/P601 bench strip')
+    parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
     args=parser.parse_args()
+    if args.palette_morph and not args.palette_runtime: parser.error('--palette-morph requires --palette-runtime')
     if args.palette_autostart and not args.palette_runtime: parser.error('--palette-autostart requires --palette-runtime')
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
@@ -136,6 +140,9 @@ def main():
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'src/k1'/p for p in RA8P1_LOCAL_K1_FILES]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.palette_runtime:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_PLATFORM_FILES]
+        if args.palette_morph:
+            material += [ROOT/'platform/ra8p1'/name for name in PALETTE_MORPH_FILES]
+            material.append(ROOT/'scripts/palette_renderer_overlay.py')
         if args.resident_controls:
             if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
             material.append(args.resident_controls)
@@ -169,11 +176,11 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,dcache=args.dcache,
-                       palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,
+                       palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -194,6 +201,7 @@ def main():
                 text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
         defines=[]
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
+        if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
         if args.npu_model: defines.append('-DK1_NPU_LOAD=1')
         if args.p4_source: defines.append('-DK1_P4_LOAD=1')
@@ -222,6 +230,8 @@ def main():
             for name in PDM_TARGET_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.palette_runtime:
             for name in PALETTE_PLATFORM_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+        if args.palette_morph:
+            for name in PALETTE_MORPH_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         for header in (ROOT/'tests/target').glob('*.h'): shutil.copy2(header,stage/'src'/header.name)
         if args.resident_controls:
             shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
@@ -253,6 +263,8 @@ def main():
         for name in RA8P1_LOCAL_K1_FILES:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
+        if args.palette_morph:
+            receipt['palette_derivative_sources']=apply_palette_overlay(stage/'src/k1')
         if args.stage_profile:
             receipt['instrumented_sources']=instrument_stage_sources(stage/'src/k1')
         macros=command([TOOLCHAIN/'arm-none-eabi-g++',*SCALAR.split(),'-dM','-E','-x','c++','/dev/null'])

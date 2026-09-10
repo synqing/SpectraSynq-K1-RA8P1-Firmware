@@ -30,7 +30,9 @@ def main():
     parser.add_argument('--output-channel',type=int,choices=(0,1),default=0)
     parser.add_argument('--cycle',action='store_true',help='advance through all 44 palettes every four seconds on Titan')
     parser.add_argument('--no-emit',action='store_true',help='render on-device without physical GPIO emission')
+    parser.add_argument('--transition-ms',type=int,default=0,help='0: cut; 1..10000: native smooth palette transition')
     args=parser.parse_args()
+    if not 0<=args.transition_ms<=10000: parser.error('transition-ms must be 0..10000')
     if not 0<=args.brightness<=255: parser.error('brightness must be 0..255')
     if args.verify_all and args.output is None: parser.error('--verify-all requires --output')
     build=json.loads((args.build/'receipt.json').read_text())
@@ -39,6 +41,8 @@ def main():
         raise RuntimeError('build does not contain the accepted native palette runtime')
     if hashlib.sha256(image.read_bytes()).hexdigest()!=build['artifacts']['rtthread.hex']:
         raise RuntimeError('build image identity mismatch')
+    if args.transition_ms and not build.get('palette_morph'):
+        raise RuntimeError('this image does not support palette morphing')
     receipt={'pass':False,'start':datetime.now(timezone.utc).isoformat(),
              'operation':'K1_NATIVE_PALETTES','host_generated_pixel_frames':0,
              'photons':'NOT_CLAIMED','production_audio_coexistence':'NOT_TESTED'}
@@ -84,10 +88,14 @@ def main():
             if len(matches)!=1: raise ValueError('unknown palette: '+text)
             return matches[0]
         a=palette_id(args.palette); b=palette_id(args.palette_b)
-        def configure(a,b,flags,brightness=None,mode_a=None,mode_b=None):
+        def configure(a,b,flags,brightness=None,mode_a=None,mode_b=None,transition_ms=None):
             words=(1,a,b,args.mode_a if mode_a is None else mode_a,
                    args.mode_b if mode_b is None else mode_b,flags,
                    args.brightness if brightness is None else brightness,args.output_channel)
+            duration=args.transition_ms if transition_ms is None else transition_ms
+            if duration:
+                words=(2,*words[1:],duration)
+                return transact(16,struct.pack('<9I',*words))
             return transact(16,struct.pack('<8I',*words))
         if args.list:
             for item in entries: print(f"{item['id']:2d}  {item['name']}")
@@ -103,7 +111,7 @@ def main():
             before=transact(17)
             for item in entries:
                 i=item['id']
-                configure(i,43-i,1 if args.no_emit else 5,mode_a=0,mode_b=0)
+                configure(i,43-i,1 if args.no_emit else 5,mode_a=0,mode_b=0,transition_ms=0)
                 time.sleep(0.04)
                 state=transact(17)
                 if state['palette_a']!=i or state['palette_b']!=43-i:

@@ -3,6 +3,9 @@
 #include <cstdint>
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
+#ifdef K1_PALETTE_MORPH
+#include "palette_transition.h"
+#endif
 
 namespace k1::titan {
 inline constexpr std::uint32_t kPaletteCatalogueOpcode = 15U;
@@ -16,9 +19,13 @@ struct PaletteConfig {
   std::uint32_t palette_a = 0U, palette_b = 1U;
   std::uint32_t mode_a = 0U, mode_b = 0U; // 0 = native palette preview.
   std::uint32_t flags = 0U, brightness = 24U, output_channel = 0U;
+  std::uint32_t transition_ms = 0U; // Version 2 only; 0 is an immediate cut.
 };
 class PaletteRuntime {
  public:
+  PaletteRuntime() = default;
+  PaletteRuntime(const PaletteRuntime&) = delete;
+  PaletteRuntime& operator=(const PaletteRuntime&) = delete;
   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
@@ -38,6 +45,9 @@ class PaletteRuntime {
   core::visual::ChannelRenderState a_{core::visual::PixelChannelId::kChannelA};
   core::visual::ChannelRenderState b_{core::visual::PixelChannelId::kChannelB};
   PaletteConfig config_{};
+#ifdef K1_PALETTE_MORPH
+  core::visual::PaletteTransition transitions_[2]{};
+#endif
   std::uint64_t next_us_ = 0U, last_us_ = 0U, cycle_start_us_ = 0U;
   std::uint64_t frames_ = 0U, skipped_ = 0U, emitted_ = 0U, emit_errors_ = 0U;
   std::uint32_t last_emit_cycles_ = 0U, maximum_emit_cycles_ = 0U;

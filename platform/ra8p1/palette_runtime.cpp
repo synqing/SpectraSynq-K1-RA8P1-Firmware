@@ -31,13 +31,24 @@ void preview(ChannelRenderState& channel, std::uint64_t now_us) noexcept {
   const unsigned offset = static_cast<unsigned>((now_us / 20000U) & 255U);
   for (unsigned i = 0; i < kPixelsPerChannel; ++i) {
     const unsigned position = i * 255U / (kPixelsPerChannel - 1U);
+#ifdef K1_PALETTE_MORPH
+    channel.frame()[i] = channel.controls().palette_transition->fast(
+        static_cast<std::uint8_t>(position + offset));
+#else
     channel.frame()[i] = sampleProductPaletteFastLed16(
         channel.controls().palette_id, static_cast<std::uint8_t>(position + offset));
+#endif
   }
 }
 }
 bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us) noexcept {
-  if (config.version != 1U || config.palette_a >= kProductPaletteCount ||
+#ifdef K1_PALETTE_MORPH
+  const bool version_ok = (config.version == 1U && config.transition_ms == 0U) ||
+      (config.version == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs);
+#else
+  const bool version_ok = config.version == 1U && config.transition_ms == 0U;
+#endif
+  if (!version_ok || config.palette_a >= kProductPaletteCount ||
       config.palette_b >= kProductPaletteCount || !supportedMode(config.mode_a) ||
       !supportedMode(config.mode_b) || (config.flags & ~7U) ||
       config.brightness > 255U || config.output_channel > 1U)
@@ -56,6 +67,13 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   cb.mode_id = static_cast<std::uint16_t>(config.mode_b);
   // Physical brightness is applied once by the bench adapter, after treatment.
   ca.brightness = cb.brightness = 255U;
+  ca.photons_id = cb.photons_id = 65535U;
+#ifdef K1_PALETTE_MORPH
+  ca.palette_transition = &transitions_[0];
+  cb.palette_transition = &transitions_[1];
+  transitions_[0].select(ca.palette_id, config.transition_ms, now_us);
+  transitions_[1].select(cb.palette_id, config.transition_ms, now_us);
+#endif
   next_us_ = now_us; last_us_ = now_us; cycle_start_us_ = now_us;
   waiting_for_audio_ = false;
   return true;
@@ -71,6 +89,10 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       : 0U;
   a_.controls().palette_id = static_cast<std::uint16_t>((config_.palette_a + cycle) % kProductPaletteCount);
   b_.controls().palette_id = static_cast<std::uint16_t>((config_.palette_b + cycle) % kProductPaletteCount);
+#ifdef K1_PALETTE_MORPH
+  transitions_[0].select(a_.controls().palette_id, config_.transition_ms, now_us);
+  transitions_[1].select(b_.controls().palette_id, config_.transition_ms, now_us);
+#endif
   const float dt = last_us_ == now_us ? 1.0F / 120.0F
       : static_cast<float>(now_us - last_us_) / 1000000.0F;
   last_us_ = now_us;
@@ -135,7 +157,14 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"frames\":%llu,\"skipped_releases\":%llu,\"emitted\":%llu,\"emit_errors\":%llu,"
       "\"last_emit_cycles\":%lu,\"maximum_emit_cycles\":%lu,"
       "\"frame_a_crc\":%lu,\"frame_b_crc\":%lu,\"native_pixels_per_channel\":160,"
-      "\"bench_pixels\":128,\"host_pixel_stream_required\":false}",
+      "\"bench_pixels\":128,\"host_pixel_stream_required\":false"
+#ifdef K1_PALETTE_MORPH
+      ",\"morph_supported\":true,\"transition_ms\":%lu,\"transition_a_q16\":%u,"
+      "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u"
+#else
+      ",\"morph_supported\":false"
+#endif
+      "}",
       unsigned(kProductPaletteCount), active() ? "true" : "false",
       (config_.flags & 2U) ? "true" : "false", emitEnabled() ? "true" : "false",
       waiting_for_audio_ ? "true" : "false", unsigned(a_.controls().palette_id),
@@ -146,7 +175,12 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long)kPalettePeriodUs, (unsigned long long)frames_, (unsigned long long)skipped_,
       (unsigned long long)emitted_, (unsigned long long)emit_errors_,
       (unsigned long)last_emit_cycles_, (unsigned long)maximum_emit_cycles_,
-      (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame()));
+      (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
+#ifdef K1_PALETTE_MORPH
+      , (unsigned long)config_.transition_ms, transitions_[0].progress(),
+      transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors()
+#endif
+      );
   return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;
 }
 void PaletteRuntime::recordEmit(int result, std::uint32_t cycles) noexcept {

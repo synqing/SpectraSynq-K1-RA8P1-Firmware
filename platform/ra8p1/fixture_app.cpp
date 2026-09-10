@@ -250,14 +250,17 @@ void execute() {
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
-  } else if (command == k1::titan::kPaletteConfigureOpcode && size == 32U) {
+  } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U)) {
 #ifdef K1_RESIDENT_SCHEDULE
     if (k1_fixture_schedule_active()) { error(10); return; }
 #endif
     const auto* p = rx + 32;
+    if ((size == 32U && get32(p) != 1U) ||
+        (size == 36U && get32(p) != 2U)) { error(3); return; }
     const k1::titan::PaletteConfig config{
         get32(p), get32(p+4), get32(p+8), get32(p+12),
-        get32(p+16), get32(p+20), get32(p+24), get32(p+28)};
+        get32(p+16), get32(p+20), get32(p+24), get32(p+28),
+        size == 36U ? get32(p+32) : 0U};
     if (!palettes.configure(config, palette_time_us)) { error(3); return; }
     palette_step(false);
     const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
@@ -496,6 +499,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
 #ifdef K1_PALETTE_AUTOSTART
   k1::titan::PaletteConfig config;
   config.flags = 7U;
+#ifdef K1_PALETTE_MORPH
+  config.version = 2U; config.transition_ms = 1500U;
+#endif
   palettes.configure(config, 0U);
 #endif
 #endif

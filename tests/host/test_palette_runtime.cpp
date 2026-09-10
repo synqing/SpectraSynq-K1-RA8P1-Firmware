@@ -74,7 +74,8 @@ int main() {
   VisualWaveformHistory wave{};
   const VisualAudioFrameView view{audio, tempo, wave, 0U};
   constexpr unsigned modes[]{3,7,8,9,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,32};
-  unsigned effect_frames = 0;
+  unsigned effect_frames = 0, visible_frames = 0;
+  std::uint64_t digest = 14695981039346656037ULL;
   for (auto mode : modes) for (unsigned id=0; id<44; ++id) {
     PaletteRuntime runtime;
     PaletteConfig c; c.palette_a=id; c.palette_b=43-id; c.mode_a=c.mode_b=mode; c.flags=1;
@@ -82,6 +83,7 @@ int main() {
     ChannelRenderState ref_a{PixelChannelId::kChannelA}, ref_b{PixelChannelId::kChannelB};
     for (auto* ch : {&ref_a, &ref_b}) {
       ch->controls().palette_mode_enabled = true;
+      ch->controls().photons_id = 65535U;
       ch->controls().mode_id = mode;
       ch->controls().palette_id = ch == &ref_a ? id : 43-id;
     }
@@ -95,9 +97,20 @@ int main() {
         assert(renderProductChannel(ref, view, dt).rendered);
         applyProductOutputTreatment(ref.frame(), ref.controls(), ref.outputTreatmentState());
         assert(!std::memcmp(runtime.channel(ch).frame().data(), ref.frame().data(), 160*sizeof(Pixel8)));
+        bool visible=false;
+        for (unsigned pixel_index=0; pixel_index<160; ++pixel_index) {
+          const auto pixel = ref.frame()[pixel_index];
+          visible |= pixel.red || pixel.green || pixel.blue;
+          for (auto value : {pixel.red,pixel.green,pixel.blue}) {
+            digest ^= value; digest *= 1099511628211ULL;
+          }
+        }
+        visible_frames += visible;
         ++effect_frames;
       }
     }
   }
+  assert(visible_frames > 0U);
+  std::printf("COMPATIBILITY_DIGEST=%016llx visible_frames=%u\n", (unsigned long long)digest, visible_frames);
   std::printf("PALETTE_RUNTIME_PASS palettes=44 preview_pixels=%u effect_frames=%u modes=23\n", compared, effect_frames);
 }
