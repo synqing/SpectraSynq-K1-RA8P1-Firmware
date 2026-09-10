@@ -30,6 +30,10 @@ NPU_REQUIRED = [
 PLATFORM_FILES = [
     'SConscript', 'fixture_app.cpp', 'fixture_app.h', 'hal_entry.c',
     'semantic_sidecar.cpp', 'semantic_sidecar.h',
+    'titan_led_pins.h', 'ws2816_gpio_emit.h', 'ws2816_gpio_emit.c',
+]
+RA8P1_LOCAL_K1_FILES = [
+    'core/visual/ws2816_pack.h',
 ]
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 
@@ -65,7 +69,7 @@ def main():
         if args.p4_source and not args.npu_model: raise RuntimeError('P4/E1 target image requires the identified NPU load')
         if args.stage_profile and not args.resident_controls: raise RuntimeError('stage profiling requires the resident K1 schedule')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
-        material=[ROOT/'src/k1'/p for p in names]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
+        material=[ROOT/'src/k1'/p for p in names]+[ROOT/'src/k1'/p for p in RA8P1_LOCAL_K1_FILES]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.resident_controls:
             if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
             material.append(args.resident_controls)
@@ -154,6 +158,9 @@ def main():
             (p4_stage/'SConscript').write_text("from building import *\ncwd=GetCurrentDir()\nobjs=DefineGroup('Generic P4 kernels',Glob('*.c'),depend=[],CPPPATH=[cwd])\nReturn('objs')\n")
         (stage/'src/build_identity.h').write_text(f'#define K1_BUILD_ID "{identity}"\n#define K1_SOURCE_PIN "{PIN}"\n')
         for name in names:
+            target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(ROOT/'src/k1'/name,target)
+        for name in RA8P1_LOCAL_K1_FILES:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
         if args.stage_profile:

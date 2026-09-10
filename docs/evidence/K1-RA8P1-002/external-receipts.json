@@ -88,14 +88,18 @@
     "p4-concurrent-observer-off-02/receipt.json": "acfa7fae77a172861f2ff707a00c6435bdb657285d6b73211ba149c73dfe7a75",
     "p4-saturation-observer-on-02/receipt.json": "f3d1591f602fd348cf1fee36b96548163e68c22fdde2ccade2cd6a1686136fca",
     "p4-saturation-observer-off-02/receipt.json": "6568014bb260607472ad010b6fafd9e021a8d90dcba3980d612b12025ad1e3ad",
-    "p4-mutation-03/receipt.json": "c6f22e7b940ef81424c66c62349d1e636ab9163cdd49c51fc186f1d1fe8a73d4"
+    "p4-mutation-03/receipt.json": "c6f22e7b940ef81424c66c62349d1e636ab9163cdd49c51fc186f1d1fe8a73d4",
+    "led-build-04/receipt.json": "a18332ef4c7865c87c41ac046c3d395630ff23248d9cc4d0f8a0355cf5e00eae",
+    "led-prog-03/receipt.json": "626e479de85ad94d314e3f55d3d2acc3cefc5f1b5dab3258470c324965c86477",
+    "led-smoke-06/receipt.json": "4dff06e57957694678ec5e1c615c796c95a1df2f297c1566bb51e2793fb3809c",
+    "led-smoke-06/EXECUTION.md": "6d0413b0a9279a176a5f1275b00a417d70af522f383fee9db463eff1e57e426b"
   },
   "physical_claims": false,
   "scalar_target_executed": true,
   "board_firmware_changed": true,
   "board_uid": "545433931bd25436593630352d068363",
-  "current_board_build_id": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
-  "current_board_image": "p4-structural-build-09; generic P4 plus actual K1 and identified U55 load; M33 parked",
-  "latest_on_silicon_state": "F1 pass; G4 O2 and O3 scalar failed deadlines; identified NPU cells executed; generic P4 build 09 passed the complete bounded observer-on/off matrix with stable 40640-byte heap and final-bin mutation detection; no new generic soak is required; physical paths remain open",
+  "current_board_build_id": "f0205ef836e6be37f0a700d7da9c8c8a86b4243a0986666d4435085a87da56be",
+  "current_board_image": "led-build-04; scalar K1 fixture plus bounded dual-DIN WS2816 emission smoke; U55 and M33 parked",
+  "latest_on_silicon_state": "F1 pass; G4 O2 and O3 scalar failed deadlines; identified NPU cells executed; generic P4 build 09 passed the complete bounded observer-on/off matrix; led-smoke-06 matched both host-packed CRCs on the identified UID but photons, GPIO pulse widths and product output parity remain unproved; no new generic soak is required",
   "usb_owner_released": true
 }

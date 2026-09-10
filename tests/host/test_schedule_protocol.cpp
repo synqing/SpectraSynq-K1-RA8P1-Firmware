@@ -1,4 +1,5 @@
 #include "fixture_app.h"
+#include "ws2816_gpio_emit.h"
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
@@ -36,6 +37,24 @@ extern "C" void k1_npu_invoke(std::uint32_t, k1_npu_measurement_t* measurement) 
 
 static std::uint32_t cycles;
 extern "C" std::uint32_t k1_cycle_count() { return cycles+=100; }
+void k1_ws2816_set_clock(std::uint32_t) {}
+packed_submit_result_t k1_ws2816_submit_packed_lanes(
+    const std::uint8_t*, std::size_t a_bytes, const std::uint8_t*,
+    std::size_t b_bytes, packed_lane_completion_t* completion) {
+  if (k1_ws2816_require_packed_lanes(a_bytes, b_bytes) != kPackedAccepted) {
+    return kPackedWrongCount;
+  }
+  if (completion != nullptr) {
+    completion->submit_cycles = 10;
+    completion->transfer_done_cycles = 20;
+    completion->latch_ready_cycles = 30;
+    completion->emit_cycles = 10;
+    completion->latch_cycles = 10;
+    completion->bit_period_min_cycles = 1200;
+    completion->bit_period_max_cycles = 1300;
+  }
+  return kPackedAccepted;
+}
 extern "C" std::size_t k1_platform_metrics(char* output,std::size_t capacity) {
   const char* text="{\"label\":\"HOST_STUB\"}";
   assert(capacity>std::strlen(text)); std::strcpy(output,text); return std::strlen(text);

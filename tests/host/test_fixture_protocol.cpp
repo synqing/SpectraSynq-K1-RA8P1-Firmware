@@ -1,11 +1,34 @@
 #include "fixture_app.h"
 #include "trajectory.h"
+#include "core/visual/ws2816_pack.h"
+#include "ws2816_gpio_emit.h"
 #include <limits>
 #include <cassert>
 #include <cstring>
 #include <cstdio>
+#include <string>
 #include <vector>
 extern "C" std::uint32_t k1_cycle_count() { static std::uint32_t counter=0; return counter+=100; }
+void k1_ws2816_set_clock(std::uint32_t) {}
+packed_submit_result_t k1_ws2816_submit_packed_lanes(
+    const std::uint8_t* lane_a, std::size_t a_bytes, const std::uint8_t* lane_b,
+    std::size_t b_bytes, packed_lane_completion_t* completion) {
+  if (k1_ws2816_require_packed_lanes(a_bytes, b_bytes) != kPackedAccepted) {
+    return kPackedWrongCount;
+  }
+  (void)lane_a;
+  (void)lane_b;
+  if (completion) {
+    completion->submit_cycles = 10;
+    completion->transfer_done_cycles = 20;
+    completion->latch_ready_cycles = 30;
+    completion->emit_cycles = 10;
+    completion->latch_cycles = 10;
+    completion->bit_period_min_cycles = 1200;
+    completion->bit_period_max_cycles = 1300;
+  }
+  return kPackedAccepted;
+}
 extern "C" std::size_t k1_platform_metrics(char* output,std::size_t capacity) {
   const char* text="{\"label\":\"HOST_STUB\"}";
   assert(capacity>std::strlen(text)); std::strcpy(output,text); return std::strlen(text);
@@ -63,6 +86,39 @@ int main() {
   assert(get(send(packet(3,0,reset)).data()+4)==0);
   assert(send(packet(2,1,silence))==baseline);
   assert(get(send(packet(6,0)).data()+4)==0);
+  {
+    k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};
+    pixels[0] = {0x12AB, 0, 0};
+    pixels[k1::core::visual::kPixelsPerHalf] = {0, 0, 0x12AB};
+    for (std::size_t i = 1; i < 8; ++i) {
+      pixels[i] = {0x7A3C, 0, 0};
+      pixels[k1::core::visual::kPixelsPerHalf + i] = {0, 0, 0x7A3C};
+    }
+    std::uint8_t lane_a[k1::core::visual::kPackedBytesPerLane]{};
+    std::uint8_t lane_b[k1::core::visual::kPackedBytesPerLane]{};
+    assert(k1::core::visual::splitChannel160(
+        pixels, k1::core::visual::kPixelsPerChannel, lane_a, lane_b));
+    const unsigned long expect_a = crc(lane_a, sizeof(lane_a));
+    const unsigned long expect_b = crc(lane_b, sizeof(lane_b));
+    auto led = send(packet(11, 0));
+    assert(get(led.data() + 4) == 0);
+    const std::string body(reinterpret_cast<char*>(led.data() + 32),
+                           led.size() - 32);
+    assert(body.find("\"din_a\":\"P601\"") != std::string::npos);
+    assert(body.find("\"din_b\":\"P004\"") != std::string::npos);
+    assert(body.find("\"pixels_a\":80") != std::string::npos);
+    assert(body.find("\"true16\":\"0x12AB\"") != std::string::npos);
+    assert(body.find("\"visible_u16\":\"0x7A3C\"") != std::string::npos);
+    assert(body.find("\"level_shifter\":\"74HCT2G34GW\"") != std::string::npos);
+    assert(body.find("\"crc_proves\":\"emission_not_reception\"") !=
+           std::string::npos);
+    assert(body.find("\"bit_period_min_cycles\":1200") != std::string::npos);
+    char crc_a[64], crc_b[64];
+    std::snprintf(crc_a, sizeof(crc_a), "\"crc_a\":%lu", expect_a);
+    std::snprintf(crc_b, sizeof(crc_b), "\"crc_b\":%lu", expect_b);
+    assert(body.find(crc_a) != std::string::npos);
+    assert(body.find(crc_b) != std::string::npos);
+  }
   assert(get(send(packet(3,0,reset)).data()+4)==0);
   auto compact=send(packet(5,1,silence)); assert(get(compact.data()+4)==0);
   static fixture::Trajectory separate; static fixture::Trace encoded;

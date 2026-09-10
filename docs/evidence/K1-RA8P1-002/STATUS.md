@@ -25,6 +25,16 @@ repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
   semantic F3 and K1-C remain unpassed. The U55 smoke graph is load only.
 - **Physical capture, LED output and Titan-S3 transport remain open.** USB
   enumeration alone is not physical-path proof.
+- **LED dual-DIN wire smoke is recorded on this UID, not product PASS.**
+  Wait-armed programme `led-prog-03` `PROGRAMME_VERIFY_PASS` on UID
+  `545433931bd25436593630352d068363`, image
+  `ff89a3820bc266caf8e3f818554ebe3d0913f821b326aeace5874b05b87fd7d4`. Opcode 11
+  smoke `led-smoke-06` packed CRCs matched HOST TRUE16 (`crc_a=2700312459`,
+  `crc_b=997782662`), emit 5,112.104 µs and latch 300.011 µs. The reported
+  1,302–1,466 cycle loop-start periods are software measurements, not GPIO pulse
+  widths. CRC proves packed-buffer **emission**, not pin reception or photons.
+  `K1_RA8P1_LED_OUTPUT` = `WIRE_SMOKE_RECORDED`. G4 miss remains 2,005/6,000
+  = 33.4%; the 5.412 ms IRQ-disabled span also cannot enter the realtime path.
 
 ## Implementation commits
 
@@ -193,16 +203,18 @@ semantic deployment, new ontology or commercial clearance is claimed.
 
 ## Physical inventory and board state
 
-The latest inventory probe found no Titan application or ROM USB endpoint and
-no Titan programmer/target runner. The most recent identified board state is
-build 09, `c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb`,
-from `programming-p4-06/receipt.json` on canonical UID
-`545433931bd25436593630352d068363`. Re-enumeration and runtime identity are
-required before the next board operation; port names are not identity.
+The most recent identified board state is `led-build-04`,
+`f0205ef836e6be37f0a700d7da9c8c8a86b4243a0986666d4435085a87da56be`, from
+`led-prog-03/receipt.json` on canonical UID
+`545433931bd25436593630352d068363`. `led-smoke-06` then rechecked that UID,
+build ID and source pin before opcode 11. Re-enumeration and runtime identity
+remain required before every later board operation; port names are not identity.
 
-No connected PDM path, LED backend, bridge framing, clock mapping, power or
-thermal instrument has been established. Generic E1 is no longer a prerequisite
-blocker, but G5/K1-B remain open on their actual physical dependencies.
+No qualified PDM capture, optical/GPIO timing instrument, full product-output
+backend, bridge framing, clock mapping, power or thermal instrument has been
+established. A single 80/80 split stick has a bounded packed-buffer emission
+smoke only. Generic E1 is no longer a prerequisite blocker, but G5/K1-B remain
+open on their actual physical dependencies.
 
 ## G8 review and decision packet
 
@@ -286,6 +298,8 @@ Host regression:
 python3 -m unittest discover -s tests/host -v
 python3 scripts/verify_imports.py --slice timing --enforce
 python3 scripts/verify_imports.py --slice product --enforce
+python3 scripts/test_ws2816_pack.py
+python3 scripts/test_ws2816_emit_protocol.py
 python3 scripts/test_fixture_protocol.py
 python3 scripts/test_schedule_protocol.py
 python3 scripts/test_semantic_sidecar.py

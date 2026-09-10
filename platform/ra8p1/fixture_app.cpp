@@ -20,6 +20,8 @@
 #ifdef K1_P4_LOAD
 #include "p4_runtime.h"
 #endif
+#include "core/visual/ws2816_pack.h"
+#include "ws2816_gpio_emit.h"
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
@@ -260,6 +262,69 @@ void execute() {
     if(!n) error(8); else respond(0,0,trace.data,n);
   }
 #endif
+  else if(command==11 && size==0) {
+    k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};
+    k1::core::visual::Pixel16 off[k1::core::visual::kPixelsPerChannel]{};
+    pixels[0] = {0x12AB, 0, 0};
+    pixels[k1::core::visual::kPixelsPerHalf] = {0, 0, 0x12AB};
+    for (std::size_t i = 1; i < 8; ++i) {
+      pixels[i] = {0x7A3C, 0, 0};
+      pixels[k1::core::visual::kPixelsPerHalf + i] = {0, 0, 0x7A3C};
+    }
+    std::uint8_t lane_a[k1::core::visual::kPackedBytesPerLane]{};
+    std::uint8_t lane_b[k1::core::visual::kPackedBytesPerLane]{};
+    std::uint8_t dark_a[k1::core::visual::kPackedBytesPerLane]{};
+    std::uint8_t dark_b[k1::core::visual::kPackedBytesPerLane]{};
+    if (!k1::core::visual::splitChannel160(
+            pixels, k1::core::visual::kPixelsPerChannel, lane_a, lane_b) ||
+        !k1::core::visual::splitChannel160(
+            off, k1::core::visual::kPixelsPerChannel, dark_a, dark_b)) {
+      error(7);
+      fill=0; wanted=32; return;
+    }
+    packed_lane_completion_t done{};
+    packed_submit_result_t submitted = kPackedAccepted;
+    const std::uint32_t gap = clock_hz / 12U; // ~83 ms
+    for (unsigned blink = 0; blink < 6; ++blink) {
+      submitted = k1_ws2816_submit_packed_lanes(
+          lane_a, sizeof(lane_a), lane_b, sizeof(lane_b), &done);
+      if (submitted != kPackedAccepted) break;
+      const std::uint32_t hold = k1_cycle_count();
+      while ((k1_cycle_count() - hold) < gap) {
+      }
+      submitted = k1_ws2816_submit_packed_lanes(
+          dark_a, sizeof(dark_a), dark_b, sizeof(dark_b), nullptr);
+      if (submitted != kPackedAccepted) break;
+      const std::uint32_t hold2 = k1_cycle_count();
+      while ((k1_cycle_count() - hold2) < gap) {
+      }
+    }
+    if (submitted != kPackedAccepted) {
+      error(7);
+      fill=0; wanted=32; return;
+    }
+    const unsigned long crc_a = crc(lane_a, sizeof(lane_a));
+    const unsigned long crc_b = crc(lane_b, sizeof(lane_b));
+    const int n = std::snprintf(
+        trace.data, sizeof(trace.data),
+        "{\"op\":11,\"din_a\":\"P601\",\"din_b\":\"P004\",\"pixels_a\":80,\"pixels_b\":80,"
+        "\"packed_bytes_a\":480,\"packed_bytes_b\":480,\"crc_a\":%lu,\"crc_b\":%lu,"
+        "\"submit_cycles\":%lu,\"transfer_done_cycles\":%lu,\"latch_ready_cycles\":%lu,"
+        "\"emit_cycles\":%lu,\"latch_cycles\":%lu,\"bit_period_min_cycles\":%lu,"
+        "\"bit_period_max_cycles\":%lu,\"clock_hz\":%lu,\"true16\":\"0x12AB\","
+        "\"visible_u16\":\"0x7A3C\",\"visible_count\":8,\"blinks\":6,\"dither\":0,"
+        "\"crc_proves\":\"emission_not_reception\","
+        "\"level_shifter\":\"74HCT2G34GW\","
+        "\"photon_disagreement_first_suspect\":\"bit_timing_or_data_break\"}",
+        crc_a, crc_b, (unsigned long)done.submit_cycles,
+        (unsigned long)done.transfer_done_cycles,
+        (unsigned long)done.latch_ready_cycles, (unsigned long)done.emit_cycles,
+        (unsigned long)done.latch_cycles,
+        (unsigned long)done.bit_period_min_cycles,
+        (unsigned long)done.bit_period_max_cycles, (unsigned long)clock_hz);
+    if (n < 0 || std::size_t(n) >= sizeof(trace.data)) error(8);
+    else respond(0, done.emit_cycles, trace.data, std::size_t(n));
+  }
   else if((command==2 || command==5) && size==360) {
     if(get32(rx+12)!=trajectory.sequence+1) { error(6); return; }
     alignas(4) std::int16_t hop[180]; std::memcpy(hop,rx+32,sizeof(hop));
@@ -285,6 +350,7 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
 #endif
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
+  k1_ws2816_set_clock(hz);
   // Constructor witness: ChannelRenderState must have installed each channel ID.
   initialised=trajectory.b.channel()==k1::core::visual::PixelChannelId::kChannelB;
 #ifdef K1_P4_LOAD
