@@ -1,0 +1,54 @@
+{
+  "contract": "k1-ra8p1-pcm1808-aux-v1",
+  "status": "PRE_SILICON_IMPLEMENTATION",
+  "donor": {
+    "repository": "/Users/spectrasynq/SpectraSynq_K1_Firmware",
+    "commit": "0b542364abeec1337bd74d7b3b9010e37b969401",
+    "environment": "k1_main_rpl_pcm1808_p6_probe",
+    "silicon": "Main RPL 9087A500"
+  },
+  "behaviour": {
+    "pcm1808_role": "clock_master",
+    "measured_input_rate_hz": 47986,
+    "nominal_input_rate_hz": 48000,
+    "format": "Philips I2S stereo 24-bit samples in 32-bit slots",
+    "canonical_rate_hz": 12800,
+    "input_frames_per_hop": 360,
+    "canonical_samples_per_hop": 96,
+    "resampler": "stateful rational FIR L=4 M=15, 64 taps per phase",
+    "mono_policy": "MID",
+    "trim_q15": 2048,
+    "microphone_calibration_reused": false
+  },
+  "production_ap_boundary": {
+    "required_contract": "K1_PRODUCTION_AUDIO_CONTRACT=sr24000.hop180.bins80.xover40",
+    "current_pcm1808_output": "LEGACY_12800_HZ_96_SAMPLE_DONOR_BEHAVIOUR_ONLY",
+    "direct_connection_to_production_ap": false,
+    "reason": "The pinned Titan production AP consumes 24000 Hz / 180 samples. Feeding the donor 12800 Hz / 96-sample output into it would be a silent rate and semantics violation.",
+    "next_required_implementation": "A separately specified and independently verified 48000-to-24000 ingress adapter, followed by host differential and identified-Titan AP execution."
+  },
+  "titan_route": {
+    "mcu": "R7KA8P1KFLCAC",
+    "peripheral": "SSIE1",
+    "role": "slave receiver",
+    "transfer": "DTC block receive with two 7.5 ms application buffers",
+    "connector": "U11 camera BTB",
+    "signals": [
+      {"pcm1808": "BCK", "mcu": "P702/SSIBCK1_B", "board_net": "VIO_D6", "u11_pin": 24},
+      {"pcm1808": "LRCK", "mcu": "P701/SSILRCK1_B", "board_net": "VIO_D5", "u11_pin": 33},
+      {"pcm1808": "DOUT", "mcu": "P700/SSIDATA1_B", "board_net": "VIO_D4", "u11_pin": 26}
+    ],
+    "titan_mclk_connection": "NONE",
+    "u18_complete_ssie_route": false,
+    "camera_coexistence": "MUTUALLY_EXCLUSIVE_WITH_THIS_PIN_ROUTE"
+  },
+  "admission": {
+    "donor_behaviour": "MEASURED_ON_DONOR_SILICON",
+    "host_core": "REQUIRES_TEST",
+    "cross_compiled_titan_receiver": "NOT_RUN",
+    "wired_titan": "NOT_RUN",
+    "identified_titan_capture": "NOT_RUN",
+    "channel_map": "MUST_REVALIDATE_ON_TITAN",
+    "clock_gate": "MUST_MEASURE_LRCK_AND_BCLK_ON_TITAN"
+  }
+}

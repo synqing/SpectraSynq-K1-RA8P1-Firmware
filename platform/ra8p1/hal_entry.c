@@ -17,6 +17,9 @@
 #ifdef K1_PDM_TARGET
 #include "pdm_target.h"
 #endif
+#ifdef K1_PCM1808_TARGET
+#include "pcm1808_target.h"
+#endif
 #ifdef K1_ARM_NUMERIC
 extern int k1_arm_numeric_prepare(void);
 #endif
@@ -30,6 +33,9 @@ static uint8_t usb_read[64];
 static bool attached, read_armed, write_pending;
 uint32_t k1_cycle_count(void) { return DWT->CYCCNT; }
 size_t k1_platform_metrics(char* output, size_t capacity) {
+#if defined(K1_PCM1808_TARGET) && !defined(K1_PDM_TARGET)
+    return k1_pcm1808_target_metrics(output, capacity);
+#else
     const rt_thread_t self=rt_thread_self();
     size_t untouched=0;
     const uint8_t* stack=(const uint8_t*)self->stack_addr;
@@ -105,6 +111,7 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
         (unsigned long)elapsed_cycles,(unsigned long)elapsed_ticks,(unsigned long)RT_TICK_PER_SECOND);
 #endif
     return n>0 && (size_t)n<capacity?(size_t)n:0;
+#endif
 }
 static void k1_handle_request(const usb_event_info_t *event_info) {
     static usb_pcdc_linecoding_t line_coding;
@@ -169,9 +176,18 @@ void hal_entry(void) {
         if(attached && !k1_pdm_target_initialised())
             (void)k1_pdm_target_initialise();
 #endif
+#ifdef K1_PCM1808_TARGET
+        /* External PCM1808 supplies BCLK/LRCK. Do not arm SSIE1 until USB is
+           configured and this loop can continuously drain 7.5 ms hops. */
+        if(attached && !k1_pcm1808_target_initialised())
+            (void)k1_pcm1808_target_initialise();
+#endif
         k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
 #ifdef K1_PDM_TARGET
         k1_pdm_target_poll();
+#endif
+#ifdef K1_PCM1808_TARGET
+        k1_pcm1808_target_poll();
 #endif
         size_t size; const uint8_t* reply=k1_fixture_reply(&size);
         if(attached && size && !write_pending &&

@@ -42,6 +42,14 @@ PALETTE_MORPH_FILES = ['palette_transition.h']
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_target.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/dual-im69d130-source-contract.json'
+PCM1808_TARGET_FILES = [
+    'pcm1808_core.cpp', 'pcm1808_core.h', 'pcm1808_target.c', 'pcm1808_target.h',
+]
+PCM1808_DONOR_HEADERS = [
+    'k1_pcm1808_map.h', 'k1_pcm1808_resampler_coeffs.h', 'k1_pcm1808_ring.h',
+    'k1_pcm1808_unpack.h', 'k1_resample_48k_to_12k8.h',
+]
+PCM1808_SOURCE_CONTRACT = ROOT / 'docs/pcm1808-source-contract.json'
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -104,6 +112,59 @@ def stage_dual_pdm_vectors(stage: Path) -> None:
         '        };')
     source.write_text(text)
 
+def stage_pcm1808_vectors(stage: Path) -> None:
+    """Allocate SSIE1 receive/error vectors in the disposable build only."""
+    header = stage / 'ra_gen/vector_data.h'
+    text = header.read_text()
+    count_match = re.search(r'#define VECTOR_DATA_IRQ_COUNT\s+\((\d+)\)', text)
+    assert count_match, 'vector count missing'
+    count = int(count_match.group(1))
+    assert count in (74, 76), 'unexpected vector count before PCM1808 allocation'
+    marker = '        /* The number of entries required for the ICU vector table. */'
+    assert text.count(marker) == 1
+    additions = (
+        f'        #define PCM1808_SSI1_RXI_IRQn ((IRQn_Type) {count}) '
+        '/* SSI1 RXI (Receive data full) */\n'
+        f'        #define PCM1808_SSI1_INT_IRQn ((IRQn_Type) {count + 1}) '
+        '/* SSI1 INT (Error interrupt) */\n'
+    )
+    text = text.replace(f'#define VECTOR_DATA_IRQ_COUNT    ({count})',
+                        f'#define VECTOR_DATA_IRQ_COUNT    ({count + 2})')
+    text = text.replace(marker, additions + marker)
+    text = text.replace(f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({count})',
+                        f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({count + 2})')
+    header.write_text(text)
+
+    source = stage / 'ra_gen/vector_data.c'
+    text = source.read_text()
+    declaration_marker = '#if VECTOR_DATA_IRQ_COUNT > 0\n'
+    assert text.count(declaration_marker) == 1
+    text = text.replace(declaration_marker,
+                        'void ssi_rxi_isr(void);\nvoid ssi_int_isr(void);\n' + declaration_marker)
+    if count == 74:
+        isr_marker = '            [73] = ipc_isr, /* IPC IRQ1 (CPU Mutual Interrupt 1) */\n        };'
+        event_marker = ('            [73] = BSP_PRV_VECT_ENUM(EVENT_IPC_IRQ1,FIXED), '
+                        '/* IPC IRQ1 (CPU Mutual Interrupt 1) */\n        };')
+    else:
+        isr_marker = '            [75] = pdm_err_isr, /* PDM ERR0 (Error detection interrupt channel 0) */\n        };'
+        event_marker = ('            [75] = BSP_PRV_VECT_ENUM(EVENT_PDM_ERR0,FIXED), '
+                        '/* PDM ERR0 (Error detection interrupt channel 0) */\n        };')
+    assert text.count(isr_marker) == 1
+    assert text.count(event_marker) == 1
+    text = text.replace(isr_marker,
+        isr_marker[:-len('        };')] +
+        f'            [{count}] = ssi_rxi_isr, /* SSI1 RXI (Receive data full) */\n'
+        f'            [{count + 1}] = ssi_int_isr, /* SSI1 INT (Error interrupt) */\n'
+        '        };')
+    text = text.replace(event_marker,
+        event_marker[:-len('        };')] +
+        f'            [{count}] = BSP_PRV_VECT_ENUM(EVENT_SSI1_RXI,FIXED), '
+        '/* SSI1 RXI (Receive data full) */\n'
+        f'            [{count + 1}] = BSP_PRV_VECT_ENUM(EVENT_SSI1_INT,FIXED), '
+        '/* SSI1 INT (Error interrupt) */\n'
+        '        };')
+    source.write_text(text)
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
@@ -118,6 +179,7 @@ def main():
     parser.add_argument('--p4-fixture',type=Path,help='hash-bound packed generic P4 fixture header')
     parser.add_argument('--stage-profile',action='store_true',help='instrument disposable K1 copies with the fixed stage probe')
     parser.add_argument('--pdm-target',action='store_true',help='bind both IM69D130 edge lanes to bounded DMAC capture')
+    parser.add_argument('--pcm1808-target',action='store_true',help='bind external PCM1808 to SSIE1 slave receive on U11')
     parser.add_argument('--palette-runtime',action='store_true',help='enable all K1 palettes and the native VP palette controls')
     parser.add_argument('--palette-autostart',action='store_true',help='boot into native all-palette preview on the identified WS2812/P601 bench strip')
     parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
@@ -163,6 +225,10 @@ def main():
         if args.pdm_target:
             material += [ROOT/'platform/ra8p1'/name for name in PDM_TARGET_FILES]
             material.append(PDM_SOURCE_CONTRACT)
+        if args.pcm1808_target:
+            material += [ROOT/'platform/ra8p1'/name for name in PCM1808_TARGET_FILES]
+            material += [ROOT/'platform/ra8p1/pcm1808'/name for name in PCM1808_DONOR_HEADERS]
+            material.append(PCM1808_SOURCE_CONTRACT)
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
@@ -176,10 +242,10 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
-                       pdm_target=args.pdm_target,dcache=args.dcache,
+                       pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
                        palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
@@ -206,6 +272,7 @@ def main():
         if args.npu_model: defines.append('-DK1_NPU_LOAD=1')
         if args.p4_source: defines.append('-DK1_P4_LOAD=1')
         if args.pdm_target: defines.append('-DK1_PDM_TARGET=1')
+        if args.pcm1808_target: defines.append('-DK1_PCM1808_TARGET=1')
         if defines:
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc',' '.join(defines)+' -Dgcc')
@@ -224,10 +291,24 @@ def main():
             pdm_config.write_text(text.replace('#define PDM_CFG_DMAC_ENABLE (0)',
                                                '#define PDM_CFG_DMAC_ENABLE (1)'))
             stage_dual_pdm_vectors(stage)
+        if args.pcm1808_target:
+            stage_pcm1808_vectors(stage)
         for name in PLATFORM_FILES:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.pdm_target:
             for name in PDM_TARGET_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+        if args.pcm1808_target:
+            for name in PCM1808_TARGET_FILES:
+                shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
+            pcm_stage = stage/'src/pcm1808'
+            pcm_stage.mkdir()
+            for name in PCM1808_DONOR_HEADERS:
+                shutil.copy2(ROOT/'platform/ra8p1/pcm1808'/name, pcm_stage/name)
+            scon = stage/'src/SConscript'
+            text = scon.read_text()
+            assert "src += ws281x_diagnostic" in text
+            scon.write_text(text.replace("src += ws281x_diagnostic",
+                                         "src += ws281x_diagnostic + Glob('pcm1808_target.c')"))
         if args.palette_runtime:
             for name in PALETTE_PLATFORM_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.palette_morph:
@@ -335,6 +416,31 @@ def main():
                 'capture_buffer_alignment':32,
                 'generated_transfer_symbols_linked':[],
                 'product_12k8_admitted':False,
+            }
+        if args.pcm1808_target:
+            for symbol in ['R_SSI_Open','R_SSI_Read','ssi_rxi_isr','ssi_int_isr',
+                           'R_DTC_Open','k1_pcm1808_target_initialise',
+                           'k1_pcm1808_make_canonical_hop']:
+                assert symbol in dump, f'missing PCM1808/SSIE1 target symbol {symbol}'
+            for symbol in ['receive', 'core_storage', 'ssi1_ctrl']:
+                assert re.search(rf'\b{symbol}\b', symbols), f'missing PCM1808 target symbol {symbol}'
+            receipt['pcm1808_target_configuration'] = {
+                'source_contract': str(PCM1808_SOURCE_CONTRACT.relative_to(ROOT)),
+                'source_contract_sha256': hashlib.sha256(PCM1808_SOURCE_CONTRACT.read_bytes()).hexdigest(),
+                'peripheral': 'SSIE1',
+                'role': 'slave_receiver',
+                'transfer': 'DTC',
+                'input_rate_hz': 48000,
+                'canonical_rate_hz': 12800,
+                'input_frames_per_hop': 360,
+                'output_samples_per_hop': 96,
+                'bclk': {'pin': 'P702', 'board_net': 'VIO_D6', 'u11_pin': 24},
+                'lrck': {'pin': 'P701', 'board_net': 'VIO_D5', 'u11_pin': 33},
+                'data': {'pin': 'P700', 'board_net': 'VIO_D4', 'u11_pin': 26},
+                'mono_policy': 'MID',
+                'trim_q15': 2048,
+                'channel_map_validated_on_titan': False,
+                'physical_capture': 'NOT_RUN',
             }
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])

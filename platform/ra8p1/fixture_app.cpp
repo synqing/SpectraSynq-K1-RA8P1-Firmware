@@ -26,6 +26,9 @@
 #ifdef K1_PALETTE_RUNTIME
 #include "palette_runtime.h"
 #endif
+#ifdef K1_PCM1808_TARGET
+#include "pcm1808_target.h"
+#endif
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
@@ -291,6 +294,11 @@ void execute() {
   } else if(command==6 && size==0) {
     const std::size_t n=k1_platform_metrics(trace.data,sizeof(trace.data));
     if(!n) error(8); else respond(0,0,trace.data,n);
+#ifdef K1_PCM1808_TARGET
+  } else if(command==15 && size==0) {
+    const std::size_t n=k1_pcm1808_target_metrics(trace.data,sizeof(trace.data));
+    if(!n) error(8); else respond(0,0,trace.data,n);
+#endif
   } else if(command==4 && size==0) {
     const auto before=k1_cycle_count(); const unsigned result=k1_time_probe();
     const auto cycles=k1_cycle_count()-before;
