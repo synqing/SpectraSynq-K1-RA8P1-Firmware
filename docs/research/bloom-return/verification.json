@@ -1,0 +1,41 @@
+{
+  "schema": "k1-bloom-return-reference-v1",
+  "scope": "HOST_REFERENCE_ONLY",
+  "captured_utc": "2026-09-10T21:45:22.377725+00:00",
+  "titan_base": "5fdde20a9f0f27177b8c7d12204c38bb002bbbdc",
+  "dual_mcu_pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+  "donor_pin": "5f329261987144242be4c3729f6d344631d3be1e",
+  "compiler": "Apple clang version 17.0.0 (clang-1700.6.3.2)",
+  "compiler_flags": [
+    "-std=c++17",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Werror"
+  ],
+  "files": {
+    "docs/research/bloom-return/bloom_return_reference.h": "8cef4a40e0f96aab488c53370606e8cc5ef82fd82b455f5339d4e34f6319d965",
+    "docs/research/bloom-return/check_pinned_prism.cpp": "c7c122760f048e3792eeb702a8146efe07a6c9d620583ed28f3292cb952d8191",
+    "docs/research/bloom-return/check_bloom_return.cpp": "907ed4af13cfbc0c87ceaa09806ba509155863376be13df3a3342fe8fb281e69",
+    "src/k1/core/visual/product_output_treatment.cpp": "5f5c9df4f05c47ddaea33d0dabad526e4ccb5e2655e0f06ca16fa26bb818fe2e"
+  },
+  "checks": {
+    "check_bloom_return": {
+      "status": "PASS",
+      "output": "PASS: 0/1/2 returns, boundary timing, read-only cadence, palette channels, bounded history, silence tail, gap/epoch recovery. sizeof(engine)=12896; seed payload=12840 bytes/channel\n",
+      "binary_sha256": "58b6a43c373e7b8d64f69c73be9aba8eddcf45dc77bde5dcd3dd1663799bf2e9"
+    },
+    "check_pinned_prism": {
+      "status": "PASS",
+      "output": "cell=1 index=77 rgb=(48,0,24)\ncell=1 index=82 rgb=(0,48,24)\nPASS: pinned PRISM count=1 injects two fixed coloured points into black; count=0 and fix-prism-off preserve black.\n",
+      "binary_sha256": "6f1b7dc615fd764b098ee6376ab518f41330d43922a6384d4bbefb8027dae580"
+    }
+  },
+  "target_flashed": false,
+  "limitations": [
+    "No target timing or memory-map proof",
+    "No optical or audio-to-light proof",
+    "No real AP/palette adapter",
+    "Causal hold only; smooth reconstruction pending"
+  ]
+}
