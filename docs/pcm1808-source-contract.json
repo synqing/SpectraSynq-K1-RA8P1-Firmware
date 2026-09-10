@@ -58,7 +58,7 @@
   },
   "admission": {
     "donor_behaviour": "MEASURED_ON_DONOR_SILICON",
-    "host_core": "REQUIRES_TEST",
+    "host_core": "HOST_PASS_PINNED_DONOR_CORE",
     "cross_compiled_titan_receiver": "SUPERSEDED_BUILD_ONLY_U11_ROUTE_REJECTED",
     "wired_titan": "NOT_RUN",
     "identified_titan_capture": "NOT_RUN",

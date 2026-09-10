@@ -44,6 +44,7 @@ def test_pcm1808_contract_fails_closed_on_impractical_titan_route():
     assert route["direct_wire_route"] is False
     assert route["required_hardware"] == "U11_MATING_BREAKOUT_OR_DIGITAL_AUDIO_BRIDGE"
     assert contract["status"] == "BLOCKED_NO_PRACTICAL_CONNECTOR_ROUTE"
+    assert contract["admission"]["host_core"] == "HOST_PASS_PINNED_DONOR_CORE"
     assert contract["admission"]["wired_titan"] == "NOT_RUN"
     boundary = contract["production_ap_boundary"]
     assert boundary["direct_connection_to_production_ap"] is False
