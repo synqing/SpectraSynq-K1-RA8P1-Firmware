@@ -22,6 +22,7 @@
 #endif
 #include "core/visual/ws2816_pack.h"
 #include "ws2816_gpio_emit.h"
+#include "ws281x_diag.h"
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
@@ -314,6 +315,38 @@ void execute() {
     if(!n) error(8); else respond(0,0,trace.data,n);
   }
 #endif
+  else if(command==K1_WS281X_DIAG_OPCODE && size==32) {
+    if(k1_fixture_schedule_active()) { error(3); return; }
+#ifdef K1_PDM_TARGET
+    // A diagnostic bit stream must not interrupt the PDM capture campaign.
+    error(3); return;
+#endif
+    const k1_ws281x_diag_request_t request = {
+      get32(rx+32),get32(rx+36),get32(rx+40),get32(rx+44),
+      get32(rx+48),get32(rx+52),get32(rx+56),get32(rx+60)};
+    std::uint8_t wire[K1_WS281X_DIAG_MAX_BYTES];
+    k1_ws281x_diag_timing_t timing{};
+    const std::size_t bytes=k1_ws281x_diag_pack(&request,wire,sizeof(wire),&timing);
+    if(!bytes) { error(3); return; }
+    k1_ws281x_diag_result_t result{};
+    const int emitted=k1_ws281x_diag_emit(wire,bytes,request.profile,request.pin,clock_hz,&result);
+    const int n=std::snprintf(trace.data,sizeof(trace.data),
+      "{\"op\":13,\"version\":1,\"profile\":%lu,\"pin\":%lu,\"pixels\":%lu,\"lit_pixels\":%lu,"
+      "\"bytes\":%u,\"crc\":%lu,\"result\":%d,\"pfs_before\":%lu,\"pfs_after\":%lu,"
+      "\"pin_config_error\":%ld,\"emit_cycles\":%lu,\"latch_cycles\":%lu,"
+      "\"bit_period_min_cycles\":%lu,\"bit_period_max_cycles\":%lu,"
+      "\"t0h_ns\":%lu,\"t1h_ns\":%lu,\"period_ns\":%lu,\"reset_us\":%lu,"
+      "\"crc_proves\":\"packed_buffer_only\",\"wire_timing_measured\":false,\"photons\":\"NOT_CLAIMED\"}",
+      (unsigned long)request.profile,(unsigned long)request.pin,(unsigned long)request.pixels,
+      (unsigned long)request.lit_pixels,unsigned(bytes),(unsigned long)crc(wire,bytes),emitted,
+      (unsigned long)result.pfs_before,(unsigned long)result.pfs_after,(long)result.pin_config_error,
+      (unsigned long)result.emit_cycles,(unsigned long)result.latch_cycles,
+      (unsigned long)result.bit_period_min_cycles,(unsigned long)result.bit_period_max_cycles,
+      (unsigned long)timing.t0h_ns,(unsigned long)timing.t1h_ns,
+      (unsigned long)timing.period_ns,(unsigned long)timing.reset_us);
+    if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8);
+    else respond(emitted?7:0,result.emit_cycles,trace.data,std::size_t(n));
+  }
   else if(command==11 && size==0) {
     k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};
     k1::core::visual::Pixel16 off[k1::core::visual::kPixelsPerChannel]{};

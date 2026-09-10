@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 
 import pytest
@@ -398,11 +399,87 @@ def test_stream_receipt_fixture_captures_normal_overflow_and_recovery(host_pdm):
     assert result["recovered"]["recovery_count"] == 1
 
 
+def test_two_stream_contexts_keep_dual_microphone_ownership_independent(host_pdm):
+    import ctypes
+
+    class Slot(ctypes.Structure):
+        _fields_ = [
+            ("state", ctypes.c_uint32),
+            ("received", ctypes.c_uint32),
+            ("epoch", ctypes.c_uint32),
+            ("sequence", ctypes.c_uint32),
+            ("capture_start_us", ctypes.c_uint64),
+            ("capture_end_us", ctypes.c_uint64),
+        ]
+
+    class Stream(ctypes.Structure):
+        _fields_ = [
+            ("slots", Slot * 2),
+            ("elements_per_slot", ctypes.c_uint32),
+            ("interval_elements", ctypes.c_uint32),
+            ("active_slot", ctypes.c_uint32),
+            ("epoch", ctypes.c_uint32),
+            ("next_sequence", ctypes.c_uint32),
+            ("completed_slots", ctypes.c_uint32),
+            ("overflow_events", ctypes.c_uint32),
+            ("drop_events", ctypes.c_uint32),
+            ("recovery_count", ctypes.c_uint32),
+            ("configured", ctypes.c_int),
+            ("running", ctypes.c_int),
+            ("halted", ctypes.c_int),
+        ]
+
+    lib = host_pdm.lib
+    stream_pointer = ctypes.POINTER(Stream)
+    lib.k1_pdm_stream_context_configure.argtypes = [stream_pointer, ctypes.c_uint32, ctypes.c_uint32]
+    lib.k1_pdm_stream_context_start.argtypes = [stream_pointer, ctypes.c_uint64]
+    lib.k1_pdm_stream_context_on_data.argtypes = [stream_pointer, ctypes.c_uint32, ctypes.c_uint64]
+    lib.k1_pdm_stream_context_acquire.argtypes = [
+        stream_pointer,
+        ctypes.POINTER(ctypes.c_uint32),
+        ctypes.POINTER(ctypes.c_uint32),
+        ctypes.POINTER(ctypes.c_uint32),
+        ctypes.POINTER(ctypes.c_uint64),
+        ctypes.POINTER(ctypes.c_uint64),
+    ]
+    lib.k1_pdm_stream_context_release.argtypes = [
+        stream_pointer, ctypes.c_uint32, ctypes.c_uint32, ctypes.c_uint32
+    ]
+
+    streams = [Stream(), Stream()]
+    for stream in streams:
+        assert lib.k1_pdm_stream_context_configure(ctypes.byref(stream), 120, 120) == 0
+        assert lib.k1_pdm_stream_context_start(ctypes.byref(stream), 1000) == 0
+    assert lib.k1_pdm_stream_context_on_data(ctypes.byref(streams[0]), 120, 8500) == 1
+    assert streams[0].completed_slots == 1
+    assert streams[1].completed_slots == 0
+    assert lib.k1_pdm_stream_context_on_data(ctypes.byref(streams[1]), 120, 8504) == 1
+
+    owners = []
+    for stream in streams:
+        slot = ctypes.c_uint32()
+        epoch = ctypes.c_uint32()
+        sequence = ctypes.c_uint32()
+        start = ctypes.c_uint64()
+        end = ctypes.c_uint64()
+        assert lib.k1_pdm_stream_context_acquire(
+            ctypes.byref(stream), ctypes.byref(slot), ctypes.byref(epoch),
+            ctypes.byref(sequence), ctypes.byref(start), ctypes.byref(end)
+        ) == 0
+        owners.append((slot.value, epoch.value, sequence.value, start.value, end.value))
+    assert owners == [(0, 1, 1, 1000, 8500), (0, 1, 1, 1000, 8504)]
+    assert lib.k1_pdm_stream_context_release(ctypes.byref(streams[0]), *owners[0][:3]) == 0
+    assert streams[0].slots[0].state == 0
+    assert streams[1].slots[0].state == 3
+    assert lib.k1_pdm_stream_context_release(ctypes.byref(streams[1]), *owners[1][:3]) == 0
+
+
 def test_sconscript_does_not_glob_all_c():
     text = (ROOT / "platform/ra8p1/SConscript").read_text(encoding="utf-8")
     assert "Glob('*.c')" not in text
     assert 'Glob("*.c")' not in text
     assert "Glob('pdm_capture.c')" in text
+    assert "Glob('pdm_target.c')" in text
     assert "Glob('npu_load.c')" in text
 
 
@@ -417,8 +494,48 @@ def test_pdm_probe_is_default_off_and_cdc_path_remains():
     assert "k1_fixture_consume" in entry
     assert "K1_PDM_CAPTURE=1" not in scon
     assert "-DK1_PDM_CAPTURE" not in scon
+    assert "K1_PDM_TARGET=1" not in scon
+    assert "-DK1_PDM_TARGET" not in scon
     assert not SOURCE_C.read_text(encoding="utf-8").count("R_PDM_")
     assert "r_pdm" not in SOURCE_C.read_text(encoding="utf-8")
+
+
+def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
+    target = (ROOT / "platform/ra8p1/pdm_target.c").read_text(encoding="utf-8")
+    header = (ROOT / "platform/ra8p1/pdm_target.h").read_text(encoding="utf-8")
+    build = (ROOT / "scripts/build_scalar.py").read_text(encoding="utf-8")
+    assert ".activation_source = ELC_EVENT_PDM_DAT2" in target
+    assert ".activation_source = ELC_EVENT_PDM_DAT0" in target
+    assert ".channel = K1_PDM_TARGET_RISE_DMA_CHANNEL" in target
+    assert ".channel = K1_PDM_TARGET_FALL_DMA_CHANNEL" in target
+    assert "capture_rise_pdm_cfg.dat_irq = FSP_INVALID_VECTOR" in target
+    assert "capture_fall_pdm_cfg.dat_irq = FSP_INVALID_VECTOR" in target
+    assert "capture_rise_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_RISE" in target
+    assert "capture_fall_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_FALL" in target
+    assert "const int16_t sample = (int16_t) (raw << 1)" in target
+    assert "K1_PDM_TARGET_PROGRAMME_LANE 0u" in header
+    assert "K1_PDM_TARGET_MEASUREMENT_LANE 1u" in header
+    assert "K1_PDM_TARGET_SLOT_ELEMENTS 120u" in header
+    assert "K1_PDM_TARGET_SLOT_DURATION_US 7500u" in header
+    assert "sample_rate_match\\\":false" in (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
+    assert "PDM_CFG_DMAC_ENABLE (1)" in build
+    assert "VECTOR_NUMBER_DMAC1_INT" in build
+    assert "VECTOR_NUMBER_PDM_ERR0" in build
+    assert "generated_transfer_symbols_linked" in build
+
+
+def test_dual_target_build_is_bound_to_working_firmware_contract():
+    contract_path = ROOT / "docs/dual-im69d130-source-contract.json"
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    build = (ROOT / "scripts/build_scalar.py").read_text(encoding="utf-8")
+    assert contract["contract_id"] == "k1-dual-im69d130-working-source-v1"
+    assert contract["electrical_contract"]["im1"]["role"] == "programme_ap_source"
+    assert contract["electrical_contract"]["im2"]["role"] == "measurement_only"
+    assert contract["working_capture_contract"]["sample_rate_hz"] == 12800
+    assert contract["working_capture_contract"]["frames_per_slot"] == 96
+    assert contract["titan_current_boundary"]["sample_rate_parity"] is False
+    assert "PDM_SOURCE_CONTRACT" in build
+    assert "source_contract_sha256" in build
 
 
 def test_host_library_builds_with_werror(tmp_path):

@@ -14,6 +14,9 @@
 #ifdef K1_PDM_CAPTURE
 #include "pdm_capture.h"
 #endif
+#ifdef K1_PDM_TARGET
+#include "pdm_target.h"
+#endif
 #ifdef K1_ARM_NUMERIC
 extern int k1_arm_numeric_prepare(void);
 #endif
@@ -36,10 +39,62 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
     /* Consistency check against RT-Thread ticks, not an externally calibrated
        oscillator measurement. This wait is outside all AP/render measurements. */
     const uint32_t first_tick=rt_tick_get(), first_cycle=DWT->CYCCNT;
+#ifdef K1_PDM_TARGET
+    /* Keep the two 7.5 ms DMAC rings drained while this diagnostic samples the
+       RT-Thread clock. Observability must not manufacture a PDM overflow. */
+    for(unsigned i=0;i<100;++i) {
+        rt_thread_mdelay(1);
+        k1_pdm_target_poll();
+    }
+#else
     rt_thread_mdelay(100);
+#endif
     const uint32_t elapsed_cycles=DWT->CYCCNT-first_cycle;
     const uint32_t elapsed_ticks=rt_tick_get()-first_tick;
     const uint32_t scb_ccr=SCB->CCR;
+#ifdef K1_PDM_TARGET
+    const int n=snprintf(output,capacity,
+        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu,\"pdm_target\":{\"sample_rate_hz\":%lu,\"working_source_sample_rate_hz\":12800,\"sample_rate_match\":false,\"slot_elements\":%lu,\"slot_duration_us\":%lu,\"shared_clock_and_data\":true,\"programme_lane\":0,\"initialised\":%s,\"running\":%s,\"last_fsp_error\":%ld,\"paired_slots\":%lu,\"pair_skew_drops\":%lu,\"startup_discard_pairs\":%lu,\"max_pair_skew_us\":%llu,\"first_capture_start_us\":%llu,\"last_capture_end_us\":%llu,\"lanes\":[{\"microphone\":\"IM1\",\"select\":\"HIGH\",\"edge\":\"RISE\",\"pdm_channel\":2,\"dma_channel\":0,\"role\":\"programme\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu},{\"microphone\":\"IM2\",\"select\":\"LOW\",\"edge\":\"FALL\",\"pdm_channel\":0,\"dma_channel\":1,\"role\":\"measurement\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu}]}}",
+        (unsigned long)self->stack_size,(unsigned long)untouched,(unsigned long)total,
+        (unsigned long)used,(unsigned long)maximum,(unsigned long)__get_FPSCR(),
+        (unsigned long)scb_ccr,
+        (scb_ccr&SCB_CCR_DC_Msk)?"true":"false",
+        (scb_ccr&SCB_CCR_IC_Msk)?"true":"false",
+        (unsigned long)elapsed_cycles,(unsigned long)elapsed_ticks,(unsigned long)RT_TICK_PER_SECOND,
+        (unsigned long)K1_PDM_TARGET_SAMPLE_RATE_HZ,(unsigned long)K1_PDM_TARGET_SLOT_ELEMENTS,
+        (unsigned long)K1_PDM_TARGET_SLOT_DURATION_US,
+        k1_pdm_target_initialised()?"true":"false",k1_pdm_target_running()?"true":"false",
+        (long)k1_pdm_target_last_fsp_error(),(unsigned long)k1_pdm_target_paired_slots(),
+        (unsigned long)k1_pdm_target_pair_skew_drops(),
+        (unsigned long)k1_pdm_target_startup_discard_pairs(),
+        (unsigned long long)k1_pdm_target_max_pair_skew_us(),
+        (unsigned long long)k1_pdm_target_first_capture_start_us(),
+        (unsigned long long)k1_pdm_target_last_capture_end_us(),
+        (unsigned long)k1_pdm_target_data_callbacks(0u),
+        (unsigned long)k1_pdm_target_error_callbacks(0u),
+        (unsigned long)k1_pdm_target_error_flags(0u),
+        (unsigned long)k1_pdm_target_processed_slots(0u),
+        (unsigned long)k1_pdm_target_processed_samples(0u),
+        (unsigned long)k1_pdm_target_sample_hash(0u),
+        (long)k1_pdm_target_sample_min(0u),(long)k1_pdm_target_sample_max(0u),
+        (unsigned long)k1_pdm_target_sample_peak(0u),
+        (unsigned long long)k1_pdm_target_sample_square_sum(0u),
+        (unsigned long)k1_pdm_target_overflow_events(0u),
+        (unsigned long)k1_pdm_target_drop_events(0u),
+        (unsigned long)k1_pdm_target_recovery_count(0u),
+        (unsigned long)k1_pdm_target_data_callbacks(1u),
+        (unsigned long)k1_pdm_target_error_callbacks(1u),
+        (unsigned long)k1_pdm_target_error_flags(1u),
+        (unsigned long)k1_pdm_target_processed_slots(1u),
+        (unsigned long)k1_pdm_target_processed_samples(1u),
+        (unsigned long)k1_pdm_target_sample_hash(1u),
+        (long)k1_pdm_target_sample_min(1u),(long)k1_pdm_target_sample_max(1u),
+        (unsigned long)k1_pdm_target_sample_peak(1u),
+        (unsigned long long)k1_pdm_target_sample_square_sum(1u),
+        (unsigned long)k1_pdm_target_overflow_events(1u),
+        (unsigned long)k1_pdm_target_drop_events(1u),
+        (unsigned long)k1_pdm_target_recovery_count(1u));
+#else
     const int n=snprintf(output,capacity,
         "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu}",
         (unsigned long)self->stack_size,(unsigned long)untouched,(unsigned long)total,
@@ -48,6 +103,7 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
         (scb_ccr&SCB_CCR_DC_Msk)?"true":"false",
         (scb_ccr&SCB_CCR_IC_Msk)?"true":"false",
         (unsigned long)elapsed_cycles,(unsigned long)elapsed_ticks,(unsigned long)RT_TICK_PER_SECOND);
+#endif
     return n>0 && (size_t)n<capacity?(size_t)n:0;
 }
 static void k1_handle_request(const usb_event_info_t *event_info) {
@@ -75,6 +131,9 @@ void hal_entry(void) {
     /* Accounting probe only. Does not open R_PDM or replace the CDC fixture. */
     (void)k1_pdm_configure(16000u, 1u, 4u, 2u, 2u, 4000u);
     k1_pdm_start();
+#endif
+#ifdef K1_PDM_TARGET
+    (void)k1_pdm_target_initialise();
 #endif
 #ifdef K1_ARM_NUMERIC
     /* Host-equivalent prepare only. Does not claim executed Arm numerics. */
@@ -107,6 +166,9 @@ void hal_entry(void) {
         default: break;
         }
         k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
+#ifdef K1_PDM_TARGET
+        k1_pdm_target_poll();
+#endif
         size_t size; const uint8_t* reply=k1_fixture_reply(&size);
         if(attached && size && !write_pending &&
            FSP_SUCCESS==R_USB_Write(&g_basic0_ctrl,(uint8_t*)reply,(uint32_t)size,USB_CLASS_PCDC)) write_pending=true;

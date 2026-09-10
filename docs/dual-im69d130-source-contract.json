@@ -1,0 +1,74 @@
+{
+  "contract_id": "k1-dual-im69d130-working-source-v1",
+  "captured_at": "2026-09-10",
+  "source_repository": "/Users/spectrasynq/SpectraSynq_K1_Firmware",
+  "source_git_head": "5e7dd51fac988507bea8799aacc66e9b94a18e8d",
+  "source_worktree_clean": false,
+  "qualification": "WORKING_S3_SOURCE_AND_RETAINED_EVIDENCE",
+  "titan_reference": {
+    "manual": "RA8P1 User's Manual R01UH1064EJ0130 Rev.1.30",
+    "manual_sha256": "3f9fa489f6b17eff52516f8e9d31d5aec97eec20883ca43e902f95da0757cdc2",
+    "sections": [
+      "50.3.1 Clock Specification",
+      "50.3.4.2 Sinc Filter",
+      "50.3.5 Data Input Control for Stereo Sound"
+    ],
+    "pdmif_clock_hz": 8000000,
+    "stereo_rule": "right_rise_left_fall_with_adjacent_wrapped_channels"
+  },
+  "files": {
+    "SPECTRASYNQ_K1_FIRMWARE/audio/i2s_audio.h": "00ca57570d19f9824bd5b1482c310a8685d4426ac11b0d8709864ec69f640dab",
+    "SPECTRASYNQ_K1_FIRMWARE/audio/k1_i2s_capture_types.h": "3968ff67b0013c8d0596b8d937c93eb54cc5fc0af9862721a26e128ce51ce9f3",
+    "SPECTRASYNQ_K1_FIRMWARE/audio/k1_audio_ingress.h": "54d8ff7f09c957a995ce18cea1a9d0e788d7333da69f20ee4a54ed0ca64950ee",
+    "SPECTRASYNQ_K1_FIRMWARE/audio/k1_stereo_probe.cpp": "b1a0880209e2de618ec3490fbe5fb459fef067db40d2eb76861730f69693ed47",
+    "SPECTRASYNQ_K1_FIRMWARE/system/constants.h": "3f1510e462ecf8216650fe30ddcd3e5eed8aa2246715fc7c46ce1aa353027891",
+    "SPECTRASYNQ_K1_FIRMWARE/system/config_types.h": "9d8a99bd051b6ade721bfe19d374104b056f8ed46ce560217dbedc2d4dbc4f74",
+    "tests/test_im69d_env_static.py": "f89de523fac3c5fb888a525f16b5db22a50cb5f1bcc060a13ccaf22f2ed1389c",
+    "scripts/regression-harness/stereo_probe_decode.py": "674960fc18fc42fe23e52727a5598a2fe0e3ef65c17b4436e67269899ca569fb",
+    "docs/forensics/G1_AP_INPUT_SLOT_RATIFICATION_2026-08-15.md": "cd8b5f44b7e74386e1eb3ad2fe6a935213fad3e325ba2024c4947b87ad00a868",
+    "docs/hardware/im69d130-dual-mic-learnings-2026-08-13.md": "87195bcb3ccc01410bff0140f73df9abb1a27203a9db0079584ab1d11b16571e"
+  },
+  "electrical_contract": {
+    "clock_wire": "shared",
+    "data_wire": "shared",
+    "select_control": "hard_strapped_opposite_not_firmware_driven",
+    "im1": {
+      "physical_position": "board_left",
+      "select": "HIGH",
+      "pdm_edge": "RISE",
+      "s3_pcm_index": 0,
+      "titan_pdm_channel": 2,
+      "role": "programme_ap_source"
+    },
+    "im2": {
+      "physical_position": "board_right",
+      "select": "LOW",
+      "pdm_edge": "FALL",
+      "s3_pcm_index": 1,
+      "titan_pdm_channel": 0,
+      "role": "measurement_only"
+    }
+  },
+  "working_capture_contract": {
+    "sample_rate_hz": 12800,
+    "frames_per_slot": 96,
+    "slot_duration_us": 7500,
+    "sample_width_bits": 16,
+    "stereo_read_bytes": 384,
+    "dma_descriptor_count": 3,
+    "read_timeout_ms": 100,
+    "timeout_or_short_read_action": "zero_fill_missing_tail_never_replay_stale_buffer"
+  },
+  "titan_current_boundary": {
+    "generated_sample_rate_hz": 16000,
+    "frames_per_slot": 120,
+    "slot_duration_us": 7500,
+    "sample_rate_parity": false,
+    "generated_clock_divisor": 2,
+    "generated_sinc_decimation_ratio": 125,
+    "direct_12800_from_fixed_8mhz": "not_integer_representable",
+    "required_rate_adaptation": "validated_causal_5_to_4_conversion_or_authoritative_clock_change",
+    "programme_lane_mixing": "forbidden",
+    "claim": "PRE_SILICON_UNTIL_IDENTIFIED_TITAN_EXECUTION"
+  }
+}

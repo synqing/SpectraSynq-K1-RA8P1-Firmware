@@ -2,7 +2,7 @@
   "blocked_cells": [
     "pdm-current-target"
   ],
-  "completed_at": "2026-09-10T09:46:50.839401+00:00",
+  "completed_at": "2026-09-10T10:44:58.162956+00:00",
   "contract_version": "RA8P1-SOL-1.0.0",
   "errors": [],
   "execution": {
@@ -12,7 +12,7 @@
   },
   "identities": {
     "adapter_id": "k1-ra8p1-pdm-capture-v1",
-    "firmware_head": "3b8bb88877e7e57bc8172f3966f09448a7d1d2f6"
+    "firmware_head": "2f6b128f58d94ef94e3abf1f72830c6db02e87eb"
   },
   "limitations": [
     "HOST/CROSS_COMPILED work does not measure a microphone.",
@@ -218,7 +218,7 @@
     "version": "1"
   },
   "schema_version": 2,
-  "started_at": "2026-09-10T09:46:50.839260+00:00",
+  "started_at": "2026-09-10T10:44:58.162106+00:00",
   "status": "PASS",
   "tools": [
     {
@@ -234,11 +234,11 @@
         "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
         "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/pdm_capture.c",
         "-o",
-        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-pdm-host-_lypenjg/libpdm_capture.dylib"
+        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-pdm-host-fn0ddnf_/libpdm_capture.dylib"
       ],
       "exit_code": 0,
       "name": "cc",
-      "sha256": "42c77f4804d18065c75df23b76db208138910c0d4d46abef7627720d7a77e4ca"
+      "sha256": "68f445ea37512763a86b43d64346a2857644b8d8afb092c88af7ab935d7986d6"
     }
   ]
 }

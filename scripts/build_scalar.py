@@ -31,11 +31,14 @@ PLATFORM_FILES = [
     'SConscript', 'fixture_app.cpp', 'fixture_app.h', 'hal_entry.c',
     'semantic_sidecar.cpp', 'semantic_sidecar.h',
     'titan_led_pins.h', 'ws2816_gpio_emit.h', 'ws2816_gpio_emit.c',
+    'ws281x_diag.h', 'ws281x_diag.c',
 ]
 RA8P1_LOCAL_K1_FILES = [
     'core/visual/ws2816_pack.h',
 ]
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
+PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_target.h']
+PDM_SOURCE_CONTRACT = ROOT / 'docs/dual-im69d130-source-contract.json'
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -43,6 +46,60 @@ def command(args, **kwargs):
 def assert_scalar_generated_code(dump, attributes):
     assert 'Tag_MVE_arch' not in attributes, 'ELF advertises MVE'
     assert not re.search(r'\t(?:v\w+(?:\.\w+)?\s+[^\n]*\bq[0-7]\b|(?:vctp|vpst|wlstp|dlstp|letp)(?:\.\w+)?\b)',dump), 'vector instructions in generated code'
+
+def stage_dual_pdm_vectors(stage: Path) -> None:
+    """Add the second DMAC and falling-lane PDM error vectors to the copy.
+
+    The pinned BSP allocates DMAC0 and PDM_ERR2 only. The dual microphone path
+    needs one further DMAC completion vector and the corresponding channel-0
+    PDM error vector. This mutates only the disposable build stage.
+    """
+    header = stage / 'ra_gen/vector_data.h'
+    text = header.read_text()
+    assert text.count('#define VECTOR_DATA_IRQ_COUNT    (74)') == 1
+    assert text.count('#define BSP_ICU_VECTOR_NUM_ENTRIES (74)') == 1
+    marker = '        /* The number of entries required for the ICU vector table. */'
+    assert text.count(marker) == 1
+    additions = (
+        '        #define VECTOR_NUMBER_DMAC1_INT ((IRQn_Type) 74) '
+        '/* DMAC1 INT (DMAC1 transfer end) */\n'
+        '        #define DMAC1_INT_IRQn          ((IRQn_Type) 74) '
+        '/* DMAC1 INT (DMAC1 transfer end) */\n'
+        '        #define VECTOR_NUMBER_PDM_ERR0 ((IRQn_Type) 75) '
+        '/* PDM ERR0 (Error detection interrupt channel 0) */\n'
+        '        #define PDM_ERR0_IRQn          ((IRQn_Type) 75) '
+        '/* PDM ERR0 (Error detection interrupt channel 0) */\n'
+    )
+    text = text.replace('#define VECTOR_DATA_IRQ_COUNT    (74)',
+                        '#define VECTOR_DATA_IRQ_COUNT    (76)')
+    text = text.replace(marker, additions + marker)
+    text = text.replace('#define BSP_ICU_VECTOR_NUM_ENTRIES (74)',
+                        '#define BSP_ICU_VECTOR_NUM_ENTRIES (76)')
+    header.write_text(text)
+
+    source = stage / 'ra_gen/vector_data.c'
+    text = source.read_text()
+    isr_marker = '            [73] = ipc_isr, /* IPC IRQ1 (CPU Mutual Interrupt 1) */\n        };'
+    event_marker = ('            [73] = BSP_PRV_VECT_ENUM(EVENT_IPC_IRQ1,FIXED), '
+                    '/* IPC IRQ1 (CPU Mutual Interrupt 1) */\n        };')
+    assert text.count(isr_marker) == 1
+    assert text.count(event_marker) == 1
+    text = text.replace(
+        isr_marker,
+        '            [73] = ipc_isr, /* IPC IRQ1 (CPU Mutual Interrupt 1) */\n'
+        '            [74] = dmac_int_isr, /* DMAC1 INT (DMAC1 transfer end) */\n'
+        '            [75] = pdm_err_isr, /* PDM ERR0 (Error detection interrupt channel 0) */\n'
+        '        };')
+    text = text.replace(
+        event_marker,
+        '            [73] = BSP_PRV_VECT_ENUM(EVENT_IPC_IRQ1,FIXED), '
+        '/* IPC IRQ1 (CPU Mutual Interrupt 1) */\n'
+        '            [74] = BSP_PRV_VECT_ENUM(EVENT_DMAC1_INT,FIXED), '
+        '/* DMAC1 INT (DMAC1 transfer end) */\n'
+        '            [75] = BSP_PRV_VECT_ENUM(EVENT_PDM_ERR0,FIXED), '
+        '/* PDM ERR0 (Error detection interrupt channel 0) */\n'
+        '        };')
+    source.write_text(text)
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -57,6 +114,7 @@ def main():
     parser.add_argument('--p4-source',type=Path,help='hash-bound generic P4 kernels.c/kernels.h directory')
     parser.add_argument('--p4-fixture',type=Path,help='hash-bound packed generic P4 fixture header')
     parser.add_argument('--stage-profile',action='store_true',help='instrument disposable K1 copies with the fixed stage probe')
+    parser.add_argument('--pdm-target',action='store_true',help='bind both IM69D130 edge lanes to bounded DMAC capture')
     args=parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     receipt=dict(label='PRE-SILICON', start=datetime.now(timezone.utc).isoformat(), **{'pass':False})
@@ -89,6 +147,9 @@ def main():
                 material.append(path)
         if args.stage_profile:
             material += [ROOT/'platform/ra8p1/stage_probe.h',ROOT/'scripts/stage_profile.py']
+        if args.pdm_target:
+            material += [ROOT/'platform/ra8p1'/name for name in PDM_TARGET_FILES]
+            material.append(PDM_SOURCE_CONTRACT)
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
@@ -102,10 +163,10 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,dcache=args.dcache),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,dcache=args.dcache),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
-                       dcache=args.dcache,
+                       pdm_target=args.pdm_target,dcache=args.dcache,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -124,10 +185,13 @@ def main():
             if optimisation!='-O2':
                 assert text.count("CFLAGS += ' -O2'")==1
                 text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
-        if args.npu_model:
-            text=text.replace("CFLAGS = DEVICE + ' -Dgcc", "CFLAGS = DEVICE + ' -DK1_NPU_LOAD=1 -Dgcc")
-        if args.p4_source:
-            text=text.replace('-DK1_NPU_LOAD=1 -Dgcc','-DK1_NPU_LOAD=1 -DK1_P4_LOAD=1 -Dgcc')
+        defines=[]
+        if args.npu_model: defines.append('-DK1_NPU_LOAD=1')
+        if args.p4_source: defines.append('-DK1_P4_LOAD=1')
+        if args.pdm_target: defines.append('-DK1_PDM_TARGET=1')
+        if defines:
+            assert text.count('-Dgcc')==1
+            text=text.replace('-Dgcc',' '.join(defines)+' -Dgcc')
         if args.dcache=='enabled':
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc','-DK1_KEEP_DCACHE_ENABLED=1 -Dgcc')
@@ -136,8 +200,17 @@ def main():
         text=config.read_text()
         assert text.count('#define RT_MAIN_THREAD_STACK_SIZE 2048')==1
         config.write_text(text.replace('#define RT_MAIN_THREAD_STACK_SIZE 2048','#define RT_MAIN_THREAD_STACK_SIZE 32768'))
+        if args.pdm_target:
+            pdm_config=stage/'ra_cfg/fsp_cfg/r_pdm_cfg.h'
+            text=pdm_config.read_text()
+            assert text.count('#define PDM_CFG_DMAC_ENABLE (0)')==1
+            pdm_config.write_text(text.replace('#define PDM_CFG_DMAC_ENABLE (0)',
+                                               '#define PDM_CFG_DMAC_ENABLE (1)'))
+            stage_dual_pdm_vectors(stage)
         for name in PLATFORM_FILES:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+        if args.pdm_target:
+            for name in PDM_TARGET_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         for header in (ROOT/'tests/target').glob('*.h'): shutil.copy2(header,stage/'src'/header.name)
         if args.resident_controls:
             shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
@@ -202,6 +275,40 @@ def main():
         if args.p4_source:
             for symbol in ['p4_kernels','k1_p4_step','k1_p4_status']:
                 assert symbol in dump, f'missing generic P4 target symbol {symbol}'
+        if args.pdm_target:
+            for symbol in ['R_PDM_Open','R_PDM_Start','R_DMAC_Open','pdm_rxi_dmac_isr','k1_pdm_target_initialise']:
+                assert symbol in dump, f'missing PDM/DMAC target symbol {symbol}'
+            for symbol in ['capture_rise_dmac_ctrl','capture_fall_dmac_ctrl','capture_fall_pdm_ctrl','pdm_callback']:
+                assert symbol in symbols, f'missing dual-PDM target symbol {symbol}'
+            for symbol in ['g_transfer0','g_transfer1','g_transfer2','g_transfer3','g_transfer4']:
+                assert not re.search(rf'\b{symbol}\b',symbols), f'unrelated generated transfer linked: {symbol}'
+            capture_buffer=re.search(r'^([0-9a-f]+)\s+[bB]\s+capture_buffer$',symbols,re.MULTILINE)
+            assert capture_buffer, 'PDM capture buffer symbol missing'
+            assert int(capture_buffer.group(1),16)%32==0, 'PDM capture buffer is not cache-line aligned'
+            receipt['pdm_target_configuration']={
+                'source_contract':str(PDM_SOURCE_CONTRACT.relative_to(ROOT)),
+                'source_contract_sha256':hashlib.sha256(PDM_SOURCE_CONTRACT.read_bytes()).hexdigest(),
+                'sample_rate_hz':16000,
+                'working_source_sample_rate_hz':12800,
+                'sample_rate_parity':False,
+                'slot_elements':120,
+                'slot_duration_us':7500,
+                'slot_count':2,
+                'lane_count':2,
+                'programme_lane':{'microphone':'IM1','select':'HIGH','pdm_channel':2,
+                                  'edge':'RISE','dma_channel':0,
+                                  'dma_activation':'ELC_EVENT_PDM_DAT2'},
+                'measurement_lane':{'microphone':'IM2','select':'LOW','pdm_channel':0,
+                                    'edge':'FALL','dma_channel':1,
+                                    'dma_activation':'ELC_EVENT_PDM_DAT0'},
+                'shared_clock_and_data':True,
+                'pdm_cpu_data_irq':'disabled',
+                'dcache_completed_slot_invalidation':True,
+                'capture_buffer_address':capture_buffer.group(1),
+                'capture_buffer_alignment':32,
+                'generated_transfer_symbols_linked':[],
+                'product_12k8_admitted':False,
+            }
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])
         receipt['artifacts']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in args.output.iterdir() if p.is_file()}

@@ -2,6 +2,7 @@
 #include "trajectory.h"
 #include "core/visual/ws2816_pack.h"
 #include "ws2816_gpio_emit.h"
+#include "ws281x_diag.h"
 #include <limits>
 #include <cassert>
 #include <cstring>
@@ -9,6 +10,15 @@
 #include <string>
 #include <vector>
 extern "C" std::uint32_t k1_cycle_count() { static std::uint32_t counter=0; return counter+=100; }
+static unsigned diagnostic_emits;
+int k1_ws281x_diag_emit(const uint8_t* bytes,size_t size,uint32_t profile,
+                       uint32_t pin,uint32_t,k1_ws281x_diag_result_t* result) {
+  assert(bytes && size==240 && profile==1 && pin==0);
+  assert(bytes[0]==0x34 && bytes[1]==0x12 && bytes[2]==0x56);
+  ++diagnostic_emits;
+  *result={0,4,2400000,300000,1250,1260,0};
+  return 0;
+}
 void k1_ws2816_set_clock(std::uint32_t) {}
 packed_submit_result_t k1_ws2816_submit_packed_lanes(
     const std::uint8_t* lane_a, std::size_t a_bytes, const std::uint8_t* lane_b,
@@ -86,6 +96,22 @@ int main() {
   assert(get(send(packet(3,0,reset)).data()+4)==0);
   assert(send(packet(2,1,silence))==baseline);
   assert(get(send(packet(6,0)).data()+4)==0);
+  {
+    std::vector<std::uint8_t> request(32);
+    const unsigned words[]{1,1,0,80,8,0x12,0x34,0x56};
+    for(unsigned i=0;i<8;++i) put(request.data()+4*i,words[i]);
+    const auto reply=send(packet(K1_WS281X_DIAG_OPCODE,0,request));
+    assert(get(reply.data()+4)==0 && diagnostic_emits==1);
+    const std::string body(reinterpret_cast<const char*>(reply.data()+32),reply.size()-32);
+    assert(body.find("\"op\":13")!=std::string::npos);
+    assert(body.find("\"bytes\":240")!=std::string::npos);
+    assert(body.find("\"pfs_after\":4")!=std::string::npos);
+    assert(body.find("\"photons\":\"NOT_CLAIMED\"")!=std::string::npos);
+    put(request.data()+12,81);
+    assert(get(send(packet(K1_WS281X_DIAG_OPCODE,0,request)).data()+4)==3);
+    assert(get(send(packet(K1_WS281X_DIAG_OPCODE,0)).data()+4)==3);
+    assert(diagnostic_emits==1); // Rejected requests must not touch GPIO.
+  }
   {
     k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};
     pixels[0] = {0x12AB, 0, 0};

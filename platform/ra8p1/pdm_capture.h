@@ -31,6 +31,33 @@ enum {
     K1_PDM_SLOT_CONSUMER = 3
 };
 
+typedef struct {
+    volatile uint32_t state;
+    volatile uint32_t received;
+    volatile uint32_t epoch;
+    volatile uint32_t sequence;
+    volatile uint64_t capture_start_us;
+    volatile uint64_t capture_end_us;
+} k1_pdm_stream_slot_t;
+
+/* Caller-owned bounded stream state. Two instances are used by the Titan
+   dual-IM69D130 path so neither microphone can overwrite the other. */
+typedef struct {
+    k1_pdm_stream_slot_t slots[K1_PDM_STREAM_SLOT_COUNT];
+    volatile uint32_t elements_per_slot;
+    volatile uint32_t interval_elements;
+    volatile uint32_t active_slot;
+    volatile uint32_t epoch;
+    volatile uint32_t next_sequence;
+    volatile uint32_t completed_slots;
+    volatile uint32_t overflow_events;
+    volatile uint32_t drop_events;
+    volatile uint32_t recovery_count;
+    volatile int configured;
+    volatile int running;
+    volatile int halted;
+} k1_pdm_stream_t;
+
 int k1_pdm_configure(uint32_t requested_frames,
                      uint32_t capture_channels,
                      uint32_t capture_element_bytes,
@@ -63,6 +90,28 @@ int k1_pdm_stream_release(uint32_t slot,
                           uint32_t sequence);
 void k1_pdm_stream_stop(void);
 int k1_pdm_stream_recover(uint64_t capture_start_us);
+
+int k1_pdm_stream_context_configure(k1_pdm_stream_t *stream,
+                                    uint32_t elements_per_slot,
+                                    uint32_t interval_elements);
+int k1_pdm_stream_context_start(k1_pdm_stream_t *stream,
+                                uint64_t capture_start_us);
+int k1_pdm_stream_context_on_data(k1_pdm_stream_t *stream,
+                                  uint32_t interval_elements,
+                                  uint64_t capture_end_us);
+int k1_pdm_stream_context_acquire(k1_pdm_stream_t *stream,
+                                  uint32_t *slot,
+                                  uint32_t *epoch,
+                                  uint32_t *sequence,
+                                  uint64_t *capture_start_us,
+                                  uint64_t *capture_end_us);
+int k1_pdm_stream_context_release(k1_pdm_stream_t *stream,
+                                  uint32_t slot,
+                                  uint32_t epoch,
+                                  uint32_t sequence);
+void k1_pdm_stream_context_stop(k1_pdm_stream_t *stream);
+int k1_pdm_stream_context_recover(k1_pdm_stream_t *stream,
+                                  uint64_t capture_start_us);
 
 uint32_t k1_pdm_stream_active_slot(void);
 uint32_t k1_pdm_stream_slot_state(uint32_t slot);
