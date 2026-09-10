@@ -2,7 +2,7 @@
   "blocked_cells": [
     "pdm-current-target"
   ],
-  "completed_at": "2026-09-10T05:55:46.064657+00:00",
+  "completed_at": "2026-09-10T09:46:50.839401+00:00",
   "contract_version": "RA8P1-SOL-1.0.0",
   "errors": [],
   "execution": {
@@ -12,7 +12,7 @@
   },
   "identities": {
     "adapter_id": "k1-ra8p1-pdm-capture-v1",
-    "firmware_head": "8ce7e47af4392037dac23f8ec7b9d90a455fa964"
+    "firmware_head": "3b8bb88877e7e57bc8172f3966f09448a7d1d2f6"
   },
   "limitations": [
     "HOST/CROSS_COMPILED work does not measure a microphone.",
@@ -120,6 +120,94 @@
     "stop_tail": null,
     "stop_tail_known": false,
     "stopped": true,
+    "streaming": {
+      "normal": {
+        "after_release": {
+          "active_slot": 1,
+          "completed_slots": 1,
+          "configured": true,
+          "drop_events": 0,
+          "epoch": 1,
+          "halted": false,
+          "overflow_events": 0,
+          "recovery_count": 0,
+          "running": true,
+          "slot_received": [
+            0,
+            0
+          ],
+          "slot_states": [
+            0,
+            1
+          ]
+        },
+        "owner": {
+          "capture_end_us": 140,
+          "capture_start_us": 100,
+          "epoch": 1,
+          "sequence": 1,
+          "slot": 0
+        }
+      },
+      "overflow": {
+        "held_owner": {
+          "capture_end_us": 1020,
+          "capture_start_us": 1000,
+          "epoch": 1,
+          "sequence": 1,
+          "slot": 0
+        },
+        "ready_owner": {
+          "capture_end_us": 1040,
+          "capture_start_us": 1020,
+          "epoch": 1,
+          "sequence": 2,
+          "slot": 1
+        },
+        "recover_while_owned_return_code": -3,
+        "return_code": -2,
+        "snapshot": {
+          "active_slot": 4294967295,
+          "completed_slots": 2,
+          "configured": true,
+          "drop_events": 1,
+          "epoch": 1,
+          "halted": true,
+          "overflow_events": 1,
+          "recovery_count": 0,
+          "running": false,
+          "slot_received": [
+            4,
+            4
+          ],
+          "slot_states": [
+            3,
+            2
+          ]
+        }
+      },
+      "physical_capture": "NOT_RUN",
+      "qualification_level": "HOST",
+      "recovered": {
+        "active_slot": 0,
+        "completed_slots": 2,
+        "configured": true,
+        "drop_events": 1,
+        "epoch": 2,
+        "halted": false,
+        "overflow_events": 1,
+        "recovery_count": 1,
+        "running": true,
+        "slot_received": [
+          0,
+          0
+        ],
+        "slot_states": [
+          1,
+          0
+        ]
+      }
+    },
     "submission_bytes": 64000
   },
   "physical_capture": "NOT_RUN",
@@ -130,7 +218,7 @@
     "version": "1"
   },
   "schema_version": 2,
-  "started_at": "2026-09-10T05:55:46.064476+00:00",
+  "started_at": "2026-09-10T09:46:50.839260+00:00",
   "status": "PASS",
   "tools": [
     {
@@ -146,11 +234,11 @@
         "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1",
         "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/platform/ra8p1/pdm_capture.c",
         "-o",
-        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-pdm-host-0krda0gt/libpdm_capture.dylib"
+        "/var/folders/r8/1ym0k5l14hg1731f_07vsvt40000gn/T/k1-pdm-host-_lypenjg/libpdm_capture.dylib"
       ],
       "exit_code": 0,
       "name": "cc",
-      "sha256": "5a31e01c48ab8832b9d7055a82459f89345f9309ba56521ad42cbfd0f91b357e"
+      "sha256": "42c77f4804d18065c75df23b76db208138910c0d4d46abef7627720d7a77e4ca"
     }
   ]
 }

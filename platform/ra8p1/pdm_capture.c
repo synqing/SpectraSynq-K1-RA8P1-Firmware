@@ -16,6 +16,29 @@ static int stop_requested;
 static int stopped;
 static int ownership_transferred;
 
+typedef struct {
+    uint32_t state;
+    uint32_t received;
+    uint32_t epoch;
+    uint32_t sequence;
+    uint64_t capture_start_us;
+    uint64_t capture_end_us;
+} k1_pdm_stream_slot_t;
+
+static k1_pdm_stream_slot_t stream_slots[K1_PDM_STREAM_SLOT_COUNT];
+static uint32_t stream_elements_per_slot;
+static uint32_t stream_interval_elements;
+static uint32_t stream_active_slot = K1_PDM_STREAM_NO_SLOT;
+static uint32_t stream_epoch;
+static uint32_t stream_next_sequence;
+static uint32_t stream_completed_slots;
+static uint32_t stream_overflow_events;
+static uint32_t stream_drop_events;
+static uint32_t stream_recovery_count;
+static int stream_configured;
+static int stream_running;
+static int stream_halted;
+
 static uint32_t k1_pdm_mul(uint32_t a, uint32_t b) {
     if (b != 0u && a > (0xFFFFFFFFu / b)) return 0u;
     return a * b;
@@ -34,6 +57,37 @@ static int16_t k1_pdm_to_int16(int32_t sample) {
     if (shifted > 32767) return (int16_t)32767;
     if (shifted < -32768) return (int16_t)-32768;
     return (int16_t)shifted;
+}
+
+static void k1_pdm_stream_clear_slots(void) {
+    uint32_t index;
+    for (index = 0; index < K1_PDM_STREAM_SLOT_COUNT; ++index) {
+        stream_slots[index].state = K1_PDM_SLOT_FREE;
+        stream_slots[index].received = 0u;
+        stream_slots[index].epoch = 0u;
+        stream_slots[index].sequence = 0u;
+        stream_slots[index].capture_start_us = 0u;
+        stream_slots[index].capture_end_us = 0u;
+    }
+    stream_active_slot = K1_PDM_STREAM_NO_SLOT;
+}
+
+static uint32_t k1_pdm_stream_find_free(void) {
+    uint32_t index;
+    for (index = 0; index < K1_PDM_STREAM_SLOT_COUNT; ++index) {
+        if (stream_slots[index].state == K1_PDM_SLOT_FREE) return index;
+    }
+    return K1_PDM_STREAM_NO_SLOT;
+}
+
+static void k1_pdm_stream_begin_slot(uint32_t slot, uint64_t capture_start_us) {
+    stream_slots[slot].state = K1_PDM_SLOT_FILLING;
+    stream_slots[slot].received = 0u;
+    stream_slots[slot].epoch = stream_epoch;
+    stream_slots[slot].sequence = 0u;
+    stream_slots[slot].capture_start_us = capture_start_us;
+    stream_slots[slot].capture_end_us = 0u;
+    stream_active_slot = slot;
 }
 
 int k1_pdm_configure(uint32_t frames,
@@ -138,6 +192,172 @@ int k1_pdm_convert(const int32_t *capture, size_t capture_count,
     }
     return 0;
 }
+
+int k1_pdm_stream_configure(uint32_t elements_per_slot,
+                            uint32_t interval_elements) {
+    stream_configured = 0;
+    stream_running = 0;
+    stream_halted = 0;
+    stream_elements_per_slot = 0u;
+    stream_interval_elements = 0u;
+    stream_epoch = 0u;
+    stream_next_sequence = 0u;
+    stream_completed_slots = 0u;
+    stream_overflow_events = 0u;
+    stream_drop_events = 0u;
+    stream_recovery_count = 0u;
+    k1_pdm_stream_clear_slots();
+    if (elements_per_slot == 0u ||
+        elements_per_slot > K1_PDM_MAX_REQUESTED_FRAMES ||
+        interval_elements == 0u ||
+        interval_elements > elements_per_slot ||
+        (elements_per_slot % interval_elements) != 0u) {
+        return K1_PDM_STREAM_INVALID;
+    }
+    stream_elements_per_slot = elements_per_slot;
+    stream_interval_elements = interval_elements;
+    stream_configured = 1;
+    return K1_PDM_STREAM_OK;
+}
+
+int k1_pdm_stream_start(uint64_t capture_start_us) {
+    if (!stream_configured || stream_running) return K1_PDM_STREAM_INVALID;
+    k1_pdm_stream_clear_slots();
+    stream_epoch++;
+    if (stream_epoch == 0u) stream_epoch = 1u;
+    stream_halted = 0;
+    stream_running = 1;
+    k1_pdm_stream_begin_slot(0u, capture_start_us);
+    return K1_PDM_STREAM_OK;
+}
+
+int k1_pdm_stream_on_data(uint32_t interval_elements,
+                          uint64_t capture_end_us) {
+    uint32_t next_slot;
+    k1_pdm_stream_slot_t *slot;
+    if (!stream_configured || !stream_running || stream_halted ||
+        stream_active_slot >= K1_PDM_STREAM_SLOT_COUNT ||
+        interval_elements != stream_interval_elements) {
+        return K1_PDM_STREAM_INVALID;
+    }
+    slot = &stream_slots[stream_active_slot];
+    if (slot->state != K1_PDM_SLOT_FILLING ||
+        capture_end_us < slot->capture_start_us ||
+        interval_elements > stream_elements_per_slot - slot->received) {
+        return K1_PDM_STREAM_INVALID;
+    }
+    slot->received += interval_elements;
+    if (slot->received != stream_elements_per_slot) return K1_PDM_STREAM_OK;
+
+    stream_next_sequence++;
+    if (stream_next_sequence == 0u) stream_next_sequence = 1u;
+    slot->state = K1_PDM_SLOT_READY;
+    slot->epoch = stream_epoch;
+    slot->sequence = stream_next_sequence;
+    slot->capture_end_us = capture_end_us;
+    stream_completed_slots++;
+
+    next_slot = k1_pdm_stream_find_free();
+    if (next_slot == K1_PDM_STREAM_NO_SLOT) {
+        stream_active_slot = K1_PDM_STREAM_NO_SLOT;
+        stream_running = 0;
+        stream_halted = 1;
+        stream_overflow_events++;
+        stream_drop_events++;
+        return K1_PDM_STREAM_OVERFLOW;
+    }
+    k1_pdm_stream_begin_slot(next_slot, capture_end_us);
+    return K1_PDM_STREAM_SLOT_READY;
+}
+
+int k1_pdm_stream_acquire(uint32_t *slot,
+                          uint32_t *epoch,
+                          uint32_t *sequence,
+                          uint64_t *capture_start_us,
+                          uint64_t *capture_end_us) {
+    uint32_t index;
+    uint32_t selected = K1_PDM_STREAM_NO_SLOT;
+    if (slot == NULL || epoch == NULL || sequence == NULL ||
+        capture_start_us == NULL || capture_end_us == NULL) {
+        return K1_PDM_STREAM_INVALID;
+    }
+    for (index = 0; index < K1_PDM_STREAM_SLOT_COUNT; ++index) {
+        if (stream_slots[index].state == K1_PDM_SLOT_READY &&
+            (selected == K1_PDM_STREAM_NO_SLOT ||
+             stream_slots[index].sequence < stream_slots[selected].sequence)) {
+            selected = index;
+        }
+    }
+    if (selected == K1_PDM_STREAM_NO_SLOT) return K1_PDM_STREAM_INVALID;
+    stream_slots[selected].state = K1_PDM_SLOT_CONSUMER;
+    *slot = selected;
+    *epoch = stream_slots[selected].epoch;
+    *sequence = stream_slots[selected].sequence;
+    *capture_start_us = stream_slots[selected].capture_start_us;
+    *capture_end_us = stream_slots[selected].capture_end_us;
+    return K1_PDM_STREAM_OK;
+}
+
+int k1_pdm_stream_release(uint32_t slot,
+                          uint32_t epoch,
+                          uint32_t sequence) {
+    if (slot >= K1_PDM_STREAM_SLOT_COUNT ||
+        stream_slots[slot].state != K1_PDM_SLOT_CONSUMER ||
+        stream_slots[slot].epoch != epoch ||
+        stream_slots[slot].sequence != sequence) {
+        return K1_PDM_STREAM_STALE_OWNER;
+    }
+    stream_slots[slot].state = K1_PDM_SLOT_FREE;
+    stream_slots[slot].received = 0u;
+    stream_slots[slot].capture_start_us = 0u;
+    stream_slots[slot].capture_end_us = 0u;
+    return K1_PDM_STREAM_OK;
+}
+
+void k1_pdm_stream_stop(void) {
+    if (!stream_configured) return;
+    if (stream_active_slot < K1_PDM_STREAM_SLOT_COUNT &&
+        stream_slots[stream_active_slot].state == K1_PDM_SLOT_FILLING) {
+        stream_slots[stream_active_slot].state = K1_PDM_SLOT_FREE;
+        stream_slots[stream_active_slot].received = 0u;
+    }
+    stream_active_slot = K1_PDM_STREAM_NO_SLOT;
+    stream_running = 0;
+}
+
+int k1_pdm_stream_recover(uint64_t capture_start_us) {
+    uint32_t index;
+    if (!stream_configured || stream_running) return K1_PDM_STREAM_INVALID;
+    for (index = 0; index < K1_PDM_STREAM_SLOT_COUNT; ++index) {
+        if (stream_slots[index].state == K1_PDM_SLOT_CONSUMER) {
+            return K1_PDM_STREAM_STALE_OWNER;
+        }
+    }
+    k1_pdm_stream_clear_slots();
+    stream_epoch++;
+    if (stream_epoch == 0u) stream_epoch = 1u;
+    stream_halted = 0;
+    stream_running = 1;
+    stream_recovery_count++;
+    k1_pdm_stream_begin_slot(0u, capture_start_us);
+    return K1_PDM_STREAM_OK;
+}
+
+uint32_t k1_pdm_stream_active_slot(void) { return stream_active_slot; }
+uint32_t k1_pdm_stream_slot_state(uint32_t slot) {
+    return slot < K1_PDM_STREAM_SLOT_COUNT ? stream_slots[slot].state : K1_PDM_STREAM_NO_SLOT;
+}
+uint32_t k1_pdm_stream_slot_received(uint32_t slot) {
+    return slot < K1_PDM_STREAM_SLOT_COUNT ? stream_slots[slot].received : 0u;
+}
+uint32_t k1_pdm_stream_epoch(void) { return stream_epoch; }
+uint32_t k1_pdm_stream_completed_slots(void) { return stream_completed_slots; }
+uint32_t k1_pdm_stream_overflow_events(void) { return stream_overflow_events; }
+uint32_t k1_pdm_stream_drop_events(void) { return stream_drop_events; }
+uint32_t k1_pdm_stream_recovery_count(void) { return stream_recovery_count; }
+int k1_pdm_stream_configured(void) { return stream_configured; }
+int k1_pdm_stream_running(void) { return stream_running; }
+int k1_pdm_stream_halted(void) { return stream_halted; }
 
 uint32_t k1_pdm_requested_frames(void) { return requested_frames; }
 uint32_t k1_pdm_capture_channels(void) { return capture_channels; }

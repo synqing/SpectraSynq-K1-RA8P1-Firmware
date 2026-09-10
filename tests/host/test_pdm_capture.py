@@ -30,6 +30,7 @@ from run_pdm_capture import (  # noqa: E402
     observed_source_hashes,
     physical_capture_not_run,
     run_host_fixture,
+    run_host_stream_fixture,
 )
 
 
@@ -279,6 +280,122 @@ def test_ac4_missing_required_pdm_field_fails():
     assert any(item["code"] == "pdm-field-missing" for item in receipt["errors"])
     for field in REQUIRED_PDM_FIELDS:
         assert field in _host_pdm_fields()
+
+
+def test_stream_ping_pong_transfers_exact_timestamped_ownership(host_pdm):
+    host_pdm.stream_configure(8, 2)
+    host_pdm.stream_start(100)
+    assert host_pdm.stream_snapshot() == {
+        "configured": True,
+        "running": True,
+        "halted": False,
+        "active_slot": 0,
+        "epoch": 1,
+        "completed_slots": 0,
+        "overflow_events": 0,
+        "drop_events": 0,
+        "recovery_count": 0,
+        "slot_states": [1, 0],
+        "slot_received": [0, 0],
+    }
+    for end_us in (110, 120, 130):
+        assert host_pdm.stream_on_data(2, end_us) == 0
+    assert host_pdm.stream_on_data(2, 140) == 1
+    first = host_pdm.stream_acquire()
+    assert first == {
+        "slot": 0,
+        "epoch": 1,
+        "sequence": 1,
+        "capture_start_us": 100,
+        "capture_end_us": 140,
+    }
+    assert host_pdm.stream_release(first) == 0
+    for end_us in (150, 160, 170):
+        assert host_pdm.stream_on_data(2, end_us) == 0
+    assert host_pdm.stream_on_data(2, 180) == 1
+    second = host_pdm.stream_acquire()
+    assert second == {
+        "slot": 1,
+        "epoch": 1,
+        "sequence": 2,
+        "capture_start_us": 140,
+        "capture_end_us": 180,
+    }
+    assert host_pdm.stream_release(second) == 0
+    assert host_pdm.stream_snapshot()["active_slot"] == 0
+
+
+def test_stream_overflow_halts_without_overwriting_ready_or_consumer(host_pdm):
+    host_pdm.stream_configure(4, 2)
+    host_pdm.stream_start(1000)
+    assert host_pdm.stream_on_data(2, 1010) == 0
+    assert host_pdm.stream_on_data(2, 1020) == 1
+    first = host_pdm.stream_acquire()
+    assert first is not None
+    assert host_pdm.stream_on_data(2, 1030) == 0
+    assert host_pdm.stream_on_data(2, 1040) == -2
+    snap = host_pdm.stream_snapshot()
+    assert snap["running"] is False
+    assert snap["halted"] is True
+    assert snap["active_slot"] == 0xFFFFFFFF
+    assert snap["slot_states"] == [3, 2]
+    assert snap["overflow_events"] == 1
+    assert snap["drop_events"] == 1
+    second = host_pdm.stream_acquire()
+    assert second is not None
+    assert second["slot"] == 1
+    assert second["capture_start_us"] == 1020
+    assert second["capture_end_us"] == 1040
+    assert host_pdm.lib.k1_pdm_stream_recover(2000) == -3
+    assert host_pdm.stream_release(first) == 0
+    assert host_pdm.stream_release(second) == 0
+    assert host_pdm.lib.k1_pdm_stream_recover(2000) == 0
+    recovered = host_pdm.stream_snapshot()
+    assert recovered["running"] is True
+    assert recovered["halted"] is False
+    assert recovered["epoch"] == 2
+    assert recovered["recovery_count"] == 1
+    assert recovered["overflow_events"] == 1
+    assert recovered["drop_events"] == 1
+    assert host_pdm.stream_release(first) == -3
+
+
+def test_stream_rejects_bad_geometry_and_nonmonotonic_timestamp(host_pdm):
+    with pytest.raises(Exception, match="stream_configure_failed"):
+        host_pdm.stream_configure(180, 16)
+    host_pdm.stream_configure(32, 16)
+    host_pdm.stream_start(500)
+    assert host_pdm.stream_on_data(8, 510) == -1
+    assert host_pdm.stream_on_data(16, 499) == -1
+    snap = host_pdm.stream_snapshot()
+    assert snap["slot_received"] == [0, 0]
+    assert snap["completed_slots"] == 0
+
+
+def test_stream_stop_discards_only_incomplete_producer_slot(host_pdm):
+    host_pdm.stream_configure(4, 2)
+    host_pdm.stream_start(10)
+    assert host_pdm.stream_on_data(2, 20) == 0
+    host_pdm.lib.k1_pdm_stream_stop()
+    snap = host_pdm.stream_snapshot()
+    assert snap["running"] is False
+    assert snap["halted"] is False
+    assert snap["slot_states"] == [0, 0]
+    assert snap["slot_received"] == [0, 0]
+
+
+def test_stream_receipt_fixture_captures_normal_overflow_and_recovery(host_pdm):
+    result = run_host_stream_fixture(host_pdm)
+    assert result["qualification_level"] == "HOST"
+    assert result["physical_capture"] == "NOT_RUN"
+    assert result["normal"]["owner"]["capture_start_us"] == 100
+    assert result["normal"]["owner"]["capture_end_us"] == 140
+    assert result["overflow"]["return_code"] == -2
+    assert result["overflow"]["snapshot"]["slot_states"] == [3, 2]
+    assert result["overflow"]["snapshot"]["overflow_events"] == 1
+    assert result["overflow"]["recover_while_owned_return_code"] == -3
+    assert result["recovered"]["running"] is True
+    assert result["recovered"]["recovery_count"] == 1
 
 
 def test_sconscript_does_not_glob_all_c():

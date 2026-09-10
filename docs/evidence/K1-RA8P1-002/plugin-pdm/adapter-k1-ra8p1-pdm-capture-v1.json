@@ -1,5 +1,5 @@
 {
-  "adapter_class": "pdm_cpu_isr",
+  "adapter_class": "pdm_bounded_stream_ownership",
   "do_not_copy_vendor_defect": true,
   "expressions": {
     "capture_bytes": "requested_frames * capture_channels * capture_element_bytes",
@@ -8,6 +8,9 @@
   },
   "flow": {
     "active_data_callback": true,
+    "bounded_slots": 2,
+    "capture_boundary_timestamp": true,
+    "completed_slot_overwrite": false,
     "conversion": {
       "duplicate_mono_to_stereo_int16": true,
       "submission_equals_conversion": true
@@ -22,7 +25,14 @@
         "proves_full_buffer": false
       }
     },
+    "overflow_action": "halt_without_overwrite",
+    "ownership_token": [
+      "slot",
+      "epoch",
+      "sequence"
+    ],
     "producer": "cortex-m85-isr",
+    "recovery_requires_no_consumer_owner": true,
     "stop": {
       "final_count_retained": true,
       "idle_callback": false
@@ -32,11 +42,11 @@
   "inputs": {
     "application": {
       "path": "platform/ra8p1/pdm_capture.c",
-      "sha256": "bb6a8514bcb88ed5710d2167d31376d8ec70be3e421ed480d6e6a740a9dbf543"
+      "sha256": "255978baeb24b4b7c8c8e3693ea287f56f62f15a0787860c2e56f140975b141d"
     },
     "application_header": {
       "path": "platform/ra8p1/pdm_capture.h",
-      "sha256": "c690550cf9c2cedb9b825c127b04a906f693c672f5ffd1d93bcdf2e684d8ddd6"
+      "sha256": "6c7c44a6884d098a8b2842004a9499b648dbf44c5d2eb4127d12ac9b57362477"
     }
   },
   "instance": "g_pdm0",

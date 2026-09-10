@@ -14,7 +14,7 @@ import os
 import subprocess
 import sys
 import tempfile
-from ctypes import CDLL, POINTER, c_int, c_int16, c_int32, c_uint32, c_size_t
+from ctypes import CDLL, POINTER, byref, c_int, c_int16, c_int32, c_uint32, c_uint64, c_size_t
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Mapping
@@ -234,6 +234,23 @@ class HostPdm:
         library.k1_pdm_on_stopped.restype = c_int
         library.k1_pdm_convert.argtypes = [POINTER(c_int32), c_size_t, POINTER(c_int16), c_size_t]
         library.k1_pdm_convert.restype = c_int
+        library.k1_pdm_stream_configure.argtypes = [c_uint32, c_uint32]
+        library.k1_pdm_stream_configure.restype = c_int
+        library.k1_pdm_stream_start.argtypes = [c_uint64]
+        library.k1_pdm_stream_start.restype = c_int
+        library.k1_pdm_stream_on_data.argtypes = [c_uint32, c_uint64]
+        library.k1_pdm_stream_on_data.restype = c_int
+        library.k1_pdm_stream_acquire.argtypes = [
+            POINTER(c_uint32), POINTER(c_uint32), POINTER(c_uint32),
+            POINTER(c_uint64), POINTER(c_uint64),
+        ]
+        library.k1_pdm_stream_acquire.restype = c_int
+        library.k1_pdm_stream_release.argtypes = [c_uint32, c_uint32, c_uint32]
+        library.k1_pdm_stream_release.restype = c_int
+        library.k1_pdm_stream_stop.argtypes = []
+        library.k1_pdm_stream_stop.restype = None
+        library.k1_pdm_stream_recover.argtypes = [c_uint64]
+        library.k1_pdm_stream_recover.restype = c_int
         for name in (
             "k1_pdm_requested_frames",
             "k1_pdm_capture_channels",
@@ -246,6 +263,12 @@ class HostPdm:
             "k1_pdm_submission_bytes",
             "k1_pdm_received_elements",
             "k1_pdm_final_stopped_count",
+            "k1_pdm_stream_active_slot",
+            "k1_pdm_stream_epoch",
+            "k1_pdm_stream_completed_slots",
+            "k1_pdm_stream_overflow_events",
+            "k1_pdm_stream_drop_events",
+            "k1_pdm_stream_recovery_count",
         ):
             fn = getattr(library, name)
             fn.argtypes = []
@@ -260,10 +283,17 @@ class HostPdm:
             "k1_pdm_stopped",
             "k1_pdm_stop_tail_known",
             "k1_pdm_ownership_transferred",
+            "k1_pdm_stream_configured",
+            "k1_pdm_stream_running",
+            "k1_pdm_stream_halted",
         ):
             fn = getattr(library, name)
             fn.argtypes = []
             fn.restype = c_int
+        for name in ("k1_pdm_stream_slot_state", "k1_pdm_stream_slot_received"):
+            fn = getattr(library, name)
+            fn.argtypes = [c_uint32]
+            fn.restype = c_uint32
 
     def configure(self, requested_frames: int, output_channels: int) -> None:
         units = derive_units(requested_frames, output_channels)
@@ -312,6 +342,57 @@ class HostPdm:
             "stop_tail_known": bool(self.lib.k1_pdm_stop_tail_known()),
             "ownership_transferred": bool(self.lib.k1_pdm_ownership_transferred()),
             "stopped": stopped,
+        }
+
+    def stream_configure(self, elements_per_slot: int, interval_elements: int) -> None:
+        rc = self.lib.k1_pdm_stream_configure(elements_per_slot, interval_elements)
+        if rc != 0:
+            raise PdmCaptureError("stream_configure_failed", f"k1_pdm_stream_configure returned {rc}")
+
+    def stream_start(self, capture_start_us: int) -> None:
+        rc = self.lib.k1_pdm_stream_start(capture_start_us)
+        if rc != 0:
+            raise PdmCaptureError("stream_start_failed", f"k1_pdm_stream_start returned {rc}")
+
+    def stream_on_data(self, interval_elements: int, capture_end_us: int) -> int:
+        return int(self.lib.k1_pdm_stream_on_data(interval_elements, capture_end_us))
+
+    def stream_acquire(self) -> dict[str, int] | None:
+        slot = c_uint32()
+        epoch = c_uint32()
+        sequence = c_uint32()
+        capture_start_us = c_uint64()
+        capture_end_us = c_uint64()
+        rc = self.lib.k1_pdm_stream_acquire(
+            byref(slot), byref(epoch), byref(sequence),
+            byref(capture_start_us), byref(capture_end_us),
+        )
+        if rc != 0:
+            return None
+        return {
+            "slot": int(slot.value),
+            "epoch": int(epoch.value),
+            "sequence": int(sequence.value),
+            "capture_start_us": int(capture_start_us.value),
+            "capture_end_us": int(capture_end_us.value),
+        }
+
+    def stream_release(self, owner: Mapping[str, int]) -> int:
+        return int(self.lib.k1_pdm_stream_release(owner["slot"], owner["epoch"], owner["sequence"]))
+
+    def stream_snapshot(self) -> dict[str, Any]:
+        return {
+            "configured": bool(self.lib.k1_pdm_stream_configured()),
+            "running": bool(self.lib.k1_pdm_stream_running()),
+            "halted": bool(self.lib.k1_pdm_stream_halted()),
+            "active_slot": int(self.lib.k1_pdm_stream_active_slot()),
+            "epoch": int(self.lib.k1_pdm_stream_epoch()),
+            "completed_slots": int(self.lib.k1_pdm_stream_completed_slots()),
+            "overflow_events": int(self.lib.k1_pdm_stream_overflow_events()),
+            "drop_events": int(self.lib.k1_pdm_stream_drop_events()),
+            "recovery_count": int(self.lib.k1_pdm_stream_recovery_count()),
+            "slot_states": [int(self.lib.k1_pdm_stream_slot_state(i)) for i in range(2)],
+            "slot_received": [int(self.lib.k1_pdm_stream_slot_received(i)) for i in range(2)],
         }
 
 
@@ -368,6 +449,52 @@ def run_host_fixture(pdm: HostPdm, requested_frames: int, output_channels: int) 
         "after_full": after_full,
         "after_stop": after_stop,
         "qualification_level": "HOST",
+    }
+
+
+def run_host_stream_fixture(pdm: HostPdm) -> dict[str, Any]:
+    pdm.stream_configure(8, 2)
+    pdm.stream_start(100)
+    for end_us in (110, 120, 130):
+        if pdm.stream_on_data(2, end_us) != 0:
+            raise PdmCaptureError("stream_interval", "Normal stream interval failed before completion.")
+    if pdm.stream_on_data(2, 140) != 1:
+        raise PdmCaptureError("stream_completion", "Normal stream did not publish its first slot.")
+    first = pdm.stream_acquire()
+    if first is None or pdm.stream_release(first) != 0:
+        raise PdmCaptureError("stream_ownership", "Normal stream ownership transfer/release failed.")
+    normal = {"owner": first, "after_release": pdm.stream_snapshot()}
+
+    pdm.stream_configure(4, 2)
+    pdm.stream_start(1000)
+    pdm.stream_on_data(2, 1010)
+    pdm.stream_on_data(2, 1020)
+    held = pdm.stream_acquire()
+    pdm.stream_on_data(2, 1030)
+    overflow_rc = pdm.stream_on_data(2, 1040)
+    overflow = pdm.stream_snapshot()
+    ready = pdm.stream_acquire()
+    if held is None or ready is None or overflow_rc != -2:
+        raise PdmCaptureError("stream_overflow", "Bounded stream did not halt on exhausted ownership slots.")
+    recover_while_owned_rc = int(pdm.lib.k1_pdm_stream_recover(2000))
+    pdm.stream_release(held)
+    pdm.stream_release(ready)
+    recover_rc = int(pdm.lib.k1_pdm_stream_recover(2000))
+    recovered = pdm.stream_snapshot()
+    if recover_while_owned_rc != -3 or recover_rc != 0:
+        raise PdmCaptureError("stream_recovery", "Recovery did not enforce consumer ownership.")
+    return {
+        "qualification_level": "HOST",
+        "normal": normal,
+        "overflow": {
+            "return_code": overflow_rc,
+            "held_owner": held,
+            "ready_owner": ready,
+            "snapshot": overflow,
+            "recover_while_owned_return_code": recover_while_owned_rc,
+        },
+        "recovered": recovered,
+        "physical_capture": "NOT_RUN",
     }
 
 
@@ -591,7 +718,7 @@ def build_adapter_document() -> dict[str, Any]:
     return {
         "id": ADAPTER_ID,
         "version": "1",
-        "adapter_class": "pdm_cpu_isr",
+        "adapter_class": "pdm_bounded_stream_ownership",
         "instance": "g_pdm0",
         "qualification_level": "HOST",
         "note": (
@@ -612,6 +739,12 @@ def build_adapter_document() -> dict[str, Any]:
         "flow": {
             "producer": "cortex-m85-isr",
             "dmac_enabled": False,
+            "bounded_slots": 2,
+            "completed_slot_overwrite": False,
+            "capture_boundary_timestamp": True,
+            "ownership_token": ["slot", "epoch", "sequence"],
+            "overflow_action": "halt_without_overwrite",
+            "recovery_requires_no_consumer_owner": True,
             "active_data_callback": True,
             "events": {
                 "PDM_EVENT_DATA": {
@@ -657,6 +790,7 @@ def main() -> int:
         (8000, 1, "8000-mono"),
     ):
         fixtures[name] = run_host_fixture(pdm, frames, channels)
+    stream_fixture = run_host_stream_fixture(pdm)
     host_receipt = make_receipt(
         qualification_level="HOST",
         receipt_id="wp13-pdm-host-fixtures",
@@ -665,6 +799,7 @@ def main() -> int:
         pdm={
             **fixtures["16000-stereo"]["after_stop"],
             "fixtures": {name: item["after_stop"] for name, item in fixtures.items()},
+            "streaming": stream_fixture,
             "first_data_does_not_prove_complete": True,
             "stop_tail": None,
         },
