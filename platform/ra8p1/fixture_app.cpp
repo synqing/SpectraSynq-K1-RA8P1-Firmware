@@ -23,9 +23,33 @@
 #include "core/visual/ws2816_pack.h"
 #include "ws2816_gpio_emit.h"
 #include "ws281x_diag.h"
+#ifdef K1_PALETTE_RUNTIME
+#include "palette_runtime.h"
+#endif
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
+#ifdef K1_PALETTE_RUNTIME
+k1::titan::PaletteRuntime palettes;
+std::uint32_t palette_clock_hz = 0;
+std::uint64_t palette_time_us = 0;
+std::uint32_t palette_last_ms = 0;
+bool palette_clock_seen = false;
+void palette_step(bool emit) {
+  const k1::core::visual::VisualAudioFrameView view{
+      trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
+      trajectory.output.features.publish_time_us};
+  if (!palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr)) return;
+  if (emit && palettes.emitEnabled()) {
+    std::uint8_t wire[128U * 3U];
+    const auto size = palettes.packBenchGrb(wire, sizeof(wire));
+    k1_ws281x_diag_result_t result{};
+    // Existing identified WS2812/P601 bench path. DMA integration is separate.
+    const int status = k1_ws281x_diag_emit(wire, size, 1U, 0U, palette_clock_hz, &result);
+    palettes.recordEmit(status, result.emit_cycles);
+  }
+}
+#endif
 std::uint8_t rx[392], tx[20000], board_uid[16];
 std::size_t fill = 0, wanted = 32, tx_size = 0;
 std::uint32_t started = 0, clock_hz = 0, cpu_wait = 0, rejected = 0;
@@ -222,6 +246,33 @@ void error(std::uint32_t status) { ++rejected; respond(status,0,"",0); fill=0; w
 void execute() {
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+#ifdef K1_PALETTE_RUNTIME
+  if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
+    const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kPaletteConfigureOpcode && size == 32U) {
+#ifdef K1_RESIDENT_SCHEDULE
+    if (k1_fixture_schedule_active()) { error(10); return; }
+#endif
+    const auto* p = rx + 32;
+    const k1::titan::PaletteConfig config{
+        get32(p), get32(p+4), get32(p+8), get32(p+12),
+        get32(p+16), get32(p+20), get32(p+24), get32(p+28)};
+    if (!palettes.configure(config, palette_time_us)) { error(3); return; }
+    palette_step(false);
+    const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kPaletteStatusOpcode && size == 0U) {
+    const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kPaletteFrameOpcode && size == 4U) {
+    const auto channel = get32(rx+32);
+    if (channel > 1U) { error(3); return; }
+    const auto pixels = palettes.channel(channel).frame();
+    static_assert(sizeof(k1::core::Pixel8) == 3U);
+    respond(0, 0, reinterpret_cast<const char*>(pixels.data()), pixels.size()*3U);
+  } else
+#endif
   if (command == 1 && size == 0) {
     char uid[33]; for(unsigned i=0;i<16;++i) std::snprintf(uid+i*2,3,"%02x",board_uid[i]);
 #ifdef K1_NPU_LOAD
@@ -440,6 +491,14 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   k1_ws2816_set_clock(hz);
+#ifdef K1_PALETTE_RUNTIME
+  palette_clock_hz = hz;
+#ifdef K1_PALETTE_AUTOSTART
+  k1::titan::PaletteConfig config;
+  config.flags = 7U;
+  palettes.configure(config, 0U);
+#endif
+#endif
   // Constructor witness: ChannelRenderState must have installed each channel ID.
   initialised=trajectory.b.channel()==k1::core::visual::PixelChannelId::kChannelB;
 #ifdef K1_P4_LOAD
@@ -459,7 +518,17 @@ extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,s
     if(fill==wanted) { execute(); return; }
   }
 }
-extern "C" void k1_fixture_poll(std::uint32_t now) { if(fill && now-started>2000) error(9); }
+extern "C" void k1_fixture_poll(std::uint32_t now) {
+  if(fill && now-started>2000) error(9);
+#ifdef K1_PALETTE_RUNTIME
+  if (palette_clock_seen) palette_time_us += std::uint64_t(std::uint32_t(now-palette_last_ms))*1000U;
+  palette_last_ms = now; palette_clock_seen = true;
+#ifdef K1_RESIDENT_SCHEDULE
+  if (k1_fixture_schedule_active()) return;
+#endif
+  palette_step(true);
+#endif
+}
 extern "C" void k1_fixture_disconnect(void) { fill=0; wanted=32; tx_size=0; }
 extern "C" const std::uint8_t* k1_fixture_reply(std::size_t* count) { *count=tx_size; return tx; }
 extern "C" void k1_fixture_sent(void) { tx_size=0; }
