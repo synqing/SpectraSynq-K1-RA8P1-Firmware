@@ -1,0 +1,30 @@
+{
+  "adapter_class": "audio_npu_pair",
+  "authorised_deadline_us": 7500,
+  "cannot_satisfy": "physical-audio-npu-pair",
+  "g4_o2_deadline_misses": 2005,
+  "g4_o3_deadline_misses": 2006,
+  "g4_status": "FAILED",
+  "g6": "NO_QUALIFYING_CANDIDATE",
+  "id": "k1-ra8p1-audio-npu-pair-v1",
+  "inputs": {
+    "application": {
+      "path": "platform/ra8p1/coexist_probe.c",
+      "sha256": "93590c752965f15d7f03b0832a20b5c9d3917655d3aafda213b0ac9a9dab9a9c"
+    },
+    "npu_coexist_profile": {
+      "path": "docs/evidence/K1-RA8P1-002/g4-npu-coexist-profile.json",
+      "sha256": "827e7f331c20701f01c3530a916379942e7156641bcc9941423258e5e598c745"
+    },
+    "pcm": {
+      "sha256": "5970e8d26787f5c9ccdda50b95077d3da503b3826495ed7232d2854fecb8d394"
+    }
+  },
+  "load_only_cannot_satisfy": "useful-npu-treatment",
+  "note": "HOST pair gate. Physical pair is NOT_RUN. Not CURRENT_TARGET.",
+  "p99_status": "unscored",
+  "p99_us": 6000,
+  "qualification_level": "HOST",
+  "source": "platform/ra8p1/coexist_probe.c",
+  "version": "1"
+}

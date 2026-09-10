@@ -1,7 +1,7 @@
 import os
 from building import *
 cwd = GetCurrentDir()
-src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c')
+src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c') + Glob('coexist_probe.c')
 for directory, _, files in os.walk(os.path.join(cwd, 'k1')):
     src += [os.path.join(directory, f) for f in files if f.endswith('.cpp')]
 group = DefineGroup('K1Scalar', src, depend=[''], CPPPATH=[cwd, os.path.join(cwd, 'k1'), os.path.join(cwd, 'models'), os.path.join(cwd, 'p4')],

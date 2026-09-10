@@ -1,0 +1,13 @@
+{
+  "do_not_repeat_as_unrun": true,
+  "do_not_widen_deadline_us": 7500,
+  "g4_status": "FAILED",
+  "note": "G4 O2/O3 already FAILED. WP15 reuses those receipts and does not re-run the cells.",
+  "o2_deadline_misses": 2005,
+  "o3_deadline_misses": 2006,
+  "p99_status": "unscored",
+  "p99_us": 6000,
+  "qualification_level": "HISTORICAL_TARGET",
+  "receipt_id": "wp15-g4-already-failed",
+  "schema_version": 2
+}

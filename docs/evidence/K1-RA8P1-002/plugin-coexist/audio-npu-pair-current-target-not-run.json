@@ -1,0 +1,502 @@
+{
+  "authorised_deadline_us": 7500,
+  "blocked_cells": [
+    "audio-npu-physical-pair",
+    "p99-pass-fail"
+  ],
+  "claims_physical_pair": false,
+  "completed_at": "2026-09-10T06:28:23.585549+00:00",
+  "contract_version": "RA8P1-SOL-1.0.0",
+  "errors": [],
+  "execution": {
+    "arm_binary_executed": false,
+    "hardware_session": false,
+    "load_only": true,
+    "npu_role": "identified-platform-load-only",
+    "useful_npu_treatment": false
+  },
+  "g4_o2_deadline_misses": 2005,
+  "g4_o3_deadline_misses": 2006,
+  "g4_status": "FAILED",
+  "g6": "NO_QUALIFYING_CANDIDATE",
+  "identities": {
+    "last_identified_build_id": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
+    "last_identified_level": "HISTORICAL_TARGET",
+    "last_identified_uid": "545433931bd25436593630352d068363",
+    "live_loaded_image": "unknown-no-reenumeration",
+    "live_target": "NOT_VERIFIED",
+    "named_missing_facts": [
+      "live_uid",
+      "exclusive_owner",
+      "useful_u55_admission",
+      "physical_pdm"
+    ]
+  },
+  "limitations": [
+    "live_target is NOT_VERIFIED; last UID is HISTORICAL_TARGET.",
+    "CURRENT_TARGET physical pair is NOT_RUN because WP13 physical PDM and WP14 useful-U55 are both NOT_RUN.",
+    "Named missing facts: live UID, exclusive owner, useful-U55 admission, physical PDM.",
+    "No USB, flash, serial, audio, cadence runner, or song loop.",
+    "G4 O2/O3 remain FAILED. 6000 us p99 unscored. 7500 us not widened."
+  ],
+  "ok": true,
+  "p99_pass_fail": "unscored",
+  "p99_us": 6000,
+  "pair": {
+    "acquire_rc": -1,
+    "audio": {
+      "build": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
+      "clock": 24000,
+      "input": "5970e8d26787f5c9ccdda50b95077d3da503b3826495ed7232d2854fecb8d394",
+      "profile": "827e7f331c20701f01c3530a916379942e7156641bcc9941423258e5e598c745",
+      "treatment": 0
+    },
+    "audio_host": {
+      "arm_binary_executed": false,
+      "independent": {
+        "deadline_misses": 0,
+        "max_us": 4800,
+        "p50_us": 4400,
+        "p95_us": 4800,
+        "p99_us": 4800
+      },
+      "physical_pair": "NOT_RUN",
+      "qualification_level": "HOST",
+      "snapshot": {
+        "admitted": false,
+        "blockers": 0,
+        "clock_hz": 24000,
+        "deadline_misses": 0,
+        "deadline_us": 7500,
+        "durations_us": [
+          4100,
+          4200,
+          4300,
+          4400,
+          4500,
+          4600,
+          4700,
+          4800
+        ],
+        "event_count": 8,
+        "events": [
+          {
+            "complete_us": 5100,
+            "duration_us": 4100,
+            "index": 0,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 1000
+          },
+          {
+            "complete_us": 12700,
+            "duration_us": 4200,
+            "index": 1,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 8500
+          },
+          {
+            "complete_us": 20300,
+            "duration_us": 4300,
+            "index": 2,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 16000
+          },
+          {
+            "complete_us": 27900,
+            "duration_us": 4400,
+            "index": 3,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 23500
+          },
+          {
+            "complete_us": 35500,
+            "duration_us": 4500,
+            "index": 4,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 31000
+          },
+          {
+            "complete_us": 43100,
+            "duration_us": 4600,
+            "index": 5,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 38500
+          },
+          {
+            "complete_us": 50700,
+            "duration_us": 4700,
+            "index": 6,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 46000
+          },
+          {
+            "complete_us": 58300,
+            "duration_us": 4800,
+            "index": 7,
+            "missed": 0,
+            "overhead_us": 40,
+            "release_us": 53500
+          }
+        ],
+        "g4_already_failed": true,
+        "g4_o2_misses": 2005,
+        "g4_o3_misses": 2006,
+        "g4_status": "FAILED",
+        "g6": "NO_QUALIFYING_CANDIDATE",
+        "has_distribution": true,
+        "hop_period_us": 7500,
+        "identity_set": true,
+        "last_decline": 0,
+        "last_decline_name": "OK",
+        "max_us": 4800,
+        "overhead_sum_us": 320,
+        "p50_us": 4400,
+        "p95_us": 4800,
+        "p99_allocation_us": 6000,
+        "p99_scored": false,
+        "p99_us": 4800,
+        "physical_not_run": true,
+        "sample_rate_hz": 24000,
+        "treatment": 0,
+        "window_end_us": 58300,
+        "window_start_us": 1000
+      },
+      "treatment": 0,
+      "treatment_name": "audio-only"
+    },
+    "claims_useful_inference": false,
+    "comparable": "OK",
+    "expected_raw_output": [
+      127,
+      117,
+      123
+    ],
+    "load_only_decline": "LOAD_ONLY",
+    "npu": {
+      "build": "c4ceebe7f4d899d39a917fb12c385c0f743278fd53aa2a82045230f3490e87bb",
+      "clock": 24000,
+      "input": "5970e8d26787f5c9ccdda50b95077d3da503b3826495ed7232d2854fecb8d394",
+      "profile": "827e7f331c20701f01c3530a916379942e7156641bcc9941423258e5e598c745",
+      "treatment": 1
+    },
+    "npu_host": {
+      "arm_binary_executed": false,
+      "independent": {
+        "deadline_misses": 4,
+        "max_us": 9684,
+        "p50_us": 7000,
+        "p95_us": 9684,
+        "p99_us": 9684
+      },
+      "physical_pair": "NOT_RUN",
+      "qualification_level": "HOST",
+      "snapshot": {
+        "admitted": false,
+        "blockers": 0,
+        "clock_hz": 24000,
+        "deadline_misses": 4,
+        "deadline_us": 7500,
+        "durations_us": [
+          5100,
+          5300,
+          5500,
+          7000,
+          7600,
+          8100,
+          9000,
+          9684
+        ],
+        "event_count": 8,
+        "events": [
+          {
+            "complete_us": 6100,
+            "duration_us": 5100,
+            "index": 0,
+            "missed": 0,
+            "overhead_us": 55,
+            "release_us": 1000
+          },
+          {
+            "complete_us": 13800,
+            "duration_us": 5300,
+            "index": 1,
+            "missed": 0,
+            "overhead_us": 55,
+            "release_us": 8500
+          },
+          {
+            "complete_us": 21500,
+            "duration_us": 5500,
+            "index": 2,
+            "missed": 0,
+            "overhead_us": 55,
+            "release_us": 16000
+          },
+          {
+            "complete_us": 30500,
+            "duration_us": 7000,
+            "index": 3,
+            "missed": 0,
+            "overhead_us": 55,
+            "release_us": 23500
+          },
+          {
+            "complete_us": 38600,
+            "duration_us": 7600,
+            "index": 4,
+            "missed": 1,
+            "overhead_us": 55,
+            "release_us": 31000
+          },
+          {
+            "complete_us": 46600,
+            "duration_us": 8100,
+            "index": 5,
+            "missed": 1,
+            "overhead_us": 55,
+            "release_us": 38500
+          },
+          {
+            "complete_us": 55000,
+            "duration_us": 9000,
+            "index": 6,
+            "missed": 1,
+            "overhead_us": 55,
+            "release_us": 46000
+          },
+          {
+            "complete_us": 63184,
+            "duration_us": 9684,
+            "index": 7,
+            "missed": 1,
+            "overhead_us": 55,
+            "release_us": 53500
+          }
+        ],
+        "g4_already_failed": true,
+        "g4_o2_misses": 2005,
+        "g4_o3_misses": 2006,
+        "g4_status": "FAILED",
+        "g6": "NO_QUALIFYING_CANDIDATE",
+        "has_distribution": true,
+        "hop_period_us": 7500,
+        "identity_set": true,
+        "last_decline": 0,
+        "last_decline_name": "OK",
+        "max_us": 9684,
+        "overhead_sum_us": 440,
+        "p50_us": 7000,
+        "p95_us": 9684,
+        "p99_allocation_us": 6000,
+        "p99_scored": false,
+        "p99_us": 9684,
+        "physical_not_run": true,
+        "sample_rate_hz": 24000,
+        "treatment": 1,
+        "window_end_us": 63184,
+        "window_start_us": 1000
+      },
+      "treatment": 1,
+      "treatment_name": "useful-npu-active"
+    },
+    "predecessors": {
+      "blocked_until": [
+        "re-enumeration of UID",
+        "exclusive ownership record",
+        "WP14 useful-U55 CURRENT_TARGET admission",
+        "WP13 physical PDM"
+      ],
+      "both_not_run": true,
+      "named_missing_facts": [
+        "live_uid",
+        "exclusive_owner",
+        "useful_u55_admission",
+        "physical_pdm"
+      ],
+      "physical_pdm_complete": false,
+      "useful_u55_admitted": false,
+      "wp13_level": "HOST",
+      "wp13_physical_pdm": "NOT_RUN",
+      "wp13_receipt": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/plugin-pdm/physical-capture-not-run.json",
+      "wp14_level": "HOST",
+      "wp14_receipt": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/plugin-compute/useful-npu-current-target-not-run.json",
+      "wp14_useful_u55": "NOT_RUN"
+    },
+    "probe_decline": "LOAD_ONLY",
+    "raw_events": {
+      "audio-only": [
+        {
+          "complete_us": 5100,
+          "duration_us": 4100,
+          "index": 0,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 1000
+        },
+        {
+          "complete_us": 12700,
+          "duration_us": 4200,
+          "index": 1,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 8500
+        },
+        {
+          "complete_us": 20300,
+          "duration_us": 4300,
+          "index": 2,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 16000
+        },
+        {
+          "complete_us": 27900,
+          "duration_us": 4400,
+          "index": 3,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 23500
+        },
+        {
+          "complete_us": 35500,
+          "duration_us": 4500,
+          "index": 4,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 31000
+        },
+        {
+          "complete_us": 43100,
+          "duration_us": 4600,
+          "index": 5,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 38500
+        },
+        {
+          "complete_us": 50700,
+          "duration_us": 4700,
+          "index": 6,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 46000
+        },
+        {
+          "complete_us": 58300,
+          "duration_us": 4800,
+          "index": 7,
+          "missed": 0,
+          "overhead_us": 40,
+          "release_us": 53500
+        }
+      ],
+      "useful-npu-active": [
+        {
+          "complete_us": 6100,
+          "duration_us": 5100,
+          "index": 0,
+          "missed": 0,
+          "overhead_us": 55,
+          "release_us": 1000
+        },
+        {
+          "complete_us": 13800,
+          "duration_us": 5300,
+          "index": 1,
+          "missed": 0,
+          "overhead_us": 55,
+          "release_us": 8500
+        },
+        {
+          "complete_us": 21500,
+          "duration_us": 5500,
+          "index": 2,
+          "missed": 0,
+          "overhead_us": 55,
+          "release_us": 16000
+        },
+        {
+          "complete_us": 30500,
+          "duration_us": 7000,
+          "index": 3,
+          "missed": 0,
+          "overhead_us": 55,
+          "release_us": 23500
+        },
+        {
+          "complete_us": 38600,
+          "duration_us": 7600,
+          "index": 4,
+          "missed": 1,
+          "overhead_us": 55,
+          "release_us": 31000
+        },
+        {
+          "complete_us": 46600,
+          "duration_us": 8100,
+          "index": 5,
+          "missed": 1,
+          "overhead_us": 55,
+          "release_us": 38500
+        },
+        {
+          "complete_us": 55000,
+          "duration_us": 9000,
+          "index": 6,
+          "missed": 1,
+          "overhead_us": 55,
+          "release_us": 46000
+        },
+        {
+          "complete_us": 63184,
+          "duration_us": 9684,
+          "index": 7,
+          "missed": 1,
+          "overhead_us": 55,
+          "release_us": 53500
+        }
+      ]
+    }
+  },
+  "physical_pair": "NOT_RUN",
+  "predecessors": {
+    "blocked_until": [
+      "re-enumeration of UID",
+      "exclusive ownership record",
+      "WP14 useful-U55 CURRENT_TARGET admission",
+      "WP13 physical PDM"
+    ],
+    "both_not_run": true,
+    "named_missing_facts": [
+      "live_uid",
+      "exclusive_owner",
+      "useful_u55_admission",
+      "physical_pdm"
+    ],
+    "physical_pdm_complete": false,
+    "useful_u55_admitted": false,
+    "wp13_level": "HOST",
+    "wp13_physical_pdm": "NOT_RUN",
+    "wp13_receipt": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/plugin-pdm/physical-capture-not-run.json",
+    "wp14_level": "HOST",
+    "wp14_receipt": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/plugin-compute/useful-npu-current-target-not-run.json",
+    "wp14_useful_u55": "NOT_RUN"
+  },
+  "qualification_level": "HOST",
+  "receipt_id": "wp15-audio-npu-pair-current-target-not-run",
+  "recipe": {
+    "id": "audio-npu-pair",
+    "version": "1"
+  },
+  "schema_version": 2,
+  "started_at": "2026-09-10T06:28:23.585537+00:00",
+  "status": "PASS",
+  "tools": []
+}
