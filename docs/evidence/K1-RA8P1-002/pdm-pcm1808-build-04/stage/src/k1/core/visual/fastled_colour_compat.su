@@ -1,0 +1,4 @@
+src/k1/core/visual/fastled_colour_compat.cpp:62:8:k1::core::Pixel8 k1::core::visual::fastLedHsvToRgbRainbow(Hsv8)	32	static
+src/k1/core/visual/fastled_colour_compat.cpp:138:6:k1::core::visual::Hsv8 k1::core::visual::rgbToFastLedHsvApproximate(k1::core::Pixel8)	40	static
+src/k1/core/visual/fastled_colour_compat.cpp:248:8:k1::core::Pixel8 k1::core::visual::forceFastLedSaturation(k1::core::Pixel8, uint8_t)	24	static
+src/k1/core/visual/fastled_colour_compat.cpp:255:8:k1::core::Pixel8 k1::core::visual::forceFastLedHue(k1::core::Pixel8, uint8_t)	24	static

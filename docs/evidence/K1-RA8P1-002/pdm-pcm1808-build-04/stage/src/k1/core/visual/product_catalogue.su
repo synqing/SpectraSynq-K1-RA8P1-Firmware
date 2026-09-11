@@ -1,0 +1,5 @@
+src/k1/core/visual/product_catalogue.cpp:57:1:const std::array<k1::core::visual::ProductModeDescriptor, 38>& k1::core::visual::productModeCatalogue()	0	static
+src/k1/core/visual/product_catalogue.cpp:61:30:const k1::core::visual::ProductModeDescriptor* k1::core::visual::productMode(uint16_t)	0	static
+src/k1/core/visual/product_catalogue.cpp:65:6:bool k1::core::visual::productModeEnabled(uint16_t)	0	static
+src/k1/core/visual/product_catalogue.cpp:70:15:uint16_t k1::core::visual::sanitiseProductMode(uint16_t)	12	static
+src/k1/core/visual/product_catalogue.cpp:86:15:uint16_t k1::core::visual::sanitiseProductPalette(uint16_t)	0	static

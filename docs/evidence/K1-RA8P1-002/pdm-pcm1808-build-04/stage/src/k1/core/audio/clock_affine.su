@@ -1,0 +1,6 @@
+src/k1/core/audio/clock_affine.cpp:7:6:void k1::core::audio::AffineClockEstimator::reset()	8	static
+src/k1/core/audio/clock_affine.cpp:32:6:void k1::core::audio::AffineClockEstimator::refit()	368	static
+src/k1/core/audio/clock_affine.cpp:13:6:bool k1::core::audio::AffineClockEstimator::addObservation(const k1::core::audio::ClockObservation&)	24	static
+src/k1/core/audio/clock_affine.cpp:150:6:bool k1::core::audio::AffineClockEstimator::peerToLocal(uint64_t, double, uint64_t, double&) const	48	static
+src/k1/core/audio/clock_affine.cpp:164:6:bool k1::core::audio::AffineClockEstimator::localToPeer(uint64_t, double, uint64_t, double&) const	24	static
+src/k1/core/audio/clock_affine.cpp:178:6:bool k1::core::audio::AffineClockEstimator::stale(uint64_t, uint64_t) const	8	static

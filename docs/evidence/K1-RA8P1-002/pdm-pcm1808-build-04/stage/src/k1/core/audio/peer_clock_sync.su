@@ -1,0 +1,4 @@
+src/k1/core/audio/peer_clock_sync.cpp:5:6:void k1::core::audio::PeerClockSync::reset()	8	static
+src/k1/core/audio/peer_clock_sync.cpp:11:21:k1::core::audio::PeerClockSyncStatus k1::core::audio::PeerClockSync::beginExchange(uint32_t, const k1::core::audio::AudioTime&, k1::core::audio::ClockSyncRequest&)	20	static
+src/k1/core/audio/peer_clock_sync.cpp:22:21:static k1::core::audio::PeerClockSyncStatus k1::core::audio::PeerClockSync::makeResponse(const k1::core::audio::ClockSyncRequest&, const k1::core::audio::AudioTime&, const k1::core::audio::AudioTime&, k1::core::audio::ClockSyncResponse&)	20	static
+src/k1/core/audio/peer_clock_sync.cpp:38:21:k1::core::audio::PeerClockSyncStatus k1::core::audio::PeerClockSync::acceptResponse(const k1::core::audio::ClockSyncResponse&, const k1::core::audio::AudioTime&)	136	static

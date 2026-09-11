@@ -1,0 +1,3 @@
+src/k1/core/audio/tempo_acf.cpp:73:6:void k1::core::audio::computeTempoAcfAtRate(const TempoNoveltyRing&, uint16_t, float, float, TempoAcfOutput&)	2888	static
+src/k1/core/audio/tempo_acf.cpp:53:6:void k1::core::audio::computeTempoAcf(const TempoNoveltyRing&, uint16_t, float, TempoAcfOutput&)	0	static
+src/k1/core/audio/tempo_acf.cpp:61:6:void k1::core::audio::computeTempoAcf(const TempoNoveltyRing&, uint16_t, float, AudioRateConfiguration, TempoAcfOutput&)	8	static

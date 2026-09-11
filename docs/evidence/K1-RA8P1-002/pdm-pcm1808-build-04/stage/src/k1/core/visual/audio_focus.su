@@ -1,0 +1,2 @@
+src/k1/core/visual/audio_focus.cpp:34:1:k1::core::visual::AudioFocusProfile::AudioFocusProfile()	24	static
+src/k1/core/visual/audio_focus.cpp:43:6:void k1::core::visual::applyAudioFocus(const k1::contract::AudioFeaturesV1&, const AudioFocusProfile&, k1::contract::AudioFeaturesV1&)	32	static

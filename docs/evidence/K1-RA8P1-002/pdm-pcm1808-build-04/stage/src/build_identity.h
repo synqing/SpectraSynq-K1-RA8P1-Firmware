@@ -1,0 +1,2 @@
+#define K1_BUILD_ID "17152b7c68182d6aa3afdeb25420e7efdf00ea1a963cfffc71532aac75ae4b3d"
+#define K1_SOURCE_PIN "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a"

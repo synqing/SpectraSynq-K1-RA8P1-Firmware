@@ -1,0 +1,11 @@
+src/k1/core/audio/onset_beat.cpp:114:7:float k1::core::audio::OnsetBeat::median(const float*, uint8_t) const	80	static
+src/k1/core/audio/onset_beat.cpp:85:6:void k1::core::audio::OnsetBeat::reset()	8	static
+src/k1/core/audio/onset_beat.cpp:100:7:float k1::core::audio::OnsetBeat::bandFlux(const float*, const float*, uint8_t, uint8_t) const	32	static
+src/k1/core/audio/onset_beat.cpp:114:7:float k1::core::audio::OnsetBeat::median(const float*, uint8_t) const	0	static
+src/k1/core/audio/onset_beat.cpp:132:7:float k1::core::audio::OnsetBeat::thresholdEnvelope(float)	16	static
+src/k1/core/audio/onset_beat.cpp:148:7:float k1::core::audio::OnsetBeat::peakPick(float, bool)	4	static
+src/k1/core/audio/onset_beat.cpp:170:7:float k1::core::audio::OnsetBeat::bandTrigger(BandState&, float, float, float, uint8_t, bool)	4	static
+src/k1/core/audio/onset_beat.cpp:195:6:bool k1::core::audio::OnsetBeat::runV2(const k1::contract::AudioFeaturesV1&, k1::core::audio::OnsetBeatFrame&)	80	static
+src/k1/core/audio/onset_beat.cpp:339:6:void k1::core::audio::OnsetBeat::decayBeatLock()	0	static
+src/k1/core/audio/onset_beat.cpp:347:6:void k1::core::audio::OnsetBeat::noteAcceptedInterval(uint32_t)	12	static
+src/k1/core/audio/onset_beat.cpp:375:16:k1::core::audio::OnsetBeatFrame k1::core::audio::OnsetBeat::update(const k1::contract::AudioFeaturesV1&)	152	static

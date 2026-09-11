@@ -1,0 +1,3 @@
+src/k1/core/audio/audio_pipeline.cpp:48:1:k1::core::audio::AudioPipeline::AudioPipeline()	24	static
+src/k1/core/audio/audio_pipeline.cpp:56:6:void k1::core::audio::AudioPipeline::reset()	2640	static
+src/k1/core/audio/audio_pipeline.cpp:64:21:k1::core::audio::AudioPipelineOutput k1::core::audio::AudioPipeline::process(const k1::core::audio::AudioPipelineInput&)	3232	static

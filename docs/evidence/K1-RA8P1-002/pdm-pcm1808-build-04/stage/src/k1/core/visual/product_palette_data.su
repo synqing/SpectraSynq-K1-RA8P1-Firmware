@@ -1,0 +1,2 @@
+src/k1/core/visual/product_palette_data.cpp:1312:1:const std::array<k1::core::visual::ProductPaletteDescriptor, 44>& k1::core::visual::productPaletteCatalogue()	0	static
+src/k1/core/visual/product_palette_data.cpp:1316:33:const k1::core::visual::ProductPaletteDescriptor& k1::core::visual::productPalette(uint16_t)	0	static

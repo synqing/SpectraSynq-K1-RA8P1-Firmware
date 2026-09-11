@@ -1,0 +1,497 @@
+/* Dual IM69D130 capture for the identified Titan M85 target.
+
+   The electrical and lane contract comes from the working S3 firmware:
+   both microphones share CLK and DATA, while opposite hard-strapped SELECT
+   levels put IM1 on the rising edge and IM2 on the falling edge. IM1 remains
+   the sole programme/AP source; IM2 is captured for measurement only.
+
+   The pinned BSP filter produces 16 kHz PCM. A 120-sample slot retains the
+   product's 7.5 ms cadence, but this file does not claim 12.8 kHz sample parity. */
+#include "pdm_target.h"
+
+#include <limits.h>
+#include <stddef.h>
+
+#include "hal_data.h"
+#include "pdm_capture.h"
+#include "r_dmac.h"
+
+extern void pdm_rxi_dmac_isr(dmac_callback_args_t *args);
+
+typedef struct {
+    uint32_t lane;
+} k1_pdm_lane_context_t;
+
+typedef struct {
+    uint32_t slot;
+    uint32_t epoch;
+    uint32_t sequence;
+    uint64_t capture_start_us;
+    uint64_t capture_end_us;
+    int valid;
+} k1_pdm_owner_t;
+
+typedef struct {
+    volatile uint32_t data_callbacks;
+    volatile uint32_t error_callbacks;
+    volatile uint32_t error_flags;
+    uint32_t processed_slots;
+    uint32_t processed_samples;
+    uint32_t sample_hash;
+    int32_t sample_min;
+    int32_t sample_max;
+    uint32_t sample_peak;
+    uint64_t sample_square_sum;
+} k1_pdm_lane_metrics_t;
+
+static int32_t capture_buffer[K1_PDM_TARGET_LANE_COUNT]
+                             [K1_PDM_STREAM_SLOT_COUNT]
+                             [K1_PDM_TARGET_SLOT_ELEMENTS]
+    __attribute__((aligned(32)));
+
+static k1_pdm_stream_t capture_stream[K1_PDM_TARGET_LANE_COUNT];
+static k1_pdm_owner_t capture_owner[K1_PDM_TARGET_LANE_COUNT];
+static k1_pdm_lane_context_t capture_context[K1_PDM_TARGET_LANE_COUNT] = {
+    {K1_PDM_TARGET_PROGRAMME_LANE},
+    {K1_PDM_TARGET_MEASUREMENT_LANE},
+};
+static k1_pdm_lane_metrics_t capture_metrics[K1_PDM_TARGET_LANE_COUNT] = {
+    {0u, 0u, 0u, 0u, 0u, 2166136261u, INT32_MAX, INT32_MIN, 0u, 0u},
+    {0u, 0u, 0u, 0u, 0u, 2166136261u, INT32_MAX, INT32_MIN, 0u, 0u},
+};
+
+static pdm_instance_ctrl_t capture_fall_pdm_ctrl;
+static dmac_instance_ctrl_t capture_rise_dmac_ctrl;
+static dmac_instance_ctrl_t capture_fall_dmac_ctrl;
+
+static transfer_info_t capture_rise_transfer_info = {
+    .transfer_settings_word_b.dest_addr_mode = TRANSFER_ADDR_MODE_INCREMENTED,
+    .transfer_settings_word_b.repeat_area = TRANSFER_REPEAT_AREA_SOURCE,
+    .transfer_settings_word_b.irq = TRANSFER_IRQ_END,
+    .transfer_settings_word_b.chain_mode = TRANSFER_CHAIN_MODE_DISABLED,
+    .transfer_settings_word_b.src_addr_mode = TRANSFER_ADDR_MODE_FIXED,
+    .transfer_settings_word_b.size = TRANSFER_SIZE_4_BYTE,
+    .transfer_settings_word_b.mode = TRANSFER_MODE_BLOCK,
+    .p_dest = NULL,
+    .p_src = NULL,
+    .num_blocks = 0u,
+    .length = 0u,
+};
+
+static transfer_info_t capture_fall_transfer_info = {
+    .transfer_settings_word_b.dest_addr_mode = TRANSFER_ADDR_MODE_INCREMENTED,
+    .transfer_settings_word_b.repeat_area = TRANSFER_REPEAT_AREA_SOURCE,
+    .transfer_settings_word_b.irq = TRANSFER_IRQ_END,
+    .transfer_settings_word_b.chain_mode = TRANSFER_CHAIN_MODE_DISABLED,
+    .transfer_settings_word_b.src_addr_mode = TRANSFER_ADDR_MODE_FIXED,
+    .transfer_settings_word_b.size = TRANSFER_SIZE_4_BYTE,
+    .transfer_settings_word_b.mode = TRANSFER_MODE_BLOCK,
+    .p_dest = NULL,
+    .p_src = NULL,
+    .num_blocks = 0u,
+    .length = 0u,
+};
+
+static const dmac_extended_cfg_t capture_rise_dmac_extend = {
+    .channel = K1_PDM_TARGET_RISE_DMA_CHANNEL,
+    .irq = DMAC0_INT_IRQn,
+    .ipl = 12u,
+    .offset = 0,
+    .src_buffer_size = 0u,
+    .activation_source = ELC_EVENT_PDM_DAT2,
+    .p_callback = pdm_rxi_dmac_isr,
+    .p_callback_memory = NULL,
+    .p_context = &g_pdm0_ctrl,
+};
+
+static const dmac_extended_cfg_t capture_fall_dmac_extend = {
+    .channel = K1_PDM_TARGET_FALL_DMA_CHANNEL,
+    .irq = DMAC1_INT_IRQn,
+    .ipl = 12u,
+    .offset = 0,
+    .src_buffer_size = 0u,
+    .activation_source = ELC_EVENT_PDM_DAT0,
+    .p_callback = pdm_rxi_dmac_isr,
+    .p_callback_memory = NULL,
+    .p_context = &capture_fall_pdm_ctrl,
+};
+
+static const transfer_cfg_t capture_rise_transfer_cfg = {
+    .p_info = &capture_rise_transfer_info,
+    .p_extend = &capture_rise_dmac_extend,
+};
+static const transfer_cfg_t capture_fall_transfer_cfg = {
+    .p_info = &capture_fall_transfer_info,
+    .p_extend = &capture_fall_dmac_extend,
+};
+static const transfer_instance_t capture_rise_transfer = {
+    .p_ctrl = &capture_rise_dmac_ctrl,
+    .p_cfg = &capture_rise_transfer_cfg,
+    .p_api = &g_transfer_on_dmac,
+};
+static const transfer_instance_t capture_fall_transfer = {
+    .p_ctrl = &capture_fall_dmac_ctrl,
+    .p_cfg = &capture_fall_transfer_cfg,
+    .p_api = &g_transfer_on_dmac,
+};
+
+static pdm_cfg_t capture_rise_pdm_cfg;
+static pdm_cfg_t capture_fall_pdm_cfg;
+static pdm_extended_cfg_t capture_rise_pdm_extend;
+static pdm_extended_cfg_t capture_fall_pdm_extend;
+static volatile int capture_initialised;
+static volatile int capture_running;
+static volatile int capture_restart_requested;
+static volatile int32_t capture_last_fsp_error;
+static uint32_t capture_paired_slots;
+static uint32_t capture_pair_skew_drops;
+static uint32_t capture_startup_discard_pairs;
+static uint32_t capture_discard_next_pair;
+static uint64_t capture_max_pair_skew_us;
+static uint64_t capture_first_start_us;
+static uint64_t capture_last_end_us;
+static uint32_t capture_last_cycle;
+static uint64_t capture_cycle_high;
+
+static uint64_t k1_pdm_target_now_us(void) {
+    const uint32_t now = DWT->CYCCNT;
+    if (now < capture_last_cycle) capture_cycle_high += (1ull << 32);
+    capture_last_cycle = now;
+    return ((capture_cycle_high | (uint64_t) now) * 1000000ull) /
+           (uint64_t) SystemCoreClock;
+}
+
+static void k1_pdm_target_invalidate_slot(uint32_t lane, uint32_t slot) {
+    if ((SCB->CCR & SCB_CCR_DC_Msk) != 0u &&
+        lane < K1_PDM_TARGET_LANE_COUNT &&
+        slot < K1_PDM_STREAM_SLOT_COUNT) {
+        SCB_InvalidateDCache_by_Addr((void *) &capture_buffer[lane][slot][0],
+                                    (int32_t) sizeof(capture_buffer[lane][slot]));
+        __DSB();
+        __ISB();
+    }
+}
+
+static void k1_pdm_target_request_restart(int32_t error) {
+    if (error != (int32_t) FSP_SUCCESS) capture_last_fsp_error = error;
+    capture_restart_requested = 1;
+}
+
+void pdm_callback(pdm_callback_args_t *args) {
+    k1_pdm_lane_context_t *context;
+    uint32_t lane;
+    if (args == NULL || args->p_context == NULL) return;
+    context = (k1_pdm_lane_context_t *) args->p_context;
+    lane = context->lane;
+    if (lane >= K1_PDM_TARGET_LANE_COUNT) return;
+
+    if (args->event == PDM_EVENT_DATA) {
+        const uint32_t completed_slot = capture_stream[lane].active_slot;
+        const uint64_t capture_end_us = k1_pdm_target_now_us();
+        int result;
+        k1_pdm_target_invalidate_slot(lane, completed_slot);
+        capture_metrics[lane].data_callbacks++;
+        result = k1_pdm_stream_context_on_data(&capture_stream[lane],
+                                               K1_PDM_TARGET_SLOT_ELEMENTS,
+                                               capture_end_us);
+        if (result == K1_PDM_STREAM_OVERFLOW ||
+            result == K1_PDM_STREAM_INVALID) {
+            k1_pdm_target_request_restart((int32_t) FSP_ERR_OVERFLOW);
+        }
+    } else if (args->event == PDM_EVENT_ERROR) {
+        capture_metrics[lane].error_callbacks++;
+        capture_metrics[lane].error_flags |= (uint32_t) args->error;
+        k1_pdm_target_request_restart((int32_t) FSP_ERR_OVERFLOW);
+    }
+}
+
+static fsp_err_t k1_pdm_target_start_drivers(void) {
+    fsp_err_t error;
+    /* Start the falling-edge measurement lane first and the programme lane
+       second. The first paired callback is deliberately discarded because
+       each FSP start performs an independent FIFO drain. */
+    error = R_PDM_Start(&capture_fall_pdm_ctrl,
+                        &capture_buffer[K1_PDM_TARGET_MEASUREMENT_LANE][0][0],
+                        sizeof(capture_buffer[K1_PDM_TARGET_MEASUREMENT_LANE]),
+                        K1_PDM_TARGET_SLOT_ELEMENTS);
+    if (error != FSP_SUCCESS) return error;
+    error = R_PDM_Start(&g_pdm0_ctrl,
+                        &capture_buffer[K1_PDM_TARGET_PROGRAMME_LANE][0][0],
+                        sizeof(capture_buffer[K1_PDM_TARGET_PROGRAMME_LANE]),
+                        K1_PDM_TARGET_SLOT_ELEMENTS);
+    if (error != FSP_SUCCESS) {
+        (void) R_PDM_Stop(&capture_fall_pdm_ctrl);
+        return error;
+    }
+    return FSP_SUCCESS;
+}
+
+static void k1_pdm_target_stop_drivers(void) {
+    fsp_err_t error = R_PDM_Stop(&g_pdm0_ctrl);
+    if (error != FSP_SUCCESS) capture_last_fsp_error = (int32_t) error;
+    error = R_PDM_Stop(&capture_fall_pdm_ctrl);
+    if (error != FSP_SUCCESS) capture_last_fsp_error = (int32_t) error;
+    capture_running = 0;
+    k1_pdm_stream_context_stop(&capture_stream[K1_PDM_TARGET_PROGRAMME_LANE]);
+    k1_pdm_stream_context_stop(&capture_stream[K1_PDM_TARGET_MEASUREMENT_LANE]);
+}
+
+static int k1_pdm_target_acquire(uint32_t lane) {
+    k1_pdm_owner_t *owner = &capture_owner[lane];
+    if (owner->valid) return K1_PDM_STREAM_OK;
+    if (k1_pdm_stream_context_acquire(&capture_stream[lane],
+                                      &owner->slot,
+                                      &owner->epoch,
+                                      &owner->sequence,
+                                      &owner->capture_start_us,
+                                      &owner->capture_end_us) != K1_PDM_STREAM_OK) {
+        return K1_PDM_STREAM_INVALID;
+    }
+    owner->valid = 1;
+    return K1_PDM_STREAM_OK;
+}
+
+static void k1_pdm_target_release(uint32_t lane) {
+    k1_pdm_owner_t *owner = &capture_owner[lane];
+    if (!owner->valid) return;
+    (void) k1_pdm_stream_context_release(&capture_stream[lane],
+                                         owner->slot,
+                                         owner->epoch,
+                                         owner->sequence);
+    owner->valid = 0;
+}
+
+static void k1_pdm_target_process_lane(uint32_t lane) {
+    k1_pdm_lane_metrics_t *metrics = &capture_metrics[lane];
+    k1_pdm_owner_t const *owner = &capture_owner[lane];
+    uint32_t index;
+    k1_pdm_target_invalidate_slot(lane, owner->slot);
+    for (index = 0; index < K1_PDM_TARGET_SLOT_ELEMENTS; ++index) {
+        const int32_t raw = capture_buffer[lane][owner->slot][index];
+        /* PDM_PCM_WIDTH_16_BITS_0_14 stores the signed sample in bits 14:0
+           plus sign. This is the conversion used by the Titan BSP example. */
+        const int16_t sample = (int16_t) (raw << 1);
+        const uint8_t *bytes = (const uint8_t *) &sample;
+        const int32_t signed_sample = (int32_t) sample;
+        const uint32_t magnitude = signed_sample < 0
+                                 ? (uint32_t) (-signed_sample)
+                                 : (uint32_t) signed_sample;
+        const uint64_t square = (uint64_t) magnitude * (uint64_t) magnitude;
+        uint32_t byte;
+        if (signed_sample < metrics->sample_min) metrics->sample_min = signed_sample;
+        if (signed_sample > metrics->sample_max) metrics->sample_max = signed_sample;
+        if (magnitude > metrics->sample_peak) metrics->sample_peak = magnitude;
+        if (UINT64_MAX - metrics->sample_square_sum < square) {
+            metrics->sample_square_sum = UINT64_MAX;
+        } else {
+            metrics->sample_square_sum += square;
+        }
+        for (byte = 0; byte < sizeof(sample); ++byte) {
+            metrics->sample_hash ^= bytes[byte];
+            metrics->sample_hash *= 16777619u;
+        }
+    }
+    metrics->processed_slots++;
+    metrics->processed_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
+}
+
+static void k1_pdm_target_process_pair(void) {
+    const k1_pdm_owner_t *programme = &capture_owner[K1_PDM_TARGET_PROGRAMME_LANE];
+    const k1_pdm_owner_t *measurement = &capture_owner[K1_PDM_TARGET_MEASUREMENT_LANE];
+    uint64_t skew;
+    if (!programme->valid || !measurement->valid) return;
+
+    if (programme->sequence != measurement->sequence) {
+        if (programme->sequence < measurement->sequence) {
+            k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
+        } else {
+            k1_pdm_target_release(K1_PDM_TARGET_MEASUREMENT_LANE);
+        }
+        capture_pair_skew_drops++;
+        return;
+    }
+
+    skew = programme->capture_end_us >= measurement->capture_end_us
+         ? programme->capture_end_us - measurement->capture_end_us
+         : measurement->capture_end_us - programme->capture_end_us;
+    if (skew > capture_max_pair_skew_us) capture_max_pair_skew_us = skew;
+
+    if (capture_discard_next_pair) {
+        capture_discard_next_pair = 0u;
+        capture_startup_discard_pairs++;
+    } else {
+        k1_pdm_target_process_lane(K1_PDM_TARGET_PROGRAMME_LANE);
+        k1_pdm_target_process_lane(K1_PDM_TARGET_MEASUREMENT_LANE);
+        if (capture_metrics[K1_PDM_TARGET_PROGRAMME_LANE].processed_slots == 1u) {
+            capture_first_start_us = programme->capture_start_us;
+        }
+        capture_last_end_us = programme->capture_end_us >= measurement->capture_end_us
+                            ? programme->capture_end_us
+                            : measurement->capture_end_us;
+    }
+    capture_paired_slots++;
+    k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
+    k1_pdm_target_release(K1_PDM_TARGET_MEASUREMENT_LANE);
+}
+
+int k1_pdm_target_initialise(void) {
+    fsp_err_t error;
+    uint64_t capture_start_us;
+    uint32_t lane;
+    if (capture_initialised) return 0;
+    capture_last_cycle = DWT->CYCCNT;
+    capture_cycle_high = 0u;
+    for (lane = 0; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
+        if (k1_pdm_stream_context_configure(&capture_stream[lane],
+                                            K1_PDM_TARGET_SLOT_ELEMENTS,
+                                            K1_PDM_TARGET_SLOT_ELEMENTS) != K1_PDM_STREAM_OK) {
+            return -1;
+        }
+    }
+
+    capture_rise_pdm_extend = *(pdm_extended_cfg_t const *) g_pdm0_cfg.p_extend;
+    capture_rise_pdm_extend.interrupt_threshold = PDM_INTERRUPT_THRESHOLD_8;
+    capture_rise_pdm_cfg = g_pdm0_cfg;
+    capture_rise_pdm_cfg.channel = K1_PDM_TARGET_RISE_CHANNEL;
+    capture_rise_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_RISE;
+    capture_rise_pdm_cfg.p_extend = &capture_rise_pdm_extend;
+    capture_rise_pdm_cfg.p_transfer_rx = &capture_rise_transfer;
+    capture_rise_pdm_cfg.p_callback = pdm_callback;
+    capture_rise_pdm_cfg.p_context = &capture_context[K1_PDM_TARGET_PROGRAMME_LANE];
+    capture_rise_pdm_cfg.dat_irq = FSP_INVALID_VECTOR;
+    capture_rise_pdm_cfg.dat_ipl = BSP_IRQ_DISABLED;
+
+    capture_fall_pdm_extend = *(pdm_extended_cfg_t const *) g_pdm0_cfg.p_extend;
+    capture_fall_pdm_extend.interrupt_threshold = PDM_INTERRUPT_THRESHOLD_8;
+    capture_fall_pdm_cfg = g_pdm0_cfg;
+    capture_fall_pdm_cfg.channel = K1_PDM_TARGET_FALL_CHANNEL;
+    capture_fall_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_FALL;
+    capture_fall_pdm_cfg.p_extend = &capture_fall_pdm_extend;
+    capture_fall_pdm_cfg.p_transfer_rx = &capture_fall_transfer;
+    capture_fall_pdm_cfg.p_callback = pdm_callback;
+    capture_fall_pdm_cfg.p_context = &capture_context[K1_PDM_TARGET_MEASUREMENT_LANE];
+    capture_fall_pdm_cfg.dat_irq = FSP_INVALID_VECTOR;
+    capture_fall_pdm_cfg.dat_ipl = BSP_IRQ_DISABLED;
+    capture_fall_pdm_cfg.err_irq = PDM_ERR0_IRQn;
+
+    error = R_PDM_Open(&capture_fall_pdm_ctrl, &capture_fall_pdm_cfg);
+    if (error != FSP_SUCCESS) {
+        capture_last_fsp_error = (int32_t) error;
+        return -2;
+    }
+    error = R_PDM_Open(&g_pdm0_ctrl, &capture_rise_pdm_cfg);
+    if (error != FSP_SUCCESS) {
+        capture_last_fsp_error = (int32_t) error;
+        (void) R_PDM_Close(&capture_fall_pdm_ctrl);
+        return -3;
+    }
+
+    capture_start_us = k1_pdm_target_now_us();
+    for (lane = 0; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
+        if (k1_pdm_stream_context_start(&capture_stream[lane],
+                                        capture_start_us) != K1_PDM_STREAM_OK) {
+            capture_last_fsp_error = (int32_t) FSP_ERR_INVALID_ARGUMENT;
+            return -4;
+        }
+    }
+    error = k1_pdm_target_start_drivers();
+    if (error != FSP_SUCCESS) {
+        capture_last_fsp_error = (int32_t) error;
+        k1_pdm_stream_context_stop(&capture_stream[K1_PDM_TARGET_PROGRAMME_LANE]);
+        k1_pdm_stream_context_stop(&capture_stream[K1_PDM_TARGET_MEASUREMENT_LANE]);
+        return -5;
+    }
+    capture_discard_next_pair = 1u;
+    capture_restart_requested = 0;
+    capture_running = 1;
+    capture_initialised = 1;
+    return 0;
+}
+
+void k1_pdm_target_poll(void) {
+    uint32_t lane;
+    if (!capture_initialised) return;
+
+    if (capture_restart_requested) {
+        fsp_err_t error;
+        uint64_t capture_start_us;
+        k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
+        k1_pdm_target_release(K1_PDM_TARGET_MEASUREMENT_LANE);
+        k1_pdm_target_stop_drivers();
+        capture_start_us = k1_pdm_target_now_us();
+        for (lane = 0; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
+            if (k1_pdm_stream_context_recover(&capture_stream[lane],
+                                              capture_start_us) != K1_PDM_STREAM_OK) {
+                return;
+            }
+        }
+        error = k1_pdm_target_start_drivers();
+        if (error != FSP_SUCCESS) {
+            capture_last_fsp_error = (int32_t) error;
+            return;
+        }
+        capture_discard_next_pair = 1u;
+        capture_restart_requested = 0;
+        capture_running = 1;
+        return;
+    }
+
+    (void) k1_pdm_target_acquire(K1_PDM_TARGET_PROGRAMME_LANE);
+    (void) k1_pdm_target_acquire(K1_PDM_TARGET_MEASUREMENT_LANE);
+    k1_pdm_target_process_pair();
+}
+
+static int k1_pdm_target_lane_valid(uint32_t lane) {
+    return lane < K1_PDM_TARGET_LANE_COUNT;
+}
+
+int k1_pdm_target_initialised(void) { return capture_initialised; }
+int k1_pdm_target_running(void) { return capture_running; }
+int32_t k1_pdm_target_last_fsp_error(void) { return capture_last_fsp_error; }
+uint32_t k1_pdm_target_data_callbacks(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].data_callbacks : 0u;
+}
+uint32_t k1_pdm_target_error_callbacks(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].error_callbacks : 0u;
+}
+uint32_t k1_pdm_target_error_flags(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].error_flags : 0u;
+}
+uint32_t k1_pdm_target_processed_slots(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].processed_slots : 0u;
+}
+uint32_t k1_pdm_target_processed_samples(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].processed_samples : 0u;
+}
+uint32_t k1_pdm_target_sample_hash(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].sample_hash : 0u;
+}
+int32_t k1_pdm_target_sample_min(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) && capture_metrics[lane].processed_samples
+         ? capture_metrics[lane].sample_min : 0;
+}
+int32_t k1_pdm_target_sample_max(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) && capture_metrics[lane].processed_samples
+         ? capture_metrics[lane].sample_max : 0;
+}
+uint32_t k1_pdm_target_sample_peak(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].sample_peak : 0u;
+}
+uint64_t k1_pdm_target_sample_square_sum(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_metrics[lane].sample_square_sum : 0u;
+}
+uint32_t k1_pdm_target_overflow_events(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_stream[lane].overflow_events : 0u;
+}
+uint32_t k1_pdm_target_drop_events(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_stream[lane].drop_events : 0u;
+}
+uint32_t k1_pdm_target_recovery_count(uint32_t lane) {
+    return k1_pdm_target_lane_valid(lane) ? capture_stream[lane].recovery_count : 0u;
+}
+uint64_t k1_pdm_target_first_capture_start_us(void) { return capture_first_start_us; }
+uint64_t k1_pdm_target_last_capture_end_us(void) { return capture_last_end_us; }
+uint32_t k1_pdm_target_paired_slots(void) { return capture_paired_slots; }
+uint32_t k1_pdm_target_pair_skew_drops(void) { return capture_pair_skew_drops; }
+uint32_t k1_pdm_target_startup_discard_pairs(void) { return capture_startup_discard_pairs; }
+uint64_t k1_pdm_target_max_pair_skew_us(void) { return capture_max_pair_skew_us; }

@@ -1,0 +1,7 @@
+src/k1/core/audio/musical_time.cpp:28:6:bool k1::core::audio::{anonymous}::addBeats(const k1::core::audio::MusicalTime&, uint64_t, k1::core::audio::FramePositionQ32&)	40	static
+src/k1/core/audio/musical_time.cpp:86:6:bool k1::core::audio::predictBeatFrame(const MusicalTime&, uint64_t, FramePositionQ32&)	12	static
+src/k1/core/audio/musical_time.cpp:94:6:bool k1::core::audio::nextBeatFrame(const MusicalTime&, uint64_t, FramePositionQ32&, uint64_t*)	96	static
+src/k1/core/audio/musical_time.cpp:140:6:bool k1::core::audio::beatPhaseAt(const MusicalTime&, uint64_t, double&)	40	static
+src/k1/core/audio/musical_time.cpp:162:6:void k1::core::audio::reanchor(MusicalTime&, const AudioTime&, uint64_t, float)	16	static
+src/k1/core/audio/musical_time.cpp:190:6:bool k1::core::audio::bindTempoPhase(MusicalTime&, const AudioTime&, double, double, float, bool)	64	static
+src/k1/core/audio/musical_time.cpp:240:6:void k1::core::audio::invalidateForEpochChange(MusicalTime&, uint64_t)	8	static

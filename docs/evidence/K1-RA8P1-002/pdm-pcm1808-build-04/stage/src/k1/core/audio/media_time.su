@@ -1,0 +1,6 @@
+src/k1/core/audio/media_time.cpp:5:15:k1::core::audio::AnalysisStamp k1::core::audio::makeAnalysisStamp(const AudioTime&, uint64_t, uint32_t, uint32_t, uint64_t)	24	static
+src/k1/core/audio/media_time.cpp:26:6:void k1::core::audio::MediaClock::advance(uint64_t)	0	static
+src/k1/core/audio/media_time.cpp:38:6:void k1::core::audio::MediaClock::insertMeasuredGap(uint64_t)	4	static
+src/k1/core/audio/media_time.cpp:51:6:void k1::core::audio::MediaClock::breakEpoch(k1::core::audio::Discontinuity)	4	static
+src/k1/core/audio/media_time.cpp:63:11:k1::core::audio::AudioTime k1::core::audio::MediaClock::load() const	0	static
+src/k1/core/audio/media_time.cpp:80:6:void k1::core::audio::MediaClock::reset(uint64_t)	0	static

@@ -1,0 +1,3 @@
+src/k1/core/visual/channel_render_state.cpp:7:1:k1::core::visual::ChannelRenderState::ChannelRenderState(k1::core::visual::PixelChannelId)	16	static
+src/k1/core/visual/channel_render_state.cpp:10:6:void k1::core::visual::ChannelRenderState::prepareAudio(const k1::contract::AudioFeaturesV1&)	0	static
+src/k1/core/visual/channel_render_state.cpp:15:6:void k1::core::visual::ChannelRenderState::clearFrame()	4	static

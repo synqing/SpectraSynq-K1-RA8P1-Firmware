@@ -1,0 +1,1 @@
+src/k1/core/visual/product_output_treatment.cpp:77:6:void k1::core::visual::applyProductOutputTreatment(k1::core::PixelSpan, const ChannelVisualControls&, ProductOutputTreatmentState&)	80	static

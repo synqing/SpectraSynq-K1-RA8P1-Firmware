@@ -1,0 +1,18 @@
+import os
+from building import *
+cwd = GetCurrentDir()
+ws281x_diagnostic = Glob('ws281x_diag.c')
+src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('pdm_target.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c') + Glob('coexist_probe.c') + Glob('ws2816_gpio_emit.c') + Glob('titan_ram_diag.c') + Glob('k1_exact_stream.c') + Glob('ws281x_waveform.c') + Glob('k1_shared_snapshot.c') + Glob('ws281x_gpt_dma.c') + Glob('k1_rate_adapt.c')
+src += ws281x_diagnostic + Glob('pcm1808_target.c')
+for directory, _, files in os.walk(os.path.join(cwd, 'k1')):
+    src += [os.path.join(directory, f) for f in files if f.endswith('.cpp')]
+group = DefineGroup('K1Scalar', src, depend=[''], CPPPATH=[cwd, os.path.join(cwd, 'k1'), os.path.join(cwd, 'models'), os.path.join(cwd, 'p4')],
+                    LOCAL_CXXFLAGS=' -std=c++17 -fno-exceptions -fno-rtti -fno-threadsafe-statics')
+objects = [group]
+model_sconscript = os.path.join(cwd, 'models', 'SConscript')
+if os.path.isfile(model_sconscript):
+    objects += SConscript(model_sconscript)
+p4_sconscript = os.path.join(cwd, 'p4', 'SConscript')
+if os.path.isfile(p4_sconscript):
+    objects += SConscript(p4_sconscript)
+Return('objects')

@@ -1,0 +1,5 @@
+src/k1/core/system/realtime_render_scheduler.cpp:15:15:static uint64_t k1::core::system::RealtimeRenderScheduler::musicalStartUs(const k1::core::system::MusicalRenderTarget&)	8	static
+src/k1/core/system/realtime_render_scheduler.cpp:22:6:void k1::core::system::RealtimeRenderScheduler::noteAudioPublication(uint64_t)	8	static
+src/k1/core/system/realtime_render_scheduler.cpp:28:6:bool k1::core::system::RealtimeRenderScheduler::noteMusicalTarget(const k1::core::system::MusicalRenderTarget&)	12	static
+src/k1/core/system/realtime_render_scheduler.cpp:53:16:k1::core::system::RenderDecision k1::core::system::RealtimeRenderScheduler::decide(uint64_t)	24	static
+src/k1/core/system/realtime_render_scheduler.cpp:111:6:void k1::core::system::RealtimeRenderScheduler::noteRendered(uint64_t)	0	static

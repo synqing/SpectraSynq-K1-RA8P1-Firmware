@@ -9,9 +9,10 @@
 extern "C" {
 #endif
 
-/* PRE-SILICON GPT PWM+DMA state model. FastLED-PORT-DESIGN 2026-09-10.
-   Not a flashed driver. GPIO smoke emitter remains. P601/GPT6 is the first
-   lane. P004 cannot PWM. DMA complete ≠ waveform complete ≠ reset-ready. */
+/* PRE-SILICON GPT PWM+DMA model. FastLED-PORT-DESIGN. Not flashed.
+   GPT6 saw-wave + GPT0 event count + DMAC to GTCCRC. P601 only.
+   DMA complete ≠ GPT0 overflow / hw stop ≠ reset-ready.
+   Compare-to-pin delay is one GPT count. GPIO smoke emitter stays. */
 
 #define K1_WS281X_GPT_TIMER 6u
 #define K1_WS281X_GPT_EVENT_TIMER 0u
@@ -27,8 +28,7 @@ enum {
     K1_WS281X_TX_WAVEFORM_COMPLETE = 4,
     K1_WS281X_TX_LATCH_PENDING = 5,
     K1_WS281X_TX_READY = 6,
-    K1_WS281X_TX_FAULT = 7,
-    K1_WS281X_TX_BUSY = 8
+    K1_WS281X_TX_FAULT = 7
 };
 
 enum {
@@ -63,17 +63,22 @@ typedef struct {
     uint32_t event_timer;
     uint32_t clock_hz;
     uint32_t bits;
+    uint32_t dma_index;
     uint32_t dma_remaining;
     uint32_t dma_complete;
+    uint32_t gpt0_count;
+    uint32_t stop_armed;
+    uint32_t hw_stopped;
     uint32_t waveform_complete;
     uint32_t reset_ready;
-    uint32_t events_seen;
+    uint32_t reset_periods;
+    uint32_t reset_elapsed;
     uint32_t gtccra;
     uint32_t gtccrc;
+    uint32_t first_pulse_duty;
+    uint32_t first_pulse_ok;
     uint32_t pin_high;
     uint32_t fault;
-    uint32_t reset_counts;
-    uint32_t reset_elapsed;
     uint32_t owned;
     uint32_t sequence;
     uint32_t duty[K1_WS281X_GPT_DUTY_CAP];
@@ -86,13 +91,14 @@ int k1_ws281x_gpt_dma_submit(k1_ws281x_gpt_dma_t *tx,
                              const k1_ws281x_wire_frame_t *frame);
 int k1_ws281x_gpt_dma_submit_test_bits(k1_ws281x_gpt_dma_t *tx,
                                        const uint32_t *duty, uint32_t bits,
-                                       uint32_t clock_hz);
+                                       uint32_t clock_hz, uint32_t period_ns,
+                                       uint32_t reset_us);
+int k1_ws281x_gpt_dma_start(k1_ws281x_gpt_dma_t *tx);
 int k1_ws281x_gpt_dma_poll(const k1_ws281x_gpt_dma_t *tx);
 void k1_ws281x_gpt_dma_abort_low(k1_ws281x_gpt_dma_t *tx);
 int k1_ws281x_gpt_dma_step_overflow(k1_ws281x_gpt_dma_t *tx);
-int k1_ws281x_gpt_dma_inject_shifted_preload(k1_ws281x_gpt_dma_t *tx);
-int k1_ws281x_gpt_dma_inject_extra_event(k1_ws281x_gpt_dma_t *tx);
-void k1_ws281x_gpt_dma_disable_stop(k1_ws281x_gpt_dma_t *tx);
+void k1_ws281x_gpt_dma_shift_preload(k1_ws281x_gpt_dma_t *tx);
+void k1_ws281x_gpt_dma_disarm_stop(k1_ws281x_gpt_dma_t *tx);
 
 #ifdef __cplusplus
 }

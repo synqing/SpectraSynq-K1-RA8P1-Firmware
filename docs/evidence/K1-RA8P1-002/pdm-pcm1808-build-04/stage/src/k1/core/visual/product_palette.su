@@ -1,0 +1,5 @@
+src/k1/core/visual/product_palette.cpp:60:18:k1::core::visual::PaletteLinearRgb k1::core::visual::sampleProductPaletteHd(uint16_t, float, float)	56	static
+src/k1/core/visual/product_palette.cpp:112:8:k1::core::Pixel8 k1::core::visual::sampleProductPaletteFastLed16(uint16_t, uint8_t, uint8_t)	24	static
+src/k1/core/visual/product_palette.cpp:132:8:k1::core::Pixel8 k1::core::visual::quantiseLinearRgb(PaletteLinearRgb)	24	static
+src/k1/core/visual/product_palette.cpp:137:8:k1::core::Pixel8 k1::core::visual::addSaturating(k1::core::Pixel8, k1::core::Pixel8)	24	static
+src/k1/core/visual/product_palette.cpp:146:8:k1::core::Pixel8 k1::core::visual::scalePixel(k1::core::Pixel8, float)	24	static

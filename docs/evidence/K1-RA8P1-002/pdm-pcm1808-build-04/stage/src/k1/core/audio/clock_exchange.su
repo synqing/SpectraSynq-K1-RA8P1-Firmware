@@ -1,0 +1,2 @@
+src/k1/core/audio/clock_exchange.cpp:37:21:k1::core::audio::ClockExchangeStatus k1::core::audio::makeClockObservation(const ClockExchangeFourStamp&, ClockObservation&)	36	static
+src/k1/core/audio/clock_exchange.cpp:70:6:bool k1::core::audio::mapPeerBeatToLocal(const AffineClockEstimator&, const BeatEvent&, uint64_t, LocalBeatTarget&)	96	static

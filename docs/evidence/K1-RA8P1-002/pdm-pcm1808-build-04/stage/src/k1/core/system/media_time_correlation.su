@@ -1,0 +1,6 @@
+src/k1/core/system/media_time_correlation.cpp:7:6:void k1::core::system::MediaTimeCorrelation::reset()	88	static
+src/k1/core/system/media_time_correlation.cpp:25:6:void k1::core::system::MediaTimeCorrelation::refit()	248	static
+src/k1/core/system/media_time_correlation.cpp:13:6:bool k1::core::system::MediaTimeCorrelation::addObservation(const k1::core::system::MediaMonotonicObservation&)	96	static
+src/k1/core/system/media_time_correlation.cpp:129:6:bool k1::core::system::MediaTimeCorrelation::mediaToMonotonic(uint64_t, double, double&) const	32	static
+src/k1/core/system/media_time_correlation.cpp:141:6:bool k1::core::system::MediaTimeCorrelation::monotonicToMedia(uint64_t, double, double&) const	32	static
+src/k1/core/system/media_time_correlation.cpp:153:6:bool k1::core::system::MediaTimeCorrelation::stale(uint64_t, uint64_t) const	8	static

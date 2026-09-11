@@ -25,3 +25,7 @@ __pycache__/
 # Scratch is deliberately non-authority
 scratch/*
 !scratch/.gitkeep
+
+# Host MCP / session noise (not firmware)
+/combined.log
+/error.log

@@ -1,0 +1,151 @@
+#pragma once
+#include <stddef.h>
+#include <stdint.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Bounded PDM completion and conversion/submission units.
+   Host-safe: no FSP/RT-Thread. Hardware R_PDM_* is not called here.
+   First DATA/interval is never treated as full-buffer completion.
+   Submission bytes equal conversion bytes (full-duration). Stop tail is
+   not invented. */
+
+#define K1_PDM_CAPTURE_ADAPTER_ID "k1-ra8p1-pdm-capture-v1"
+#define K1_PDM_MAX_REQUESTED_FRAMES 16000u
+#define K1_PDM_STREAM_SLOT_COUNT 2u
+#define K1_PDM_STREAM_NO_SLOT 0xFFFFFFFFu
+
+enum {
+    K1_PDM_STREAM_OK = 0,
+    K1_PDM_STREAM_SLOT_READY = 1,
+    K1_PDM_STREAM_INVALID = -1,
+    K1_PDM_STREAM_OVERFLOW = -2,
+    K1_PDM_STREAM_STALE_OWNER = -3
+};
+
+enum {
+    K1_PDM_SLOT_FREE = 0,
+    K1_PDM_SLOT_FILLING = 1,
+    K1_PDM_SLOT_READY = 2,
+    K1_PDM_SLOT_CONSUMER = 3
+};
+
+typedef struct {
+    volatile uint32_t state;
+    volatile uint32_t received;
+    volatile uint32_t epoch;
+    volatile uint32_t sequence;
+    volatile uint64_t capture_start_us;
+    volatile uint64_t capture_end_us;
+} k1_pdm_stream_slot_t;
+
+/* Caller-owned bounded stream state. Two instances are used by the Titan
+   dual-IM69D130 path so neither microphone can overwrite the other. */
+typedef struct {
+    k1_pdm_stream_slot_t slots[K1_PDM_STREAM_SLOT_COUNT];
+    volatile uint32_t elements_per_slot;
+    volatile uint32_t interval_elements;
+    volatile uint32_t active_slot;
+    volatile uint32_t epoch;
+    volatile uint32_t next_sequence;
+    volatile uint32_t completed_slots;
+    volatile uint32_t overflow_events;
+    volatile uint32_t drop_events;
+    volatile uint32_t recovery_count;
+    volatile int configured;
+    volatile int running;
+    volatile int halted;
+} k1_pdm_stream_t;
+
+int k1_pdm_configure(uint32_t requested_frames,
+                     uint32_t capture_channels,
+                     uint32_t capture_element_bytes,
+                     uint32_t output_channels,
+                     uint32_t output_element_bytes,
+                     uint32_t callback_interval);
+void k1_pdm_start(void);
+int k1_pdm_on_data(uint32_t interval_elements);
+void k1_pdm_request_stop(void);
+int k1_pdm_on_stopped(uint32_t driver_count);
+int k1_pdm_convert(const int32_t *capture, size_t capture_count,
+                   int16_t *output, size_t output_count);
+
+/* Fixed-capacity streaming ownership. The ISR/DMAC producer receives the
+   active slot index and reports exact callback intervals with a capture-boundary
+   timestamp. A completed slot is never overwritten. The consumer must release
+   the exact epoch/sequence token it acquired. */
+int k1_pdm_stream_configure(uint32_t elements_per_slot,
+                            uint32_t interval_elements);
+int k1_pdm_stream_start(uint64_t capture_start_us);
+int k1_pdm_stream_on_data(uint32_t interval_elements,
+                          uint64_t capture_end_us);
+int k1_pdm_stream_acquire(uint32_t *slot,
+                          uint32_t *epoch,
+                          uint32_t *sequence,
+                          uint64_t *capture_start_us,
+                          uint64_t *capture_end_us);
+int k1_pdm_stream_release(uint32_t slot,
+                          uint32_t epoch,
+                          uint32_t sequence);
+void k1_pdm_stream_stop(void);
+int k1_pdm_stream_recover(uint64_t capture_start_us);
+
+int k1_pdm_stream_context_configure(k1_pdm_stream_t *stream,
+                                    uint32_t elements_per_slot,
+                                    uint32_t interval_elements);
+int k1_pdm_stream_context_start(k1_pdm_stream_t *stream,
+                                uint64_t capture_start_us);
+int k1_pdm_stream_context_on_data(k1_pdm_stream_t *stream,
+                                  uint32_t interval_elements,
+                                  uint64_t capture_end_us);
+int k1_pdm_stream_context_acquire(k1_pdm_stream_t *stream,
+                                  uint32_t *slot,
+                                  uint32_t *epoch,
+                                  uint32_t *sequence,
+                                  uint64_t *capture_start_us,
+                                  uint64_t *capture_end_us);
+int k1_pdm_stream_context_release(k1_pdm_stream_t *stream,
+                                  uint32_t slot,
+                                  uint32_t epoch,
+                                  uint32_t sequence);
+void k1_pdm_stream_context_stop(k1_pdm_stream_t *stream);
+int k1_pdm_stream_context_recover(k1_pdm_stream_t *stream,
+                                  uint64_t capture_start_us);
+
+uint32_t k1_pdm_stream_active_slot(void);
+uint32_t k1_pdm_stream_slot_state(uint32_t slot);
+uint32_t k1_pdm_stream_slot_received(uint32_t slot);
+uint32_t k1_pdm_stream_epoch(void);
+uint32_t k1_pdm_stream_completed_slots(void);
+uint32_t k1_pdm_stream_overflow_events(void);
+uint32_t k1_pdm_stream_drop_events(void);
+uint32_t k1_pdm_stream_recovery_count(void);
+int k1_pdm_stream_configured(void);
+int k1_pdm_stream_running(void);
+int k1_pdm_stream_halted(void);
+
+uint32_t k1_pdm_requested_frames(void);
+uint32_t k1_pdm_capture_channels(void);
+uint32_t k1_pdm_capture_element_bytes(void);
+uint32_t k1_pdm_output_channels(void);
+uint32_t k1_pdm_output_element_bytes(void);
+uint32_t k1_pdm_callback_interval(void);
+uint32_t k1_pdm_capture_bytes(void);
+uint32_t k1_pdm_conversion_bytes(void);
+uint32_t k1_pdm_submission_bytes(void);
+uint32_t k1_pdm_received_elements(void);
+uint32_t k1_pdm_final_stopped_count(void);
+int k1_pdm_configured(void);
+int k1_pdm_running(void);
+int k1_pdm_first_data_seen(void);
+int k1_pdm_first_data_does_not_prove_complete(void);
+int k1_pdm_full_buffer_complete(void);
+int k1_pdm_stop_requested(void);
+int k1_pdm_stopped(void);
+int k1_pdm_stop_tail_known(void);
+int k1_pdm_ownership_transferred(void);
+
+#ifdef __cplusplus
+}
+#endif

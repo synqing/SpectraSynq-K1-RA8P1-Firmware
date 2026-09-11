@@ -78,6 +78,13 @@ int k1_shared_consume_prepare(k1_shared_ctrl_t *ctrl, k1_shared_ticket_t *ticket
     return 1;
 }
 
+enum {
+    K1_SNAP_COPY_OK = 1,
+    K1_SNAP_COPY_GEN = -1,
+    K1_SNAP_COPY_CRC = -2,
+    K1_SNAP_COPY_SEQ = -3
+};
+
 static int copy_stable(const k1_shared_slot_t *slot, uint32_t intended,
                        k1_latest_snapshot_t *out)
 {
@@ -85,7 +92,7 @@ static int copy_stable(const k1_shared_slot_t *slot, uint32_t intended,
     uint32_t g2;
     k1_latest_snapshot_t body;
     if (slot == 0 || out == 0) {
-        return 0;
+        return K1_SNAP_COPY_GEN;
     }
     g1 = slot->gen;
     barrier();
@@ -93,16 +100,18 @@ static int copy_stable(const k1_shared_slot_t *slot, uint32_t intended,
     barrier();
     g2 = slot->gen;
     if ((g1 & 1u) != 0u || g1 != g2) {
-        return 0;
+        return K1_SNAP_COPY_GEN;
     }
     if (k1_snapshot_crc(&body) != body.crc32) {
-        return 0;
+        *out = body;
+        return K1_SNAP_COPY_CRC;
     }
     if (body.sequence != intended) {
-        return 0;
+        *out = body;
+        return K1_SNAP_COPY_SEQ;
     }
     *out = body;
-    return 1;
+    return K1_SNAP_COPY_OK;
 }
 
 int k1_shared_consume_finish(k1_shared_ctrl_t *ctrl, k1_ram_diag_t *diag,
@@ -111,6 +120,7 @@ int k1_shared_consume_finish(k1_shared_ctrl_t *ctrl, k1_ram_diag_t *diag,
 {
     uint32_t attempt;
     uint32_t intended;
+    k1_latest_snapshot_t scratch;
     if (ctrl == 0 || ticket == 0 || out == 0 || ticket->prepared == 0u ||
         ctrl->magic != K1_SNAP_MAGIC) {
         return 0;
@@ -118,15 +128,17 @@ int k1_shared_consume_finish(k1_shared_ctrl_t *ctrl, k1_ram_diag_t *diag,
     intended = ticket->intended;
     for (attempt = 0; attempt < K1_SNAP_RETRY_BOUND; ++attempt) {
         const k1_shared_slot_t *slot = &ctrl->slots[intended % K1_SNAP_SLOTS];
-        if (copy_stable(slot, intended, out)) {
+        int copied = copy_stable(slot, intended, &scratch);
+        if (copied == K1_SNAP_COPY_OK) {
+            *out = scratch;
             ctrl->read_seq = intended + 1u;
             ctrl->consumed_seq = out->sequence;
             ticket->prepared = 0u;
             return 1;
         }
-        if (k1_snapshot_crc(&slot->body) != slot->body.crc32) {
+        if (copied == K1_SNAP_COPY_CRC) {
             ctrl->crc_fail += 1u;
-            k1_ram_diag_note_crc_fail(diag, slot->body.timestamp_us);
+            k1_ram_diag_note_crc_fail(diag, scratch.timestamp_us);
         } else {
             ctrl->race_drop += 1u;
         }

@@ -1,0 +1,17 @@
+src/k1/core/visual/product_effect_renderer.cpp:133:7:float k1::core::visual::{anonymous}::dtCorrectAlpha(float, float)	8	static
+src/k1/core/visual/product_effect_renderer.cpp:676:6:void k1::core::visual::{anonymous}::depositWaveformSeed(k1::core::visual::ChannelRenderState&, const k1::core::visual::VisualWaveformHistory&, k1::core::Pixel8, float, bool)	88	static
+src/k1/core/visual/product_effect_renderer.cpp:1563:7:float k1::core::visual::{anonymous}::tauAlpha(float, float)	8	static
+src/k1/core/visual/product_effect_renderer.cpp:981:6:void k1::core::visual::{anonymous}::drawPercussionStreak(k1::core::visual::ChannelRenderState&, float, float, k1::core::Pixel8)	32	static
+src/k1/core/visual/product_effect_renderer.cpp:331:6:constprop(k1::core::PixelSpan, k1::core::ConstPixelSpan, float, float, float)	80	static
+src/k1/core/visual/product_effect_renderer.cpp:430:6:void k1::core::visual::{anonymous}::updateTide(float&, float, float)	16	static
+src/k1/core/visual/product_effect_renderer.cpp:315:8:k1::core::Pixel8 k1::core::visual::{anonymous}::explicitPaletteColour(const k1::core::visual::ChannelVisualControls&, float, float)	32	static
+src/k1/core/visual/product_effect_renderer.cpp:402:6:void k1::core::visual::{anonymous}::injectSpectrumRiverAtOffset(k1::core::visual::ChannelRenderState&, float)	72	static
+src/k1/core/visual/product_effect_renderer.cpp:1304:7:float k1::core::visual::{anonymous}::tempoVelocityPixelsPerSecond(const k1::core::audio::TempoTrackerEvent&, float, float, float, bool)	32	static
+src/k1/core/visual/product_effect_renderer.cpp:437:7:float k1::core::visual::{anonymous}::chromagramCentroidHue(k1::core::visual::ChannelEffectState&, const k1::contract::AudioFeaturesV1&)	72	static
+src/k1/core/visual/product_effect_renderer.cpp:600:6:void k1::core::visual::{anonymous}::renderEmber(k1::core::visual::ChannelRenderState&, float)	72	static
+src/k1/core/visual/product_effect_renderer.cpp:298:8:k1::core::Pixel8 k1::core::visual::{anonymous}::injectionColour(k1::core::visual::ChannelRenderState&)	120	static
+src/k1/core/visual/product_effect_renderer.cpp:643:8:k1::core::Pixel8 k1::core::visual::{anonymous}::waveformLastColour(k1::core::visual::ChannelRenderState&, k1::core::visual::WaveformEffectState&, float, float, float)	56	static
+src/k1/core/visual/product_effect_renderer.cpp:569:6:void k1::core::visual::{anonymous}::renderSpectrumRiver(k1::core::visual::ChannelRenderState&, uint16_t, float)	88	static
+src/k1/core/visual/product_effect_renderer.cpp:791:6:void k1::core::visual::{anonymous}::renderWaveformK1(k1::core::visual::ChannelRenderState&, const k1::core::visual::VisualAudioFrameView&, float)	104	static
+src/k1/core/visual/product_effect_renderer.cpp:1642:6:void k1::core::visual::{anonymous}::renderDenseForge(k1::core::visual::ChannelRenderState&, bool, float)	184	static
+src/k1/core/visual/product_effect_renderer.cpp:2073:21:k1::core::visual::ProductRenderResult k1::core::visual::renderProductChannel(ChannelRenderState&, const VisualAudioFrameView&, float)	328	static

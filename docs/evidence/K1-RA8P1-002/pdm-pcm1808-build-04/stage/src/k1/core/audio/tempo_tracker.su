@@ -1,0 +1,7 @@
+src/k1/core/audio/tempo_tracker.cpp:103:7:float k1::core::audio::{anonymous}::computeMagnitude(k1::core::audio::TempoTrackerState&, uint16_t)	40	static
+src/k1/core/audio/tempo_tracker.cpp:428:6:void k1::core::audio::resetTempoTracker(TempoTrackerState&)	40	static
+src/k1/core/audio/tempo_tracker.cpp:477:6:void k1::core::audio::initialiseTempoTracker(TempoTrackerState&, AudioRateConfiguration)	72	static
+src/k1/core/audio/tempo_tracker.cpp:473:6:void k1::core::audio::initialiseTempoTracker(TempoTrackerState&)	0	static
+src/k1/core/audio/tempo_tracker.cpp:524:6:void k1::core::audio::updateTempoTracker(TempoTrackerState&, const TempoTrackerInput&)	104	static
+src/k1/core/audio/tempo_tracker.cpp:575:19:k1::core::audio::TempoTrackerEvent k1::core::audio::readTempoTracker(const TempoTrackerState&)	8	static
+src/k1/core/audio/tempo_tracker.cpp:579:19:k1::core::audio::TempoTrackerDebug k1::core::audio::readTempoTrackerDebug(const TempoTrackerState&)	8	static

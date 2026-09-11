@@ -1,0 +1,4 @@
+src/k1/core/audio/gdft_goertzel.cpp:102:19:k1::core::audio::GdftConfiguration k1::core::audio::makeGdftConfiguration(AudioRateConfiguration)	64	static
+src/k1/core/audio/gdft_goertzel.cpp:136:19:k1::core::audio::GdftConfiguration k1::core::audio::makeProductionGdftConfiguration()	8	static
+src/k1/core/audio/gdft_goertzel.cpp:146:6:void k1::core::audio::analyseGdftRaw(const GdftSampleWindow&, const GdftConfiguration&, AudioRateConfiguration, GdftRawFrame&)	184	static
+src/k1/core/audio/gdft_goertzel.cpp:140:6:void k1::core::audio::analyseGdftRaw(const GdftSampleWindow&, const GdftConfiguration&, GdftRawFrame&)	16	static

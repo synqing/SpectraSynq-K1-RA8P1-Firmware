@@ -1,0 +1,2 @@
+src/k1/core/audio/musical_saliency.cpp:68:6:void k1::core::audio::MusicalSaliency::reset()	56	static
+src/k1/core/audio/musical_saliency.cpp:82:16:k1::core::audio::SaliencyUpdate k1::core::audio::MusicalSaliency::update(const k1::contract::AudioFeaturesV1&)	136	static
