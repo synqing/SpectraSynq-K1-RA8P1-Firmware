@@ -137,11 +137,15 @@ def main():
     parser.add_argument('--pdm-target',action='store_true',help='bind both IM69D130 edge lanes to bounded DMAC capture')
     parser.add_argument('--pcm1808-target',action='store_true',help='fail closed until a practical PCM1808 adapter route exists')
     parser.add_argument('--palette-runtime',action='store_true',help='enable all K1 palettes and the native VP palette controls')
-    parser.add_argument('--palette-autostart',action='store_true',help='boot into native all-palette preview on the identified WS2812/P601 bench strip')
+    parser.add_argument('--palette-autostart',action='store_true',help='boot into catalogue cycling; with --palette-morph, the four-effect centre showcase')
     parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
+    parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
     args=parser.parse_args()
     if args.palette_morph and not args.palette_runtime: parser.error('--palette-morph requires --palette-runtime')
     if args.palette_autostart and not args.palette_runtime: parser.error('--palette-autostart requires --palette-runtime')
+    if args.palette_ws2816 and not args.palette_runtime: parser.error('--palette-ws2816 requires --palette-runtime')
+    if args.palette_ws2816 and (args.pdm_target or args.resident_controls):
+        parser.error('--palette-ws2816 is a standalone LED bench image')
     if args.pcm1808_target:
         stage_pcm1808_vectors(Path('.'))
     args.output.mkdir(parents=True, exist_ok=False)
@@ -200,11 +204,11 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
-                       palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,
+                       palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -227,6 +231,7 @@ def main():
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
+        if args.palette_ws2816: defines.append('-DK1_PALETTE_WS2816=1')
         if args.npu_model: defines.append('-DK1_NPU_LOAD=1')
         if args.p4_source: defines.append('-DK1_P4_LOAD=1')
         if args.pdm_target: defines.append('-DK1_PDM_TARGET=1')
@@ -326,7 +331,8 @@ def main():
         for symbol in ['AudioPipeline::process','renderProductChannel','k1_fixture_consume','k1_fixture_initialise']:
             assert symbol in dump, f'missing executed K1 symbol {symbol}'
         if args.palette_runtime:
-            for symbol in ['PaletteRuntime::configure','PaletteRuntime::step','PaletteRuntime::catalogueJson','PaletteRuntime::packBenchGrb']:
+            pack_symbol = 'PaletteRuntime::packBenchGrb48Lane' if args.palette_ws2816 else 'PaletteRuntime::packBenchGrb('
+            for symbol in ['PaletteRuntime::configure','PaletteRuntime::step','PaletteRuntime::catalogueJson',pack_symbol]:
                 assert symbol in dump, f'missing native palette runtime symbol {symbol}'
         if args.resident_controls:
             for symbol in ['k1_fixture_schedule_step','k1_resident_pcm','k1_resident_crc','k1_resident_length']:

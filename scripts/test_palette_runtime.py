@@ -36,6 +36,25 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
             subprocess.run(command,check=True)
             result=subprocess.check_output([str(executable)],text=True)
             print(('MORPH ' if morph else 'PINNED ')+result,end='')
+            if suite=='protocol':
+                subprocess.run(command+['-DK1_PALETTE_WS2816=1'],check=True)
+                print('WS2816 '+subprocess.check_output([str(executable)],text=True),end='')
+                for backend in ([], ['-DK1_PALETTE_WS2816=1']):
+                    subprocess.run(command+backend+['-DK1_PALETTE_AUTOSTART=1'],check=True)
+                    print('AUTOSTART '+('WS2816 ' if backend else 'WS2812 ')+
+                          subprocess.check_output([str(executable)],text=True),end='')
+                    if morph and backend:
+                        # Reintroduce the actual reset regression in a disposable source.
+                        bad_source=out/'fixture_bad_boot.cpp'
+                        source=(ROOT/'platform/ra8p1/fixture_app.cpp').read_text()
+                        marker='config.palette_a = 33U; config.palette_b = 43U; config.brightness = 128U;'
+                        assert source.count(marker)==1
+                        bad_source.write_text(source.replace(marker,marker+'\n  config.flags = 5U;'))
+                        bad_command=[str(bad_source) if part==str(ROOT/'platform/ra8p1/fixture_app.cpp') else part for part in command]
+                        subprocess.run(bad_command+backend+['-DK1_PALETTE_AUTOSTART=1'],check=True)
+                        broken=subprocess.run([str(executable)],cwd=out,capture_output=True,text=True)
+                        assert broken.returncode!=0 and 'automatic_cycle' in broken.stderr, 'boot regression escaped'
+                        print('AUTOSTART_MUTATION_PASS single_palette_reset_regression_rejected=true')
             if suite=='runtime':
                 digests.append(next(line for line in result.splitlines() if line.startswith('COMPATIBILITY_DIGEST=')))
     assert len(digests)==2 and digests[0]==digests[1], 'disabled-transition VP differs from pinned renderer'

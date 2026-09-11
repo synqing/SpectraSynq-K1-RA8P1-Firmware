@@ -38,22 +38,61 @@ k1::titan::PaletteRuntime palettes;
 std::uint32_t palette_clock_hz = 0;
 std::uint64_t palette_time_us = 0;
 k1::titan::PaletteClock palette_clock;
+#ifdef K1_PALETTE_WS2816
+// Last completed submission: 16 LE32 words, native RGB8, then both GRB48 lanes.
+// Capture the actual emitter inputs, not a later re-render or a pre-gain tap.
+std::uint8_t palette_wire_snapshot[64U + 480U + 960U]{};
+std::uint32_t palette_wire_sequence = 0;
+void snapshot_word(unsigned index, std::uint32_t value) {
+  for (unsigned byte = 0; byte < 4; ++byte)
+    palette_wire_snapshot[index*4U+byte] = value >> (8U*byte);
+}
+#endif
 void palette_step(bool emit) {
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
       trajectory.output.features.publish_time_us};
   if (!palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr)) return;
   if (emit && palettes.emitEnabled()) {
+#ifdef K1_PALETTE_WS2816
+    const auto& config = palettes.config();
+    const auto& selected = palettes.channel(config.output_channel);
+    snapshot_word(0, 1U); snapshot_word(1, ++palette_wire_sequence);
+    snapshot_word(2, config.output_channel); snapshot_word(3, config.brightness);
+    snapshot_word(4, 2U); snapshot_word(5, 80U);
+    snapshot_word(6, 48U); snapshot_word(7, 4U);
+    snapshot_word(8, selected.controls().mode_id);
+    snapshot_word(9, selected.controls().palette_id);
+    snapshot_word(10, config.flags); snapshot_word(11, k1::titan::kPalettePeriodUs);
+    snapshot_word(14, static_cast<std::uint32_t>(palette_time_us));
+    snapshot_word(15, static_cast<std::uint32_t>(palette_time_us >> 32U));
+    static_assert(sizeof(k1::core::Pixel8) == 3U);
+    std::memcpy(palette_wire_snapshot+64U, selected.frame().data(), 480U);
+    int status = 0;
+    std::uint32_t cycles = 0;
+    for (unsigned lane = 0; lane < 2; ++lane) {
+      auto* wire = palette_wire_snapshot + 64U + 480U + lane*480U;
+      const auto size = palettes.packBenchGrb48Lane(wire, 480U, lane);
+      k1_ws281x_diag_result_t result{};
+      const int emitted = k1_ws281x_diag_emit(wire, size, 4U, lane, palette_clock_hz, &result);
+      snapshot_word(12U+lane, static_cast<std::uint32_t>(emitted));
+      if (emitted) status = emitted;
+      cycles += result.emit_cycles;
+    }
+    palettes.recordEmit(status, cycles);
+#else
     std::uint8_t wire[128U * 3U];
     const auto size = palettes.packBenchGrb(wire, sizeof(wire));
     k1_ws281x_diag_result_t result{};
     // Existing identified WS2812/P601 bench path. DMA integration is separate.
     const int status = k1_ws281x_diag_emit(wire, size, 1U, 0U, palette_clock_hz, &result);
     palettes.recordEmit(status, result.emit_cycles);
+#endif
   }
 }
 #endif
-std::uint8_t rx[392], tx[20000], board_uid[16];
+constexpr std::size_t kMaxRequestPayload=16U+K1_WS281X_DIAG_MAX_BYTES;
+std::uint8_t rx[32U+kMaxRequestPayload], tx[20000], board_uid[16];
 std::size_t fill = 0, wanted = 32, tx_size = 0;
 std::uint32_t started = 0, clock_hz = 0, cpu_wait = 0, rejected = 0;
 bool initialised = false;
@@ -278,6 +317,12 @@ void execute() {
     const auto pixels = palettes.channel(channel).frame();
     static_assert(sizeof(k1::core::Pixel8) == 3U);
     respond(0, 0, reinterpret_cast<const char*>(pixels.data()), pixels.size()*3U);
+#ifdef K1_PALETTE_WS2816
+  } else if (command == k1::titan::kPaletteWireSnapshotOpcode && size == 0U) {
+    if (!palette_wire_sequence) { error(8); return; }
+    // The fixture loop is single-threaded; both lane calls finished before here.
+    respond(0, 0, reinterpret_cast<const char*>(palette_wire_snapshot), sizeof(palette_wire_snapshot));
+#endif
   } else
 #endif
   if (command == 1 && size == 0) {
@@ -410,6 +455,38 @@ void execute() {
     if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8);
     else respond(emitted?7:0,result.emit_cycles,trace.data,std::size_t(n));
   }
+  else if(command==K1_WS281X_FRAME_OPCODE && size>=16) {
+    if(k1_fixture_schedule_active()) { error(3); return; }
+#ifdef K1_PDM_TARGET
+    error(3); return;
+#endif
+    const std::uint32_t version=get32(rx+32);
+    const std::uint32_t profile=get32(rx+36);
+    const std::uint32_t pin=get32(rx+40);
+    const std::uint32_t pixels=get32(rx+44);
+    k1_ws281x_diag_timing_t timing{};
+    if(version!=1U || pin>1U || !pixels || pixels>K1_WS281X_DIAG_MAX_PIXELS ||
+       !k1_ws281x_diag_profile(profile,&timing) ||
+       size!=16U+pixels*timing.bytes_per_pixel) { error(3); return; }
+    const std::uint8_t* wire=rx+48;
+    const std::size_t bytes=size-16U;
+    k1_ws281x_diag_result_t result{};
+    const int emitted=k1_ws281x_diag_emit(wire,bytes,profile,pin,clock_hz,&result);
+    const int n=std::snprintf(trace.data,sizeof(trace.data),
+      "{\"op\":14,\"version\":1,\"profile\":%lu,\"pin\":%lu,\"pixels\":%lu,"
+      "\"bytes\":%u,\"crc\":%lu,\"result\":%d,\"pfs_after\":%lu,"
+      "\"pin_config_error\":%ld,\"emit_cycles\":%lu,\"latch_cycles\":%lu,"
+      "\"bit_period_min_cycles\":%lu,\"bit_period_max_cycles\":%lu,"
+      "\"crc_proves\":\"submitted_frame_only\",\"wire_timing_measured\":false,"
+      "\"photons\":\"NOT_CLAIMED\"}",
+      (unsigned long)profile,(unsigned long)pin,(unsigned long)pixels,unsigned(bytes),
+      (unsigned long)crc(wire,bytes),emitted,(unsigned long)result.pfs_after,
+      (long)result.pin_config_error,(unsigned long)result.emit_cycles,
+      (unsigned long)result.latch_cycles,(unsigned long)result.bit_period_min_cycles,
+      (unsigned long)result.bit_period_max_cycles);
+    if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8);
+    else respond(emitted?7:0,result.emit_cycles,trace.data,std::size_t(n));
+  }
   else if(command==11 && size==0) {
     k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};
     k1::core::visual::Pixel16 off[k1::core::visual::kPixelsPerChannel]{};
@@ -513,6 +590,11 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   config.mode_a = 100U; config.mode_b = 101U; config.flags |= 16U;
   config.palette_a = 33U; config.palette_b = 43U;
 #endif
+#ifdef K1_PALETTE_WS2816
+  // Keep the selected showcase/morph defaults above across normal RESET.
+  // Strip-specific gain is independent of palette and effect selection.
+  config.palette_a = 33U; config.palette_b = 43U; config.brightness = 128U;
+#endif
   palettes.configure(config, 0U);
 #endif
 #endif
@@ -529,7 +611,7 @@ extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,s
     rx[fill++]=bytes[i];
     if(fill==32) {
       if(std::memcmp(rx,"K1S1",4)!=0 || get32(rx+24)!=1 || crc(rx,28)!=get32(rx+28)) { error(1); return; }
-      if(get32(rx+16)>360) { error(2); return; }
+      if(get32(rx+16)>kMaxRequestPayload) { error(2); return; }
       wanted=32+get32(rx+16);
     }
     if(fill==wanted) { execute(); return; }

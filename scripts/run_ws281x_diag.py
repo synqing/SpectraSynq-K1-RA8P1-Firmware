@@ -14,7 +14,12 @@ import zlib
 from run_led_smoke import UID, packet, read_exact
 from verify_imports import PIN
 
-PROFILES = {"ws2812": 1, "ws2812-v5": 2, "ws2816c": 3}
+PROFILES = {
+    "ws2812": 1,
+    "ws2812-v5": 2,
+    "ws2816c": 3,
+    "ws2816-fastled": 4,
+}
 PINS = {"P601": 0, "P004": 1}
 
 
@@ -23,10 +28,10 @@ def request_and_wire(profile, pin, pixels, lit_pixels, red, green, blue):
         raise ValueError("unsupported profile or pin")
     if not 1 <= pixels <= 128 or not 0 <= lit_pixels <= pixels:
         raise ValueError("diagnostic requires 1..128 pixels and 0..pixels lit pixels")
-    maximum = 65535 if profile == "ws2816c" else 255
+    maximum = 65535 if profile.startswith("ws2816") else 255
     if any(not 0 <= channel <= maximum for channel in (red, green, blue)):
         raise ValueError(f"channels must be 0..{maximum}; implicit truncation is forbidden")
-    width = 2 if profile == "ws2816c" else 1
+    width = 2 if profile.startswith("ws2816") else 1
     pixel = b"".join(channel.to_bytes(width, "big") for channel in (green, red, blue))
     wire = pixel * lit_pixels + bytes((pixels - lit_pixels) * 3 * width)
     request = struct.pack("<8I", 1, PROFILES[profile], PINS[pin], pixels, lit_pixels,
@@ -75,7 +80,7 @@ def main():
         if not args.build or not args.profile or not args.pin or args.pixels is None:
             parser.error("emission requires --build, --profile, --pin and --pixels")
         lit = 0 if args.off else (args.pixels if args.lit_pixels is None else args.lit_pixels)
-        red = args.red if args.red is not None else (0x7A3C if args.profile == "ws2816c" else 128)
+        red = args.red if args.red is not None else (0x7A3C if args.profile.startswith("ws2816") else 128)
         try:
             request, wire = request_and_wire(args.profile, args.pin, args.pixels, lit,
                                              red, args.green, args.blue)

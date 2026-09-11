@@ -2,7 +2,7 @@ import os
 from building import *
 cwd = GetCurrentDir()
 ws281x_diagnostic = Glob('ws281x_diag.c')
-src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('pdm_target.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c') + Glob('coexist_probe.c') + Glob('ws2816_gpio_emit.c')
+src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('pdm_target.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c') + Glob('coexist_probe.c') + Glob('ws2816_gpio_emit.c') + Glob('titan_ram_diag.c') + Glob('k1_exact_stream.c') + Glob('ws281x_waveform.c') + Glob('k1_shared_snapshot.c') + Glob('ws281x_gpt_dma.c') + Glob('k1_rate_adapt.c')
 src += ws281x_diagnostic
 for directory, _, files in os.walk(os.path.join(cwd, 'k1')):
     src += [os.path.join(directory, f) for f in files if f.endswith('.cpp')]

@@ -87,7 +87,7 @@ int main() {
   }
   auto p=packet(2,3,silence); p[28]^=1; assert(get(send(p).data()+4)==1);
   p=packet(2,3,silence); p.back()^=1; assert(get(send(p).data()+4)==4);
-  p=packet(2,3,silence); put(p.data()+16,361); put(p.data()+28,crc(p.data(),28)); assert(get(send(p).data()+4)==2);
+  p=packet(2,3,std::vector<std::uint8_t>(785)); assert(get(send(p).data()+4)==2);
   assert(get(send(packet(99,3)).data()+4)==3);
   p=packet(2,3,silence); k1_fixture_consume(p.data(),35,0xfffffff0U); k1_fixture_poll(0x800U);
   std::size_t size; const auto timeout=k1_fixture_reply(&size); assert(size==32 && get(timeout+4)==9); k1_fixture_sent();
@@ -107,10 +107,23 @@ int main() {
     assert(body.find("\"bytes\":240")!=std::string::npos);
     assert(body.find("\"pfs_after\":4")!=std::string::npos);
     assert(body.find("\"photons\":\"NOT_CLAIMED\"")!=std::string::npos);
-    put(request.data()+12,81);
+    put(request.data()+12,129);
     assert(get(send(packet(K1_WS281X_DIAG_OPCODE,0,request)).data()+4)==3);
     assert(get(send(packet(K1_WS281X_DIAG_OPCODE,0)).data()+4)==3);
     assert(diagnostic_emits==1); // Rejected requests must not touch GPIO.
+  }
+  {
+    std::vector<std::uint8_t> request(16+240);
+    put(request.data(),1); put(request.data()+4,1); put(request.data()+8,0); put(request.data()+12,80);
+    request[16]=0x34; request[17]=0x12; request[18]=0x56;
+    const auto reply=send(packet(K1_WS281X_FRAME_OPCODE,0,request));
+    assert(get(reply.data()+4)==0 && diagnostic_emits==2);
+    const std::string body(reinterpret_cast<const char*>(reply.data()+32),reply.size()-32);
+    assert(body.find("\"op\":14")!=std::string::npos);
+    assert(body.find("\"bytes\":240")!=std::string::npos);
+    request.pop_back();
+    assert(get(send(packet(K1_WS281X_FRAME_OPCODE,0,request)).data()+4)==3);
+    assert(diagnostic_emits==2);
   }
   {
     k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};

@@ -42,6 +42,29 @@ int main() {
       assert(wire[3*i] == p.green && wire[3*i+1] == p.red && wire[3*i+2] == p.blue);
     }
     assert(!runtime.packBenchGrb(wire, sizeof(wire)-1));
+    // All native positions survive the two-DIN GRB48 mapping, without resampling.
+    for(unsigned ch=0; ch<2; ++ch) for(unsigned brightness : {0U,128U,255U}) {
+      auto transport=c; transport.output_channel=ch; transport.brightness=brightness;
+      assert(runtime.configure(transport,0U)); assert(runtime.step(0U,nullptr));
+      for(unsigned lane=0; lane<2; ++lane) {
+        std::uint8_t packed[480];
+        assert(runtime.packBenchGrb48Lane(packed,sizeof(packed),lane)==480);
+        for(unsigned i=0; i<80; ++i) {
+          const auto p=runtime.channel(ch).frame()[lane*80+i];
+          const unsigned components[]{p.green,p.red,p.blue};
+          for(unsigned component=0; component<3; ++component) {
+            const unsigned value=(unsigned(packed[i*6+component*2])<<8)|packed[i*6+component*2+1];
+            assert(value==components[component]*257U*brightness/255U);
+          }
+        }
+        std::memset(packed,0xa5,sizeof(packed));
+        assert(!runtime.packBenchGrb48Lane(packed,sizeof(packed)-1,lane));
+        assert(!runtime.packBenchGrb48Lane(packed,sizeof(packed),2));
+        assert(!runtime.packBenchGrb48Lane(nullptr,sizeof(packed),lane));
+        for(auto byte:packed) assert(byte==0xa5);
+      }
+    }
+    assert(runtime.configure(c,0U));
     auto invalid = c; invalid.palette_b = 44;
     assert(!runtime.configure(invalid, 1));
     assert(runtime.config().palette_b == c.palette_b);

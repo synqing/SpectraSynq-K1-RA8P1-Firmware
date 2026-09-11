@@ -16,6 +16,11 @@ int main() {
     const uint8_t grb16[]{0x34,0xcd,0x12,0xab,0x56,0xef};
     assert(std::memcmp(wire,grb16,6)==0 && timing.t1h_ns==650);
     assert(wire[3]!=wire[2]); // Low-byte loss must fail.
+    request.profile=4;
+    assert(k1_ws281x_diag_pack(&request,wire,sizeof(wire),&timing)==768);
+    assert(std::memcmp(wire,grb16,6)==0 && timing.t0h_ns==250 &&
+           timing.t1h_ns==875 && timing.period_ns==1250 &&
+           timing.bytes_per_pixel==6);
     request.lit_pixels=0;
     assert(k1_ws281x_diag_pack(&request,wire,sizeof(wire),&timing)==768);
     for(auto value:wire) assert(value==0);
@@ -42,5 +47,5 @@ int main() {
     assert(k1_ws281x_diag_pack(&request,wire,383,&timing)==0);
     assert(k1_ws281x_diag_pack(nullptr,wire,sizeof(wire),&timing)==0);
     assert(k1_ws281x_diag_profile(2,&timing) && timing.t1h_ns==580 && timing.period_ns==1225);
-    std::puts("K1_WS281X_DIAG=PASS grb24=PASS grb48=PASS rejected_mutations=9");
+    std::puts("K1_WS281X_DIAG=PASS grb24=PASS grb48=PASS fastled48=PASS rejected_mutations=9");
 }

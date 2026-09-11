@@ -2,6 +2,7 @@
 #include "core/visual/product_effect_renderer.h"
 #include "core/visual/product_output_treatment.h"
 #include "core/visual/product_palette.h"
+#include "core/visual/ws2816_pack.h"
 #include <cstdio>
 #include <cstring>
 
@@ -177,6 +178,24 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
   std::memcpy(out + used, "]}", 3U);
   return used + 2U;
 }
+std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
+                                             std::size_t capacity,
+                                             unsigned lane) const noexcept {
+  if (!out || capacity < kPackedBytesPerLane || lane > 1U) return 0U;
+  const auto source = channel(config_.output_channel).frame();
+  for (unsigned i = 0; i < kPixelsPerHalf; ++i) {
+    const auto pixel = source[lane * kPixelsPerHalf + i];
+    // The existing renderer is Pixel8. Expand its output once into the 16-bit
+    // wire domain; this does not claim additional renderer colour precision.
+    const auto scale = [this](std::uint8_t value) {
+      return static_cast<std::uint16_t>(
+          (std::uint32_t(value) * 257U * config_.brightness) / 255U);
+    };
+    packPixel(Pixel16{scale(pixel.red), scale(pixel.green), scale(pixel.blue)},
+              out + i * kPackedBytesPerPixel);
+  }
+  return kPackedBytesPerLane;
+}
 std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const noexcept {
   if (!out || capacity == 0U) return 0U;
   const int n = std::snprintf(out, capacity,
@@ -188,7 +207,13 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"frames\":%llu,\"skipped_releases\":%llu,\"emitted\":%llu,\"emit_errors\":%llu,"
       "\"last_emit_cycles\":%lu,\"maximum_emit_cycles\":%lu,"
       "\"frame_a_crc\":%lu,\"frame_b_crc\":%lu,\"native_pixels_per_channel\":160,"
-      "\"bench_pixels\":128,\"host_pixel_stream_required\":false"
+#ifdef K1_PALETTE_WS2816
+      "\"bench_pixels\":160,\"wire_profile\":4,\"wire_bits_per_pixel\":48,"
+      "\"din_a\":\"P601\",\"din_b\":\"P004\",\"pixels_per_din\":80,"
+#else
+      "\"bench_pixels\":128,\"wire_profile\":1,\"wire_bits_per_pixel\":24,"
+#endif
+      "\"host_pixel_stream_required\":false"
 #ifdef K1_PALETTE_MORPH
       ",\"morph_supported\":true,\"transition_ms\":%lu,\"transition_a_q16\":%u,"
       "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u,"

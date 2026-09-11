@@ -8,6 +8,7 @@ import zlib
 from run_host import run
 from verify_imports import ROOT
 from run_ws281x_diag import request_and_wire, check_led_reply
+from run_ws2812_centre_out import centre_out_frame
 
 with tempfile.TemporaryDirectory(prefix="k1-ws281x-diag-") as temp:
     binary = Path(temp) / "test"
@@ -20,6 +21,8 @@ assert len(request) == 32 and struct.unpack("<8I", request) == (1,1,0,128,8,0x12
 assert wire == bytes([0x34,0x12,0x56]) * 8 + bytes(360)
 _, wire16 = request_and_wire("ws2816c", "P004", 128, 8, 0x12ab, 0x34cd, 0x56ef)
 assert wire16[:6] == bytes.fromhex("34cd12ab56ef") and len(wire16) == 768
+_, fastled16 = request_and_wire("ws2816-fastled", "P601", 128, 8, 0x12ab, 0x34cd, 0x56ef)
+assert fastled16 == wire16
 for values in [("ws2812","P601",0,0,1,0,0), ("ws2812","P601",129,8,1,0,0),
                ("ws2812","P601",128,8,256,0,0), ("ws2812","P603",128,8,1,0,0),
                ("ws2812","P601",128,129,1,0,0)]:
@@ -44,3 +47,18 @@ for key, value in [("crc",0),("pfs_after",65540),("latch_cycles",1),
     else:
         raise AssertionError(f"bad reply accepted: {key}")
 print("K1_WS281X_RUNNER=PASS request_rejection=PASS readback_rejection=PASS")
+
+frame = centre_out_frame(128, 0, 128)
+assert len(frame) == 384 and frame[63 * 3 + 1] == 128 and frame[64 * 3 + 1] == 128
+assert frame[62 * 3 + 1] == 0 and frame[65 * 3 + 1] == 0
+edge = centre_out_frame(128, 63, 128)
+assert edge[1] == 128 and edge[127 * 3 + 1] == 128
+assert all(value == 0 for index, value in enumerate(edge) if index % 3 != 1)
+for bad in ((127, 0, 128), (128, 64, 128), (128, 0, 0)):
+    try:
+        centre_out_frame(*bad)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError(f"bad centre-out frame accepted: {bad}")
+print("K1_WS2812_CENTRE_OUT=PASS centre_origin=PASS full_extent=PASS")

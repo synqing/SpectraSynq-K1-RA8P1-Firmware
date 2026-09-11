@@ -12,6 +12,7 @@ import time
 import zlib
 from run_led_smoke import UID, packet, read_exact
 from verify_imports import PIN
+from palette_wire_snapshot import score_snapshot
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
@@ -22,6 +23,7 @@ def main():
     action.add_argument('--status',action='store_true')
     action.add_argument('--stop',action='store_true')
     action.add_argument('--verify-all',action='store_true')
+    action.add_argument('--capture-frames',type=int,metavar='N',help='read and score N actual two-DIN submission snapshots, one per second; requires snapshot-capable firmware and --output')
     parser.add_argument('--palette',default='0',help='canonical ID or exact palette name')
     parser.add_argument('--palette-b',default='1')
     parser.add_argument('--mode-a',type=int,default=0,help='0: native palette preview; other values: existing K1 mode')
@@ -46,6 +48,9 @@ def main():
     if not 0<=args.transition_ms<=10000: parser.error('transition-ms must be 0..10000')
     if not 0<=args.brightness<=255: parser.error('brightness must be 0..255')
     if args.verify_all and args.output is None: parser.error('--verify-all requires --output')
+    if args.capture_frames is not None:
+        if not 2 <= args.capture_frames <= 60 or args.output is None:
+            parser.error('--capture-frames requires 2..60 frames and --output')
     build=json.loads((args.build/'receipt.json').read_text())
     image=args.build/'rtthread.hex'
     if not build.get('pass') or not build.get('palette_runtime'):
@@ -114,7 +119,31 @@ def main():
         if args.list:
             for item in entries: print(f"{item['id']:2d}  {item['name']}")
         elif args.status:
-            print(json.dumps(transact(17),indent=2))
+            receipt['final']=transact(17)
+            print(json.dumps(receipt['final'],indent=2))
+        elif args.capture_frames is not None:
+            receipt['initial']=transact(17)
+            receipt['wire_snapshots']=[]
+            for index in range(args.capture_frames):
+                if index: time.sleep(1)
+                sample=score_snapshot(transact(19,raw=True))
+                sample['host_monotonic_s']=time.monotonic()
+                receipt['wire_snapshots'].append(sample)
+                if not sample['pass_wire']: raise RuntimeError('submission packing/scaling or emitter status failed')
+                if index and sample['sequence']==receipt['wire_snapshots'][-2]['sequence']:
+                    raise RuntimeError('native output stopped advancing')
+                print(f"WIRE_SAMPLE {index+1}/{args.capture_frames} mode={sample['mode']} palette={sample['palette']} lanes={sample['lane_nonzero_counts']} mismatches={sample['scaling_byte_mismatches']}",flush=True)
+            samples=receipt['wire_snapshots']
+            receipt['final']=transact(17)
+            receipt['observed_modes']=sorted({s['mode'] for s in samples})
+            receipt['observed_palettes']=sorted({s['palette'] for s in samples})
+            receipt['nonzero_positions']=sorted({p for s in samples for p in s['nonzero_pixels']})
+            receipt['scope']='Actual submitted buffers and return codes; not captured GPIO or calibrated light'
+            if args.capture_frames>=50:
+                if receipt['observed_modes']!=[100,101,102,103]:
+                    raise RuntimeError('full showcase capture did not observe all four effects')
+                if len(receipt['observed_palettes'])<2 or len(receipt['nonzero_positions'])!=160:
+                    raise RuntimeError('palette cycle or full-strip coverage missing')
         elif args.stop:
             configure(a,b,5,brightness=0,mode_a=0,mode_b=0)
             time.sleep(0.05)

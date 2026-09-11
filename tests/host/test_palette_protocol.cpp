@@ -11,6 +11,8 @@
 using namespace k1::core::visual;
 static unsigned emits;
 static std::vector<std::uint8_t> last_wire;
+static std::vector<std::uint8_t> lane_wire[2];
+static int emission_failure = 0;
 static std::uint32_t hardware_cycles;
 extern "C" std::uint32_t k1_cycle_count() { return hardware_cycles; }
 static void poll(unsigned ms) { hardware_cycles=ms*1000000U; k1_fixture_poll(ms); }
@@ -19,8 +21,13 @@ void k1_ws2816_set_clock(std::uint32_t) {}
 packed_submit_result_t k1_ws2816_submit_packed_lanes(const std::uint8_t*,std::size_t,const std::uint8_t*,std::size_t,packed_lane_completion_t*) { return kPackedWrongCount; }
 int k1_ws281x_diag_emit(const std::uint8_t* data,std::size_t size,std::uint32_t profile,
                        std::uint32_t pin,std::uint32_t hz,k1_ws281x_diag_result_t* result) {
+#ifdef K1_PALETTE_WS2816
+  assert(size==480 && profile==4 && pin==emits%2 && hz==1000000000U);
+#else
   assert(size==384 && profile==1 && pin==0 && hz==1000000000U);
-  last_wire.assign(data,data+size); ++emits; *result={}; result->emit_cycles=3872400U; return 0;
+#endif
+  last_wire.assign(data,data+size); lane_wire[pin]=last_wire;
+  ++emits; *result={}; result->emit_cycles=3872400U; return emission_failure;
 }
 static std::uint32_t crc(const std::uint8_t* p,std::size_t n) {
   std::uint32_t c=~0U; while(n--) { c^=*p++; for(unsigned i=0;i<8;++i)c=(c>>1)^((c&1)?0xedb88320U:0); } return ~c;
@@ -42,6 +49,23 @@ static std::vector<std::uint8_t> config(unsigned a,unsigned b,unsigned flags) {
 }
 int main() {
   const std::uint8_t uid[16]{}; k1_fixture_initialise(uid,1000000000U,0);
+  const auto boot=request(17);
+  const std::string boot_body(reinterpret_cast<const char*>(boot.data()+32),boot.size()-32);
+#ifdef K1_PALETTE_AUTOSTART
+  assert(boot_body.find("\"automatic_cycle\":true")!=std::string::npos);
+  assert(boot_body.find("\"emit_enabled\":true")!=std::string::npos);
+#ifdef K1_PALETTE_MORPH
+  assert(boot_body.find("\"showcase\":true")!=std::string::npos);
+  assert(boot_body.find("\"mode_a\":100")!=std::string::npos);
+  assert(boot_body.find("\"mode_b\":101")!=std::string::npos);
+  assert(boot_body.find("\"transition_ms\":1500")!=std::string::npos);
+#endif
+#else
+  assert(boot_body.find("\"active\":false")!=std::string::npos);
+#endif
+#ifdef K1_PALETTE_WS2816
+  assert(get(request(19).data()+4)==8); // No completed submission yet.
+#endif
   auto catalogue=request(15); assert(get(catalogue.data()+4)==0);
   const std::string list(reinterpret_cast<const char*>(catalogue.data()+32),catalogue.size()-32);
   assert(list.find("\"count\":44")!=std::string::npos);
@@ -68,14 +92,41 @@ int main() {
 #endif
   assert(emits==0);
   assert(get(request(16,config(43,0,5)).data()+4)==0);
-  poll(0); poll(10); assert(emits==1 && last_wire.size()==384);
+  constexpr unsigned period_ms=(k1::titan::kPalettePeriodUs+999U)/1000U;
+#ifdef K1_PALETTE_WS2816
+  constexpr unsigned calls=2, wire_size=480;
+#else
+  constexpr unsigned calls=1, wire_size=384;
+#endif
+  poll(0); poll(period_ms); assert(emits==calls && last_wire.size()==wire_size);
+#ifdef K1_PALETTE_WS2816
+  const auto capture=request(19);
+  assert(get(capture.data()+4)==0 && capture.size()==32+1504);
+  const auto* snapshot=capture.data()+32;
+  assert(get(snapshot)==1 && get(snapshot+4)==1 && get(snapshot+12)==255);
+  assert(get(snapshot+16)==2 && get(snapshot+20)==80 && get(snapshot+24)==48);
+  for(unsigned lane=0;lane<2;++lane) {
+    assert(!std::memcmp(snapshot+544+lane*480,lane_wire[lane].data(),480));
+    for(unsigned i=0;i<80;++i) for(unsigned grb=0;grb<3;++grb) {
+      const unsigned rgb=grb==0?1:grb==1?0:2;
+      const unsigned native=snapshot[64+(lane*80+i)*3+rgb];
+      const unsigned offset=544+lane*480+i*6+grb*2;
+      assert((unsigned(snapshot[offset])*256+snapshot[offset+1])==native*257);
+    }
+  }
+  assert(get(request(19,std::vector<std::uint8_t>(4)).data()+4)!=0);
+#endif
   k1_fixture_disconnect();
-  poll(20); assert(emits==2); // Autonomous output survives CDC disconnect.
+  poll(2*period_ms); assert(emits==2*calls); // Autonomous output survives CDC disconnect.
   assert(get(request(16,config(43,0,0)).data()+4)==0);
-  poll(40); assert(emits==2);
+  poll(4*period_ms); assert(emits==2*calls);
   const auto stopped=request(17);
   const std::string body(reinterpret_cast<const char*>(stopped.data()+32),stopped.size()-32);
   assert(body.find("\"active\":false")!=std::string::npos);
+#ifdef K1_PALETTE_WS2816
+  assert(body.find("\"wire_profile\":4")!=std::string::npos);
+  assert(body.find("\"bench_pixels\":160")!=std::string::npos);
+#endif
 #ifdef K1_PALETTE_MORPH
   auto c3=config(33,43,5); c3.resize(40); put(c3.data(),3);
   put(c3.data()+12,100); put(c3.data()+16,101); put(c3.data()+36,4000);
@@ -90,6 +141,15 @@ int main() {
   auto full=request(17);
   std::string full_body(reinterpret_cast<const char*>(full.data()+32),full.size()-32);
   assert(full_body.find("\"transition_a_q16\":65535")!=std::string::npos);
+#endif
+  // The tap must retain failed submission status rather than certify it as light.
+#ifdef K1_PALETTE_WS2816
+  emission_failure=-7;
+  assert(get(request(16,config(33,43,5)).data()+4)==0);
+  hardware_cycles+=100000000U; k1_fixture_poll(40);
+  const auto failed=request(19);
+  assert(get(failed.data()+32+48)==static_cast<std::uint32_t>(-7));
+  assert(get(failed.data()+32+52)==static_cast<std::uint32_t>(-7));
 #endif
   std::puts("PALETTE_PROTOCOL_PASS palettes=44 channels=2 native_output_after_disconnect=true");
 }

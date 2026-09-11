@@ -13,7 +13,13 @@ inline constexpr std::uint32_t kPaletteCatalogueOpcode = 15U;
 inline constexpr std::uint32_t kPaletteConfigureOpcode = 16U;
 inline constexpr std::uint32_t kPaletteStatusOpcode = 17U;
 inline constexpr std::uint32_t kPaletteFrameOpcode = 18U;
+inline constexpr std::uint32_t kPaletteWireSnapshotOpcode = 19U; // WS2816 only; last submission, not photons.
+#ifdef K1_PALETTE_WS2816
+// Two sequential 80-pixel GRB48 transfers need more than an 8.333 ms slot.
+inline constexpr std::uint32_t kPalettePeriodUs = 16667U;
+#else
 inline constexpr std::uint32_t kPalettePeriodUs = 8333U;
+#endif
 // Flags: active, automatic catalogue cycle, physical bench output.
 struct PaletteConfig {
   std::uint32_t version = 1U;
@@ -40,6 +46,8 @@ class PaletteRuntime {
   }
   std::size_t packBenchGrb(std::uint8_t* destination, std::size_t capacity,
                          unsigned pixels = 128U) const noexcept;
+  std::size_t packBenchGrb48Lane(std::uint8_t* destination, std::size_t capacity,
+                               unsigned lane) const noexcept;
   std::size_t catalogueJson(char* out, std::size_t capacity) const noexcept;
   std::size_t statusJson(char* out, std::size_t capacity) const noexcept;
   void recordEmit(int result, std::uint32_t cycles) noexcept;

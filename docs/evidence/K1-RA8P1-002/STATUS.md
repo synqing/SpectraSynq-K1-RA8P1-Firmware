@@ -300,6 +300,10 @@ python3 scripts/verify_imports.py --slice timing --enforce
 python3 scripts/verify_imports.py --slice product --enforce
 python3 scripts/test_ws2816_pack.py
 python3 scripts/test_ws2816_emit_protocol.py
+python3 scripts/test_gold_extract.py
+python3 scripts/compare_led_backend.py
+python3 scripts/test_ws281x_gpt_dma.py
+python3 scripts/test_rate_adapt.py
 python3 scripts/test_fixture_protocol.py
 python3 scripts/test_schedule_protocol.py
 python3 scripts/test_semantic_sidecar.py

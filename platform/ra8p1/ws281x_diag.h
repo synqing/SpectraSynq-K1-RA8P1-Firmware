@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #define K1_WS281X_DIAG_OPCODE 13u
+#define K1_WS281X_FRAME_OPCODE 14u
 #define K1_WS281X_DIAG_MAX_PIXELS 128u
 #define K1_WS281X_DIAG_MAX_BYTES (K1_WS281X_DIAG_MAX_PIXELS * 6u)
 
@@ -12,7 +13,9 @@ extern "C" {
 
 /* Diagnostic only: no render scheduling, scaling, dithering or DMA claim.
  * Profile 1/2 nominal timings: FastLED 3.10.4 adedfc40, led_timing.h.
- * Profile 3: WS2816C-1313-4P V1.1 p4; not universal WS281x timing. */
+ * Profile 3: WS2816C-1313-4P V1.1 p4; not universal WS281x timing.
+ * Profile 4: FastLED WS2816 transport: GRB48 over TIMING_WS2812_800KHZ.
+ * Keep profiles 3 and 4 distinct until the populated LED part is identified. */
 typedef struct {
     uint32_t version, profile, pin, pixels, lit_pixels, red, green, blue;
 } k1_ws281x_diag_request_t;
@@ -37,6 +40,9 @@ static inline int k1_ws281x_diag_profile(uint32_t id, k1_ws281x_diag_timing_t *o
         *out = value;
     } else if (id == 3u) {
         const k1_ws281x_diag_timing_t value = {250u, 650u, 1250u, 300u, 6u};
+        *out = value;
+    } else if (id == 4u) {
+        const k1_ws281x_diag_timing_t value = {250u, 875u, 1250u, 300u, 6u};
         *out = value;
     } else return 0;
     return 1;
