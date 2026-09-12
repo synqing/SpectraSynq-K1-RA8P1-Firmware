@@ -26,7 +26,7 @@ PROFILE_UPDATE_STAGES={
     'acf_normalise','tempo_bank','tempo_flywheel','tempo_output',
 }
 PROFILE_UNUSED_STAGES={'clock_affine'}
-RAW_TRACE_VERSION=1
+RAW_TRACE_VERSION=2
 RAW_TRACE_CHUNK=128
 RAW_FLAG_TEMPO=1
 RAW_FLAG_RENDERED=2
@@ -60,7 +60,7 @@ def validate_stage_profile(status,expected_hops,expected_renders,expected_raw_re
         if set(measurement)!=required or any(measurement[field]<0 for field in required):
             raise RuntimeError(f'invalid stage profile measurement: {name}')
     raw=profile.get('raw_trace')
-    expected_stride=(5+len(expected))*4
+    expected_stride=(7+len(expected))*4
     if not isinstance(raw,dict) or raw.get('version')!=RAW_TRACE_VERSION or raw.get('stride')!=expected_stride:
         raise RuntimeError('raw stage trace metadata missing or divergent')
     if expected_raw_records is not None and raw.get('records')!=expected_raw_records:
@@ -70,20 +70,21 @@ def decode_raw_trace_chunk(body,expected_first,stage_names):
     if len(body)<24:
         raise RuntimeError('raw trace chunk header truncated')
     magic,version,first,count,stride,stage_count=struct.unpack_from('<4s5I',body)
-    expected_stride=(5+len(stage_names))*4
+    expected_stride=(7+len(stage_names))*4
     if (magic!=b'K1T1' or version!=RAW_TRACE_VERSION or first!=expected_first or
         not count or count>RAW_TRACE_CHUNK or stage_count!=len(stage_names) or
         stride!=expected_stride or len(body)!=24+count*stride):
         raise RuntimeError('raw trace chunk identity/shape mismatch')
     records=[]
     for row in range(count):
-        words=struct.unpack_from(f'<{5+stage_count}I',body,24+row*stride)
-        index,total,lateness,flags,injected,*stages=words
+        words=struct.unpack_from(f'<{7+stage_count}I',body,24+row*stride)
+        index,total,lateness,flags,injected,double_calls,double_cycles,*stages=words
         if index!=first+row or flags&~0x1f:
             raise RuntimeError('raw trace row identity/flags mismatch')
         records.append(dict(
             hop=index,total_cycles=total,lateness_cycles=lateness,flags=flags,
-            injected_delay_cycles=injected,
+            injected_delay_cycles=injected,double_calls=double_calls,
+            double_cycles=double_cycles,
             stages_cycles=dict(zip(stage_names,stages)),
         ))
     return records
@@ -135,10 +136,18 @@ def summarise_raw_trace(records,stage_names,clock_hz):
             if total_cycles:
                 values.append(max(0,total_cycles-acf_cycles))
         tracker_exclusive[name]=_distribution(values,clock_hz)
+    doubles={
+        name:{
+            'calls':_distribution([row['double_calls'] for row in rows],clock_hz),
+            'cycles':_distribution([row['double_cycles'] for row in rows],clock_hz),
+        }
+        for name,rows in classes.items()
+    }
     return {
         'unit':'cycles','clock_hz':clock_hz,'records':len(records),
         'cross_tab':cross_tab,'total':total,'stages':stages,
         'derived_tempo_tracker_exclusive':tracker_exclusive,
+        'software_double':doubles,
     }
 
 def main():
@@ -160,6 +169,7 @@ def main():
                  timing_mutation=args.timing_mutation,mode=args.mode,
                  failure_campaign=args.failure_campaign,**{'pass':False})
     port=None
+    run_id=0
     try:
         import serial
         from serial.tools import list_ports
@@ -234,6 +244,11 @@ def main():
             raise RuntimeError('schedule unexpectedly active before observer priming')
         receipt['observer_prime']=idle_status
         receipt['resources_before']=json.loads(transact(6))
+        run_id=int(time.time()) & 0xffffffffffffffff
+        try:
+            transact(20,bytes([7])+struct.pack('<Q',run_id))
+        except Exception:
+            run_id=0
         transact(7,struct.pack('<II',0,1),expected=3)
         transact(7,struct.pack('<II',args.loops,4),expected=3)
         flags=(3 if args.mutation else 1)|(mode<<4)|(0x40 if args.failure_campaign else 0)|(0x80 if args.timing_mutation else 0)
@@ -356,8 +371,14 @@ def main():
                          'G4_RAW_TIMING_NEGATIVE' if args.timing_mutation else
                          'K1-RA8P1-002-NPU-COEXIST' if mode else 'G4_SCALAR_SUBPROFILE')
         receipt['pass']=True
+        if run_id:
+            transact(20,bytes([6])+struct.pack('<Q',run_id)+bytes([2])+struct.pack('<I',0))
     except Exception as error:
-        receipt['error']=str(error); raise
+        receipt['error']=str(error)
+        if run_id:
+            try: transact(20,bytes([6])+struct.pack('<Q',run_id)+bytes([3])+struct.pack('<I',0))
+            except Exception: pass
+        raise
     finally:
         if port is not None: port.close()
         receipt['end']=datetime.now(timezone.utc).isoformat()

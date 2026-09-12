@@ -13,6 +13,8 @@ from datetime import datetime, timezone
 from verify_imports import ROOT, verify, REFERENCE, PIN
 from stage_profile import instrument_stage_sources
 from palette_renderer_overlay import apply_palette_overlay
+from tempo_acf_slice_overlay import apply_tempo_acf_slice_overlay
+from tempo_dtcm_overlay import apply_tempo_dtcm_overlay
 
 BSP = ROOT.parent / 'sdk-bsp-ra8p1-titan-mini'
 BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
@@ -33,9 +35,16 @@ PLATFORM_FILES = [
     'semantic_sidecar.cpp', 'semantic_sidecar.h',
     'titan_led_pins.h', 'ws2816_gpio_emit.h', 'ws2816_gpio_emit.c',
     'ws281x_diag.h', 'ws281x_diag.c',
+    'ws281x_waveform.h', 'ws281x_waveform.c',
+    'ws281x_gpt_dma.h', 'ws281x_gpt_dma.c',
+    'ws281x_gpt_dma_hw.h', 'ws281x_gpt_dma_hw.c',
+    'k1_status_led.h', 'k1_status_led.c',
+    'titan_status_gpio.h', 'titan_status_gpio.c',
 ]
 RA8P1_LOCAL_K1_FILES = [
     'core/visual/ws2816_pack.h',
+    'core/audio/tempo_acf_slice.h',
+    'core/audio/tempo_acf_slice.cpp',
 ]
 PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h', 'palette_clock.h']
 PALETTE_MORPH_FILES = ['palette_transition.h', 'centre_palette_engine.h']
@@ -112,6 +121,94 @@ def stage_dual_pdm_vectors(stage: Path) -> None:
         '        };')
     source.write_text(text)
 
+def stage_led_gpt_vectors(stage: Path) -> None:
+    """Add DMAC2 completion for the GPT6 LED transmitter.
+
+    PDM occupies DMAC0/DMAC1. Generated OSPI uses DMAC0. LED uses DMAC2.
+    GPT0 overflow IRQ 63 already exists in the USB PCDC vector table.
+    """
+    header = stage / 'ra_gen/vector_data.h'
+    text = header.read_text()
+    if 'VECTOR_NUMBER_DMAC2_INT' in text:
+        return
+    if 'VECTOR_NUMBER_DMAC1_INT' in text:
+        old_count, new_count, irq = '76', '77', '76'
+        header_anchor = (
+            '        #define PDM_ERR0_IRQn          ((IRQn_Type) 75) '
+            '/* PDM ERR0 (Error detection interrupt channel 0) */\n'
+        )
+        isr_anchor = (
+            '            [75] = pdm_err_isr, /* PDM ERR0 (Error detection interrupt channel 0) */\n'
+            '        };'
+        )
+        event_anchor = (
+            '            [75] = BSP_PRV_VECT_ENUM(EVENT_PDM_ERR0,FIXED), '
+            '/* PDM ERR0 (Error detection interrupt channel 0) */\n'
+            '        };'
+        )
+        isr_insert = (
+            '            [75] = pdm_err_isr, /* PDM ERR0 (Error detection interrupt channel 0) */\n'
+            '            [76] = dmac_int_isr, /* DMAC2 INT (DMAC2 transfer end) */\n'
+            '        };'
+        )
+        event_insert = (
+            '            [75] = BSP_PRV_VECT_ENUM(EVENT_PDM_ERR0,FIXED), '
+            '/* PDM ERR0 (Error detection interrupt channel 0) */\n'
+            '            [76] = BSP_PRV_VECT_ENUM(EVENT_DMAC2_INT,FIXED), '
+            '/* DMAC2 INT (DMAC2 transfer end) */\n'
+            '        };'
+        )
+    else:
+        old_count, new_count, irq = '74', '75', '74'
+        header_anchor = (
+            '        /* The number of entries required for the ICU vector table. */'
+        )
+        isr_anchor = (
+            '            [73] = ipc_isr, /* IPC IRQ1 (CPU Mutual Interrupt 1) */\n'
+            '        };'
+        )
+        event_anchor = (
+            '            [73] = BSP_PRV_VECT_ENUM(EVENT_IPC_IRQ1,FIXED), '
+            '/* IPC IRQ1 (CPU Mutual Interrupt 1) */\n'
+            '        };'
+        )
+        isr_insert = (
+            '            [73] = ipc_isr, /* IPC IRQ1 (CPU Mutual Interrupt 1) */\n'
+            '            [74] = dmac_int_isr, /* DMAC2 INT (DMAC2 transfer end) */\n'
+            '        };'
+        )
+        event_insert = (
+            '            [73] = BSP_PRV_VECT_ENUM(EVENT_IPC_IRQ1,FIXED), '
+            '/* IPC IRQ1 (CPU Mutual Interrupt 1) */\n'
+            '            [74] = BSP_PRV_VECT_ENUM(EVENT_DMAC2_INT,FIXED), '
+            '/* DMAC2 INT (DMAC2 transfer end) */\n'
+            '        };'
+        )
+    additions = (
+        f'        #define VECTOR_NUMBER_DMAC2_INT ((IRQn_Type) {irq}) '
+        '/* DMAC2 INT (DMAC2 transfer end) */\n'
+        f'        #define DMAC2_INT_IRQn          ((IRQn_Type) {irq}) '
+        '/* DMAC2 INT (DMAC2 transfer end) */\n'
+    )
+    assert text.count(f'#define VECTOR_DATA_IRQ_COUNT    ({old_count})') == 1
+    text = text.replace(f'#define VECTOR_DATA_IRQ_COUNT    ({old_count})',
+                        f'#define VECTOR_DATA_IRQ_COUNT    ({new_count})')
+    text = text.replace(f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({old_count})',
+                        f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({new_count})')
+    if header_anchor == '        /* The number of entries required for the ICU vector table. */':
+        assert text.count(header_anchor) == 1
+        text = text.replace(header_anchor, additions + header_anchor)
+    else:
+        assert text.count(header_anchor) == 1
+        text = text.replace(header_anchor, header_anchor + additions)
+    header.write_text(text)
+
+    source = stage / 'ra_gen/vector_data.c'
+    text = source.read_text()
+    assert text.count(isr_anchor) == 1
+    assert text.count(event_anchor) == 1
+    source.write_text(text.replace(isr_anchor, isr_insert).replace(event_anchor, event_insert))
+
 def stage_pcm1808_vectors(stage: Path) -> None:
     """Fail closed: U18 has no complete, framed PCM1808 receive route."""
     del stage
@@ -140,6 +237,8 @@ def main():
     parser.add_argument('--palette-autostart',action='store_true',help='boot into catalogue cycling; with --palette-morph, the four-effect centre showcase')
     parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
     parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
+    parser.add_argument('--tempo-acf-slice',action='store_true',
+                        help='split tempo ACF lag rows across hops; DualMCU files stay unmodified on disk')
     args=parser.parse_args()
     if args.palette_morph and not args.palette_runtime: parser.error('--palette-morph requires --palette-runtime')
     if args.palette_autostart and not args.palette_runtime: parser.error('--palette-autostart requires --palette-runtime')
@@ -167,6 +266,10 @@ def main():
         if args.palette_morph:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_MORPH_FILES]
             material.append(ROOT/'scripts/palette_renderer_overlay.py')
+        if args.tempo_acf_slice:
+            material.append(ROOT/'scripts/tempo_acf_slice_overlay.py')
+        if args.resident_controls:
+            material.append(ROOT/'scripts/tempo_dtcm_overlay.py')
         if args.resident_controls:
             if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
             material.append(args.resident_controls)
@@ -183,7 +286,12 @@ def main():
                 if not path.is_file(): raise RuntimeError(f'missing P4 source {name}')
                 material.append(path)
         if args.stage_profile:
-            material += [ROOT/'platform/ra8p1/stage_probe.h',ROOT/'scripts/stage_profile.py']
+            material += [
+                ROOT/'platform/ra8p1/stage_probe.h',
+                ROOT/'platform/ra8p1/k1_double_probe.h',
+                ROOT/'platform/ra8p1/k1_double_probe.c',
+                ROOT/'scripts/stage_profile.py',
+            ]
         if args.pdm_target:
             material += [ROOT/'platform/ra8p1'/name for name in PDM_TARGET_FILES]
             material.append(PDM_SOURCE_CONTRACT)
@@ -227,7 +335,7 @@ def main():
             if optimisation!='-O2':
                 assert text.count("CFLAGS += ' -O2'")==1
                 text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
-        defines=[]
+        defines=['-DK1_RA8P1_TARGET=1']
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
@@ -256,6 +364,7 @@ def main():
             stage_dual_pdm_vectors(stage)
         if args.pcm1808_target:
             stage_pcm1808_vectors(stage)
+        stage_led_gpt_vectors(stage)
         for name in PLATFORM_FILES:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.pdm_target:
@@ -283,10 +392,34 @@ def main():
             scon.write_text(scon.read_text().replace("LOCAL_CXXFLAGS=' -std=c++17", "LOCAL_CXXFLAGS=' -DK1_RESIDENT_SCHEDULE=1 -std=c++17"))
         if args.stage_profile:
             shutil.copy2(ROOT/'platform/ra8p1/stage_probe.h',stage/'src/stage_probe.h')
+            shutil.copy2(ROOT/'platform/ra8p1/k1_double_probe.h',stage/'src/k1_double_probe.h')
+            shutil.copy2(ROOT/'platform/ra8p1/k1_double_probe.c',stage/'src/k1_double_probe.c')
             scon=stage/'src/SConscript'
             text=scon.read_text()
             assert text.count("LOCAL_CXXFLAGS=' ")==1
-            scon.write_text(text.replace("LOCAL_CXXFLAGS=' ","LOCAL_CXXFLAGS=' -DK1_ENABLE_STAGE_PROBE=1 "))
+            assert "src += ws281x_diagnostic" in text
+            text=text.replace("src += ws281x_diagnostic",
+                              "src += ws281x_diagnostic + Glob('k1_double_probe.c')")
+            text=text.replace("LOCAL_CXXFLAGS=' ","LOCAL_CXXFLAGS=' -DK1_ENABLE_STAGE_PROBE=1 ")
+            scon.write_text(text)
+            wraps=','.join(
+                '--wrap='+name for name in (
+                    '__aeabi_dadd','__aeabi_dsub','__aeabi_dmul','__aeabi_ddiv',
+                    '__aeabi_drsub','__aeabi_d2f','__aeabi_d2iz','__aeabi_d2ulz',
+                    '__aeabi_dcmpeq','__aeabi_dcmplt','__aeabi_dcmple',
+                    '__aeabi_dcmpge','__aeabi_dcmpgt','__aeabi_dcmpun',
+                    '__aeabi_i2d','__aeabi_ui2d','__aeabi_l2d',
+                )
+            )
+            rtconfig=stage/'rtconfig.py'
+            config=rtconfig.read_text()
+            marker="LFLAGS = DEVICE + ' -Wl,--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler"
+            assert config.count(marker)==1
+            rtconfig.write_text(config.replace(
+                marker,
+                "LFLAGS = DEVICE + ' -Wl,"+wraps+",--gc-sections,-Map=rtthread.map,-cref,-u,Reset_Handler",
+                1,
+            ))
         if args.npu_model:
             shutil.copy2(ROOT/'platform/ra8p1'/'npu_load.c',stage/'src/npu_load.c')
             shutil.copy2(ROOT/'platform/ra8p1'/'npu_load.h',stage/'src/npu_load.h')
@@ -309,6 +442,10 @@ def main():
             shutil.copy2(ROOT/'src/k1'/name,target)
         if args.palette_morph:
             receipt['palette_derivative_sources']=apply_palette_overlay(stage/'src/k1')
+        if args.tempo_acf_slice:
+            receipt['tempo_acf_slice_sources']=apply_tempo_acf_slice_overlay(stage/'src/k1')
+        if args.resident_controls:
+            receipt['tempo_dtcm_sources']=apply_tempo_dtcm_overlay(stage/'src/k1')
         if args.stage_profile:
             receipt['instrumented_sources']=instrument_stage_sources(stage/'src/k1')
         macros=command([TOOLCHAIN/'arm-none-eabi-g++',*SCALAR.split(),'-dM','-E','-x','c++','/dev/null'])
@@ -330,6 +467,7 @@ def main():
         assert_scalar_generated_code(dump,attrs)
         for symbol in ['AudioPipeline::process','renderProductChannel','k1_fixture_consume','k1_fixture_initialise']:
             assert symbol in dump, f'missing executed K1 symbol {symbol}'
+        assert 'k1_ws281x_diag_emit' in dump, 'GPIO diagnostic emitter was dropped'
         if args.palette_runtime:
             pack_symbol = 'PaletteRuntime::packBenchGrb48Lane' if args.palette_ws2816 else 'PaletteRuntime::packBenchGrb('
             for symbol in ['PaletteRuntime::configure','PaletteRuntime::step','PaletteRuntime::catalogueJson',pack_symbol]:

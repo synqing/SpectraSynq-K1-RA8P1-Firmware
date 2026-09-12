@@ -32,7 +32,10 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
         for suite in (('runtime','protocol','transition','centre') if morph else ('runtime','protocol')):
             executable=out/(suite+str(morph))
             command=common+[str(ROOT/f'tests/host/test_palette_{suite}.cpp'),'-o',str(executable)]
-            if suite=='protocol': command+=['-DK1_PALETTE_RUNTIME=1',str(ROOT/'platform/ra8p1/fixture_app.cpp')]
+            if suite=='protocol': command+=['-DK1_PALETTE_RUNTIME=1','-DK1_STATUS_GPIO_STUB=1',
+                str(ROOT/'platform/ra8p1/fixture_app.cpp'),
+                str(ROOT/'platform/ra8p1/k1_status_led.c'),
+                str(ROOT/'platform/ra8p1/titan_status_gpio.c')]
             subprocess.run(command,check=True)
             result=subprocess.check_output([str(executable)],text=True)
             print(('MORPH ' if morph else 'PINNED ')+result,end='')

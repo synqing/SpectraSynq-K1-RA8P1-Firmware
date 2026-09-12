@@ -8,6 +8,7 @@
 #include <usb_pcdc/usb_pcdc.h>
 #include <stdio.h>
 #include "fixture_app.h"
+#include "k1_status_led.h"
 #ifdef K1_NPU_LOAD
 #include "npu_load.h"
 #endif
@@ -151,23 +152,44 @@ void hal_entry(void) {
     /* Pair bookkeeping only. Does not open USB, PDM, or Ethos-U. */
     (void)k1_coexist_probe();
 #endif
+    k1_status_led_init((uint32_t)rt_tick_get());
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
-    if(FSP_SUCCESS!=R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg)) return;
+    if(FSP_SUCCESS!=R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg)) {
+        k1_status_led_fault(1,"usb_open",(uint32_t)rt_tick_get());
+        for(;;) k1_status_led_poll((uint32_t)rt_tick_get(),1);
+    }
+    k1_status_led_boot_ok((uint32_t)rt_tick_get());
     for(;;) {
+        k1_fixture_schedule_step();
+        const uint32_t remaining=k1_fixture_release_remaining_cycles();
+        const bool hold_usb=k1_fixture_schedule_active() && remaining<(SystemCoreClock/1250U);
+        const bool hold_yield=k1_fixture_schedule_active() && remaining<(SystemCoreClock/900U);
+        const uint32_t led_now=(uint32_t)rt_tick_get();
+        const uint32_t led_t0=DWT->CYCCNT;
+        k1_status_led_poll(led_now, hold_usb?0:1);
+        k1_status_led_add_service_cycles(DWT->CYCCNT-led_t0);
         usb_event_info_t info={0}; usb_status_t event=USB_STATUS_NONE;
-        (void)R_USB_EventGet(&info,&event);
-        switch(event) {
-        case USB_STATUS_CONFIGURED: case USB_STATUS_RESUME: attached=true; break;
-        case USB_STATUS_REQUEST: k1_handle_request(&info); break;
-        case USB_STATUS_READ_COMPLETE:
-            read_armed=false;
-            k1_fixture_consume(usb_read,info.data_size,(uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
-            break;
-        case USB_STATUS_WRITE_COMPLETE: write_pending=false; k1_fixture_sent(); break;
-        case USB_STATUS_DETACH: case USB_STATUS_SUSPEND:
-            attached=false; read_armed=false; write_pending=false; k1_fixture_disconnect(); break;
-        default: break;
+        if(!hold_usb) {
+            (void)R_USB_EventGet(&info,&event);
+            k1_note_usb_event((uint32_t)event);
+            switch(event) {
+            case USB_STATUS_CONFIGURED: case USB_STATUS_RESUME:
+                attached=true;
+                k1_status_led_usb(1,1,led_now);
+                break;
+            case USB_STATUS_REQUEST: k1_handle_request(&info); break;
+            case USB_STATUS_READ_COMPLETE:
+                read_armed=false;
+                k1_fixture_consume(usb_read,info.data_size,(uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
+                break;
+            case USB_STATUS_WRITE_COMPLETE: write_pending=false; k1_fixture_sent(); break;
+            case USB_STATUS_DETACH: case USB_STATUS_SUSPEND:
+                attached=false; read_armed=false; write_pending=false; k1_fixture_disconnect();
+                k1_status_led_usb(0,0,led_now);
+                break;
+            default: break;
+            }
         }
 #ifdef K1_PDM_TARGET
         /* USB enumeration can occupy more than the bounded 15 ms PDM ring.
@@ -190,12 +212,13 @@ void hal_entry(void) {
         k1_pcm1808_target_poll();
 #endif
         size_t size; const uint8_t* reply=k1_fixture_reply(&size);
-        if(attached && size && !write_pending &&
-           FSP_SUCCESS==R_USB_Write(&g_basic0_ctrl,(uint8_t*)reply,(uint32_t)size,USB_CLASS_PCDC)) write_pending=true;
-        if(attached && !size && !read_armed &&
-           FSP_SUCCESS==R_USB_Read(&g_basic0_ctrl,usb_read,sizeof(usb_read),USB_CLASS_PCDC)) read_armed=true;
-        k1_fixture_schedule_step();
+        if(!hold_usb) {
+            if(attached && size && !write_pending &&
+               FSP_SUCCESS==R_USB_Write(&g_basic0_ctrl,(uint8_t*)reply,(uint32_t)size,USB_CLASS_PCDC)) write_pending=true;
+            if(attached && !size && !read_armed &&
+               FSP_SUCCESS==R_USB_Read(&g_basic0_ctrl,usb_read,sizeof(usb_read),USB_CLASS_PCDC)) read_armed=true;
+        }
         if(!k1_fixture_schedule_active()) rt_thread_mdelay(1);
-        else rt_thread_yield();
+        else if(!hold_yield) rt_thread_yield();
     }
 }

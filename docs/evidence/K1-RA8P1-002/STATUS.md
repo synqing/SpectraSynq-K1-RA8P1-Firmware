@@ -4,8 +4,42 @@ Captain authorised sequential end-to-end implementation after delegation was
 rejected. No new agent launches or guard changes were attempted. The two existing
 repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
 
+## ROM-entry chat (Captain 2026-09-12, HARD)
+
+During USER/BOOT + RESET the chat is the instrument. Do not go mute.
+Do not put the only ack in a log. Speak each beat as it happens:
+
+1. Waiting — "Hold USER and BOOT, then RESET. I am watching."
+2. Bootloader seen — "I see it. Writing." (same moment, not after the write)
+3. Write verified — "Write verified. Release USER and BOOT. Press RESET."
+4. App back — "Board is back." plus what runs next.
+
+A 180 s waiter with one line at the start and silence until timeout is a fail.
+
 ## What is true now
 
+- **G4 scalar 40-loop qualification PASS on the identified Titan.** Slim-status
+  DTCM cache-off image `603e3f1721b36abc9d5dc6cb5cb9ee4e370c8638cf48023a2b471f0926733ebb`
+  HEX `619077a52fa372cea97380674be2ef39ae940a76aeb659c141b0e371ea03ad6e`.
+  240,000 hops: CRC 0, deadline 0, late starts 0, lateness max 2 µs, workload
+  max 5.598 ms. Four late starts were host opcode-8 histogram JSON
+  (`USB_STATUS_READ_COMPLETE`). DualMCU on disk unchanged. D-cache off. Frozen
+  CRCs not regenerated. Not product ship (LED/ingress/NPU/MVE remain).
+  Receipt: `g4-acf-dtcm-slimstatus-o3-qual-01`.
+- **GPT6/DMA LED backend is in source and cross-compiled. It is not yet
+  on-silicon or waveform-captured.** Host tests pass 128-pixel WS2812 tables
+  and reject 129 WS2812 / 81 WS2816. Linked WS2812 image
+  `ws2812-gpt-dma-build-01` build
+  `69714064a0da12286f37bffe2e6291f68fe643cc7b24a352e88e3f18d6664584`
+  HEX `42bd1d6d8f2ece9882ec3cfbd64778535cdd1e33aa10b04c024549f3bc2ee75e`
+  contains `k1_ws281x_gpt_dma_hw_submit`, `R_GPT_Open`, `R_DMAC_Open`, DMAC2
+  IRQ 74, and SRAM duty at `0x220363a0`. GPIO diagnostic emit remains linked
+  and is not the autonomous path. P004 still has no GPT route. G4 stays FAIL
+  at 2,005/6,000 = 33.4%. `WAVEFORM_NOT_CAPTURED`. Programming waiters
+  `ws2812-gpt-dma-prog-01` and `prog-02` both expired with zero RA USB Boot
+  devices; application CDC `045b:5310` `/dev/cu.usbmodem00000000000011`
+  stayed up. UID not re-flashed. Next flash needs a fresh waiter, then
+  USER/BOOT held through RESET until `PROGRAMME_VERIFY_PASS`.
 - **F1 passes for the covered scalar slice.** The identified Titan executed all
   14,000 frozen hops and matched 7,364,000 typed fields exactly, including all
   320 pixels per hop. Epoch/time semantics and the million-beat probe passed.
@@ -287,10 +321,26 @@ External root:
 `external-receipts.json` binds decisive receipts. Failed receipts are preserved.
 
 Build 09 is programmed and its bounded source-bound campaign is complete. Do
-not repeat generic P4 or extend it by duration. The next implementation task is
+not repeat generic P4 or extend it by duration. The next implementation task remains
 stage-level profiling of the actual K1 tempo-heavy hop, followed by the smallest
 exact-behaviour change that reduces its measured cost. Rebind the board by UID
 before target execution.
+
+Agent observation 2026-09-12: GPT/DMA is no longer host-only. `build_scalar.py`
+copies `ws281x_gpt_dma_hw.c` and stages DMAC2. The WS2812 autonomous image is
+built; flashing is waiting on identified ROM entry. FastLED GPIO smoke remains
+as a diagnostic path and cannot close GPT acceptance. GitHub has no open issues
+on this repository.
+
+Agent observation 2026-09-11: `raw-stage-o3-profile-03` is a passing PRE-SILICON
+image; `raw-stage-o3-profile-prog-01` failed with zero RA USB Boot devices while
+application CDC `045b:5310` `/dev/cu.usbmodem00000000000011` was present. Live
+INFO matched UID `545433931bd25436593630352d068363` and build `70c2323a…`
+(showcase restore). That image is not the resident G4 profiler, so the 22,500 µs
+hypothesis is still unmeasured. Static nm/objdump of the profiler ELF counted
+118 `__aeabi_d*` call sites (43 in `AffineClockEstimator::refit`, 40 in fixture
+serialise, 15 in `bindTempoPhase`). Runtime wrap counters are now in the
+profiler path (raw-trace version 2).
 
 Host regression:
 
@@ -304,6 +354,7 @@ python3 scripts/test_gold_extract.py
 python3 scripts/compare_led_backend.py
 python3 scripts/test_ws281x_gpt_dma.py
 python3 scripts/test_rate_adapt.py
+python3 scripts/test_double_probe.py
 python3 scripts/test_fixture_protocol.py
 python3 scripts/test_schedule_protocol.py
 python3 scripts/test_semantic_sidecar.py
@@ -317,3 +368,10 @@ is untouched. BSP remains clean at `6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7`.
 The Lab's unrelated untracked strategic plan, brief, review and `test-results/`
 remain unstaged. No retired cadence run, audible loop, worktree or production-S3
 mutation occurred.
+
+---
+**Document Changelog**
+| Date | Author | Change |
+|------|--------|--------|
+| 2026-09-12 | agent | ROM-entry chat is live: speak waiting, bootloader seen, write verified, board back. Silence during USER/BOOT is a fail. |
+| 2026-09-12 | agent | Onboard RGB status LED (P108/P109/P110 active-low). Legend: yellow boot, blue ready, magenta test, three red fail, three green pass. Opcode 20. |
