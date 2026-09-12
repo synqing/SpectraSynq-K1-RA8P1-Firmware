@@ -355,7 +355,7 @@ void status_command(std::uint32_t size) {
   } else if (sub == 5 && size == 1) {
     k1_status_led_wait_clear(led_now);
     respond(0, 0, "WCLR", 4);
-  } else if (sub == 6 && size == 13) {
+  } else if (sub == 6 && size == 14) {
     const std::uint64_t run = get32(rx + 33) | (std::uint64_t(get32(rx + 37)) << 32);
     const std::uint8_t outcome = rx[41];
     const std::uint32_t digest = get32(rx + 42);
@@ -371,7 +371,7 @@ void status_command(std::uint32_t size) {
 void execute() {
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
-  if (command == 20) { status_command(size); return; }
+  if (command == 20) { status_command(size); fill=0; wanted=32; return; }
 #ifdef K1_PALETTE_RUNTIME
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));

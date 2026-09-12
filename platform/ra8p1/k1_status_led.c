@@ -165,8 +165,10 @@ static void set_reason(const char *reason) {
 }
 
 static int healthy_idle(void) {
-  return !g.fatal && !g.warning && g.outcome != k1_led_outcome_fail &&
-         g.outcome != k1_led_outcome_incomplete && g.activity != k1_led_activity_test &&
+  const int badged = ((g.outcome == k1_led_outcome_fail ||
+                       g.outcome == k1_led_outcome_incomplete) &&
+                      !g.outcome_acked);
+  return !g.fatal && !g.warning && !badged && g.activity != k1_led_activity_test &&
          g.activity != k1_led_activity_finalizing && g.activity != k1_led_activity_wait;
 }
 
