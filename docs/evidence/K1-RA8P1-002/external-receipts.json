@@ -98,7 +98,8 @@
     "raw-stage-o3-dcache-profile-01/receipt.json": "89a6d8862a350ba8ece5fe37298b9b9f0178be8ef4b5dc21d5ddf78ae084aab3",
     "raw-stage-o3-dcache-control-01/receipt.json": "cf4959277966dd1707c574d650f0fad94639653a67ddc50f546bd2f1f4f16bcb",
     "raw-stage-o3-profile-prog-01/receipt.json": "3c9d0491adfa341366ab3b81a610e2542ee1d3edd57bfc37206532b3ddfaa398",
-    "s3-comparator-freeze-01/receipt.json": "1a0213e97fac0ea1fca611c7b4567bc12b9714611ec9111939e131c9b05d6a1d"
+    "s3-comparator-freeze-01/receipt.json": "1a0213e97fac0ea1fca611c7b4567bc12b9714611ec9111939e131c9b05d6a1d",
+    "ss-03-broker-archive-20260919/broker.jsonl": "ba47ecba0bf61a6b3aae8218e9cfac0e637bd3d143efb60b8b75d4fd752d478d"
   },
   "physical_claims": false,
   "scalar_target_executed": true,

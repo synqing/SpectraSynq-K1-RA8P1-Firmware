@@ -8,6 +8,7 @@
 #ifdef K1_ENABLE_STAGE_PROBE
 #include "k1_double_probe.h"
 #include "stage_probe.h"
+#include <algorithm>
 #endif
 #include <new>
 #include <cstdio>
@@ -24,7 +25,11 @@
 #include "core/visual/ws2816_pack.h"
 #include "ws2816_gpio_emit.h"
 #include "ws281x_diag.h"
+#ifdef K1_PALETTE_GPT_DMA
+#include "ws281x_gpt_dma_hw.h"
+#endif
 #include "k1_status_led.h"
+#include "titan_led2_phy.h"
 #ifdef K1_PALETTE_RUNTIME
 #include "palette_runtime.h"
 #include "palette_clock.h"
@@ -32,9 +37,13 @@
 #ifdef K1_PCM1808_TARGET
 #include "pcm1808_target.h"
 #endif
+#ifdef K1_PDM_TARGET
+#include "pdm_target.h"
+#endif
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
+k1_led2_phy_trace_t led2_trace_entries[K1_LED2_PHY_TRACE_CAPACITY]{};
 #ifdef K1_PALETTE_RUNTIME
 k1::titan::PaletteRuntime palettes;
 std::uint32_t palette_clock_hz = 0;
@@ -50,11 +59,33 @@ void snapshot_word(unsigned index, std::uint32_t value) {
     palette_wire_snapshot[index*4U+byte] = value >> (8U*byte);
 }
 #endif
+#ifdef K1_PALETTE_GPT_DMA
+std::uint32_t palette_gpt_frames=0, palette_gpt_errors=0;
+bool palette_gpt_pending=false;
+std::uint8_t palette_last_wire[128U * 3U];
+std::size_t palette_last_wire_size=0;
+void palette_gpt_poll() {
+  k1_ws281x_gpt_dma_hw_poll();
+  const auto completed=k1_ws281x_gpt_dma_hw_completions();
+  const auto failed=k1_ws281x_gpt_dma_hw_errors();
+  if (completed!=palette_gpt_frames) { palettes.recordEmit(0,0); palette_gpt_frames=completed; }
+  if (failed!=palette_gpt_errors) { palettes.recordEmit(1,0); palette_gpt_errors=failed; }
+}
+#endif
 void palette_step(bool emit) {
+#ifdef K1_PALETTE_GPT_DMA
+  palette_gpt_poll();
+#endif
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
       trajectory.output.features.publish_time_us};
-  if (!palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr)) return;
+  const bool rendered=palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr);
+#ifdef K1_PALETTE_GPT_DMA
+  if (rendered) palette_gpt_pending=true;
+  if (!palette_gpt_pending || !k1_ws281x_gpt_dma_hw_ready()) return;
+#else
+  if (!rendered) return;
+#endif
   if (emit && palettes.emitEnabled()) {
 #ifdef K1_PALETTE_WS2816
     const auto& config = palettes.config();
@@ -85,10 +116,20 @@ void palette_step(bool emit) {
 #else
     std::uint8_t wire[128U * 3U];
     const auto size = palettes.packBenchGrb(wire, sizeof(wire));
+#ifdef K1_PALETTE_GPT_DMA
+    // Driver owns its copied duty buffer until hardware stop + reset interval.
+    const int status=k1_ws281x_gpt_dma_hw_submit(wire,size,1U);
+    if (status==K1_WS281X_SUBMIT_ACCEPTED) {
+      palette_gpt_pending=false;
+      std::memcpy(palette_last_wire, wire, size);
+      palette_last_wire_size = size;
+    }
+    // Submit acceptance is not an emitted frame. Only poll records completion.
+#else
     k1_ws281x_diag_result_t result{};
-    // Existing identified WS2812/P601 bench path. DMA integration is separate.
     const int status = k1_ws281x_diag_emit(wire, size, 1U, 0U, palette_clock_hz, &result);
     palettes.recordEmit(status, result.emit_cycles);
+#endif
 #endif
   }
 }
@@ -168,6 +209,9 @@ struct ScheduleState {
   std::uint32_t npu_invocations=0, npu_invoke_failures=0, npu_output_failures=0;
   std::uint64_t npu_cycles=0, npu_active_cycles=0, mac_active_cycles=0;
   k1_semantic_state_t semantic{};
+  // Distribution<8000> saturates G4 p99. Uncapped authority is the raw hop
+  // record when K1_ENABLE_STAGE_PROBE is set; these bins remain a compact
+  // non-profile summary only.
   Distribution<8000> total, tempo, ordinary;
   Distribution<2000> render;
   Distribution<1000> lateness;
@@ -220,6 +264,50 @@ void stage_distribution(char* output,std::size_t capacity,std::size_t& offset,co
     (unsigned long)d.percentileLower(99),(unsigned long)d.maximum);
   if(n<0 || std::size_t(n)>=capacity-offset) offset=capacity; else offset+=std::size_t(n);
 }
+void uncapped_from_values(char* output,std::size_t capacity,std::size_t& offset,
+                          const char* name,std::uint32_t* values,std::uint32_t count) {
+  if(!count) {
+    const int n=std::snprintf(output+offset,capacity-offset,
+      "\"%s\":{\"count\":0,\"mean_us\":0.000,\"min_us\":0,\"p50_us\":0,\"p95_us\":0,\"p99_us\":0,\"max_us\":0,\"authority\":\"raw_hops\",\"saturating_bins\":false}",
+      name);
+    if(n<0 || std::size_t(n)>=capacity-offset) offset=capacity; else offset+=std::size_t(n);
+    return;
+  }
+  std::sort(values,values+count);
+  std::uint64_t sum=0;
+  for(std::uint32_t i=0;i<count;++i) sum+=values[i];
+  char mean[32];
+  if(!format_mean(mean,sizeof(mean),sum,count)) { offset=capacity; return; }
+  const auto pct=[&](unsigned p) {
+    return values[(count-1U)*p/100U];
+  };
+  const int n=std::snprintf(output+offset,capacity-offset,
+    "\"%s\":{\"count\":%lu,\"mean_us\":%s,\"min_us\":%lu,\"p50_us\":%lu,\"p95_us\":%lu,\"p99_us\":%lu,\"max_us\":%lu,\"authority\":\"raw_hops\",\"saturating_bins\":false}",
+    name,(unsigned long)count,mean,
+    (unsigned long)values[0],(unsigned long)pct(50),(unsigned long)pct(95),
+    (unsigned long)pct(99),(unsigned long)values[count-1U]);
+  if(n<0 || std::size_t(n)>=capacity-offset) offset=capacity; else offset+=std::size_t(n);
+}
+void emit_uncapped_from_raw(char* output,std::size_t capacity,std::size_t& offset) {
+  static std::uint32_t scratch[K1_RESIDENT_HOPS];
+  const auto fill=[&](int selector) -> std::uint32_t {
+    std::uint32_t count=0;
+    for(std::uint32_t i=0;i<schedule.raw_count && i<K1_RESIDENT_HOPS;++i) {
+      const bool tempo=(schedule.raw[i].flags&1U)!=0U;
+      if(selector==0 || (selector==1 && tempo) || (selector==2 && !tempo))
+        scratch[count++]=microseconds(schedule.raw[i].total_cycles);
+    }
+    return count;
+  };
+  std::uint32_t count=fill(0);
+  uncapped_from_values(output,capacity,offset,"total",scratch,count);
+  if(offset<capacity) output[offset++]=',';
+  count=fill(1);
+  uncapped_from_values(output,capacity,offset,"tempo",scratch,count);
+  if(offset<capacity) output[offset++]=',';
+  count=fill(2);
+  uncapped_from_values(output,capacity,offset,"ordinary",scratch,count);
+}
 #endif
 void schedule_status() {
   std::size_t n=0;
@@ -258,9 +346,13 @@ void schedule_status() {
     respond(0,0,trace.data,n);
     return;
   }
+#ifdef K1_ENABLE_STAGE_PROBE
+  emit_uncapped_from_raw(trace.data,sizeof(trace.data),n); if(n<sizeof(trace.data)) trace.data[n++]=',';
+#else
   distribution(trace.data,sizeof(trace.data),n,"total",schedule.total); if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"tempo",schedule.tempo); if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"ordinary",schedule.ordinary); if(n<sizeof(trace.data)) trace.data[n++]=',';
+#endif
   distribution(trace.data,sizeof(trace.data),n,"render",schedule.render); if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"lateness",schedule.lateness); if(n<sizeof(trace.data)) trace.data[n++]=',';
   distribution(trace.data,sizeof(trace.data),n,"telemetry",schedule.telemetry);
@@ -330,6 +422,13 @@ void error(std::uint32_t status) { ++rejected; respond(status,0,"",0); fill=0; w
 static std::uint32_t led_now;
 void status_command(std::uint32_t size) {
   if (size == 0) {
+#ifdef K1_RESIDENT_SCHEDULE
+    if (k1_fixture_schedule_active()) {
+      if (k1_status_led_slim_snapshot(trace.data, sizeof(trace.data))) error(8);
+      else respond(0, 0, trace.data, std::strlen(trace.data));
+      return;
+    }
+#endif
     if (k1_status_led_snapshot(trace.data, sizeof(trace.data))) error(8);
     else respond(0, 0, trace.data, std::strlen(trace.data));
     return;
@@ -366,11 +465,66 @@ void status_command(std::uint32_t size) {
     const std::uint64_t run = get32(rx + 33) | (std::uint64_t(get32(rx + 37)) << 32);
     k1_status_led_test_begin(run, led_now);
     respond(0, 0, "BIND", 4);
+  } else if (sub == 8 && size == 1) {
+#ifdef K1_RESIDENT_SCHEDULE
+    if (k1_fixture_schedule_active()) { error(3); return; }
+#endif
+    const int rc = titan_led2_phy_start_experiment(led_now);
+    if (rc) error(10);
+    else respond(0, 0, "LED2SEQ", 7);
+  } else if (sub == 9 && size == 1) {
+#ifdef K1_RESIDENT_SCHEDULE
+    if (k1_fixture_schedule_active()) { error(3); return; }
+#endif
+    /* Fixed binary snapshot: no formatting or transport work occurs in the
+       timed MDIO transaction itself. L2T1 + count + 20 bytes per record. */
+    const std::uint32_t count = titan_led2_phy_trace_snapshot(
+        led2_trace_entries, K1_LED2_PHY_TRACE_CAPACITY);
+    const std::size_t bytes = 8U + std::size_t(count) * 20U;
+    if (bytes > sizeof(trace.data)) { error(8); return; }
+    std::memcpy(trace.data, "L2T1", 4);
+    put32(reinterpret_cast<std::uint8_t *>(trace.data) + 4, count);
+    for (std::uint32_t i = 0; i < count; ++i) {
+      const auto &entry = led2_trace_entries[i];
+      auto *record = reinterpret_cast<std::uint8_t *>(trace.data) + 8U + i * 20U;
+      put32(record, entry.sequence);
+      put32(record + 4, entry.attempt);
+      put32(record + 8, entry.reset_age_ms);
+      record[12] = std::uint8_t(entry.value);
+      record[13] = std::uint8_t(entry.value >> 8U);
+      record[14] = entry.address;
+      record[15] = entry.reg;
+      record[16] = entry.ack;
+      record[17] = entry.io_error;
+      record[18] = entry.value_valid;
+      record[19] = 0;
+    }
+    respond(0, 0, trace.data, bytes);
   } else error(3);
 }
 void execute() {
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+#ifdef K1_PALETTE_GPT_DMA
+  if (command == K1_WS281X_GPT_DIAG_OPCODE && size == 4 &&
+      get32(rx + 32) == K1_WS281X_GPT_DIAG_V2_VERSION) {
+    k1_ws281x_hw_diag_v2_t diag{};
+    k1_ws281x_gpt_dma_hw_snapshot_v2(&diag);
+    respond(0,0,reinterpret_cast<const char*>(&diag),sizeof(diag));
+    fill=0; wanted=32; return;
+  }
+  if (command == K1_WS281X_GPT_DIAG_OPCODE && size == 0) {
+    k1_ws281x_hw_diag_t diag{};
+    k1_ws281x_gpt_dma_hw_snapshot(&diag);
+    respond(0,0,reinterpret_cast<const char*>(&diag),sizeof(diag));
+    fill=0; wanted=32; return;
+  }
+  if (command == K1_WS281X_GPT_DIAG_OPCODE) { error(3); return; }
+  // A competing GPIO transaction would steal P601 from the timer.
+  if (command==K1_WS281X_DIAG_OPCODE || command==K1_WS281X_FRAME_OPCODE || command==11) {
+    error(10); return;
+  }
+#endif
   if (command == 20) { status_command(size); fill=0; wanted=32; return; }
 #ifdef K1_PALETTE_RUNTIME
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
@@ -513,8 +667,7 @@ void execute() {
   else if(command==K1_WS281X_DIAG_OPCODE && size==32) {
     if(k1_fixture_schedule_active()) { error(3); return; }
 #ifdef K1_PDM_TARGET
-    // A diagnostic bit stream must not interrupt the PDM capture campaign.
-    error(3); return;
+    if (k1_pdm_target_running()) { error(3); return; }
 #endif
     const k1_ws281x_diag_request_t request = {
       get32(rx+32),get32(rx+36),get32(rx+40),get32(rx+44),
@@ -545,7 +698,7 @@ void execute() {
   else if(command==K1_WS281X_FRAME_OPCODE && size>=16) {
     if(k1_fixture_schedule_active()) { error(3); return; }
 #ifdef K1_PDM_TARGET
-    error(3); return;
+    if (k1_pdm_target_running()) { error(3); return; }
 #endif
     const std::uint32_t version=get32(rx+32);
     const std::uint32_t profile=get32(rx+36);
@@ -575,6 +728,9 @@ void execute() {
     else respond(emitted?7:0,result.emit_cycles,trace.data,std::size_t(n));
   }
   else if(command==11 && size==0) {
+#ifdef K1_PDM_TARGET
+    if (k1_pdm_target_running()) { error(3); return; }
+#endif
     k1::core::visual::Pixel16 pixels[k1::core::visual::kPixelsPerChannel]{};
     k1::core::visual::Pixel16 off[k1::core::visual::kPixelsPerChannel]{};
     pixels[0] = {0x12AB, 0, 0};
@@ -667,6 +823,9 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   k1_ws2816_set_clock(hz);
+#ifdef K1_PALETTE_GPT_DMA
+  (void)k1_ws281x_gpt_dma_hw_init();
+#endif
 #ifdef K1_PALETTE_RUNTIME
   palette_clock_hz = hz;
 #ifdef K1_PALETTE_AUTOSTART
@@ -715,6 +874,27 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   palette_time_us = palette_clock.sample(k1_cycle_count(), palette_clock_hz);
 #ifdef K1_RESIDENT_SCHEDULE
   if (k1_fixture_schedule_active()) return;
+#endif
+#ifdef K1_PDM_TARGET
+  {
+    std::int16_t hop[180];
+    if (k1_pdm_target_pull_ap_hop(hop) == 0) trajectory.process(hop);
+  }
+#ifndef K1_PALETTE_GPT_DMA
+  if (k1_pdm_target_running()) return;
+#endif
+  if (k1_pdm_target_running() && k1_pdm_target_spare_slots() == 0u) {
+#ifdef K1_PALETTE_GPT_DMA
+    palette_gpt_poll();
+    if (palette_gpt_pending && k1_ws281x_gpt_dma_hw_ready() &&
+        palette_last_wire_size != 0U) {
+      const int status = k1_ws281x_gpt_dma_hw_submit(
+          palette_last_wire, palette_last_wire_size, 1U);
+      if (status == K1_WS281X_SUBMIT_ACCEPTED) palette_gpt_pending = false;
+    }
+#endif
+    return;
+  }
 #endif
   palette_step(true);
 #endif
@@ -795,7 +975,8 @@ extern "C" void k1_fixture_schedule_step(void) {
 #endif
   const std::uint32_t workload_started=k1_cycle_count();
 #ifdef K1_ENABLE_STAGE_PROBE
-  if((schedule.flags&0x80U) && schedule.loop==0U && index==136U) {
+  if((schedule.flags&0x80U) && schedule.loop==0U &&
+     index==(K1_RESIDENT_HOPS>136U?136U:0U)) {
     const std::uint32_t delay_started=k1_cycle_count();
     const std::uint32_t delay_cycles=clock_hz/200U; // Declared 5 ms negative.
     while((k1_cycle_count()-delay_started)<delay_cycles) {

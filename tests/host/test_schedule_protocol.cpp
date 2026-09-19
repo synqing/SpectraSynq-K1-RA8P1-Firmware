@@ -1,5 +1,6 @@
 #include "fixture_app.h"
 #include "ws2816_gpio_emit.h"
+#include "ws281x_diag.h"
 #ifdef K1_ENABLE_STAGE_PROBE
 #include "stage_probe.h"
 #endif
@@ -41,6 +42,11 @@ extern "C" void k1_npu_invoke(std::uint32_t, k1_npu_measurement_t* measurement) 
 static std::uint32_t cycles;
 extern "C" std::uint32_t k1_cycle_count() { return cycles+=100; }
 void k1_ws2816_set_clock(std::uint32_t) {}
+int k1_ws281x_diag_emit(const uint8_t*, size_t, uint32_t, uint32_t, uint32_t,
+                        k1_ws281x_diag_result_t* result) {
+  if (result) *result = {};
+  return 1;
+}
 packed_submit_result_t k1_ws2816_submit_packed_lanes(
     const std::uint8_t*, std::size_t a_bytes, const std::uint8_t*,
     std::size_t b_bytes, packed_lane_completion_t* completion) {
@@ -101,20 +107,33 @@ int main() {
   assert(json.find("\"loops_complete\":1")!=std::string::npos);
   assert(json.find("\"queue_capacity\":1")!=std::string::npos);
   assert(json.find("\"count\":1")!=std::string::npos);
+  assert(json.find("\"release_edge\"")!=std::string::npos);
+  assert(json.find("\"guard_us\":100")!=std::string::npos);
 #ifdef K1_ENABLE_STAGE_PROBE
-  assert(json.find("\"raw_trace\":{\"version\":1,\"records\":1")!=std::string::npos);
+  assert(json.find("\"raw_trace\":{\"version\":2,\"records\":1")!=std::string::npos);
+  assert(json.find("\"authority\":\"raw_hops\"")!=std::string::npos);
+  assert(json.find("\"saturating_bins\":false")!=std::string::npos);
   std::vector<std::uint8_t> raw_request(8);
   put(raw_request.data(),0); put(raw_request.data()+4,1);
   auto raw=send(packet(12,raw_request));
   assert(get(raw.data()+4)==0);
   const auto* body=raw.data()+32;
   assert(std::memcmp(body,"K1T1",4)==0);
-  assert(get(body+4)==1 && get(body+8)==0 && get(body+12)==1);
-  assert(get(body+16)==(5U+k1_stage_count)*4U);
+  assert(get(body+4)==2 && get(body+8)==0 && get(body+12)==1);
+  assert(get(body+16)==(7U+k1_stage_count)*4U);
   assert(get(body+20)==k1_stage_count);
   assert(get(body+24)==0 && get(body+28)>0);
   put(raw_request.data()+4,0);
   assert(get(send(packet(12,raw_request)).data()+4)==3);
+  auto mutated=start(1,0x80); assert(get(mutated.data()+4)==0);
+  for(unsigned i=0;i<1000 && k1_fixture_schedule_active();++i) k1_fixture_schedule_step();
+  assert(!k1_fixture_schedule_active());
+  put(raw_request.data(),0); put(raw_request.data()+4,1);
+  raw=send(packet(12,raw_request));
+  assert(get(raw.data()+4)==0);
+  const auto* mutated_body=raw.data()+32;
+  assert(get(mutated_body+40)>0);
+  assert((get(mutated_body+36)&16U)!=0U);
 #else
   assert(json.find("\"mean_us\":100.000")!=std::string::npos);
 #endif

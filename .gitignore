@@ -29,3 +29,12 @@ scratch/*
 # Host MCP / session noise (not firmware)
 /combined.log
 /error.log
+
+# Vendor stage trees and broker bulk (not programme source)
+docs/evidence/**/stage/
+docs/evidence/**/broker-live/broker.jsonl
+docs/evidence/**/broker-live/broker-stdout.log
+tools/serial-studio.zip
+tools/serial-studio/.locks/
+platform/ra8p1/Archive.zip
+*.sconsign.dblite

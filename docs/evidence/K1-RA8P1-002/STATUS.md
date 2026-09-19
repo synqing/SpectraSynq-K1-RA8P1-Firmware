@@ -18,6 +18,79 @@ A 180 s waiter with one line at the start and silence until timeout is a fail.
 
 ## What is true now
 
+- **Titan lane, 2026-09-19.** DualMCU Lane F is a separate programme and is not
+  executed from this tree. Resident `a3f37e8a…` is not to be overwritten until
+  P601/DIN capture of its retained frame exists. Broker JSONL archived (hashed,
+  not truncated). Uncapped profiler remains source/cross-build only. Ruling vs
+  RT1062 is deferred. Protocol:
+  [P601-DIN-CAPTURE-PROTOCOL.md](P601-DIN-CAPTURE-PROTOCOL.md).
+
+- **Live colour control, 2026-09-16.** Fixed build `d9700b14…` failed at frame
+  3468 with one remaining DMA word. Matched round-robin build `49c582db…` was
+  subsequently programmed and independently identified; it failed at frame 2063
+  with the same one-word terminal underrun. Neither guard fabricated completion.
+  Both runs restored settings and released CDC without reset/retry. Round-robin
+  is rejected as the cure. Fixed-priority LED-first build `a3f37e8a…` (LED DMAC0,
+  PDM DMAC1/2) was subsequently programmed on the same UID and failed at frame
+  2030 with the same one-word remainder. Its JSON channel labels were stale
+  literals; linked DMAC objects prove the remap, and a source-only telemetry
+  correction now cross-compiles. The runner restored settings and released CDC.
+  No P601/DIN or optical cure claim. Details and raw receipts:
+  [TITAN-COLOUR-INTEGRATION.md](TITAN-COLOUR-INTEGRATION.md).
+
+- **Priority override, 2026-09-16: colour integrity.** Onwards development is
+  paused for Captain's named packet. The former driver silently accepted one
+  or two unfinished DMA words, so earlier zero-send-error windows do not prove
+  clean transmission. The resident driver has the corrected completion guard,
+  which caught the latest fault. The immutable explicit v2
+  witness (v1 unchanged), safe DMA-policy staging and matched fixed/round-robin
+  ARM builds are implemented and host/build verified; fixed and round-robin were
+  programmed and failed as above. LED-first was also programmed and failed.
+  See [TITAN-COLOUR-INTEGRATION.md](TITAN-COLOUR-INTEGRATION.md) for executed
+  commands and the numbered remaining silicon/wire/visible-corruption path.
+  No electrical or optical cure is claimed.
+
+- **Pre-colour baseline, 2026-09-16.** Build `1594115d…` is no longer
+  resident. Its isolated-hit TRUE_BLACK and Ride It half-volume run-06 remain
+  historical: hop max 13585, lights respond then black, zero reported send
+  errors, emit never froze, zero new rails. Those zero-error counts predate the
+  corrected completion guard and are not transmission proof. P601/optical/capsule
+  remain OPEN.
+- **Historical resident, 2026-09-15.** prog-20260915-04 `55320f89…` HEX `0aeadba4…` PCM ×16, inherited SINCRNG 5. Isolated-hit and music baselines on that image remain historical.
+
+  | Result | Status | Evidence |
+  | --- | --- | --- |
+  | Isolated-hit wake | ON-SILICON PASS with sampled dumps | `pdm-ap-gpt-run-20260915-05/isolated-hit.json`: quiet hop med 189 then hit hop 5901 / LED 34 (margin hop≥1877, LED≥28). Gap hold 5.075 s then black. Emit +1565. Hop rate 133.35/s. 8 Hz dumps, not full-cadence smoothness. |
+  | Isolated-hit (prior) | INCONCLUSIVE | `…-03/isolated-hit.json` speaker missed room. `…-02/snap-wake.json` click < room. `…-04` dense USB froze emit (observer). |
+  | Ordinary music | ON-SILICON BASELINE PASS (sampled) | `pdm-ap-gpt-run-20260915-07/music-baseline.json`. Quiet black. Sparse hop 1073 / LED 102 / 60 CRCs. Pad hop 1917–2457 always lit. Perc hop 2142 / LED 66. After drums: LSB then black at +5.45 s. Emit +4943, hop 133.32/s. 8 Hz dumps, speaker-limited, not full-cadence or optical KEEP. Run-06 kept as the short-silence miss. |
+  | PDM / gain | PARTIAL | Source: SINCDEC 49 written. Resident 55320f89 does not write SINCRNG (inherited BSP 5). Working tree now assigns sincrng=10, UNFLASHED. U13/U14 acoustic identity unproved. Gain ×16 live. Loud-guard 1710 on hop 29201 (`…-03`). |
+  | Sample clock | ON-SILICON PASS for 180-hop rate | `measured_hz` 41406–41411, `rate_locked` 1, hop rate 133.12–133.42/s vs 133.333. `last_hop_dt_us` ~7148 is PDM slot period, not hop period. |
+  | Sparse peak/VU colour fallback | HOST PASS, unflashed | Overlay deposits when chroma_strength < 0.08. `test_mode32_wake` SPARSE_FALLBACK energy=260 max=15 (was 0). Not on resident. |
+  | Harmonic frontend | HOST MEASURED | 80 bins, 110–10548 Hz. No coverage below 110 Hz. Low-bin tone peaks disagree with labels (bin 0→12). High bins match. `…-08/host-experiments.json`. |
+  | Arm A current scalar tempo | HOST RETAIN | 80→80, 120→119, 160→80 half-time. Onset flags 0 on hop-impulse fixture. |
+  | Arm B novelty domain | HOST REJECT extra chain | Novelty is post-AGC in source. Gain probe did not invent onsets. |
+  | Arms C–E | REJECT this cycle | C poisoned by low-bin GDFT. D already has half-time. E has no labelled onsets. |
+  | Combined runtime | PARTIAL from dumps | Hop 133.3/s, asrc_starved 0, emit advances at ≤8 Hz USB. Dense 20 Hz USB froze emit (observer). No new soak. |
+  | P601 / optical | OPEN | No scope this cycle. |
+
+  Next unfinished action: unflashed SINCRNG-10 apply + sparse-fallback overlay are in source only. P601 waveform and optical KEEP remain open. Resident 55320f89 unchanged. No flash this cycle.
+- **Historical, 2026-09-15.** Pre-close snap-wake `…-02`: 38/40 lit, click did not beat room. 3526df5c 12/90 black-run 61 is historical.
+- **40 kHz SINCRNG 10 image ready, 2026-09-14.** Only the loudest sounds reach the lights because SINCDEC 49 kept BSP SINCRNG 5. Image `b700a591…` HEX `9788ecd0…` sets SINCRNG 10 (between Table 50.7 M=62/9 and M=42/11). Host leftover-5 compile guard PASS. Freeze-fix included. Resident remains `dc07d97d…`. Not flashed. Off-table: score sat_neg after Rearm.
+- **Freeze-fix programmed, 2026-09-14.** Rearm prog-07 WRITE_VERIFIED HEX `55004b35…` build `dc07d97d…` UID match. App identity `dc07d97d…`. Live-configured WaveformK1 (mode 32). GPT ran ~18210 frames then latched `K1_WS281X_FAULT_DMA` (first_fault 6, errors 1, owned 0). Software frames still advance; emit does not. LED dump stayed black for 18 s — no snap in that window. Decay not scored. Needs app RESET (not ROM) then a scored snap dump.
+- **Snap freeze, 2026-09-14.** A loud finger snap did reach WaveformK1 (nonzero LED dump, max 255) then stuck: CRC `3276929227` frozen while GPT still emitted. DualMCU `production_runtime.cpp` clears the frame before `renderProductChannel`; Titan `palette_runtime.cpp` did not. `transportOutward` adds onto the destination, so an uncleared frame saturates and stays. Fix is the DualMCU caller clear, not a DualMCU pin edit. Host: `SNAP_FREEZE_MUTATION_PASS`. Image `dc07d97d…` HEX `55004b35…` now resident.
+- **Sound-to-light first break: bounce mode, 2026-09-14.** Combined soak image still resident (`d245b3c4…`) until the freeze-fix flash. Autostart was mode 64 PALETTE_BOUNCE (ignores audio). Live-configured to mode 32 WaveformK1. Quiet RMS ~5 never crossed the 0.02 peak floor; the snap did. Receipt `pdm-ap-gpt-run-20260914-01/sound-to-light.json`.
+- **ASRC rate, historical 2026-09-14 / superseded 2026-09-15.** Older soak: 41 405.5 Hz PDM with ASRC stuck at 40000/24000 → ~3.51% fast AP. Resident `55320f89…` now reports `measured_hz` 41406–41411, `rate_locked` 1, hop rate 133.35/s. `last_hop_dt_us` ~7148 remains the PDM slot clock, not the hop clock.
+- **G4 unchanged checks do not apply to this combined firmware.** Historical PASS remains `g4-acf-dtcm-slimstatus-o3-qual-01` on HEX `619077a5…` (frozen 240 000 hops, no live PDM, no GPT DMA). Combined image owns AP from PDM and render from GPT; injecting that profiler would not be the same test. Do not overwrite the historical receipt.
+- **Combined soak PASS on silicon, 2026-09-14.** Build `d245b3c4ff0fbbdd2a59373004287de8b4727b196d068a870e91ba11b50f9c61` HEX `744b85659eaf5699ab34151f7b5fb258feb2de8f14c14e7ca22182fd27ac2bf5`. 45 s: +6217 AP hops, overflow 0, GPT 12677→13827, GTIOR bit 4 set. Waveform not captured.
+
+- **GPT engine checkpoint PASS, 2026-09-13 Rearm.** Identified Titan still runs build `a80c5d690cc473e02ba5772e357ff5269db597cbe63d4456384109cdfb19860e`, HEX `8cf8414c698112badcc14c916100048cdd1b7c45aa4dfe8c06651d6321d72c2d` until the combined image is flashed. Over 5 s: +607 DMA IRQs, +607 hardware stops, +607 latched frames. Receipts: `gpt-recovery-prog-20260913-01`, `gpt-recovery-run-20260913-01`.
+
+- **Continuation 2026-09-13 (R0/R1 + host S/D/E).** Dirty tree on
+  `lane/k1-ra8p1-002` at `c2d4dcad…` plus unpublished LED2/PDM/GPT work is
+  preserved. Combined resource contract:
+  `combined-runtime-contract.json`. Scalar G4 historical PASS is retained.
+  Combined physical/NPU qualification remains open. Resident image is
+  unknown until a new identity query. Do not flash to repeat G4.
 - **G4 scalar 40-loop qualification PASS on the identified Titan.** Slim-status
   DTCM cache-off image `603e3f1721b36abc9d5dc6cb5cb9ee4e370c8638cf48023a2b471f0926733ebb`
   HEX `619077a52fa372cea97380674be2ef39ae940a76aeb659c141b0e371ea03ad6e`.
@@ -26,20 +99,11 @@ A 180 s waiter with one line at the start and silence until timeout is a fail.
   (`USB_STATUS_READ_COMPLETE`). DualMCU on disk unchanged. D-cache off. Frozen
   CRCs not regenerated. Not product ship (LED/ingress/NPU/MVE remain).
   Receipt: `g4-acf-dtcm-slimstatus-o3-qual-01`.
-- **GPT6/DMA LED backend is in source and cross-compiled. It is not yet
-  on-silicon or waveform-captured.** Host tests pass 128-pixel WS2812 tables
-  and reject 129 WS2812 / 81 WS2816. Linked WS2812 image
-  `ws2812-gpt-dma-build-01` build
-  `69714064a0da12286f37bffe2e6291f68fe643cc7b24a352e88e3f18d6664584`
-  HEX `42bd1d6d8f2ece9882ec3cfbd64778535cdd1e33aa10b04c024549f3bc2ee75e`
-  contains `k1_ws281x_gpt_dma_hw_submit`, `R_GPT_Open`, `R_DMAC_Open`, DMAC2
-  IRQ 74, and SRAM duty at `0x220363a0`. GPIO diagnostic emit remains linked
-  and is not the autonomous path. P004 still has no GPT route. G4 stays FAIL
-  at 2,005/6,000 = 33.4%. `WAVEFORM_NOT_CAPTURED`. Programming waiters
-  `ws2812-gpt-dma-prog-01` and `prog-02` both expired with zero RA USB Boot
-  devices; application CDC `045b:5310` `/dev/cu.usbmodem00000000000011`
-  stayed up. UID not re-flashed. Next flash needs a fresh waiter, then
-  USER/BOOT held through RESET until `PROGRAMME_VERIFY_PASS`.
+- **GPT6/DMA LED backend engine checkpoint is on silicon for the recovery
+  image above.** The older linked WS2812 image `ws2812-gpt-dma-build-01`
+  build `69714064…` HEX `42bd1d6d…` remains a retired failure (timeout /
+  zero frames). P004 still has no GPT route. This GPT image does not inherit
+  G4. `WAVEFORM_NOT_CAPTURED`. Photons not claimed.
 - **F1 passes for the covered scalar slice.** The identified Titan executed all
   14,000 frozen hops and matched 7,364,000 typed fields exactly, including all
   320 pixels per hop. Epoch/time semantics and the million-beat probe passed.
@@ -298,7 +362,8 @@ is measured. The no-candidate outcome keeps E2, semantic F3 and K1-C unpassed.
 | G1 | PASS, HOST + identified target | Preserve timing/identity regression |
 | G2 | PASS for frozen HOST AP/VP slice | Preserve profile and scope |
 | G3 / F1 | PASS for covered modules | Physical capture/output explicitly separate |
-| G4 / F2 | FAILED O2, O3 and identified NPU cells | No soak: no required mode passed its bounded preflight |
+| G4 scalar | PASS on exact slim-status O3 DTCM image `603e3f17…` | Combined/NPU/physical images do not inherit this stamp |
+| G4 / F2 NPU coexistence | Historical O2/O3-without-slim and identified NPU cells FAILED | Q2 derived profile still required; generic E1 already PASS |
 | G5 / physical F3 | OPEN / dependencies identified | Identified capture/output/bridge hardware and measured paths |
 | G6 | `NO_QUALIFYING_CANDIDATE` | New material evidence would be required to reopen |
 | G7 | `NOT_RUN_NO_CANDIDATE` | Correct terminal state for this candidate scope |
@@ -373,5 +438,32 @@ mutation occurred.
 **Document Changelog**
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-09-16 | agent | Ban computer tones and white noise in the room. Scripts refuse. Gate test added. |
+| 2026-09-16 | agent | Motion dump: occupancy spreads/fills, not a travelling dot. Speaker still 0 rails. |
+| 2026-09-16 | agent | Scorer uses live_age. Headroom tones no new rails. Mode 32 dump is stationary. |
+| 2026-09-16 | agent | Rearm. Isolated-hit run-20260916-01 TRUE_BLACK. Run-32 verdict kept. |
+| 2026-09-15 | agent | Rearm prog-17 USB-C. Run-28: quiet chroma ~0.1 retriggers DualMCU. |
+| 2026-09-15 | agent | Path tap in status JSON. Hop replay cannot cause run-26 rises. Unflashed. |
+| 2026-09-15 | agent | Rearm prog-13 WRITE_VERIFIED 107f1a00 dwell-fade image. Mode 32. |
+| 2026-09-15 | agent | Dwell fade: Q8.8 elapsed-time, no min-1. Host isolation PASS. Unflashed. |
+| 2026-09-15 | agent | Quiet-gap run-25: leftover picture, not fresh sound. True black still open. |
+| 2026-09-15 | agent | Rearm prog-12 WRITE_VERIFIED d13cd520. App back. Opcode-1 identity match. |
+| 2026-09-15 | agent | Flashed d13cd520. Wake PASS emit-continuous. Music no 23 s stall. |
+| 2026-09-15 | agent | U13/U14 finger-cover INCONCLUSIVE (r=0.98). Receipts run-13..15. |
+| 2026-09-15 | agent | Resident c65c6fca SINCRNG10+gain 2.4. Wake PASS run-10. fcc6f3d5 clip fail kept. |
+| 2026-09-15 | agent | Music baseline sampled PASS on 55320f89 (run-07). Run-06 kept. Donors next, no flash. |
+| 2026-09-15 | agent | No reflash. Music baseline NEEDS_WORK on 55320f89 (run-06): pad/perc lit; 5 s post-music still LSB. |
+| 2026-09-15 | agent | Isolated-hit wake ON-SILICON PASS on 55320f89 (run-05). Clock 133.35 hops/s. Music baseline next. |
+| 2026-09-15 | agent | Rearm prog-04 WRITE_VERIFIED 55320f89. 8 s dump 38/40 lit, no 61-black run. Isolated click not closed. |
+| 2026-09-15 | agent | Wake diagnosis of 3526df5c: DualMCU still ran between hits; host repair freezes unmirrored history. Unflashed. |
+| 2026-09-14 | agent | PCM SENSITIVITY+loud-guard, 5s dwell, hold-in-place overlay. Image 3526df5c unflashed. |
+| 2026-09-14 | agent | Folded K1 effect-decomposition + waveform rationale + autonomous-loop into VP-EFFECTS-CONTRACT. |
+| 2026-09-14 | agent | K1-canon: DualMCU VP not authority. Unflashed 40a7769d visual SENSITIVITY 16x. |
+| 2026-09-14 | agent | Resident 77f77ecf leftover<=2 DMA PASS 200s; mode 32 snap-fade PASS dim; SINCRNG 10 not flashed. |
+| 2026-09-14 | agent | SINCRNG 10 image b700a591 built for 40 kHz; host mutation PASS; not flashed. |
+| 2026-09-14 | agent | 40 kHz SINCDEC 49 leaves BSP SINCRNG 5; 16 k vs 40 k peak ratio 38.2 vs 39.06. |
+| 2026-09-14 | agent | Snap freeze: missing DualMCU caller clearFrame. Host mutation PASS. Image dc07d97d built, not flashed. |
+| 2026-09-13 | agent | Combined 40 kHz PDM→24 kHz/180+GPT image built and dry-run ready; not flashed. Clipping investigated (sparse negative rails), no gain cut. |
+| 2026-09-13 | agent | GPT recovery image programmed; engine checkpoint PASS (607 DMA/stop/frames, USB alive). Waveform/optical/G4 open. |
 | 2026-09-12 | agent | ROM-entry chat is live: speak waiting, bootloader seen, write verified, board back. Silence during USER/BOOT is a fail. |
 | 2026-09-12 | agent | Onboard RGB status LED (P108/P109/P110 active-low). Legend: yellow boot, blue ready, magenta test, three red fail, three green pass. Opcode 20. |
