@@ -95,5 +95,30 @@ class StageProfileTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'shape'):
             decode_raw_trace_chunk(body[:-1],0,stages)
 
+    def test_stage_profile_then_dtcm_keeps_both_overlays(self):
+        from tempo_dtcm_overlay import apply_tempo_dtcm_overlay
+        names=[
+            'core/audio/audio_pipeline.cpp',
+            'core/audio/tempo_tracker.cpp',
+            'core/audio/tempo_acf.cpp',
+            'core/audio/clock_affine.cpp',
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            staged=Path(temporary)/'k1'
+            for name in names:
+                target=staged/name
+                target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/name,target)
+            apply_tempo_dtcm_overlay(staged)
+            with self.assertRaisesRegex(RuntimeError,'anchor count'):
+                instrument_stage_sources(staged)
+            for name in names:
+                shutil.copy2(ROOT/'src/k1'/name,staged/name)
+            instrument_stage_sources(staged)
+            apply_tempo_dtcm_overlay(staged)
+            text=(staged/'core/audio/tempo_acf.cpp').read_text()
+            self.assertIn('K1_STAGE_BEGIN(acf_prepare, k1_stage_acf_prepare)',text)
+            self.assertIn('section(".dtcm")',text)
+
 
 if __name__=='__main__': unittest.main()

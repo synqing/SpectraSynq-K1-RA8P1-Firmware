@@ -38,6 +38,7 @@ inline void applyK1PresencePolicy(k1::contract::AudioFeaturesV1& features,
   }
 }
 inline constexpr std::uint32_t kDiagnosticBounceMode = 64U;
+inline constexpr std::uint32_t kLiveAudioBootMode = 32U; /* WAVEFORM_HYBRID_K1 */
 inline constexpr std::uint32_t kDiagnosticBounceFrameUs = 33333U;
 inline constexpr std::uint32_t kDiagnosticBounceSteps = 127U;
 // Flags: active, automatic catalogue cycle, physical bench output.

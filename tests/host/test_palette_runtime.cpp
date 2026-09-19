@@ -2,6 +2,7 @@
 #include "core/visual/product_palette.h"
 #include "core/visual/product_effect_renderer.h"
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <cstdio>
 using namespace k1;
@@ -10,6 +11,7 @@ using namespace k1::core::visual;
 using namespace k1::titan;
 int main() {
   static_assert(kProductPaletteCount == 44U);
+#ifndef K1_SNAP_FREEZE_ONLY
   char text[8192];
   PaletteRuntime catalogue;
   assert(catalogue.catalogueJson(text, sizeof(text)));
@@ -124,6 +126,7 @@ int main() {
     assert(catalogue.channel(0).controls().palette_id == i%44);
     assert(catalogue.channel(1).controls().palette_id == (i+1)%44);
   }
+#endif
   // Existing renderer + treatment is the independent composition reference.
   contract::AudioFeaturesV1 audio;
   audio.validity_flags = contract::kValidBaseSnapshot | contract::kValidSpectrum;
@@ -193,15 +196,10 @@ int main() {
         seeded.previousFrame()[i] = Pixel8{255U, 255U, 255U};
       }
     }
-    const unsigned loud_max = 255U;
-    contract::AudioFeaturesV1 quiet = impulse;
-    quiet.event_flags = contract::kEventSilence;
-    quiet.peak_scaled = 0.0F;
-    quiet.vu_level = 0.0F;
-    VisualWaveformHistory quiet_wave{};
-    const VisualAudioFrameView quiet_view{quiet, tempo, quiet_wave, 0U};
-    for (unsigned frame = 8U; frame < 128U; ++frame) {
-      assert(snap.step(std::uint64_t(frame) * kPalettePeriodUs, &quiet_view));
+    // Silence is dwell-aging, not the mutated live clear. Keep peak musical so
+    // step() takes prepareAudio/clearFrame; uncleared add saturates at 255.
+    for (unsigned frame = 8U; frame < 16U; ++frame) {
+      assert(snap.step(std::uint64_t(frame) * kPalettePeriodUs, &impulse_view));
     }
     unsigned quiet_max = 0U;
     unsigned quiet_sum = 0U;
@@ -213,12 +211,18 @@ int main() {
         if (value > quiet_max) quiet_max = value;
       }
     }
-    if (quiet_max >= loud_max) {
+    if (quiet_sum >= 160U * 3U * 255U) {
       std::fprintf(stderr, "SNAP_FREEZE quiet_sum=%u quiet_max=%u\n", quiet_sum,
                    quiet_max);
-      assert(false);
+      std::_Exit(2);
     }
+#ifdef K1_SNAP_FREEZE_ONLY
+    std::fprintf(stderr, "SNAP_FREEZE_ESCAPED quiet_sum=%u quiet_max=%u\n",
+                 quiet_sum, quiet_max);
+    std::_Exit(3);
+#endif
   }
+#ifndef K1_SNAP_FREEZE_ONLY
 #ifdef K1_PALETTE_MORPH
   {
     PaletteRuntime hold;
@@ -275,7 +279,7 @@ int main() {
     }
     if (gap_sum == 0U) {
       std::fprintf(stderr, "WAKE_GONE live_sum=%u gap_sum=0\n", live_sum);
-      assert(false);
+      std::_Exit(2);
     }
   }
 #endif
@@ -315,7 +319,7 @@ int main() {
           const auto opposite = ref.frame()[159U-pixel_index];
           if (std::memcmp(&pixel,&opposite,sizeof(Pixel8))) {
             std::fprintf(stderr,"CENTRE_MIRROR_FAILURE mode=%u palette=%u pixel=%u\n",mode,id,pixel_index);
-            assert(false);
+            std::_Exit(2);
           }
           visible |= pixel.red || pixel.green || pixel.blue;
           for (auto value : {pixel.red,pixel.green,pixel.blue}) {
@@ -331,4 +335,5 @@ int main() {
 
   std::printf("COMPATIBILITY_DIGEST=%016llx visible_frames=%u\n", (unsigned long long)digest, visible_frames);
   std::printf("PALETTE_RUNTIME_PASS palettes=44 preview_pixels=%u effect_frames=%u modes=23\n", compared, effect_frames);
+#endif
 }

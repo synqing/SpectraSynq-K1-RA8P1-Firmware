@@ -1,12 +1,12 @@
 # P601 / first-LED DIN capture contract
 
-Resident image `a3f37e8a…` stays on the identified Titan until this capture
-exists, or Captain explicitly waives the retained frame. This document is the
-ready-to-run protocol. It is not a waveform receipt.
+Resident image is no longer `a3f37e8a…`. Captain Rearm 2026-09-19 wrote
+uncapped profiler `32dd1f5f…` over it before this capture existed. That is a
+Captain waiver of the preserve-resident hold, not a waveform receipt.
 
-Do not flash the uncapped profiler, a colour repair, or any other image over
-that resident until `WAVEFORM_CAPTURED` is stamped on a hashed capture of the
-**same retained submitted frame**.
+The predicted 3072-bit reference is still the retained all-zero colour-integrity
+frame from `a3f37e8a…`. Do not stamp `WAVEFORM_CAPTURED` from that JSON, from
+the profiler image, or from any host/compile-only result.
 
 ## Predicted reference (firmware accounting)
 
@@ -23,6 +23,22 @@ that resident until `WAVEFORM_CAPTURED` is stamped on a hashed capture of the
 
 The retained payload is 384 all-zero GRB bytes. Reconstruct duty from that
 payload; do not substitute a later host pixel command.
+
+Machine-readable predicted reference and fail-closed scorer:
+
+```
+python3 scripts/score_p601_capture.py --self-test
+python3 scripts/score_p601_capture.py --predict
+python3 scripts/score_p601_capture.py --capture <new-p601-din.json>
+```
+
+Predicted receipt (not a waveform):
+`/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/p601-predicted-a3f37e8a-20260919-01/predicted.json`
+
+A missing capture file, the historical `ws2812-p601-live-01` diagnostic, a
+3071-bit synthetic, and a synthetic object that claims `WAVEFORM_CAPTURED`
+must all fail. Do not reuse that predicted directory for a later physical
+capture.
 
 ## Probe points
 

@@ -19,10 +19,16 @@ A 180 s waiter with one line at the start and silence until timeout is a fail.
 ## What is true now
 
 - **Titan lane, 2026-09-19.** DualMCU Lane F is a separate programme and is not
-  executed from this tree. Resident `a3f37e8a…` is not to be overwritten until
-  P601/DIN capture of its retained frame exists. Broker JSONL archived (hashed,
-  not truncated). Uncapped profiler remains source/cross-build only. Ruling vs
-  RT1062 is deferred. Protocol:
+  executed from this tree. Colour-integrity image `a3f37e8a…` is **no longer
+  resident**. Captain Rearm wrote uncapped profiler `32dd1f5f…` HEX `9f12869a…`
+  (WRITE_VERIFIED, UID `545433931bd25436593630352d068363`) over it before
+  P601/DIN capture. `WAVEFORM_CAPTURED` is still not stamped: no Mac analyser
+  is attached. Predicted 3072-bit / 3070-DMA scorer
+  (`scripts/score_p601_capture.py`) remains fail-closed. Ruling vs RT1062 stays
+  deferred. Autostart source now boots live WaveformK1 (mode 32, emit on, no
+  4 s carousel). Host `python3 -u scripts/test_palette_runtime.py` PASS
+  (`PALETTE_COMPATIBILITY_PASS`, morph live-audio allowed to differ). Live-audio
+  image is built, not programmed (two ROM waiters timed out). Protocol:
   [P601-DIN-CAPTURE-PROTOCOL.md](P601-DIN-CAPTURE-PROTOCOL.md).
 
 - **Live colour control, 2026-09-16.** Fixed build `d9700b14…` failed at frame

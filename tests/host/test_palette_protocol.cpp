@@ -4,6 +4,7 @@
 #include "ws281x_diag.h"
 #include "ws2816_gpio_emit.h"
 #include <cassert>
+#include <cstdlib>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -52,13 +53,19 @@ int main() {
   const auto boot=request(17);
   const std::string boot_body(reinterpret_cast<const char*>(boot.data()+32),boot.size()-32);
 #ifdef K1_PALETTE_AUTOSTART
-  assert(boot_body.find("\"automatic_cycle\":true")!=std::string::npos);
-  assert(boot_body.find("\"emit_enabled\":true")!=std::string::npos);
+  auto require_boot = [](bool ok, const char* what) {
+    if (!ok) {
+      std::fprintf(stderr, "AUTOSTART_REQUIRE %s\n", what);
+      std::_Exit(2);
+    }
+  };
+  require_boot(boot_body.find("\"automatic_cycle\":false")!=std::string::npos, "automatic_cycle");
+  require_boot(boot_body.find("\"emit_enabled\":true")!=std::string::npos, "emit_enabled");
+  require_boot(boot_body.find("\"mode_a\":32")!=std::string::npos, "mode_a");
+  require_boot(boot_body.find("\"mode_b\":32")!=std::string::npos, "mode_b");
+  require_boot(boot_body.find("PALETTE_BOUNCE")==std::string::npos, "no_palette_bounce");
 #ifdef K1_PALETTE_MORPH
   assert(boot_body.find("\"showcase\":false")!=std::string::npos);
-  assert(boot_body.find("\"mode_a\":64")!=std::string::npos);
-  assert(boot_body.find("\"mode_b\":64")!=std::string::npos);
-  assert(boot_body.find("\"effect_a\":\"PALETTE_BOUNCE\"")!=std::string::npos);
   assert(boot_body.find("\"transition_ms\":1500")!=std::string::npos);
 #ifndef K1_PALETTE_WS2816
   assert(boot_body.find("\"brightness\":24")!=std::string::npos);

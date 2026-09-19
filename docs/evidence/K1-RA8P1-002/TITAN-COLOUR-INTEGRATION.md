@@ -287,8 +287,13 @@ not the separately resolved GPT clock.
 2. Agent: measure GPT requests/terminal pulse counting and decode the **same
    retained submitted frame** at P601 and first-LED DIN: all 3072 GRB24 bits,
    first/last pulses and reset low against the actually populated LED spec.
-   The packet records no Mac-attached logic analyser/scope or established P601
-   capture connection. This physical measurement is the current blocker.
+   The predicted 3072-bit / 3070-DMA reference now exists and a missing capture
+   fails closed (`scripts/score_p601_capture.py`). The packet still records no
+   Mac-attached logic analyser/scope or established P601 capture connection.
+   This physical measurement is the current blocker. Do not stamp
+   `WAVEFORM_CAPTURED` from the predicted JSON. Captain Rearm 2026-09-19
+   replaced resident `a3f37e8a…` with profiler `32dd1f5f…` before capture;
+   the colour-integrity retained frame is no longer on this silicon.
 3. Agent: repair the first measured divergence (timer/DMA, signal path or
    supply/ground/LED hardware), then repeat the matched zero-output, warm
    low-load and USB-stress controls with PDM guardrails and same-frame wire

@@ -99,7 +99,11 @@
     "raw-stage-o3-dcache-control-01/receipt.json": "cf4959277966dd1707c574d650f0fad94639653a67ddc50f546bd2f1f4f16bcb",
     "raw-stage-o3-profile-prog-01/receipt.json": "3c9d0491adfa341366ab3b81a610e2542ee1d3edd57bfc37206532b3ddfaa398",
     "s3-comparator-freeze-01/receipt.json": "1a0213e97fac0ea1fca611c7b4567bc12b9714611ec9111939e131c9b05d6a1d",
-    "ss-03-broker-archive-20260919/broker.jsonl": "ba47ecba0bf61a6b3aae8218e9cfac0e637bd3d143efb60b8b75d4fd752d478d"
+    "ss-03-broker-archive-20260919/broker.jsonl": "ba47ecba0bf61a6b3aae8218e9cfac0e637bd3d143efb60b8b75d4fd752d478d",
+    "p601-predicted-a3f37e8a-20260919-01/predicted.json": "a97d01c0177ccdf540382eafdd2f260ad76ed80de08dabcf2d8fd67b3af73540",
+    "p601-predicted-a3f37e8a-20260919-01/self-test.json": "227788ea158798d745fe5281b24441010ac952a39eda6060d18be4dadd66e94e",
+    "g4-uncapped-raw-hops-build-20260919-01/receipt.json": "031aa8a333d0cf22b4c2fda0b8060f4970afb176c93df29d119663ac0b092f64",
+    "g4-uncapped-raw-hops-build-20260919-02/receipt.json": "15bc804a3ee72a3163015d68175f64ea5df18222b0ee1e390e7faa541adfe574"
   },
   "physical_claims": false,
   "scalar_target_executed": true,

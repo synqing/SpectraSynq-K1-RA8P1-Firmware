@@ -513,10 +513,11 @@ def main():
             receipt['palette_derivative_sources']=apply_palette_overlay(stage/'src/k1')
         if args.tempo_acf_slice:
             receipt['tempo_acf_slice_sources']=apply_tempo_acf_slice_overlay(stage/'src/k1')
-        if args.resident_controls:
-            receipt['tempo_dtcm_sources']=apply_tempo_dtcm_overlay(stage/'src/k1')
+        # Probes must match imported ACF text. DTCM then rewrites the arrays.
         if args.stage_profile:
             receipt['instrumented_sources']=instrument_stage_sources(stage/'src/k1')
+        if args.resident_controls:
+            receipt['tempo_dtcm_sources']=apply_tempo_dtcm_overlay(stage/'src/k1')
         macros=command([TOOLCHAIN/'arm-none-eabi-g++',*SCALAR.split(),'-dM','-E','-x','c++','/dev/null'])
         (args.output/'compiler-macros.txt').write_text(macros)
         assert '__ARM_FEATURE_MVE ' not in macros, 'compiler enables MVE'

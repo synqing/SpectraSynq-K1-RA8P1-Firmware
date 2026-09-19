@@ -830,11 +830,12 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   palette_clock_hz = hz;
 #ifdef K1_PALETTE_AUTOSTART
   k1::titan::PaletteConfig config;
-  config.flags = 7U;
+  // Active + physical emit. No 4 s catalogue carousel. No PALETTE_BOUNCE.
+  config.flags = 5U;
+  config.mode_a = k1::titan::kLiveAudioBootMode;
+  config.mode_b = k1::titan::kLiveAudioBootMode;
 #ifdef K1_PALETTE_MORPH
   config.version = 3U; config.transition_ms = 1500U;
-  config.mode_a = k1::titan::kDiagnosticBounceMode;
-  config.mode_b = k1::titan::kDiagnosticBounceMode;
   config.palette_a = 0U; config.palette_b = 1U;
   config.brightness = 24U;
 #endif

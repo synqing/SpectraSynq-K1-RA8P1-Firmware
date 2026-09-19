@@ -29,9 +29,13 @@ From the repository root:
 python3 scripts/build_scalar.py --output <new-build-directory> --palette-runtime --palette-autostart
 ```
 
-The palette options are explicit build-identity inputs. Autostart boots into a
-native full-catalogue preview on the existing WS2812/P601 128-pixel bench setup.
-Without these options the existing fixture route is retained.
+The palette options are explicit build-identity inputs. Autostart boots into
+live WaveformK1 (mode 32) with physical emit, not PALETTE_BOUNCE and not the
+four-second catalogue carousel.
+**Source:** Captain, 2026-09-19 11:06 (+08) — "The titan SHOULD ALWAYS FUCKING
+IMMEDIATELY BOOT into LIVE AUDIO music visualisation mode."
+Without these options the existing fixture route is retained. PALETTE_BOUNCE
+(mode 64) remains only as an explicit host command; it ignores the microphone.
 
 ## Control
 
@@ -143,10 +147,12 @@ contributor count for each channel. Duration applies to both channels.
 ### Verified result and remaining physical work
 
 `scripts/test_palette_runtime.py` builds separate pinned and derivative
-executables. With transitions off, both produce digest
-`d3a379fc7b760bb5` across 8,096 channel frames covering 23 modes and all
-44 palettes. Of those frames, 2,982 are visibly nonzero with the short supplied
-fixture; the other cases are not claimed as visible demonstrations.
+executables. Captain 2026-09-19 12:35 (+08): "Well, FUCKING OBVIOUSLY Different
+makes more fucking sense doesn't it." Live-audio move, fade and colour in the
+derivative are allowed to differ from pinned. Pinned digest
+`e1c41743c7ab0321` (2,982 visible frames). Derivative digest
+`694280ce49c965f9` (3,124 visible frames). Both cover 8,096 channel frames,
+23 modes and all 44 palettes. Host `PALETTE_COMPATIBILITY_PASS` 2026-09-19.
 
 All 11,264 palette-index endpoints are exact; 44 interruption cases preserve
 current colour and accent phase. At zero progress, active morph rendering matches

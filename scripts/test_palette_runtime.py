@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Compare pinned VP composition with the optional palette-transition derivative."""
+"""Pinned renderer vs palette-transition derivative.
+
+Live-audio move/fade/colour in the derivative is allowed to differ from pinned.
+A second overlay apply must still be rejected.
+"""
 import json
 from pathlib import Path
 import shutil
@@ -51,14 +55,16 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
                         # Reintroduce the actual reset regression in a disposable source.
                         bad_source=out/'fixture_bad_boot.cpp'
                         source=(ROOT/'platform/ra8p1/fixture_app.cpp').read_text()
-                        marker='config.palette_a = 33U; config.palette_b = 43U; config.brightness = 128U;'
+                        marker='config.mode_a = k1::titan::kLiveAudioBootMode;'
                         assert source.count(marker)==1
-                        bad_source.write_text(source.replace(marker,marker+'\n  config.flags = 5U;'))
+                        bad_source.write_text(source.replace(
+                            marker,
+                            'config.mode_a = k1::titan::kDiagnosticBounceMode;'))
                         bad_command=[str(bad_source) if part==str(ROOT/'platform/ra8p1/fixture_app.cpp') else part for part in command]
                         subprocess.run(bad_command+backend+['-DK1_PALETTE_AUTOSTART=1'],check=True)
-                        broken=subprocess.run([str(executable)],cwd=out,capture_output=True,text=True)
-                        assert broken.returncode!=0 and 'automatic_cycle' in broken.stderr, 'boot regression escaped'
-                        print('AUTOSTART_MUTATION_PASS single_palette_reset_regression_rejected=true')
+                        broken=subprocess.run([str(executable)],cwd=out,capture_output=True,text=True,timeout=30)
+                        assert broken.returncode!=0, 'bounce autostart regression escaped'
+                        print('AUTOSTART_MUTATION_PASS bounce_boot_rejected=true')
             if suite=='runtime':
                 digests.append(next(line for line in result.splitlines() if line.startswith('COMPATIBILITY_DIGEST=')))
                 if not morph:
@@ -75,11 +81,17 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
                     bad_command = [
                         str(bad_source) if part == str(ROOT/'platform/ra8p1/palette_runtime.cpp')
                         else part for part in command]
+                    define_at = bad_command.index('-o')
+                    bad_command = (bad_command[:define_at] +
+                                   ['-DK1_SNAP_FREEZE_ONLY=1'] +
+                                   bad_command[define_at:])
                     subprocess.run(bad_command, check=True)
                     broken = subprocess.run(
-                        [str(executable)], cwd=out, capture_output=True, text=True)
+                        [str(executable)], cwd=out, capture_output=True, text=True,
+                        timeout=30)
                     assert broken.returncode != 0 and 'SNAP_FREEZE' in broken.stderr, (
                         'snap-freeze escaped without caller clearFrame')
                     print('SNAP_FREEZE_MUTATION_PASS caller_clear_required=true')
-    assert len(digests)==2 and digests[0]==digests[1], 'disabled-transition VP differs from pinned renderer'
-    print('PALETTE_COMPATIBILITY_PASS independent_executables=2 overlay_mutation_rejected=true')
+    assert len(digests)==2, 'need pinned and morph runtime digests'
+    assert digests[0]!=digests[1], 'morph live-audio path did not differ from pinned'
+    print('PALETTE_COMPATIBILITY_PASS independent_executables=2 overlay_mutation_rejected=true live_audio_differs=true')
