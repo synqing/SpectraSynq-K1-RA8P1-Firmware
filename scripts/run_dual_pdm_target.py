@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Three-second, identity-gated Titan dual-IM69D130 capture proof."""
+"""Three-second, identity-gated Titan onboard LMD2718 capture proof."""
 from __future__ import annotations
 
 import argparse
@@ -31,8 +31,14 @@ def validate_snapshot(metrics: dict) -> list[str]:
         errors.append("7.5 ms target capture geometry changed")
     if pdm.get("shared_clock_and_data") is not True or pdm.get("programme_lane") != 0:
         errors.append("working shared-wire/programme-lane contract changed")
+    if pdm.get("mpn") != "LMD2718T261-OA1":
+        errors.append("onboard microphone MPN is not LMD2718T261-OA1")
+    if pdm.get("profile") != "diagnostic_16k":
+        errors.append("16 kHz diagnostic profile label missing")
     if pdm.get("last_fsp_error") != 0:
         errors.append("FSP reported an error")
+    if pdm.get("rearm_denied", 0) != 0:
+        errors.append("DMA rearm was denied")
     if pdm.get("pair_skew_drops") != 0:
         errors.append("dual-lane sequence pairing dropped a slot")
     if pdm.get("startup_discard_pairs", 0) < 1:
@@ -44,8 +50,8 @@ def validate_snapshot(metrics: dict) -> list[str]:
     if not isinstance(lanes, list) or len(lanes) != 2:
         return errors + ["exactly two microphone lanes were not reported"]
     expected = [
-        ("IM1", "HIGH", "RISE", 2, 0, "programme"),
-        ("IM2", "LOW", "FALL", 0, 1, "measurement"),
+        ("U14", "LOW", "RISE", 2, 0, "programme"),
+        ("U13", "HIGH", "FALL", 0, 1, "measurement"),
     ]
     for index, (microphone, select, edge, channel, dma, role) in enumerate(expected):
         lane = lanes[index]
@@ -100,7 +106,7 @@ def main() -> int:
     args.output.mkdir(parents=True, exist_ok=False)
     receipt = {
         "label": "ON-SILICON",
-        "qualification": "DUAL_IM69D130_CAPTURE_16K_RATE_ADAPTATION_OPEN",
+        "qualification": "DUAL_LMD2718_CAPTURE_16K_DIAGNOSTIC_OPEN",
         "started_at": datetime.now(timezone.utc).isoformat(),
         "pass": False,
     }
@@ -164,13 +170,15 @@ def main() -> int:
             errors=errors,
             limitations=[
                 "This proves identified-Titan dual capture, not 12.8 kHz sample-rate parity.",
-                "IM1 is the programme lane; this receipt does not admit IM2 mixing into AP.",
+                "U14 is the expected programme lane; this receipt does not admit U13 mixing into AP.",
+                "16 kHz is diagnostic only and is not admitted to the 24 kHz/180 AP.",
+                "Acoustic U13/U14 identity is unproven until a localized stimulus distinguishes the capsules.",
                 "No music playback or generic soak was used.",
             ],
         )
         if errors:
             raise RuntimeError("; ".join(errors))
-        receipt["status"] = "PASS_DUAL_CAPTURE_16K_RATE_ADAPTATION_OPEN"
+        receipt["status"] = "PASS_DUAL_CAPTURE_16K_DIAGNOSTIC_OPEN"
         receipt["pass"] = True
         return 0
     except Exception as error:

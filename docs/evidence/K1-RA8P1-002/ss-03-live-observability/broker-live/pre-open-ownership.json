@@ -1,0 +1,11 @@
+{
+  "device": "/dev/cu.usbmodem00000000000011",
+  "location": "0-1.4",
+  "serial": "0000000000001",
+  "product": "CDC USB Demonstration",
+  "aliases": [
+    "/dev/cu.usbmodem00000000000011",
+    "/dev/tty.usbmodem00000000000011"
+  ],
+  "lsof": []
+}

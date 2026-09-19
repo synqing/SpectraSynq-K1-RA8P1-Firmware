@@ -24,6 +24,26 @@ def apply_palette_overlay(root):
              'selectedPalette(\n      controls, phase,'),
             ('sampleProductPaletteHd(controls.palette_id, wrap01(phase), level)',
              'selectedPalette(controls, wrap01(phase), level)'),
+            ('if (quiet < 0.90F) {\n    decay_rate += kWaveformK1SilenceDecay * (1.0F - quiet);\n  }',
+             'if (!present && !silent) {\n    decay_rate = 0.15F;\n  } else if (silent && quiet < 0.90F) {\n    decay_rate += kWaveformK1SilenceDecay * (1.0F - quiet);\n  }'),
+            ('transportOutward(\n      channel.frame(), channel.previousFrame(),\n'
+             '      kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond,\n'
+             '      nominal_retention, dt);',
+             'const bool travel = present && (peak > 0.25F || vu > 0.25F ||\n'
+             '                         channel.focusedAudio().chroma_strength > 0.08F);\n'
+             '  transportOutward(\n      channel.frame(), channel.previousFrame(),\n'
+             '      travel ? kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond\n'
+             '             : 0.0F,\n'
+             '      nominal_retention, dt);'),
+            ('const Pixel8 raw_colour = injectionColour(channel);\n'
+             '  const float colour_alpha = exponentialAlpha(dt, kWaveformK1ColourTau);',
+             'Pixel8 raw_colour = injectionColour(channel);\n'
+             '  if (channel.focusedAudio().chroma_strength < 0.08F) {\n'
+             '    const float fallback = peak > vu ? peak : vu;\n'
+             '    raw_colour = explicitPaletteColour(channel.controls(), 0.0F,\n'
+             '                                       fallback);\n'
+             '  }\n'
+             '  const float colour_alpha = exponentialAlpha(dt, kWaveformK1ColourTau);'),
         ],
     }
     prepared = {}

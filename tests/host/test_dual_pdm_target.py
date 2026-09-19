@@ -13,8 +13,8 @@ from run_dual_pdm_target import validate_progress, validate_snapshot  # noqa: E4
 def snapshot(slots: int = 20) -> dict:
     lanes = []
     identities = [
-        ("IM1", "HIGH", "RISE", 2, 0, "programme", 101),
-        ("IM2", "LOW", "FALL", 0, 1, "measurement", 202),
+        ("U14", "LOW", "RISE", 2, 0, "programme", 101),
+        ("U13", "HIGH", "FALL", 0, 1, "measurement", 202),
     ]
     for microphone, select, edge, channel, dma, role, sample_hash in identities:
         lanes.append({
@@ -41,6 +41,8 @@ def snapshot(slots: int = 20) -> dict:
     return {
         "heap_used": 40640,
         "pdm_target": {
+            "mpn": "LMD2718T261-OA1",
+            "profile": "diagnostic_16k",
             "sample_rate_hz": 16000,
             "working_source_sample_rate_hz": 12800,
             "sample_rate_match": False,
@@ -51,6 +53,7 @@ def snapshot(slots: int = 20) -> dict:
             "initialised": True,
             "running": True,
             "last_fsp_error": 0,
+            "rearm_denied": 0,
             "paired_slots": slots + 1,
             "pair_skew_drops": 0,
             "startup_discard_pairs": 1,

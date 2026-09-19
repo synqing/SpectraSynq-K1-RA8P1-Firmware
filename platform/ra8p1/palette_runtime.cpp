@@ -3,6 +3,7 @@
 #include "core/visual/product_output_treatment.h"
 #include "core/visual/product_palette.h"
 #include "core/visual/ws2816_pack.h"
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 
@@ -11,7 +12,7 @@ using namespace core;
 using namespace core::visual;
 namespace {
 bool supportedMode(std::uint32_t mode) noexcept {
-  if (mode == 0U) return true;
+  if (mode == 0U || mode == kDiagnosticBounceMode) return true;
 #ifdef K1_PALETTE_MORPH
   if (isCentreEffect(mode)) return true;
 #endif
@@ -43,6 +44,74 @@ void preview(ChannelRenderState& channel, std::uint64_t now_us, bool inward) noe
     channel.frame()[i] = sampleProductPaletteFastLed16(
         channel.controls().palette_id, static_cast<std::uint8_t>(position + 256U - offset));
 #endif
+  }
+}
+unsigned bounceRadius(std::uint64_t now_us) noexcept {
+  const unsigned step =
+      static_cast<unsigned>((now_us / kDiagnosticBounceFrameUs) % kDiagnosticBounceSteps);
+  return step < 64U ? step : 126U - step;
+}
+unsigned benchToNative(unsigned i) noexcept { return (i * 159U + 63U) / 127U; }
+
+void ageAuthoredHistory(PixelSpan dest, PixelSpan history,
+                        std::uint16_t q8[][3], bool& armed, float dt,
+                        bool mirror) noexcept {
+  if (!armed) {
+    for (unsigned i = 0U; i < 160U; ++i) {
+      q8[i][0] = std::uint16_t(history[i].red) << 8;
+      q8[i][1] = std::uint16_t(history[i].green) << 8;
+      q8[i][2] = std::uint16_t(history[i].blue) << 8;
+    }
+    armed = true;
+  }
+  float gain = dt <= 0.0F ? 1.0F : std::exp(-dt / kTitanDwellTauS);
+  if (gain < 0.0F) gain = 0.0F;
+  if (gain > 1.0F) gain = 1.0F;
+  const std::uint32_t k = static_cast<std::uint32_t>(gain * 65536.0F + 0.5F);
+  for (unsigned i = 0U; i < 160U; ++i) {
+    q8[i][0] = static_cast<std::uint16_t>((std::uint32_t(q8[i][0]) * k) >> 16);
+    q8[i][1] = static_cast<std::uint16_t>((std::uint32_t(q8[i][1]) * k) >> 16);
+    q8[i][2] = static_cast<std::uint16_t>((std::uint32_t(q8[i][2]) * k) >> 16);
+    const Pixel8 pixel{static_cast<std::uint8_t>(q8[i][0] >> 8),
+                       static_cast<std::uint8_t>(q8[i][1] >> 8),
+                       static_cast<std::uint8_t>(q8[i][2] >> 8)};
+    history[i] = pixel;
+    dest[i] = pixel;
+  }
+  if (mirror) {
+    for (unsigned distance = 0U; distance < 80U; ++distance)
+      dest[79U - distance] = dest[80U + distance];
+  }
+}
+void diagnosticBounce(ChannelRenderState& channel, std::uint64_t now_us) noexcept {
+  channel.clearFrame();
+  const unsigned radius = bounceRadius(now_us);
+  auto frame = channel.frame();
+  for (unsigned tail = 0; tail < 6U && tail <= radius; ++tail) {
+    const std::uint8_t falloff = static_cast<std::uint8_t>(255U >> tail);
+    if (!falloff) break;
+    const unsigned left = 63U - radius + tail;
+    const unsigned right = 64U + radius - tail;
+    const unsigned ends[2]{left, right};
+    for (unsigned index : ends) {
+      if (index >= 128U) continue;
+      const unsigned radial = index < 64U ? 63U - index : index - 64U;
+      const auto pal = static_cast<std::uint8_t>(radial * 255U / 63U);
+#ifdef K1_PALETTE_MORPH
+      const auto colour = channel.controls().palette_transition
+                              ? channel.controls().palette_transition->fast(pal)
+                              : sampleProductPaletteFastLed16(channel.controls().palette_id, pal);
+#else
+      const auto colour = sampleProductPaletteFastLed16(channel.controls().palette_id, pal);
+#endif
+      Pixel8 out{static_cast<std::uint8_t>(std::uint32_t(colour.red) * falloff / 255U),
+                 static_cast<std::uint8_t>(std::uint32_t(colour.green) * falloff / 255U),
+                 static_cast<std::uint8_t>(std::uint32_t(colour.blue) * falloff / 255U)};
+      auto& dst = frame[benchToNative(index)];
+      if (out.red > dst.red) dst.red = out.red;
+      if (out.green > dst.green) dst.green = out.green;
+      if (out.blue > dst.blue) dst.blue = out.blue;
+    }
   }
 }
 }
@@ -90,7 +159,14 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   transitions_[1].select(cb.palette_id, config.transition_ms, now_us);
 #endif
   next_us_ = now_us; last_us_ = now_us; cycle_start_us_ = now_us;
+  last_live_us_ = 0U;
   waiting_for_audio_ = false;
+  dwell_armed_[0] = dwell_armed_[1] = false;
+  visual_path_ = "none";
+  last_musical_ = last_in_dwell_ = last_dwell_reinit_ = false;
+  last_live_age_us_ = 0U;
+  last_peak_milli_ = last_vu_milli_ = last_chroma_milli_ = last_wave_milli_ = 0U;
+  effect_frames_ = dwell_frames_ = dwell_reinits_ = 0U;
   return true;
 }
 bool PaletteRuntime::step(std::uint64_t now_us,
@@ -117,8 +193,15 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       : static_cast<float>(now_us - last_us_) / 1000000.0F;
   last_us_ = now_us;
   waiting_for_audio_ = false;
+  unsigned channel_index = 0U;
   for (auto* channel : {&a_, &b_}) {
-    if (channel->controls().mode_id == 0U) preview(*channel, now_us, config_.flags & 8U);
+    if (channel->controls().mode_id == 0U) {
+      preview(*channel, now_us, config_.flags & 8U);
+      if (channel_index == 0U) visual_path_ = "preview";
+    } else if (channel->controls().mode_id == kDiagnosticBounceMode) {
+      diagnosticBounce(*channel, now_us);
+      if (channel_index == 0U) visual_path_ = "bounce";
+    }
 #ifdef K1_PALETTE_MORPH
     else if (isCentreEffect(channel->controls().mode_id)) {
       const auto age = now_us-cycle_start_us_;
@@ -132,14 +215,63 @@ bool PaletteRuntime::step(std::uint64_t now_us,
     }
 #endif
     else if (audio) {
-      channel->prepareAudio(audio->audio);
-      (void)renderProductChannel(*channel, *audio, dt);
+      contract::AudioFeaturesV1 governed_audio = audio->audio;
+      applyK1PresencePolicy(governed_audio, now_us, last_live_us_);
+      const bool musical = k1MusicalPresence(governed_audio);
+      const bool in_dwell =
+          last_live_us_ != 0U && now_us - last_live_us_ < kTitanSilenceDwellUs;
+      if (channel_index == 0U) {
+        last_musical_ = musical;
+        last_in_dwell_ = in_dwell;
+        last_live_age_us_ = last_live_us_ == 0U ? 0U : now_us - last_live_us_;
+        auto milli = [](float value) -> std::uint32_t {
+          if (value <= 0.0F) return 0U;
+          if (value >= 1000.0F) return 10000000U;
+          return static_cast<std::uint32_t>(value * 10000.0F + 0.5F);
+        };
+        last_peak_milli_ = milli(governed_audio.peak_scaled);
+        last_vu_milli_ = milli(governed_audio.vu_level);
+        last_chroma_milli_ = milli(governed_audio.chroma_strength);
+        last_wave_milli_ = milli(audio->waveform.peak_scaled);
+      }
+      if (!musical) {
+        // Age authored history in Q8.8 with elapsed time. Do not clamp to 1.
+        // Mirror and output treatment stay display-only.
+        // Not-musical DualMCU after dwell expiry redrew the plate (run-29).
+        const bool reinit = !dwell_armed_[channel_index];
+        ageAuthoredHistory(channel->frame(), channel->previousFrame(),
+                           dwell_q8_[channel_index], dwell_armed_[channel_index],
+                           dt, channel->controls().mirror_enabled);
+        if (channel_index == 0U) {
+          visual_path_ = "dwell";
+          last_dwell_reinit_ = reinit;
+          ++dwell_frames_;
+          if (reinit) ++dwell_reinits_;
+        }
+      } else {
+        dwell_armed_[channel_index] = false;
+        const VisualAudioFrameView governed{governed_audio, audio->tempo,
+                                           audio->waveform,
+                                           audio->source_publication_us};
+        channel->prepareAudio(governed_audio);
+        // Live/silence path: clear then DualMCU previousFrame seed.
+        // Skipping clear here saturates (snap-freeze).
+        channel->clearFrame();
+        (void)renderProductChannel(*channel, governed, dt);
+        if (channel_index == 0U) {
+          visual_path_ = "effect";
+          last_dwell_reinit_ = false;
+          ++effect_frames_;
+        }
+      }
     } else {
       channel->clearFrame();
       waiting_for_audio_ = true;
+      if (channel_index == 0U) visual_path_ = "no_audio";
     }
     applyProductOutputTreatment(channel->frame(), channel->controls(),
                                 channel->outputTreatmentState());
+    ++channel_index;
   }
   ++frames_;
   return true;
@@ -238,11 +370,33 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),
       transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors(),
       (config_.flags & 8U) ? "edges_in" : "centre_out", (unsigned long)config_.travel_ms,
-      (config_.flags & 16U) ? "true" : "false", centreEffectName(a_.controls().mode_id),
-      centreEffectName(b_.controls().mode_id)
+      (config_.flags & 16U) ? "true" : "false",
+      a_.controls().mode_id == kDiagnosticBounceMode ? "PALETTE_BOUNCE"
+                                                     : centreEffectName(a_.controls().mode_id),
+      b_.controls().mode_id == kDiagnosticBounceMode ? "PALETTE_BOUNCE"
+                                                     : centreEffectName(b_.controls().mode_id)
 #endif
       );
-  return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;
+  if (n <= 0 || std::size_t(n) >= capacity || out[n - 1] != '}') return 0U;
+  out[n - 1] = '\0';
+  const int extra = std::snprintf(
+      out + n - 1, capacity - std::size_t(n) + 1,
+      ",\"visual_path\":\"%s\",\"musical\":%s,\"in_dwell\":%s,"
+      "\"live_age_us\":%llu,\"peak_milli\":%lu,\"vu_milli\":%lu,"
+      "\"chroma_milli\":%lu,\"wave_milli\":%lu,\"dwell_armed\":%s,"
+      "\"dwell_reinit\":%s,\"effect_frames\":%llu,\"dwell_frames\":%llu,"
+      "\"dwell_reinits\":%llu}",
+      visual_path_ ? visual_path_ : "none",
+      last_musical_ ? "true" : "false", last_in_dwell_ ? "true" : "false",
+      (unsigned long long)last_live_age_us_,
+      (unsigned long)last_peak_milli_, (unsigned long)last_vu_milli_,
+      (unsigned long)last_chroma_milli_, (unsigned long)last_wave_milli_,
+      dwell_armed_[0] ? "true" : "false",
+      last_dwell_reinit_ ? "true" : "false",
+      (unsigned long long)effect_frames_, (unsigned long long)dwell_frames_,
+      (unsigned long long)dwell_reinits_);
+  if (extra <= 0 || std::size_t(n - 1 + extra) >= capacity) return 0U;
+  return std::size_t(n - 1 + extra);
 }
 void PaletteRuntime::recordEmit(int result, std::uint32_t cycles) noexcept {
   if (result) ++emit_errors_; else ++emitted_;

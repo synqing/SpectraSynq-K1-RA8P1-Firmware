@@ -1,5 +1,6 @@
 #include "k1_status_led.h"
 #include "titan_status_gpio.h"
+#include "titan_led2_phy.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -431,12 +432,34 @@ void k1_status_led_usb(int configured, int session, uint32_t now_ms) {
   (void)now_ms;
 }
 
+void k1_status_led2_channels(uint8_t display, uint8_t cue, uint32_t elapsed, int progress_ok,
+                             uint8_t *green, uint8_t *yellow) {
+  *green = 0;
+  *yellow = 0;
+  if (display == k1_led_display_wait_operator) {
+    *yellow = (uint8_t)((elapsed % 2000u) < 800u);
+    return;
+  }
+  if (display == k1_led_display_warning || cue == k1_led_cue_stall) {
+    const uint32_t t = elapsed % 2000u;
+    *yellow = (uint8_t)((t < 120u) || (t >= 300u && t < 420u));
+    return;
+  }
+  if (progress_ok) *green = (uint8_t)((elapsed % 1000u) < 100u);
+}
+
 static int progress_eligible(void) {
   if (g.display != k1_led_display_running && g.display != k1_led_display_test_running) return 1;
   if (!g.hop.armed) return 0;
   if (!seq_advanced(g.hop.last_seq, g.hop.group_seq)) return 0;
   if (!g.hop.fresh) return 0;
   return 1;
+}
+
+static uint32_t led2_budget_cycles = 0xffffffffu;
+
+void k1_status_led_set_led2_budget(uint32_t remaining_cycles) {
+  led2_budget_cycles = remaining_cycles;
 }
 
 void k1_status_led_poll(uint32_t now_ms, int emit_gpio) {
@@ -509,11 +532,23 @@ void k1_status_led_poll(uint32_t now_ms, int emit_gpio) {
       }
     }
   }
+  {
+    uint8_t led2_g = 0, led2_y = 0;
+    int progress_ok = 0;
+    if (g.display == k1_led_display_running || g.display == k1_led_display_test_running)
+      progress_ok = g.in_progress_group && progress_eligible();
+    else if (g.display != k1_led_display_fatal && g.hop.fresh &&
+             seq_advanced(g.hop.last_seq, g.hop.group_seq))
+      progress_ok = 1;
+    k1_status_led2_channels(g.display, g.cue, elapsed, progress_ok, &led2_g, &led2_y);
+    titan_led2_phy_request(led2_g, led2_y);
+  }
   if (emit_gpio) {
     (void)titan_status_gpio_write(mask);
     g.last_gpio_error = (uint32_t)titan_status_gpio_last_error();
     g.last_mask = mask;
   }
+  (void)titan_led2_phy_service(now_ms, led2_budget_cycles);
 }
 
 uint8_t k1_status_led_display(void) { return g.display; }
@@ -522,6 +557,23 @@ uint32_t k1_status_led_max_service_cycles(void) { return g.max_service_cycles; }
 
 void k1_status_led_add_service_cycles(uint32_t cycles) {
   if (cycles > g.max_service_cycles) g.max_service_cycles = cycles;
+}
+
+int k1_status_led_slim_snapshot(char *output, uint32_t capacity) {
+  static const char *const names[] = {"BOOTING",        "BOOT_OK",         "READY",
+                                      "RUNNING",        "TEST_RUNNING",    "FINALIZING",
+                                      "TEST_PASS",      "TEST_FAIL",       "TEST_INCOMPLETE",
+                                      "WAIT_OPERATOR",  "WARNING",         "FATAL",
+                                      "IDENTIFY"};
+  const char *disp = (g.display < 13) ? names[g.display] : "UNKNOWN";
+  const int n = snprintf(output, capacity,
+                         "{\"schema\":1,\"slim\":true,\"display\":\"%s\",\"activity\":%u,"
+                         "\"outcome\":%u,\"fail_flags\":%lu,\"hop_seq\":%lu,\"led2_ok\":%s}",
+                         disp, (unsigned)g.activity, (unsigned)g.outcome,
+                         (unsigned long)g.fail_flags, (unsigned long)g.hop.last_seq,
+                         titan_led2_phy_capable() && titan_led2_phy_mode_ok() ? "true"
+                                                                              : "false");
+  return (n > 0 && (uint32_t)n < capacity) ? 0 : -1;
 }
 
 int k1_status_led_snapshot(char *output, uint32_t capacity) {
@@ -533,13 +585,24 @@ int k1_status_led_snapshot(char *output, uint32_t capacity) {
   static const char *const outcomes[] = {"none", "pending", "pass", "fail", "incomplete"};
   const char *disp = (g.display < 13) ? names[g.display] : "UNKNOWN";
   const char *outc = (g.outcome < 5) ? outcomes[g.outcome] : "unknown";
+  k1_led2_phy_trace_t led2_trace = {0};
+  const int have_led2_trace = titan_led2_phy_trace_latest(&led2_trace) == 0;
   const int n = snprintf(
       output, capacity,
       "{\"schema\":1,\"display\":\"%s\",\"activity\":%u,\"outcome\":\"%s\",\"outcome_acked\":%s,"
       "\"run_id\":%llu,\"fail_flags\":%lu,\"first_fail\":%lu,\"completed\":%lu,\"reason\":\"%s\","
       "\"warning\":%s,\"fatal\":%s,\"usb_configured\":%s,\"usb_session\":%s,\"wait_reason\":%lu,"
       "\"identify\":%s,\"hop_seq\":%lu,\"gpio_error\":%lu,\"max_gap_ms\":%lu,\"max_service_cycles\":%lu,"
-      "\"cue\":%u,\"logical_rgb\":%u}",
+      "\"cue\":%u,\"logical_rgb\":%u,"
+      "\"led2\":{\"ok\":%s,\"id\":%lu,\"id1\":%u,\"id2\":%u,\"addr\":%u,"
+      "\"g\":%u,\"y\":%u,\"applied_valid\":%s,\"reg_readback\":%s,\"err\":%lu,"
+      "\"txc\":%s,\"txc_requested\":%s,\"txc_state\":\"unverified\",\"step\":%u,"
+      "\"page_unknown\":%s,\"taz\":%u,\"ta0\":%u,\"io\":%u,\"pins\":%u,"
+      "\"ta_bitmap\":%lu,\"attempt\":%lu,\"dwt_ok\":%s,\"dwt_hz\":%lu,"
+      "\"dwt_delta\":%lu,\"mdio_pfs\":%lu,"
+      "\"mdc_pfs\":%lu,\"reset_pfs\":%lu,\"txc_pfs\":%lu,"
+      "\"trace\":{\"valid\":%s,\"seq\":%lu,\"attempt\":%lu,\"reset_age_ms\":%lu,"
+      "\"addr\":%u,\"reg\":%u,\"ack\":%u,\"io\":%u,\"value\":%u,\"value_valid\":%s}}}",
       disp, (unsigned)g.activity, outc, g.outcome_acked ? "true" : "false",
       (unsigned long long)g.run_id, (unsigned long)g.fail_flags, (unsigned long)g.first_fail,
       (unsigned long)g.completed, g.reason[0] ? g.reason : "",
@@ -547,6 +610,31 @@ int k1_status_led_snapshot(char *output, uint32_t capacity) {
       g.usb_configured ? "true" : "false", g.usb_session ? "true" : "false",
       (unsigned long)g.wait_reason, g.identify ? "true" : "false", (unsigned long)g.hop.last_seq,
       (unsigned long)g.last_gpio_error, (unsigned long)g.max_gap_ms,
-      (unsigned long)g.max_service_cycles, (unsigned)g.cue, (unsigned)g.last_mask);
+      (unsigned long)g.max_service_cycles, (unsigned)g.cue, (unsigned)g.last_mask,
+      titan_led2_phy_capable() && titan_led2_phy_mode_ok() &&
+              titan_led2_phy_register_readback_ok() && titan_led2_phy_applied_valid() &&
+              !titan_led2_phy_page_unknown()
+          ? "true"
+          : "false",
+      (unsigned long)titan_led2_phy_id(), (unsigned)titan_led2_phy_last_id1(),
+      (unsigned)titan_led2_phy_last_id2(), (unsigned)titan_led2_phy_last_addr(),
+      (unsigned)titan_led2_phy_applied_green(),
+      (unsigned)titan_led2_phy_applied_yellow(), titan_led2_phy_applied_valid() ? "true" : "false",
+      titan_led2_phy_register_readback_ok() ? "true" : "false", (unsigned long)titan_led2_phy_error(),
+      titan_led2_phy_txc_enabled() ? "true" : "false",
+      titan_led2_phy_txc_requested() ? "true" : "false", (unsigned)titan_led2_phy_experiment_step(),
+      titan_led2_phy_page_unknown() ? "true" : "false", (unsigned)titan_led2_phy_expected_ta_z(),
+      (unsigned)titan_led2_phy_expected_ta_zero(),
+      (unsigned)titan_led2_phy_expected_io_error(), (unsigned)titan_led2_phy_pin_readback(),
+      (unsigned long)titan_led2_phy_ta_zero_bitmap(), (unsigned long)titan_led2_phy_attempt(),
+      titan_led2_phy_dwt_ok() ? "true" : "false",
+      (unsigned long)titan_led2_phy_dwt_clock_hz(), (unsigned long)titan_led2_phy_dwt_delta(),
+      (unsigned long)titan_led2_phy_mdio_pfs(),
+      (unsigned long)titan_led2_phy_mdc_pfs(), (unsigned long)titan_led2_phy_reset_pfs(),
+      (unsigned long)titan_led2_phy_txc_pfs(), have_led2_trace ? "true" : "false",
+      (unsigned long)led2_trace.sequence, (unsigned long)led2_trace.attempt,
+      (unsigned long)led2_trace.reset_age_ms, (unsigned)led2_trace.address,
+      (unsigned)led2_trace.reg, (unsigned)led2_trace.ack, (unsigned)led2_trace.io_error,
+      (unsigned)led2_trace.value, led2_trace.value_valid ? "true" : "false");
   return (n > 0 && (uint32_t)n < capacity) ? 0 : -1;
 }

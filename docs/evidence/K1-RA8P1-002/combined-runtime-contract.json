@@ -1,0 +1,112 @@
+{
+  "contract_id": "k1-ra8p1-002-combined-runtime-r1",
+  "status": "HOST_SOURCE_BOUND",
+  "mcu": "R7FA8P1A",
+  "board": "Titan Mini HW:V1.0",
+  "ap_owner": "Cortex-M85",
+  "m33": "parked unless G ticket is triggered",
+  "u55": "disabled unless an explicit coexist/useful-NPU mode is under test",
+  "cache": {
+    "dcache": "disabled (proven scalar image; cache-on killed USB)",
+    "icache": "build-dependent; not required for this contract"
+  },
+  "qualified_scalar_profile": {
+    "sample_rate_hz": 24000,
+    "hop_samples": 180,
+    "gdft_bins": 80,
+    "crossover_bin": 40,
+    "hop_us": 7500,
+    "release_guard_us": 100,
+    "image_build_id": "603e3f1721b36abc9d5dc6cb5cb9ee4e370c8638cf48023a2b471f0926733ebb",
+    "hex_sha256": "619077a52fa372cea97380674be2ef39ae940a76aeb659c141b0e371ea03ad6e",
+    "scope": "historical PASS for that exact scalar image only"
+  },
+  "legacy_exact_capture": {
+    "sample_rate_hz": 12800,
+    "hop_samples": 96,
+    "note": "separate contract; cannot inherit 24 kHz qualification"
+  },
+  "resources": [
+    {
+      "name": "PDM data/clock",
+      "pins": ["P502/PDMDAT2", "P812/PDMCLK2"],
+      "owner": "pdm_target",
+      "lifetime": "admitted live or diagnostic capture",
+      "evidence": "titan-onboard-mic-run-02"
+    },
+    {
+      "name": "PDM programme lane",
+      "channel": "R_PDM ch2 RISE",
+      "dma": "DMAC0",
+      "role": "U14 LOW expected programme",
+      "acoustic_identity": "unproven"
+    },
+    {
+      "name": "PDM measurement lane",
+      "channel": "R_PDM ch0 FALL",
+      "dma": "DMAC1",
+      "role": "U13 HIGH expected measurement",
+      "acoustic_identity": "unproven"
+    },
+    {
+      "name": "WS281x transmitter",
+      "pin": "P601/GTIOC6A",
+      "gpt_pwm": "GPT6",
+      "gpt_event_stop": "GPT0",
+      "dma": "DMAC2 IRQ 74",
+      "elc": ["ELC GPT A = GPT6 compare-A", "ELC GPT B = GPT0 overflow"],
+      "duty_buffer": "SRAM, not DTCM",
+      "silicon": "HOST tests pass; last target attempt zero DMA completions",
+      "exclusive": "GPIO bit-bang and GPT must not share P601 concurrently"
+    },
+    {
+      "name": "P004",
+      "gpt": false,
+      "role": "diagnostic GPIO only; no GPT route"
+    },
+    {
+      "name": "LED3 primary RGB",
+      "pins": ["P108 green", "P109 red", "P110 blue"],
+      "polarity": "active LOW",
+      "owner": "k1_status_led / titan_status_gpio"
+    },
+    {
+      "name": "LED2 secondary",
+      "pins": ["PC11 MDC", "PC12 MDIO", "PA07 PHYRSTB"],
+      "phy": "RTL8211F-CG addr 1",
+      "owner": "single MDIO transaction state machine",
+      "ethernet_stack": false
+    },
+    {
+      "name": "USB PCDC",
+      "owner": "hal_entry / fixture_app",
+      "hold_us": 800,
+      "note": "USB hold is not an MDIO admission threshold"
+    },
+    {
+      "name": "OSPI generated DMAC0",
+      "conflict": "PDM also claims DMAC0",
+      "rule": "combined PDM image must not enable OSPI DMAC0; fail before programme if both selected"
+    }
+  ],
+  "modes": [
+    "resident_frozen_qualification",
+    "exact_host_replay",
+    "diagnostic_capture",
+    "admitted_live_capture",
+    "isolated_peripheral_test"
+  ],
+  "mode_transition": "stop/drain producers, release exclusive resources, reset owned state, advance epoch, publish readiness. No silent fallback from live to fixture or GPT to GPIO.",
+  "isr_policy": "acknowledge, account buffer, rearm from owned capacity, bounded timestamp. No JSON, PHY scan, model, or unbounded queue in ISR.",
+  "led2_service": {
+    "rgb_independent": true,
+    "mdio_unit": "one Clause-22 frame",
+    "frame_budget_cycles": 400000,
+    "auto_experiment_on_ready": false
+  },
+  "admission": {
+    "incompatible_flags_fail_before_programme": true,
+    "live_audio_requires": ["E.1 identity or ACOUSTIC_IDENTITY_UNRESOLVED documented", "E.2 ownership", "E.4 ASRC", "R1 table"],
+    "physical_output_requires": ["D1 dma_completions>=1", "exclusive P601"]
+  }
+}

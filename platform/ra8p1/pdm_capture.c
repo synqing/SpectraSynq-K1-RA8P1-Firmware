@@ -347,6 +347,19 @@ int k1_pdm_stream_context_recover(k1_pdm_stream_t *stream,
     return K1_PDM_STREAM_OK;
 }
 
+int k1_pdm_stream_context_filling_slot(const k1_pdm_stream_t *stream,
+                                       uint32_t *slot) {
+    if (stream == NULL || slot == NULL || !stream->configured || !stream->running ||
+        stream->halted || stream->active_slot >= K1_PDM_STREAM_SLOT_COUNT) {
+        return K1_PDM_STREAM_INVALID;
+    }
+    if (stream->slots[stream->active_slot].state != K1_PDM_SLOT_FILLING) {
+        return K1_PDM_STREAM_OVERFLOW;
+    }
+    *slot = stream->active_slot;
+    return K1_PDM_STREAM_OK;
+}
+
 int k1_pdm_stream_configure(uint32_t elements_per_slot,
                             uint32_t interval_elements) {
     return k1_pdm_stream_context_configure(&default_stream, elements_per_slot,

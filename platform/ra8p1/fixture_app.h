@@ -14,6 +14,8 @@ uint32_t k1_cycle_count(void);
 size_t k1_platform_metrics(char* output, size_t capacity);
 void k1_fixture_schedule_step(void);
 bool k1_fixture_schedule_active(void);
+uint32_t k1_fixture_release_remaining_cycles(void);
+void k1_note_usb_event(uint32_t event);
 #ifdef __cplusplus
 }
 #endif

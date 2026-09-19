@@ -500,6 +500,15 @@ def test_pdm_probe_is_default_off_and_cdc_path_remains():
     assert "r_pdm" not in SOURCE_C.read_text(encoding="utf-8")
 
 
+def test_gpio_strip_is_runtime_gated_while_pdm_runs():
+    fixture = (ROOT / "platform/ra8p1/fixture_app.cpp").read_text(encoding="utf-8")
+    assert "if (k1_pdm_target_running()) return;" in fixture
+    assert fixture.count("if (k1_pdm_target_running()) { error(3); return; }") >= 2
+    emit = (ROOT / "platform/ra8p1/ws281x_diag.c").read_text(encoding="utf-8")
+    assert "__attribute__((used))" in emit
+    assert "k1_ws281x_diag_emit" in emit
+
+
 def test_dual_pdm_starts_only_after_usb_configuration_is_observed():
     entry = (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
     usb_open = entry.index("R_USB_Open")
@@ -518,6 +527,8 @@ def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
     assert ".activation_source = ELC_EVENT_PDM_DAT0" in target
     assert ".channel = K1_PDM_TARGET_RISE_DMA_CHANNEL" in target
     assert ".channel = K1_PDM_TARGET_FALL_DMA_CHANNEL" in target
+    assert ".irq = K1_PDM_TARGET_RISE_DMA_IRQ" in target
+    assert ".irq = K1_PDM_TARGET_FALL_DMA_IRQ" in target
     assert "capture_rise_pdm_cfg.dat_irq = FSP_INVALID_VECTOR" in target
     assert "capture_fall_pdm_cfg.dat_irq = FSP_INVALID_VECTOR" in target
     assert "capture_rise_pdm_cfg.pcm_edge = PDM_INPUT_DATA_EDGE_RISE" in target
@@ -525,11 +536,20 @@ def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
     assert target.count("interrupt_threshold = PDM_INTERRUPT_THRESHOLD_8") == 2
     assert "capture_rise_pdm_cfg.p_extend = &capture_rise_pdm_extend" in target
     assert "capture_fall_pdm_cfg.p_extend = &capture_fall_pdm_extend" in target
-    assert "const int16_t sample = (int16_t) (raw << 1)" in target
+    assert "k1_pdm_fifo16_inspect" in target
+    assert "raw << 1" not in target
+    assert "k1_pdm_target_dmac_isr" in target
+    assert ".p_callback = k1_pdm_target_dmac_isr" in target
+    assert ".p_callback = pdm_rxi_dmac_isr" not in target
+    assert "LMD2718T261-OA1" in header
+    assert "['R_PDM_Open','R_PDM_Start','R_DMAC_Open','k1_pdm_target_dmac_isr','k1_pdm_target_initialise']" in build
+    assert "'pdm_rxi_dmac_isr' not in dump" in build
     assert "K1_PDM_TARGET_PROGRAMME_LANE 0u" in header
     assert "K1_PDM_TARGET_MEASUREMENT_LANE 1u" in header
-    assert "K1_PDM_TARGET_SLOT_ELEMENTS 120u" in header
-    assert "K1_PDM_TARGET_SLOT_DURATION_US 7500u" in header
+    assert "K1_PDM_TARGET_SLOT_ELEMENTS 296u" in header
+    assert "K1_PDM_TARGET_SLOT_ELEMENTS 296u" and (296 % 8 == 0)
+    assert "K1_PDM_TARGET_SAMPLE_RATE_HZ 40000u" in header
+    assert "K1_PDM_TARGET_SLOT_DURATION_US 7400u" in header
     assert "sample_rate_match\\\":false" in (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
     assert "PDM_CFG_DMAC_ENABLE (1)" in build
     assert "VECTOR_NUMBER_DMAC1_INT" in build
@@ -537,16 +557,36 @@ def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
     assert "generated_transfer_symbols_linked" in build
 
 
+def test_platform_reports_selected_dma_channels_not_stale_literals():
+    source = (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
+    build = (ROOT / "scripts/build_scalar.py").read_text(encoding="utf-8")
+    assert source.count('\\"dma_channel\\":%lu') == 2
+    assert '\\"dma_channel\\":0' not in source
+    assert '\\"dma_channel\\":1' not in source
+    assert '(unsigned long)K1_PDM_TARGET_RISE_DMA_CHANNEL' in source
+    assert '(unsigned long)K1_PDM_TARGET_FALL_DMA_CHANNEL' in source
+    assert "--dmac-lane-map" in build
+    assert "K1_WS281X_GPT_DMA_CHANNEL=0u" in build
+    assert "K1_PDM_TARGET_RISE_DMA_CHANNEL=1u" in build
+    assert "K1_PDM_TARGET_FALL_DMA_CHANNEL=2u" in build
+
+
 def test_dual_target_build_is_bound_to_working_firmware_contract():
-    contract_path = ROOT / "docs/dual-im69d130-source-contract.json"
+    contract_path = ROOT / "docs/titan-onboard-lmd2718-source-contract.json"
     contract = json.loads(contract_path.read_text(encoding="utf-8"))
     build = (ROOT / "scripts/build_scalar.py").read_text(encoding="utf-8")
-    assert contract["contract_id"] == "k1-dual-im69d130-working-source-v1"
-    assert contract["electrical_contract"]["im1"]["role"] == "programme_ap_source"
-    assert contract["electrical_contract"]["im2"]["role"] == "measurement_only"
-    assert contract["working_capture_contract"]["sample_rate_hz"] == 12800
-    assert contract["working_capture_contract"]["frames_per_slot"] == 96
+    historical = json.loads((ROOT / "docs/dual-im69d130-source-contract.json").read_text(encoding="utf-8"))
+    assert contract["contract_id"] == "k1-titan-onboard-lmd2718-v1"
+    assert contract["mpn"] == "LMD2718T261-OA1"
+    assert contract["electrical_contract"]["u14"]["role"] == "programme"
+    assert contract["electrical_contract"]["u13"]["role"] == "measurement"
+    assert contract["electrical_contract"]["u14"]["pdm_edge"] == "RISE"
+    assert contract["electrical_contract"]["u13"]["pdm_edge"] == "FALL"
+    assert contract["diagnostic_capture"]["sample_rate_hz"] == 16000
+    assert contract["diagnostic_capture"]["admitted_to_24k_ap"] is False
     assert contract["titan_current_boundary"]["sample_rate_parity"] is False
+    assert historical["contract_id"] == "k1-dual-im69d130-working-source-v1"
+    assert "titan-onboard-lmd2718-source-contract.json" in build
     assert "PDM_SOURCE_CONTRACT" in build
     assert "source_contract_sha256" in build
 

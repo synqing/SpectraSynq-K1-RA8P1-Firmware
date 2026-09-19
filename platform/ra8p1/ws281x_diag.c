@@ -8,7 +8,7 @@ static uint32_t cycles_for_ns(uint32_t ns, uint32_t hz) {
     return (uint32_t)(((uint64_t)ns * hz + 999999999ULL) / 1000000000ULL);
 }
 
-int k1_ws281x_diag_emit(const uint8_t *bytes, size_t size, uint32_t profile,
+int __attribute__((used)) k1_ws281x_diag_emit(const uint8_t *bytes, size_t size, uint32_t profile,
                        uint32_t pin, uint32_t hz,
                        k1_ws281x_diag_result_t *result) {
     k1_ws281x_diag_timing_t timing;

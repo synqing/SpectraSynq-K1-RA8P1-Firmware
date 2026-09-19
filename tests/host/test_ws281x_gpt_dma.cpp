@@ -125,6 +125,34 @@ int main()
     assert(k1_ws281x_gpt_dma_submit(&tx, &frame) == K1_WS281X_SUBMIT_ACCEPTED);
     run_to_ready(&tx);
 
+    std::vector<uint8_t> ws2812_128(128u * 3u, 0);
+    ws2812_128[0] = 0x80;
+    frame.profile = 1u;
+    frame.bytes = ws2812_128.data();
+    frame.byte_count = ws2812_128.size();
+    frame.pixel_count = 128u;
+    k1_ws281x_gpt_dma_reset(&tx);
+    assert(k1_ws281x_profile_max_pixels(1u) == 128u);
+    assert(k1_ws281x_profile_max_pixels(3u) == 80u);
+    assert(k1_ws281x_gpt_dma_submit(&tx, &frame) == K1_WS281X_SUBMIT_ACCEPTED);
+    assert(tx.bits == 3072u);
+    run_to_ready(&tx);
+
+    frame.pixel_count = 129u;
+    frame.byte_count = 129u * 3u;
+    std::vector<uint8_t> too_many(129u * 3u, 0);
+    frame.bytes = too_many.data();
+    k1_ws281x_gpt_dma_reset(&tx);
+    assert(k1_ws281x_gpt_dma_submit(&tx, &frame) == K1_WS281X_SUBMIT_INVALID);
+
+    std::vector<uint8_t> ws2816_81(81u * 6u, 0);
+    frame.profile = 3u;
+    frame.bytes = ws2816_81.data();
+    frame.byte_count = ws2816_81.size();
+    frame.pixel_count = 81u;
+    k1_ws281x_gpt_dma_reset(&tx);
+    assert(k1_ws281x_gpt_dma_submit(&tx, &frame) == K1_WS281X_SUBMIT_INVALID);
+
     frame.bytes = pix;
     frame.byte_count = 6u;
     frame.pixel_count = 1u;
@@ -155,6 +183,7 @@ int main()
     assert(tx.fault == K1_WS281X_FAULT_EXTRA_EVENT);
 
     std::puts("K1_WS281X_GPT_DMA=PASS n8=PASS n16=PASS max80=PASS "
+              "ws2812_128=PASS ws2812_129=REJECT ws2816_81=REJECT "
               "first_pulse=PASS shifted=DETECT missing_stop=DETECT "
               "extra_event=DETECT p004=UNAVAILABLE busy=PASS "
               "dma_ne_wave_ne_reset=PASS");

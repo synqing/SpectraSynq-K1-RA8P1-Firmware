@@ -1,0 +1,639 @@
+{
+  "run_id": "live4",
+  "host_tests": {
+    "ok": true,
+    "results": [
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_decode.py",
+        "exit": 0,
+        "stdout": "ss03_decode_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_transport.py",
+        "exit": 0,
+        "stdout": "ss03_transport_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_lock.py",
+        "exit": 0,
+        "stdout": "{\"tiocexcl\": {\"applied\": true, \"code\": 536900621, \"second_open\": \"allowed\"}}\nss03_lock_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_broker.py",
+        "exit": 0,
+        "stdout": "ss03_broker_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_titan_parser.py",
+        "exit": 0,
+        "stdout": "parser_tests_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_checkpoint_match.py",
+        "exit": 0,
+        "stdout": "checkpoint_match_tests_ok\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "ticket": "SS-03",
+  "started": "2026-09-15T11:17:22.730375+00:00",
+  "hashes": {
+    "git_head": "c2d4dcad1334b5b13c4a86546d2528075ce6366e",
+    "dirty": true,
+    "files": {
+      "tools/serial-studio/titan_broker.py": "0112c369ba1ec9567616420e0c3c7d434899d00d7bf7b296798372c6b5f64ad6",
+      "tools/serial-studio/titan_transport.py": "61a480bc15ca49c3da2fa0a332669f6f119309e0a4b58fde7fd25b237bd93618",
+      "tools/serial-studio/titan_snapshot.py": "1c5347ad03a90c6662f1d93c06d4e287724d7fa5f1bccd542a2b2626fae8cbf2",
+      "tools/serial-studio/titan_decode.py": "d801a0568b48c80aa505cb11781a5b056a698229dc059c9909a6d2b748d019c7",
+      "tools/serial-studio/cdc_lock.py": "495ec011c019fff3fbeeace8bc489504a50a6c002a5b8a92b1b0e53ebe73fb00",
+      "tools/serial-studio/setup_titan_live.py": "6d1a58e1e874cf970fc80803491870a9c7cfabf3236f0dc07e878ee1d9653e0d",
+      "tools/serial-studio/prove_ss03.py": "14f42ef46a9083ce9a31334786df2088141e83f31f1b19688dc507cdfb888ea0",
+      "tools/serial-studio/telemetry-schema.json": "5ba548fbe41ba0b3ee89d87f47e842be036e2e8ced9af0d12e8eaf9c7c3b9554",
+      "tools/serial-studio/titan-live.ssproj": "ba5a6bfafd763b5de65fd3b5d66aa287942b9ae9dcf6ee338e25d89e3f7f7c60"
+    },
+    "live_project": "ba5a6bfafd763b5de65fd3b5d66aa287942b9ae9dcf6ee338e25d89e3f7f7c60"
+  },
+  "live_project_sha256": "ba5a6bfafd763b5de65fd3b5d66aa287942b9ae9dcf6ee338e25d89e3f7f7c60",
+  "broker_pid": 87112,
+  "bind": {
+    "epoch": 1,
+    "bound": {
+      "ok": true,
+      "reason": "ok",
+      "uid": "545433931bd25436593630352d068363",
+      "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+      "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+      "contract": "sr24000.hop180.bins80.xover40",
+      "protocol": 1,
+      "clock_hz": 1000000000,
+      "device_sequence": 461337,
+      "hop_samples": 180,
+      "admitted_rate_hz": 24000,
+      "unsupported": false
+    },
+    "admitted": [
+      1,
+      6,
+      17
+    ],
+    "poll_ops": [
+      6,
+      17
+    ]
+  },
+  "resident": {
+    "ok": true,
+    "reason": "ok",
+    "uid": "545433931bd25436593630352d068363",
+    "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40",
+    "protocol": 1,
+    "clock_hz": 1000000000,
+    "device_sequence": 461337,
+    "hop_samples": 180,
+    "admitted_rate_hz": 24000,
+    "unsupported": false
+  },
+  "baseline_s": 60.0,
+  "baseline_metrics": {
+    "epoch": 1,
+    "bound": {
+      "ok": true,
+      "reason": "ok",
+      "uid": "545433931bd25436593630352d068363",
+      "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+      "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+      "contract": "sr24000.hop180.bins80.xover40",
+      "protocol": 1,
+      "clock_hz": 1000000000,
+      "device_sequence": 461337,
+      "hop_samples": 180,
+      "admitted_rate_hz": 24000,
+      "unsupported": false
+    },
+    "admitted": [
+      1,
+      6,
+      17
+    ],
+    "poll_ops": [
+      6,
+      17
+    ]
+  },
+  "network": {
+    "socketTypes": {
+      "currentSocketTypeIndex": 0,
+      "socketTypes": [
+        {
+          "index": 0,
+          "name": "TCP"
+        },
+        {
+          "index": 1,
+          "name": "UDP"
+        },
+        {
+          "index": 2,
+          "name": "WebSocket"
+        },
+        {
+          "index": 3,
+          "name": "HTTP"
+        }
+      ]
+    },
+    "config": {
+      "configurationOk": true,
+      "defaultAddress": "127.0.0.1",
+      "defaultHttpInterval": 1000,
+      "defaultHttpUrl": "http://127.0.0.1:8080/",
+      "defaultTcpPort": 23,
+      "defaultUdpLocalPort": 0,
+      "defaultUdpRemotePort": 53,
+      "defaultWebSocketUrl": "ws://127.0.0.1:8080",
+      "httpBody": "",
+      "httpHeaders": "",
+      "httpInterval": 1000,
+      "httpMethod": "GET",
+      "httpUrl": "http://127.0.0.1:8080/",
+      "ignoreTlsErrors": false,
+      "isOpen": false,
+      "lookupActive": false,
+      "remoteAddress": "127.0.0.1",
+      "socketTypeIndex": 0,
+      "socketTypeName": "TCP",
+      "tcpPort": 7778,
+      "udpLocalPort": 0,
+      "udpMulticast": false,
+      "udpRemotePort": 53,
+      "webSocketFormatIndex": 0,
+      "webSocketUrl": "ws://127.0.0.1:8080"
+    },
+    "buses": {
+      "buses": [
+        {
+          "index": 0,
+          "name": "UART/COM"
+        },
+        {
+          "index": 1,
+          "name": "Network"
+        },
+        {
+          "index": 2,
+          "name": "Bluetooth LE"
+        },
+        {
+          "index": 3,
+          "name": "Audio"
+        },
+        {
+          "index": 4,
+          "name": "Modbus"
+        },
+        {
+          "index": 5,
+          "name": "CAN Bus"
+        },
+        {
+          "index": 6,
+          "name": "USB Device"
+        },
+        {
+          "index": 7,
+          "name": "HID Device"
+        },
+        {
+          "index": 8,
+          "name": "Process"
+        },
+        {
+          "index": 9,
+          "name": "MQTT Subscriber"
+        },
+        {
+          "index": 10,
+          "name": "OPC UA"
+        },
+        {
+          "index": 11,
+          "name": "Siemens S7"
+        },
+        {
+          "index": 12,
+          "name": "EtherNet/IP"
+        },
+        {
+          "index": 13,
+          "name": "IEC 60870-5-104"
+        }
+      ]
+    }
+  },
+  "dashboard_first": {
+    "banner": "LIVE OBSERVATION",
+    "uid": "545433931bd25436593630352d068363",
+    "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40",
+    "origin": "LIVE OBSERVATION",
+    "freshness": "FRESH",
+    "lane_a": "UNAVAILABLE",
+    "rate": "41409",
+    "led": "OK",
+    "progress": "469650"
+  },
+  "second_client_line": "LIVE OBSERVATION,LIVE,NONE,545433931bd25436593630352d068363,d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3,6b1e7bc5c9f9871e6ea4e900455bcb37d756304a,sr24000.hop180.bins80.xover40,1,UNAVAILABLE,UNAVAILABLE,0,0,41409,UNAVAILABLE,UNAVAILABLE,UNAVAILABLE,UNAVAILABLE,OK,UNAVAILABLE,39897",
+  "slow_client_pending": true,
+  "dashboard_samples": [
+    {
+      "t": 3.4580007195472717e-06,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "469650",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 5.114292624988593,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "470457",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 10.133903499925509,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "470993",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 15.17102220794186,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "471797",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 20.305439249961637,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "472334",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 25.33116354199592,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "473139",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 30.351178707904182,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "473673",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 35.388702207943425,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "474480",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 40.42896225000732,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "475017",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 45.44864912494086,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "475824",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 50.48935054196045,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "476358",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 55.5049495419953,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "477164",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 60.526785749942064,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "477699",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 65.54051341698505,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "478506",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 70.55896512500476,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "479042",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 75.57537658291403,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "479847",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 80.59026908292435,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "480384",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 85.60660141694825,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "481190",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 90.62641924992204,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "481727",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 95.64552612497937,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "482531",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 100.65974570799153,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "483066",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 105.68228245794307,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "483872",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 110.69998766691424,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "484407",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 115.74264041695278,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "485213",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 120.79175466694869,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "485748",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 125.82860833290033,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "486555",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 130.869004249922,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "487089",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 135.91987074993085,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "487895",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 140.961554957903,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "488432",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 145.9935592499096,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "489234",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 151.07215870800428,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "489770",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 156.25125500001013,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "490575",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 161.29270991694648,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "491112",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 166.45116962492466,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "491919",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 171.48500604194123,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "492456",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 176.52132608299144,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "493260",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 181.5790783748962,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "493797",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 186.64547308289912,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "494601",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 191.70101929199882,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "495137",
+      "rate": "41409",
+      "led": "OK"
+    },
+    {
+      "t": 196.73849012493156,
+      "freshness": "FRESH",
+      "uid": "545433931bd25436593630352d068363",
+      "progress": "495943",
+      "rate": "41409",
+      "led": "OK"
+    }
+  ],
+  "screenshot": {
+    "ok": false,
+    "returncode": 64,
+    "stdout": "",
+    "stderr": "Unknown tool: screenshot\n",
+    "path": null
+  },
+  "broker_survived_ssp_restart": true,
+  "after_ssp_restart": {
+    "uid": "545433931bd25436593630352d068363",
+    "freshness": "STALE \u2014 NO VALID PACKET"
+  },
+  "cdc_reopen": {
+    "blocked": true,
+    "reason": "serial close on this Mac previously enumerated 045b:0261 RA USB Boot; HUPCL is now cleared but reopen is not retried on the live board",
+    "broker_pid": 87112,
+    "identity_retained": "545433931bd25436593630352d068363"
+  },
+  "recording": {
+    "db": "/Users/spectrasynq/Documents/Serial Studio/Session Databases/Titan Mini Live Observability/Titan Mini Live Observability.db",
+    "before": [],
+    "new_ids": [
+      1
+    ]
+  },
+  "hardware_during_replay": {
+    "kept_open": true,
+    "quiesced": true,
+    "writes_before": 377,
+    "writes_mid": 377,
+    "writes_after": 377,
+    "opens": 1
+  },
+  "restored": {
+    "uid": "545433931bd25436593630352d068363",
+    "freshness": "STALE \u2014 NO VALID PACKET"
+  },
+  "cdc_after_broker_stop": [
+    {
+      "device": "/dev/cu.usbmodem00000000000011",
+      "vid": 1115,
+      "pid": 21264,
+      "product": "CDC USB Demonstration"
+    }
+  ],
+  "handoff": {
+    "exit": 0,
+    "stdout": "{\"usb\": {\"device\": \"/dev/cu.usbmodem00000000000011\", \"location\": \"0-1.4\", \"serial\": \"0000000000001\", \"product\": \"CDC USB Demonstration\", \"aliases\": [\"/dev/cu.usbmodem00000000000011\", \"/dev/tty.usbmodem00000000000011\"], \"lsof\": []}, \"ok\": true, \"reason\": \"ok\", \"info\": {\"protocol\": 1, \"uid\": \"545433931bd25436593630352d068363\", \"build\": \"d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3\", \"source\": \"6b1e7bc5c9f9871e6ea4e900455bcb37d756304a\", \"contract\": \"sr24000.hop180.bins80.xover40\", \"clock_hz\": 1000000000, \"cpu1_actcsr\": 0, \"u55_opened\": false, \"cpp_initialised\": true, \"rejected\": 0, \"sequence\": 513207, \"trajectory_bytes\": 37360, \"trace_bytes\": 16396, \"status_led\": true}}\n",
+    "stderr": "",
+    "cdc_after": [
+      {
+        "device": "/dev/cu.usbmodem00000000000011",
+        "vid": 1115,
+        "pid": 21264,
+        "product": "CDC USB Demonstration"
+      }
+    ]
+  },
+  "cdc_free": true,
+  "final_lsof": "",
+  "ok": true
+}

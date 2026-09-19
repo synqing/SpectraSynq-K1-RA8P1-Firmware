@@ -82,8 +82,12 @@ int k1_status_led_identify(uint32_t now_ms);
 void k1_status_led_fault(int fatal, const char *reason, uint32_t now_ms);
 void k1_status_led_usb(int configured, int session, uint32_t now_ms);
 void k1_status_led_poll(uint32_t now_ms, int emit_gpio);
+void k1_status_led_set_led2_budget(uint32_t remaining_cycles);
+int k1_status_led_slim_snapshot(char *output, uint32_t capacity);
 uint8_t k1_status_led_display(void);
 uint8_t k1_status_led_pattern_mask(uint8_t display, uint8_t cue, uint32_t elapsed, int *expired);
+void k1_status_led2_channels(uint8_t display, uint8_t cue, uint32_t elapsed, int progress_ok,
+                             uint8_t *green, uint8_t *yellow);
 int k1_status_led_snapshot(char *output, uint32_t capacity);
 uint32_t k1_status_led_max_service_cycles(void);
 void k1_status_led_add_service_cycles(uint32_t cycles);

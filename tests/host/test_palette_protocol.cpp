@@ -55,10 +55,14 @@ int main() {
   assert(boot_body.find("\"automatic_cycle\":true")!=std::string::npos);
   assert(boot_body.find("\"emit_enabled\":true")!=std::string::npos);
 #ifdef K1_PALETTE_MORPH
-  assert(boot_body.find("\"showcase\":true")!=std::string::npos);
-  assert(boot_body.find("\"mode_a\":100")!=std::string::npos);
-  assert(boot_body.find("\"mode_b\":101")!=std::string::npos);
+  assert(boot_body.find("\"showcase\":false")!=std::string::npos);
+  assert(boot_body.find("\"mode_a\":64")!=std::string::npos);
+  assert(boot_body.find("\"mode_b\":64")!=std::string::npos);
+  assert(boot_body.find("\"effect_a\":\"PALETTE_BOUNCE\"")!=std::string::npos);
   assert(boot_body.find("\"transition_ms\":1500")!=std::string::npos);
+#ifndef K1_PALETTE_WS2816
+  assert(boot_body.find("\"brightness\":24")!=std::string::npos);
+#endif
 #endif
 #else
   assert(boot_body.find("\"active\":false")!=std::string::npos);

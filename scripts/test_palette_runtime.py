@@ -32,10 +32,11 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
         for suite in (('runtime','protocol','transition','centre') if morph else ('runtime','protocol')):
             executable=out/(suite+str(morph))
             command=common+[str(ROOT/f'tests/host/test_palette_{suite}.cpp'),'-o',str(executable)]
-            if suite=='protocol': command+=['-DK1_PALETTE_RUNTIME=1','-DK1_STATUS_GPIO_STUB=1',
+            if suite=='protocol': command+=['-DK1_PALETTE_RUNTIME=1','-DK1_STATUS_GPIO_STUB=1','-DK1_LED2_PHY_STUB=1',
                 str(ROOT/'platform/ra8p1/fixture_app.cpp'),
                 str(ROOT/'platform/ra8p1/k1_status_led.c'),
-                str(ROOT/'platform/ra8p1/titan_status_gpio.c')]
+                str(ROOT/'platform/ra8p1/titan_status_gpio.c'),
+                str(ROOT/'platform/ra8p1/titan_led2_phy.c')]
             subprocess.run(command,check=True)
             result=subprocess.check_output([str(executable)],text=True)
             print(('MORPH ' if morph else 'PINNED ')+result,end='')
@@ -60,5 +61,25 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
                         print('AUTOSTART_MUTATION_PASS single_palette_reset_regression_rejected=true')
             if suite=='runtime':
                 digests.append(next(line for line in result.splitlines() if line.startswith('COMPATIBILITY_DIGEST=')))
+                if not morph:
+                    source = (ROOT/'platform/ra8p1/palette_runtime.cpp').read_text()
+                    marker = (
+                        'channel->prepareAudio(governed_audio);\n'
+                        '        // Live/silence path: clear then DualMCU previousFrame seed.\n'
+                        '        // Skipping clear here saturates (snap-freeze).\n'
+                        '        channel->clearFrame();')
+                    assert source.count(marker) == 1
+                    bad_source = out/'palette_runtime_no_clear.cpp'
+                    bad_source.write_text(source.replace(
+                        marker, 'channel->prepareAudio(governed_audio);'))
+                    bad_command = [
+                        str(bad_source) if part == str(ROOT/'platform/ra8p1/palette_runtime.cpp')
+                        else part for part in command]
+                    subprocess.run(bad_command, check=True)
+                    broken = subprocess.run(
+                        [str(executable)], cwd=out, capture_output=True, text=True)
+                    assert broken.returncode != 0 and 'SNAP_FREEZE' in broken.stderr, (
+                        'snap-freeze escaped without caller clearFrame')
+                    print('SNAP_FREEZE_MUTATION_PASS caller_clear_required=true')
     assert len(digests)==2 and digests[0]==digests[1], 'disabled-transition VP differs from pinned renderer'
     print('PALETTE_COMPATIBILITY_PASS independent_executables=2 overlay_mutation_rejected=true')

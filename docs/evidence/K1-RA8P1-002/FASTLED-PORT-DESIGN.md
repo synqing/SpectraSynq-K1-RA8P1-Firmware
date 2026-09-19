@@ -1,6 +1,9 @@
 # FastLED-derived WS2812 / WS2816 output on Titan
 
-10 September 2026. **Design and HOST experiments complete; target driver not implemented or flashed.**
+10 September 2026. Design and HOST experiments complete. Target GPT6/DMA
+driver is in `platform/ra8p1/ws281x_gpt_dma_hw.c` and is cross-compiled in
+`ws2812-gpt-dma-build-01` / `ws2816-gpt-dma-build-01`. Not flashed in this
+note, not waveform-captured, P004 still has no GPT route. G4 remains FAIL.
 
 ## Decision
 

@@ -136,6 +136,6 @@ int main(void) {
   char json[1024];
   assert(k1_status_led_snapshot(json, sizeof json) == 0);
   assert(strstr(json, "\"schema\":1"));
-  puts("K1_STATUS_LED=PASS");
+  puts(json);
   return 0;
 }

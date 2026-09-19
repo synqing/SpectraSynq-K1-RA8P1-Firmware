@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "fixture_app.h"
 #include "k1_status_led.h"
+#include "titan_led2_phy.h"
 #ifdef K1_NPU_LOAD
 #include "npu_load.h"
 #endif
@@ -17,6 +18,9 @@
 #endif
 #ifdef K1_PDM_TARGET
 #include "pdm_target.h"
+#endif
+#ifdef K1_PALETTE_GPT_DMA
+#include "ws281x_gpt_dma_hw.h"
 #endif
 #ifdef K1_PCM1808_TARGET
 #include "pcm1808_target.h"
@@ -32,6 +36,21 @@ extern int k1_coexist_probe(void);
 #endif
 static uint8_t usb_read[64];
 static bool attached, read_armed, write_pending;
+static uint32_t svc_pdm_cyc, svc_gpt_cyc, svc_usb_cyc;
+static uint32_t max_pdm_gap_cyc, max_gpt_gap_cyc, max_usb_gap_cyc;
+static void k1_mark_service(uint32_t *last, uint32_t *max_gap) {
+    const uint32_t now = DWT->CYCCNT;
+    if (*last != 0u) {
+        const uint32_t gap = now - *last;
+        if (gap > *max_gap) *max_gap = gap;
+    }
+    *last = now;
+}
+static uint32_t k1_gap_us(uint32_t cycles) {
+    const uint32_t hz = SystemCoreClock;
+    if (hz < 1000000u) return 0u;
+    return cycles / (hz / 1000000u);
+}
 uint32_t k1_cycle_count(void) { return DWT->CYCCNT; }
 size_t k1_platform_metrics(char* output, size_t capacity) {
 #if defined(K1_PCM1808_TARGET) && !defined(K1_PDM_TARGET)
@@ -47,12 +66,13 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
        oscillator measurement. This wait is outside all AP/render measurements. */
     const uint32_t first_tick=rt_tick_get(), first_cycle=DWT->CYCCNT;
 #ifdef K1_PDM_TARGET
-    /* Keep the two 7.5 ms DMAC rings drained while this diagnostic samples the
-       RT-Thread clock. Observability must not manufacture a PDM overflow. */
-    for(unsigned i=0;i<100;++i) {
-        rt_thread_mdelay(1);
-        k1_pdm_target_poll();
-    }
+    /* Do not stall 100 ms on the USB request path. GPT timeout is ~14 ms. */
+    k1_pdm_target_poll();
+#ifdef K1_PALETTE_GPT_DMA
+    k1_ws281x_gpt_dma_hw_poll();
+#endif
+    k1_mark_service(&svc_pdm_cyc, &max_pdm_gap_cyc);
+    k1_mark_service(&svc_gpt_cyc, &max_gpt_gap_cyc);
 #else
     rt_thread_mdelay(100);
 #endif
@@ -61,7 +81,7 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
     const uint32_t scb_ccr=SCB->CCR;
 #ifdef K1_PDM_TARGET
     const int n=snprintf(output,capacity,
-        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu,\"pdm_target\":{\"sample_rate_hz\":%lu,\"working_source_sample_rate_hz\":12800,\"sample_rate_match\":false,\"slot_elements\":%lu,\"slot_duration_us\":%lu,\"shared_clock_and_data\":true,\"programme_lane\":0,\"initialised\":%s,\"running\":%s,\"last_fsp_error\":%ld,\"paired_slots\":%lu,\"pair_skew_drops\":%lu,\"startup_discard_pairs\":%lu,\"max_pair_skew_us\":%llu,\"first_capture_start_us\":%llu,\"last_capture_end_us\":%llu,\"lanes\":[{\"microphone\":\"IM1\",\"select\":\"HIGH\",\"edge\":\"RISE\",\"pdm_channel\":2,\"dma_channel\":0,\"role\":\"programme\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu},{\"microphone\":\"IM2\",\"select\":\"LOW\",\"edge\":\"FALL\",\"pdm_channel\":0,\"dma_channel\":1,\"role\":\"measurement\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu}]}}",
+        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu,\"pdm_target\":{\"mpn\":\"LMD2718T261-OA1\",\"data_pin\":\"P502\",\"clock_pin\":\"P812\",\"sample_rate_hz\":%lu,\"profile\":\"ap_40k_asrc24\",\"working_source_sample_rate_hz\":24000,\"sample_rate_match\":false,\"slot_elements\":%lu,\"slot_duration_us\":%lu,\"shared_clock_and_data\":true,\"programme_lane\":0,\"acoustic_identity\":\"unproven\",\"initialised\":%s,\"running\":%s,\"last_fsp_error\":%ld,\"rearm_denied\":%lu,\"paired_slots\":%lu,\"pair_skew_drops\":%lu,\"startup_discard_pairs\":%lu,\"max_pair_skew_us\":%llu,\"first_capture_start_us\":%llu,\"last_capture_end_us\":%llu,\"asrc_starved\":%lu,\"ap_hops\":%lu,\"last_hop_dt_us\":%lu,\"last_hop_peak\":%lu,\"last_hop_gain_q8\":%lu,\"gain_clip_pos\":%lu,\"gain_clip_neg\":%lu,\"measured_hz\":%lu,\"rate_locked\":%lu,\"max_pdm_gap_us\":%lu,\"max_gpt_gap_us\":%lu,\"max_usb_gap_us\":%lu,\"lanes\":[{\"microphone\":\"U14\",\"select\":\"LOW\",\"edge\":\"RISE\",\"pdm_channel\":2,\"dma_channel\":%lu,\"role\":\"programme\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu,\"sat_neg\":%lu,\"sat_pos\":%lu,\"packing_mismatch\":%lu,\"first_sat_raw\":%lu},{\"microphone\":\"U13\",\"select\":\"HIGH\",\"edge\":\"FALL\",\"pdm_channel\":0,\"dma_channel\":%lu,\"role\":\"measurement\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu,\"sat_neg\":%lu,\"sat_pos\":%lu,\"packing_mismatch\":%lu,\"first_sat_raw\":%lu}]}}",
         (unsigned long)self->stack_size,(unsigned long)untouched,(unsigned long)total,
         (unsigned long)used,(unsigned long)maximum,(unsigned long)__get_FPSCR(),
         (unsigned long)scb_ccr,
@@ -71,12 +91,27 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
         (unsigned long)K1_PDM_TARGET_SAMPLE_RATE_HZ,(unsigned long)K1_PDM_TARGET_SLOT_ELEMENTS,
         (unsigned long)K1_PDM_TARGET_SLOT_DURATION_US,
         k1_pdm_target_initialised()?"true":"false",k1_pdm_target_running()?"true":"false",
-        (long)k1_pdm_target_last_fsp_error(),(unsigned long)k1_pdm_target_paired_slots(),
+        (long)k1_pdm_target_last_fsp_error(),
+        (unsigned long)k1_pdm_target_rearm_denied(),
+        (unsigned long)k1_pdm_target_paired_slots(),
         (unsigned long)k1_pdm_target_pair_skew_drops(),
         (unsigned long)k1_pdm_target_startup_discard_pairs(),
         (unsigned long long)k1_pdm_target_max_pair_skew_us(),
         (unsigned long long)k1_pdm_target_first_capture_start_us(),
         (unsigned long long)k1_pdm_target_last_capture_end_us(),
+        (unsigned long)k1_pdm_target_asrc_starved(),
+        (unsigned long)k1_pdm_target_ap_hops(),
+        (unsigned long)k1_pdm_target_last_hop_dt_us(),
+        (unsigned long)k1_pdm_target_last_hop_peak(),
+        (unsigned long)k1_pdm_target_last_hop_gain_q8(),
+        (unsigned long)k1_pdm_target_gain_clip_pos(),
+        (unsigned long)k1_pdm_target_gain_clip_neg(),
+        (unsigned long)k1_pdm_target_measured_hz(),
+        (unsigned long)k1_pdm_target_rate_locked(),
+        (unsigned long)k1_gap_us(max_pdm_gap_cyc),
+        (unsigned long)k1_gap_us(max_gpt_gap_cyc),
+        (unsigned long)k1_gap_us(max_usb_gap_cyc),
+        (unsigned long)K1_PDM_TARGET_RISE_DMA_CHANNEL,
         (unsigned long)k1_pdm_target_data_callbacks(0u),
         (unsigned long)k1_pdm_target_error_callbacks(0u),
         (unsigned long)k1_pdm_target_error_flags(0u),
@@ -89,6 +124,11 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
         (unsigned long)k1_pdm_target_overflow_events(0u),
         (unsigned long)k1_pdm_target_drop_events(0u),
         (unsigned long)k1_pdm_target_recovery_count(0u),
+        (unsigned long)k1_pdm_target_sat_neg(0u),
+        (unsigned long)k1_pdm_target_sat_pos(0u),
+        (unsigned long)k1_pdm_target_packing_mismatch(0u),
+        (unsigned long)k1_pdm_target_first_sat_raw(0u),
+        (unsigned long)K1_PDM_TARGET_FALL_DMA_CHANNEL,
         (unsigned long)k1_pdm_target_data_callbacks(1u),
         (unsigned long)k1_pdm_target_error_callbacks(1u),
         (unsigned long)k1_pdm_target_error_flags(1u),
@@ -100,7 +140,11 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
         (unsigned long long)k1_pdm_target_sample_square_sum(1u),
         (unsigned long)k1_pdm_target_overflow_events(1u),
         (unsigned long)k1_pdm_target_drop_events(1u),
-        (unsigned long)k1_pdm_target_recovery_count(1u));
+        (unsigned long)k1_pdm_target_recovery_count(1u),
+        (unsigned long)k1_pdm_target_sat_neg(1u),
+        (unsigned long)k1_pdm_target_sat_pos(1u),
+        (unsigned long)k1_pdm_target_packing_mismatch(1u),
+        (unsigned long)k1_pdm_target_first_sat_raw(1u));
 #else
     const int n=snprintf(output,capacity,
         "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu}",
@@ -153,6 +197,7 @@ void hal_entry(void) {
     (void)k1_coexist_probe();
 #endif
     k1_status_led_init((uint32_t)rt_tick_get());
+    (void)titan_led2_phy_init((uint32_t)rt_tick_get());
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
     if(FSP_SUCCESS!=R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg)) {
@@ -167,7 +212,11 @@ void hal_entry(void) {
         const bool hold_yield=k1_fixture_schedule_active() && remaining<(SystemCoreClock/900U);
         const uint32_t led_now=(uint32_t)rt_tick_get();
         const uint32_t led_t0=DWT->CYCCNT;
-        k1_status_led_poll(led_now, hold_usb?0:1);
+        /* RGB is cheap and independent of USB hold. LED2 MDIO is admitted
+           only when remaining slack covers one Clause-22 frame. */
+        k1_status_led_set_led2_budget(k1_fixture_schedule_active() ? remaining
+                                                                  : 0xffffffffu);
+        k1_status_led_poll(led_now, 1);
         k1_status_led_add_service_cycles(DWT->CYCCNT-led_t0);
         usb_event_info_t info={0}; usb_status_t event=USB_STATUS_NONE;
         if(!hold_usb) {
@@ -204,10 +253,15 @@ void hal_entry(void) {
         if(attached && !k1_pcm1808_target_initialised())
             (void)k1_pcm1808_target_initialise();
 #endif
-        k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
 #ifdef K1_PDM_TARGET
         k1_pdm_target_poll();
+        k1_mark_service(&svc_pdm_cyc, &max_pdm_gap_cyc);
 #endif
+        k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
+#ifdef K1_PALETTE_GPT_DMA
+        k1_mark_service(&svc_gpt_cyc, &max_gpt_gap_cyc);
+#endif
+        k1_mark_service(&svc_usb_cyc, &max_usb_gap_cyc);
 #ifdef K1_PCM1808_TARGET
         k1_pcm1808_target_poll();
 #endif
@@ -218,7 +272,13 @@ void hal_entry(void) {
             if(attached && !size && !read_armed &&
                FSP_SUCCESS==R_USB_Read(&g_basic0_ctrl,usb_read,sizeof(usb_read),USB_CLASS_PCDC)) read_armed=true;
         }
-        if(!k1_fixture_schedule_active()) rt_thread_mdelay(1);
+        if(!k1_fixture_schedule_active()) {
+#ifdef K1_PDM_TARGET
+            if(!k1_pdm_target_running()) rt_thread_mdelay(1);
+#else
+            rt_thread_mdelay(1);
+#endif
+        }
         else if(!hold_yield) rt_thread_yield();
     }
 }

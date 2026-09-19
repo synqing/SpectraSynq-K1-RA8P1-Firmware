@@ -9,10 +9,11 @@
 extern "C" {
 #endif
 
-/* PRE-SILICON GPT PWM+DMA model. FastLED-PORT-DESIGN. Not flashed.
-   GPT6 saw-wave + GPT0 event count + DMAC to GTCCRC. P601 only.
-   DMA complete ≠ GPT0 overflow / hw stop ≠ reset-ready.
-   Compare-to-pin delay is one GPT count. GPIO smoke emitter stays. */
+/* GPT PWM+DMA transmitter. Host file is the state model; target hardware
+   is ws281x_gpt_dma_hw.c. FastLED-PORT-DESIGN. GPT6 saw-wave + GPT0 event
+   count + DMAC2 to GTCCRC. P601 only. DMA complete ≠ GPT0 overflow / hw
+   stop ≠ reset-ready. Compare-to-pin delay is one GPT count. GPIO smoke
+   emitter stays as a diagnostic path and cannot satisfy GPT acceptance. */
 
 #define K1_WS281X_GPT_TIMER 6u
 #define K1_WS281X_GPT_EVENT_TIMER 0u
@@ -43,7 +44,11 @@ enum {
     K1_WS281X_FAULT_SHIFTED_PRELOAD = 1,
     K1_WS281X_FAULT_MISSING_STOP = 2,
     K1_WS281X_FAULT_EXTRA_EVENT = 3,
-    K1_WS281X_FAULT_PIN = 4
+    K1_WS281X_FAULT_PIN = 4,
+    K1_WS281X_FAULT_TIMEOUT = 5,
+    K1_WS281X_FAULT_DMA = 6,
+    K1_WS281X_FAULT_CLOCK = 7,
+    K1_WS281X_FAULT_RESOURCE = 8
 };
 
 typedef struct {

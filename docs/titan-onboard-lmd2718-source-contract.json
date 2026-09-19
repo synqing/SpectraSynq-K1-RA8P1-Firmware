@@ -1,0 +1,75 @@
+{
+  "contract_id": "k1-titan-onboard-lmd2718-v1",
+  "captured_at": "2026-09-12",
+  "qualification": "HOST_IDENTITY_AND_PRE_SILICON_CAPTURE",
+  "board": "Titan Mini HW V1.0",
+  "mpn": "LMD2718T261-OA1",
+  "not": "IM69D130",
+  "titan_reference": {
+    "manual": "RA8P1 User's Manual R01UH1064EJ0130 Rev.1.30",
+    "pdmif_clock_source": "MOCO",
+    "pdmif_clock_hz_nominal": 8000000,
+    "pdmif_clock_hz_specified_range": [7200000, 8800000],
+    "stereo_rule": "falling_edge_channel_n_samples_physical_n_minus_1_wrap_ch0_from_ch2"
+  },
+  "electrical_contract": {
+    "clock_wire": "shared",
+    "data_wire": "shared",
+    "data_pin": "P502",
+    "clock_pin": "P812",
+    "data_af": "PDMDAT2",
+    "clock_af": "PDMCLK2",
+    "select_control": "hard_strapped_opposite_not_firmware_driven",
+    "u14": {
+      "physical_refdes": "U14",
+      "select": "LOW",
+      "pdm_edge": "RISE",
+      "titan_pdm_channel": 2,
+      "dma_channel": 0,
+      "dma_activation": "ELC_EVENT_PDM_DAT2",
+      "role": "programme",
+      "acoustic_identity": "unproven"
+    },
+    "u13": {
+      "physical_refdes": "U13",
+      "select": "HIGH",
+      "pdm_edge": "FALL",
+      "titan_pdm_channel": 0,
+      "dma_channel": 1,
+      "dma_activation": "ELC_EVENT_PDM_DAT0",
+      "role": "measurement",
+      "acoustic_identity": "unproven"
+    }
+  },
+  "diagnostic_capture": {
+    "sample_rate_hz": 16000,
+    "frames_per_slot": 120,
+    "slot_duration_us": 7500,
+    "clock_divisor": 2,
+    "sinc_decimation_ratio": 125,
+    "admitted_to_24k_ap": false,
+    "note": "16 kHz is bring-up only. Full-band admission is later 40 kHz capture plus measured-rate ASRC into unchanged 24 kHz/180 AP."
+  },
+  "ap_admission": {
+    "sample_rate_hz": 40000,
+    "frames_per_slot": 296,
+    "slot_duration_us": 7500,
+    "clock_divisor": 2,
+    "sinc_decimation_ratio": 50,
+    "sincdec_register": 49,
+    "sincrng_register": 5,
+    "sincrng_candidate": 10,
+    "sincrng_note": "Resident 40 kHz path inherits BSP SINCRNG 5. Candidate 10 is off-table and not an accepted flash. Qualify before apply.",
+    "asrc": "k1_asrc24_40k_to_24k_180",
+    "admitted_to_24k_ap": true,
+    "acoustic_identity": "unproven",
+    "note": "sincdec 49 is 2.5× the 16 kHz diagnostic (124). Slot 296 is the 8-sample FSP multiple nearest 7.5 ms at 40 kHz. Confirm span on silicon."
+  },
+  "titan_current_boundary": {
+    "sample_rate_parity": false,
+    "direct_24000_from_nominal_8mhz": "not_integer_representable_by_divider_only",
+    "programme_lane_mixing": "forbidden",
+    "claim": "PRE_SILICON_UNTIL_IDENTIFIED_TITAN_EXECUTION"
+  },
+  "historical_s3_im69d130_contract": "docs/dual-im69d130-source-contract.json"
+}

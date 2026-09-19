@@ -1,0 +1,44 @@
+{
+  "run_id": "host",
+  "host_tests": {
+    "ok": true,
+    "results": [
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_decode.py",
+        "exit": 0,
+        "stdout": "ss03_decode_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_transport.py",
+        "exit": 0,
+        "stdout": "ss03_transport_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_lock.py",
+        "exit": 0,
+        "stdout": "{\"tiocexcl\": {\"applied\": true, \"code\": 536900621, \"second_open\": \"allowed\"}}\nss03_lock_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_ss03_broker.py",
+        "exit": 0,
+        "stdout": "ss03_broker_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_titan_parser.py",
+        "exit": 0,
+        "stdout": "parser_tests_ok\n",
+        "stderr": ""
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/tests/test_checkpoint_match.py",
+        "exit": 0,
+        "stdout": "checkpoint_match_tests_ok\n",
+        "stderr": ""
+      }
+    ]
+  }
+}

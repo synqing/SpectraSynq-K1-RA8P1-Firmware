@@ -1,0 +1,72 @@
+{
+  "ticket": "SS-03",
+  "verdict": "BLOCKED",
+  "run_id": "live3-bootloader-stop",
+  "when": "2026-09-14T23:18:41.476458+00:00",
+  "reason": "Closing the application CDC handle left Titan on RA USB Boot (045b:0261 /dev/cu.usbmodem1301). SS-03 forbids bootloader entry, flash, and speculative line recovery. Host tests passed. Live identity was captured before the port vanished.",
+  "resident_before_close": {
+    "epoch": 1,
+    "bound": {
+      "ok": true,
+      "reason": "ok",
+      "uid": "545433931bd25436593630352d068363",
+      "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+      "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+      "contract": "sr24000.hop180.bins80.xover40",
+      "protocol": 1,
+      "clock_hz": 1000000000,
+      "device_sequence": 95289,
+      "hop_samples": 180,
+      "admitted_rate_hz": 24000,
+      "unsupported": false
+    },
+    "admitted": [
+      1,
+      6,
+      17
+    ],
+    "poll_ops": [
+      6,
+      17
+    ]
+  },
+  "raw_info": {
+    "usb": {
+      "device": "/dev/cu.usbmodem00000000000011",
+      "location": "0-1.3",
+      "serial": "0000000000001",
+      "product": "CDC USB Demonstration",
+      "aliases": [
+        "/dev/cu.usbmodem00000000000011",
+        "/dev/tty.usbmodem00000000000011"
+      ],
+      "lsof": []
+    },
+    "info": {
+      "protocol": 1,
+      "uid": "545433931bd25436593630352d068363",
+      "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+      "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+      "contract": "sr24000.hop180.bins80.xover40",
+      "clock_hz": 1000000000,
+      "cpu1_actcsr": 0,
+      "u55_opened": false,
+      "cpp_initialised": true,
+      "rejected": 0,
+      "sequence": 95289,
+      "trajectory_bytes": 37360,
+      "trace_bytes": 16396,
+      "status_led": true
+    },
+    "header_sequence": 95289
+  },
+  "broker_jsonl_lines": 3287,
+  "cdc_now": {
+    "vid": "045b",
+    "pid": "0261",
+    "product": "RA USB Boot",
+    "device": "/dev/cu.usbmodem1301"
+  },
+  "ss02_project_sha256": "b9a8562e4259a741bb9e2261ee6826d9df73d85d72ce01e57f8237d4848d3a84",
+  "live_project_sha256": "80692e7ceac161dd89e90f06d2703c2fc1a30d32fe2f63f0d5b582045c549947"
+}

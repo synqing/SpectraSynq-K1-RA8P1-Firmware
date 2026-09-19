@@ -13,6 +13,16 @@ int k1_ws281x_pack_grb24(uint8_t r, uint8_t g, uint8_t b, uint8_t *out)
     return 1;
 }
 
+uint32_t k1_ws281x_profile_max_pixels(uint32_t profile)
+{
+    k1_ws281x_diag_timing_t timing;
+    if (!k1_ws281x_diag_profile(profile, &timing)) {
+        return 0u;
+    }
+    return timing.bytes_per_pixel == 3u ? K1_WS281X_WAVE_MAX_PIXELS_WS2812
+                                        : K1_WS281X_WAVE_MAX_PIXELS_WS2816;
+}
+
 uint32_t k1_ws281x_ns_to_counts_ceil(uint32_t clock_hz, uint32_t ns)
 {
     uint64_t num;
@@ -68,7 +78,8 @@ int k1_ws281x_build_gpt_duty(const uint8_t *bytes, size_t nbytes,
     if ((nbytes % timing.bytes_per_pixel) != 0u) {
         return 0;
     }
-    if ((nbytes / timing.bytes_per_pixel) > K1_WS281X_WAVE_MAX_PIXELS) {
+    if ((nbytes / timing.bytes_per_pixel) >
+        k1_ws281x_profile_max_pixels(profile)) {
         return 0;
     }
     if (!k1_ws281x_gpt_quantise(profile, clock_hz, meta)) {

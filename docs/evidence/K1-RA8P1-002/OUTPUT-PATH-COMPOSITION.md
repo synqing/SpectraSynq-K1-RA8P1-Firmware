@@ -29,11 +29,11 @@ F1's 320 Pixel8 values are the **effect renderer before** this chain. They are n
 | Step | DualMCU | Titan import today | Opcode 11 first light |
 | --- | --- | --- | --- |
 | Effects renderer | yes | yes (F1 320 Pixel8 PASS) | not used |
-| Frame blend | `applyFrameBlending` | **absent** | not claimed |
+| Frame blend | `applyFrameBlending` | HOST port `frame_blend.*` (2026-09-13); not default palette-step | not claimed |
 | `applyProductOutputTreatment` | yes, Pixel8 dither on | yes, Pixel8 dither branch exists | **off** — packed u16, G0.1 cancels residual dither |
-| Edge policy | `applyProductEdgePolicy` | **absent** | gap |
-| Output gain | `applyProductOutputGain` | **absent** | gap |
-| Current limit | `applyProductCurrentLimit` | **absent** | gap |
+| Edge policy | `applyProductEdgePolicy` | HOST port `product_runtime_policy.*`; not default palette-step | host tests pass; physical admission after D2 |
+| Output gain | `applyProductOutputGain` | HOST port, unity/zero/half checks | host tests pass |
+| Current limit | `applyProductCurrentLimit` | HOST joint-limit both channels | host tests pass |
 | Stage / show | `PixelPort::submit(Pixel8)` | no physical port | packed-lane submit, TRUE16 fixture `0x12AB` |
 | Wire | G0.1 four concurrent lines | two lines wired (P601/P004) | channel-A subset, 2 of 4 |
 
@@ -52,3 +52,4 @@ Import or re-implement edge / gain / current-limit against DualMCU bytes, then a
 | Date | Author | Change |
 |------|--------|--------|
 | 2026-09-10 | agent:grok | Created from DualMCU production_runtime.cpp vs Titan visual import. |
+| 2026-09-13 | agent:grok | D3 HOST port of blend/edge/gain/joint-limit; physical admission still after D2. |

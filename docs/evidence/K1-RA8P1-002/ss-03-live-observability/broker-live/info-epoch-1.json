@@ -1,0 +1,30 @@
+{
+  "usb": {
+    "device": "/dev/cu.usbmodem00000000000011",
+    "location": "0-1.4",
+    "serial": "0000000000001",
+    "product": "CDC USB Demonstration",
+    "aliases": [
+      "/dev/cu.usbmodem00000000000011",
+      "/dev/tty.usbmodem00000000000011"
+    ],
+    "lsof": []
+  },
+  "info": {
+    "protocol": 1,
+    "uid": "545433931bd25436593630352d068363",
+    "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40",
+    "clock_hz": 1000000000,
+    "cpu1_actcsr": 0,
+    "u55_opened": false,
+    "cpp_initialised": true,
+    "rejected": 0,
+    "sequence": 792606,
+    "trajectory_bytes": 37360,
+    "trace_bytes": 16396,
+    "status_led": true
+  },
+  "header_sequence": 792606
+}

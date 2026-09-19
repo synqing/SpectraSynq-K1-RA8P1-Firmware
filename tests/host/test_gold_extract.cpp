@@ -136,6 +136,11 @@ int main()
     assert(gpt160.data_ns == 9600000u);
     assert(gpt160.emit_ns == 9900000u);
     assert(podr160.bytes == 396000u);
+    k1_ws281x_cost_t gpt_2x80{};
+    assert(k1_ws281x_gpt_cost_lanes(2u, 80u, 3u, &gpt_2x80));
+    assert(gpt_2x80.data_ns == 4800000u);
+    assert(gpt_2x80.emit_ns == 5100000u);
+    assert(k1_ws281x_gpt_buffer_bytes(2u, 80u, 3u, 1u) == 30720u);
     assert(k1_ws281x_gpt_buffer_bytes(2u, 160u, 3u, 1u) == 61440u);
     assert(k1_ws281x_gpt_buffer_bytes(2u, 160u, 3u, 2u) == 122880u);
     assert(!k1_ws281x_gpio_podr_cost(80u, 3u, 100u, &podr80));
@@ -197,12 +202,14 @@ int main()
         "samples_preserved=%u crc_fail=%u gpt80_data_bytes=%u "
         "gpt80_data_ns=%u gpt80_reset_ns=%u podr80_bytes=%u "
         "gpt160_data_bytes=%u gpt160_emit_ns=%u podr160_bytes=%u "
-        "double_buf_2x160=%u race_drop=%u snap_first_seq=%u "
+        "double_buf_2x160=%u concurrent_2x80_data_ns=%u concurrent_2x80_emit_ns=%u "
+        "race_drop=%u snap_first_seq=%u "
         "snap_second=%d queue_owned=%u\n",
         stream.hops_accepted, diag.sample_discontinuities, preserved,
         diag.crc_fail, gpt80.data_bytes, gpt80.data_ns, gpt80.reset_ns,
         podr80.bytes, gpt160.data_bytes, gpt160.emit_ns, podr160.bytes,
-        k1_ws281x_gpt_buffer_bytes(2u, 160u, 3u, 2u), shm.race_drop,
+        k1_ws281x_gpt_buffer_bytes(2u, 160u, 3u, 2u), gpt_2x80.data_ns,
+        gpt_2x80.emit_ns, shm.race_drop,
         first ? got.sequence : 0u, second, diag.queue_owned);
     return 0;
 }

@@ -59,7 +59,7 @@ class StageProfileTests(unittest.TestCase):
         stages['clock_affine']=measurement(0)
         status={'stage_profile':{
             'bin_width_cycles':16384,
-            'raw_trace':{'version':1,'records':6000,'stride':104},
+            'raw_trace':{'version':2,'records':6000,'stride':112},
             'stages':stages,
         }}
         validate_stage_profile(status,6000,5400,6000)
@@ -74,11 +74,11 @@ class StageProfileTests(unittest.TestCase):
 
     def test_raw_trace_decode_and_summary(self):
         stages=['tempo_total','tempo_acf_total']
-        stride=(5+len(stages))*4
-        header=b'K1T1'+(1).to_bytes(4,'little')+(0).to_bytes(4,'little')
+        stride=(7+len(stages))*4
+        header=b'K1T1'+(2).to_bytes(4,'little')+(0).to_bytes(4,'little')
         header+=(2).to_bytes(4,'little')+stride.to_bytes(4,'little')
         header+=len(stages).to_bytes(4,'little')
-        words=[0,9000,0,0,0,1000,0,1,12000,500,1|4,0,6000,5000]
+        words=[0,9000,0,0,0,0,0,1000,0,1,12000,500,1|4,0,40,800,6000,5000]
         body=header+b''.join(word.to_bytes(4,'little') for word in words)
         records=decode_raw_trace_chunk(body,0,stages)
         summary=summarise_raw_trace(records,stages,1_000_000)
@@ -90,6 +90,8 @@ class StageProfileTests(unittest.TestCase):
             summary['derived_tempo_tracker_exclusive']['tempo']['max_cycles'],
             1000,
         )
+        self.assertEqual(summary['software_double']['tempo']['calls']['max_cycles'], 40)
+        self.assertEqual(summary['software_double']['tempo']['cycles']['max_cycles'], 800)
         with self.assertRaisesRegex(RuntimeError,'shape'):
             decode_raw_trace_chunk(body[:-1],0,stages)
 

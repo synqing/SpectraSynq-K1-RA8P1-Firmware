@@ -1,0 +1,26 @@
+{
+  "epoch": 1,
+  "bound": {
+    "ok": true,
+    "reason": "ok",
+    "uid": "545433931bd25436593630352d068363",
+    "build": "d13cd520dafbc3e7d22955a5a4b71cbe8a61f8009f02414873fc756d2c83c8d3",
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40",
+    "protocol": 1,
+    "clock_hz": 1000000000,
+    "device_sequence": 792606,
+    "hop_samples": 180,
+    "admitted_rate_hz": 24000,
+    "unsupported": false
+  },
+  "admitted": [
+    1,
+    6,
+    17
+  ],
+  "poll_ops": [
+    6,
+    17
+  ]
+}

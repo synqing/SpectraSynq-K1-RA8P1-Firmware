@@ -41,7 +41,7 @@ typedef struct {
 } k1_pdm_stream_slot_t;
 
 /* Caller-owned bounded stream state. Two instances are used by the Titan
-   dual-IM69D130 path so neither microphone can overwrite the other. */
+   onboard LMD2718 pair so neither microphone can overwrite the other. */
 typedef struct {
     k1_pdm_stream_slot_t slots[K1_PDM_STREAM_SLOT_COUNT];
     volatile uint32_t elements_per_slot;
@@ -112,6 +112,8 @@ int k1_pdm_stream_context_release(k1_pdm_stream_t *stream,
 void k1_pdm_stream_context_stop(k1_pdm_stream_t *stream);
 int k1_pdm_stream_context_recover(k1_pdm_stream_t *stream,
                                   uint64_t capture_start_us);
+int k1_pdm_stream_context_filling_slot(const k1_pdm_stream_t *stream,
+                                       uint32_t *slot);
 
 uint32_t k1_pdm_stream_active_slot(void);
 uint32_t k1_pdm_stream_slot_state(uint32_t slot);

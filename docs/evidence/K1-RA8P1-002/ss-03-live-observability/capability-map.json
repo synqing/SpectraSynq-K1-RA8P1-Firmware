@@ -1,0 +1,170 @@
+{
+  "ticket": "SS-03",
+  "source": "platform/ra8p1/fixture_app.cpp execute()/status_command() plus k1_status_led.c and palette_runtime.cpp",
+  "framing": {
+    "request_magic": "K1S1",
+    "response_magic": "K1R1",
+    "header_bytes": 32,
+    "endian": "little",
+    "protocol_word": 1,
+    "request_layout": "magic u32op u32req u32seq u32size u32payload_crc u32proto=1 | u32header_crc | payload",
+    "response_layout": "magic u32status u32req_echo u32trajectory_sequence u32size u32cycles u32payload_crc u32header_crc | payload",
+    "integrity": "zlib/IEEE CRC32 of payload at header+20; CRC32 of first 28 header bytes at +28; host and device both check. Header CRC is not DSP hop CRC.",
+    "max_payload": "16+K1_WS281X_DIAG_MAX_BYTES request; 19968 response host cap",
+    "outstanding": "one; k1_fixture_consume returns while tx_size != 0",
+    "implementation": "scripts/run_led_smoke.py packet()/read_exact(); broker imports those functions"
+  },
+  "operations": [
+    {
+      "op": 1,
+      "name": "INFO identity",
+      "compile": "always",
+      "request": "empty",
+      "response": "JSON protocol,uid,build,source,contract,clock_hz,cpu1_actcsr,u55_opened,cpp_initialised,rejected,sequence,trajectory_bytes,trace_bytes,status_led",
+      "side_effects": "none besides filling the reply buffer",
+      "ss03": "REQUIRED first after ownership; cache; never periodic"
+    },
+    {
+      "op": 2,
+      "name": "180-sample hop text trace",
+      "compile": "always",
+      "request": "360-byte PCM; seq must be trajectory.sequence+1",
+      "side_effects": "runs trajectory.process (audio/LED work)",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 3,
+      "name": "RESET trajectory epoch",
+      "request": "u64 epoch != 0",
+      "side_effects": "destroys/reconstructs Trajectory",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 4,
+      "name": "time probe",
+      "side_effects": "runs k1_time_probe (million beats)",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 5,
+      "name": "180-sample hop binary trace",
+      "side_effects": "same as opcode 2",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 6,
+      "name": "platform metrics JSON",
+      "compile": "always; PDM fields if K1_PDM_TARGET",
+      "request": "empty",
+      "response": "stack/heap/fpscr plus pdm_target measured_hz, ap_hops, overflows, last_hop_peak, lane metrics when PDM compiled",
+      "side_effects": "On K1_PDM_TARGET: k1_pdm_target_poll and k1_ws281x_gpt_dma_hw_poll (service existing workload, no 100 ms stall). Without PDM: rt_thread_mdelay(100).",
+      "cost": "compact JSON; historical late-starts were opcode 8 not 6",
+      "ss03": "CANDIDATE compact poll after identity if the image answers it"
+    },
+    {
+      "op": 7,
+      "name": "start resident schedule",
+      "compile": "K1_RESIDENT_SCHEDULE",
+      "side_effects": "starts hops, resets trajectory, k1_status_led_test_begin",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 8,
+      "name": "schedule status",
+      "compile": "K1_RESIDENT_SCHEDULE",
+      "response": "large JSON with histograms; G4 USB_STATUS_READ_COMPLETE late starts",
+      "ss03": "FORBIDDEN periodic and do not start the matching workload"
+    },
+    {
+      "op": 9,
+      "name": "P4 start",
+      "compile": "K1_P4_LOAD",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 10,
+      "name": "P4 status",
+      "compile": "K1_P4_LOAD",
+      "ss03": "FORBIDDEN (would require the workload)"
+    },
+    {
+      "op": 11,
+      "name": "WS2816 packed-lane smoke",
+      "side_effects": "six blinks, ~1 s IRQ hold; status 10 when K1_PALETTE_GPT_DMA",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 12,
+      "name": "stage-probe raw chunk",
+      "compile": "K1_ENABLE_STAGE_PROBE",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 13,
+      "name": "WS281X diagnostic pack/emit",
+      "side_effects": "emits on DIN",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 14,
+      "name": "WS281X submitted frame",
+      "side_effects": "emits submitted pixels",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 15,
+      "name": "palette catalogue or PCM1808 metrics",
+      "compile": "K1_PALETTE_RUNTIME catalogue; else K1_PCM1808_TARGET metrics",
+      "ss03": "not used; catalogue is not health"
+    },
+    {
+      "op": 16,
+      "name": "palette configure",
+      "side_effects": "changes mode/palette/brightness",
+      "ss03": "FORBIDDEN"
+    },
+    {
+      "op": 17,
+      "name": "palette status",
+      "compile": "K1_PALETTE_RUNTIME",
+      "request": "empty",
+      "response": "compact JSON frames/emitted/emit_errors/last_emit_cycles/frame CRCs; photons NOT claimed",
+      "side_effects": "none",
+      "ss03": "CANDIDATE compact poll staggered with opcode 6"
+    },
+    {
+      "op": 18,
+      "name": "palette frame bytes",
+      "side_effects": "returns current pixels; music baseline used this at 8 Hz and froze emit under dense USB",
+      "ss03": "FORBIDDEN periodic"
+    },
+    {
+      "op": 19,
+      "name": "palette wire snapshot",
+      "ss03": "FORBIDDEN periodic"
+    },
+    {
+      "op": 20,
+      "name": "status LED / LED2 PHY",
+      "request": "size 0 = snapshot (slim if schedule active). sub 1 identify, 2 ack, 3 ack-recovery, 4 wait, 5 wait-clear, 6 verdict, 7 bind/test_begin, 8 LED2 experiment, 9 LED2 binary trace",
+      "side_effects": "empty is read; every other subcommand changes LED/PHY/test state",
+      "ss03": "empty snapshot only if used; never the whole opcode. Default campaign does not poll 20."
+    },
+    {
+      "op": 22,
+      "name": "GPT/DMA diagnostic snapshot",
+      "compile": "K1_PALETTE_GPT_DMA",
+      "response": "binary k1_ws281x_hw_diag_t, large",
+      "ss03": "on-demand only; not periodic"
+    }
+  ],
+  "ss03_admitted": {
+    "always": [{"op": 1, "payload": "empty"}],
+    "after_bind_if_supported": [
+      {"op": 6, "payload": "empty", "cadence": "staggered compact"},
+      {"op": 17, "payload": "empty", "cadence": "staggered compact"}
+    ],
+    "aggregate": "1 transaction/s initial; max 5 compact/s only with counter support",
+    "never": [2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 22]
+  }
+}
