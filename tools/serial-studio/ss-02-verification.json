@@ -1,0 +1,25 @@
+{
+  "project_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/tools/serial-studio/titan.ssproj",
+  "project_sha256": "fd0752f95ada120358e9eb1b790ecb7e42bf28c499e74bf2d5667ef3bb7f3dd9",
+  "group_titles": [
+    "Banner",
+    "Identity",
+    "Lane A",
+    "Lane B",
+    "Mic validity",
+    "Capture clock",
+    "Hop timing",
+    "Fault counts",
+    "LED health",
+    "Flags",
+    "Hop config",
+    "Watchdog"
+  ],
+  "workspace_titles": [
+    "Overview",
+    "Audio",
+    "Timing",
+    "LEDs",
+    "Engineering"
+  ]
+}

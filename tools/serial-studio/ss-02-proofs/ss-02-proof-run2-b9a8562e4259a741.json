@@ -1,0 +1,210 @@
+{
+  "run_id": "run2",
+  "saved_project_sha256": "b9a8562e4259a741bb9e2261ee6826d9df73d85d72ce01e57f8237d4848d3a84",
+  "recovery": {
+    "restarted": false,
+    "session_player": {
+      "closed": false,
+      "titles": [],
+      "pid": 25750
+    },
+    "control_running_before": true,
+    "control_running": true
+  },
+  "config_agreement": {
+    "saved_sha256": "b9a8562e4259a741bb9e2261ee6826d9df73d85d72ce01e57f8237d4848d3a84",
+    "saved_matches_reopened": true,
+    "reopened_matches_active": true,
+    "canonical": {
+      "title": "Titan Mini Observability",
+      "groups": [
+        "Banner",
+        "Identity",
+        "Lane A",
+        "Lane B",
+        "Mic validity",
+        "Capture clock",
+        "Hop timing",
+        "Fault counts",
+        "LED health",
+        "Flags",
+        "Hop config",
+        "Watchdog"
+      ],
+      "workspaces": [
+        "Overview",
+        "Audio",
+        "Timing",
+        "LEDs",
+        "Engineering"
+      ],
+      "busType": 8,
+      "frameStart": "",
+      "frameEnd": "\n",
+      "decoderMethod": 0,
+      "language": 2,
+      "template": "delimited",
+      "separator": ",",
+      "control": true,
+      "transforms": [
+        {
+          "title": "Packet freshness",
+          "virtual": true,
+          "code": "function transform(value) {\n  return Number(tableGet(\"titan_watchdog\", \"host_stale\")) ? \"STALE \u2014 NO VALID PACKET\" : \"FRESH\";\n}\n"
+        },
+        {
+          "title": "Host stale",
+          "virtual": true,
+          "code": "function transform(value) {\n  return Number(tableGet(\"titan_watchdog\", \"host_stale\"));\n}\n"
+        },
+        {
+          "title": "Last valid (ms)",
+          "virtual": true,
+          "code": "function transform(value) {\n  return Number(tableGet(\"titan_watchdog\", \"last_valid_ms\"));\n}\n"
+        }
+      ]
+    }
+  },
+  "io_at_start": {
+    "connected": true,
+    "bus": "process",
+    "arguments": "--scenario live --hold 0 --period 0.2",
+    "control_running": true
+  },
+  "healthy": {
+    "SIMULATED / LIVE banner": "SIMULATED DATA \u2014 TITAN NOT CONNECTED",
+    "Operating state": "LIVE",
+    "Test result": "NONE",
+    "UID": "545433931bd25436593630352d068363",
+    "Build": "77f77ecf2b449de754f469ac75f56b95d2b2d5a31684e8014824e9addaf7a118",
+    "Source pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "Contract": "sr24000.hop180.bins80.xover40",
+    "Lane A RMS": "-28",
+    "LED health": "OK",
+    "freshness": "FRESH",
+    "last_valid_ms": "1789421722909",
+    "sequence_before": 3,
+    "sequence_after": 4
+  },
+  "stale": {
+    "freshness": "STALE \u2014 NO VALID PACKET",
+    "host_stale": "1",
+    "last_valid_ms": "1789421723318",
+    "table_last_valid_ms": {
+      "isNumeric": true,
+      "name": "last_valid_ms",
+      "table": "titan_watchdog",
+      "value": 1789421723318
+    },
+    "latest_age_ms": 2283,
+    "latest_has_data": true,
+    "still_connected": true,
+    "arguments_unchanged": true
+  },
+  "recovered": {
+    "freshness": "FRESH",
+    "last_valid_ms": "1789421725962",
+    "sequence": "",
+    "still_connected": true
+  },
+  "frozen": {
+    "banner": "SIMULATED DATA \u2014 TITAN NOT CONNECTED / FROZEN SEQUENCE",
+    "sequence_held": 7,
+    "sequence_later": 7,
+    "freshness": "FRESH"
+  },
+  "historian_path": "/Users/spectrasynq/Documents/Serial Studio/Session Databases/Titan Mini Observability/Titan Mini Observability.db",
+  "recording_open": {
+    "exportEnabled": true,
+    "isOpen": true
+  },
+  "recorded_session": {
+    "session_id": 14,
+    "frame_count": 15,
+    "started_at": "2026-09-15T05:35:30",
+    "project_sha256": "b9a8562e4259a741bb9e2261ee6826d9df73d85d72ce01e57f8237d4848d3a84",
+    "fixture_sequence": 29,
+    "raw_count": 15,
+    "raw_has_unavailable": true,
+    "raw_has_uid": true,
+    "raw_has_simulated": true,
+    "identifying": {
+      "SIMULATED / LIVE banner": "SIMULATED DATA \u2014 TITAN NOT CONNECTED",
+      "Operating state": "IDENTIFYING",
+      "Test result": "NONE",
+      "UID": "UNIDENTIFIED",
+      "Build": "UNIDENTIFIED",
+      "Source pin": "UNIDENTIFIED",
+      "Contract": "UNIDENTIFIED",
+      "Lane A RMS": "UNAVAILABLE",
+      "LED health": "UNAVAILABLE"
+    },
+    "live": {
+      "SIMULATED / LIVE banner": "SIMULATED DATA \u2014 TITAN NOT CONNECTED",
+      "Operating state": "LIVE",
+      "Test result": "NONE",
+      "UID": "545433931bd25436593630352d068363",
+      "Build": "77f77ecf2b449de754f469ac75f56b95d2b2d5a31684e8014824e9addaf7a118",
+      "Source pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+      "Contract": "sr24000.hop180.bins80.xover40",
+      "Lane A RMS": "-28",
+      "LED health": "OK"
+    }
+  },
+  "replay": {
+    "sessionId": 14,
+    "replaying": true
+  },
+  "replay_identifying": {
+    "SIMULATED / LIVE banner": "SIMULATED DATA \u2014 TITAN NOT CONNECTED",
+    "Operating state": "IDENTIFYING",
+    "Test result": "NONE",
+    "UID": "UNIDENTIFIED",
+    "Build": "UNIDENTIFIED",
+    "Source pin": "UNIDENTIFIED",
+    "Contract": "UNIDENTIFIED",
+    "Lane A RMS": "UNAVAILABLE",
+    "LED health": "UNAVAILABLE"
+  },
+  "replay_live": {
+    "SIMULATED / LIVE banner": "SIMULATED DATA \u2014 TITAN NOT CONNECTED",
+    "Operating state": "LIVE",
+    "Test result": "NONE",
+    "UID": "545433931bd25436593630352d068363",
+    "Build": "77f77ecf2b449de754f469ac75f56b95d2b2d5a31684e8014824e9addaf7a118",
+    "Source pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "Contract": "sr24000.hop180.bins80.xover40",
+    "Lane A RMS": "-28",
+    "LED health": "OK"
+  },
+  "replay_restored_title": "Titan Mini Observability",
+  "fixture_restored": {
+    "session_player": {
+      "closed": false,
+      "titles": [],
+      "pid": 25750
+    },
+    "connected": true,
+    "bus": "process",
+    "session_player_retry": {
+      "closed": false,
+      "titles": [],
+      "pid": 25750
+    },
+    "restart": {
+      "restarted": true,
+      "old_pids": [
+        25750
+      ],
+      "new_pids": [
+        29423
+      ]
+    },
+    "control_running": true,
+    "freshness": "FRESH",
+    "uid": "545433931bd25436593630352d068363",
+    "sequence_before": 5,
+    "sequence_after": 6,
+    "ok": true
+  }
+}

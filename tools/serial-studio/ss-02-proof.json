@@ -1,0 +1,88 @@
+{
+  "replay_map_reset": {
+    "csv_open": {
+      "filePath": "/Users/spectrasynq/Documents/Serial Studio/_ss02_map_clear.csv",
+      "isOpen": true
+    },
+    "csv_open_status": {
+      "filename": "_ss02_map_clear.csv",
+      "frameCount": 1,
+      "framePosition": 0,
+      "isOpen": true,
+      "isPlaying": false,
+      "progress": 0,
+      "timestamp": "00:00:00.000"
+    },
+    "csv_closed": {
+      "filename": "",
+      "frameCount": 0,
+      "framePosition": 0,
+      "isOpen": false,
+      "isPlaying": false,
+      "progress": 0,
+      "timestamp": "--.--"
+    },
+    "project": "Titan Mini Observability"
+  },
+  "config_agreement": {
+    "saved_sha256": "4c3070fa28ef046be60bbf4e74ac0384687c2b7fb81d2d2ed72c0675af1dab98",
+    "saved_matches_reopened": true,
+    "reopened_matches_active": true,
+    "canonical": {
+      "title": "Titan Mini Observability",
+      "groups": [
+        "Banner",
+        "Identity",
+        "Lane A",
+        "Lane B",
+        "Mic validity",
+        "Capture clock",
+        "Hop timing",
+        "Fault counts",
+        "LED health",
+        "Flags",
+        "Hop config",
+        "Watchdog"
+      ],
+      "workspaces": [
+        "Overview",
+        "Audio",
+        "Timing",
+        "LEDs",
+        "Engineering"
+      ],
+      "busType": 8,
+      "frameStart": "",
+      "frameEnd": "\n",
+      "decoderMethod": 0,
+      "language": 2,
+      "template": "delimited",
+      "separator": ",",
+      "control": true,
+      "transforms": [
+        {
+          "title": "Packet freshness",
+          "virtual": true,
+          "code": "function transform(value) {\n  return Number(tableGet(\"titan_watchdog\", \"host_stale\")) ? \"STALE \u2014 NO VALID PACKET\" : \"FRESH\";\n}\n"
+        },
+        {
+          "title": "Host stale",
+          "virtual": true,
+          "code": "function transform(value) {\n  return Number(tableGet(\"titan_watchdog\", \"host_stale\"));\n}\n"
+        },
+        {
+          "title": "Last valid (ms)",
+          "virtual": true,
+          "code": "function transform(value) {\n  return Number(tableGet(\"titan_watchdog\", \"last_valid_ms\"));\n}\n"
+        }
+      ]
+    }
+  },
+  "io_at_start": {
+    "connected": true,
+    "bus": "process",
+    "arguments": "--scenario live --hold 0 --period 0.2",
+    "control_running": false
+  },
+  "error": "healthy FRESH: {'SIMULATED / LIVE banner': 'SIMULATED DATA \u2014 TITAN NOT CONNECTED', 'Operating state': 'LIVE', 'Test result': 'NONE', 'UID': '545433931bd25436593630352d068363', 'LED health': 'OK', 'Packet freshness': '', 'Last valid (ms)': '', 'Sequence': '73'}"
+}

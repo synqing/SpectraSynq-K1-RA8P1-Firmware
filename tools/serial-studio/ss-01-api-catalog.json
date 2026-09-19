@@ -1,0 +1,1720 @@
+{
+  "commands": [
+    {
+      "description": "Get list of all available commands",
+      "name": "api.getCommands"
+    },
+    {
+      "description": "Force an immediate project snapshot to disk and return its absolute path. Call BEFORE any multi-step risky edit so you can roll back atomically with assistant.restore if any subsequent step fails. Optional `label` lets you tag the snapshot for retrieval by name. Snapshots are kept rolling (last 50 per project) under the OS app-data backup directory.",
+      "name": "assistant.checkpoint"
+    },
+    {
+      "description": "Resolve a dataset by path, title, or uniqueId in one call -- dispatches to project.dataset.getByPath / .getByTitle / .getByUniqueId depending on which key is set. Exactly one of {path, title, uniqueId} must be provided; uniqueId also accepts a string alias.",
+      "name": "assistant.dataset.resolve"
+    },
+    {
+      "description": "List the rolling backup snapshots for the currently loaded project, newest first. Returns `{checkpoints: [{path, timestamp, sizeBytes, label}], count, directory}`. The `directory` field is the absolute backup folder path -- useful for surfacing in UI escape hatches.",
+      "name": "assistant.listCheckpoints"
+    },
+    {
+      "description": "Propose remembering a small durable fact for future chats (a stated preference, a correction you were given, a project convention). The user sees a confirmation chip and decides; this call NEVER stores anything by itself. Categories: user (who they are / preferences), feedback (corrections), project (facts about the open project), reference (where to find things).",
+      "name": "assistant.memory.propose"
+    },
+    {
+      "description": "Run several project mutations atomically with respect to autosave. Identical contract to project.batch (max 1024 ops, stopOnError default false, NOT a database transaction) but pre-validates that no op tries to nest another batch. Pass dryRun:true at the top level to preview every op without committing -- forwarded to project.batch which rejects the dryRun when any op is not in the dryRun-aware command set.",
+      "name": "assistant.project.bulkApply"
+    },
+    {
+      "description": "Restore a previously taken checkpoint, replacing the current project state. Provide one of: `path` (absolute path returned by assistant.checkpoint or from a delete response's `backupPath`), `timestamp` (ISO string from assistant.listCheckpoints), or `label` (most recent checkpoint matching this label). DESTRUCTIVE: any unsaved current state is overwritten -- a defensive pre-restore snapshot is taken and returned as `reverseSnapshotPath` so you can undo the restore itself.",
+      "name": "assistant.restore"
+    },
+    {
+      "description": "Dry-run a script then write it via the matching setCode endpoint. Falls back to dryCompile for frame_parser when no inputBytes(Hex) is supplied, and defaults transform values to [0.0] so callers can apply without test inputs. Returns steps[] so the LLM can see exactly which stage ran. If the dry run fails, setCode is NOT called.",
+      "name": "assistant.script.apply"
+    },
+    {
+      "description": "Validate a script by kind without writing. Routes to project.frameParser.dryRun, project.dataset.transform.dryRun, project.painter.dryRun, project.outputWidget.dryRun, or project.dryRun.endToEnd based on `kind`. All other params are forwarded verbatim (code, language, values, inputValue / hex for output_widget, sampleFrame / sampleFrames for end_to_end, plus for frame_parser the pipeline inputs inputBytesHex / decoderMethod / frameDetection / frameStart / frameEnd / hexadecimalDelimiters / checksumAlgorithm / operationMode).",
+      "name": "assistant.script.dryRun"
+    },
+    {
+      "description": "Token-efficient project snapshot for LLMs. Identical payload to project.snapshot -- prefer this name in skill docs so the assistant rails stay grouped. Optional verbose=true includes parser code and per-source frame settings.",
+      "name": "assistant.snapshot"
+    },
+    {
+      "description": "Add a tile to a workspace in one call. Chains: resolve dataset (by path or uniqueId) -> resolve or create workspace -> setCustomizeMode(true) -> setOptions to enable the matching DatasetOption bit -> patch ranges (pltMin/pltMax/wgtMin/wgtMax/fftMin/fftMax/ledHigh) -> addWidget. Returns steps[] so the LLM can see which sub-call failed. For group-level widgets (datagrid/multiplot/led/accelerometer/gyroscope/gps/plot3d/painter/imageview/output-panel), omit dataset/uniqueId and pass groupId directly.",
+      "name": "assistant.workspace.addTile"
+    },
+    {
+      "description": "Plan a workspace edit: returns the (groupId, widgetType) tuples whose compatibleWidgetTypeSlugs match the optional widgetType filter. Use this before assistant.workspace.addTile to discover which groups can host a given visualization. Falls back to listing every compatible tuple when no widgetType filter is set.",
+      "name": "assistant.workspace.plan"
+    },
+    {
+      "description": "Resolve a workspace by id or case-insensitive title. Returns the matching workspace summary or an error with candidates[] for ambiguous / missing lookups.",
+      "name": "assistant.workspace.resolve"
+    },
+    {
+      "description": "Clear console",
+      "name": "console.clear"
+    },
+    {
+      "description": "Get all console settings",
+      "name": "console.getConfig"
+    },
+    {
+      "description": "Send data to device",
+      "name": "console.send"
+    },
+    {
+      "description": "Toggle ANSI / xterm color sequences in console output",
+      "name": "console.setAnsiColorsEnabled"
+    },
+    {
+      "description": "Set checksum method",
+      "name": "console.setChecksumMethod"
+    },
+    {
+      "description": "Collapse consecutive duplicate lines",
+      "name": "console.setCollapseDuplicates"
+    },
+    {
+      "description": "Set data mode",
+      "name": "console.setDataMode"
+    },
+    {
+      "description": "Set display mode",
+      "name": "console.setDisplayMode"
+    },
+    {
+      "description": "Enable/disable echo",
+      "name": "console.setEcho"
+    },
+    {
+      "description": "Set the text encoding used to decode incoming bytes (params: encoding -- index into console.getConfig.textEncodings)",
+      "name": "console.setEncoding"
+    },
+    {
+      "description": "Set font family",
+      "name": "console.setFontFamily"
+    },
+    {
+      "description": "Set font size",
+      "name": "console.setFontSize"
+    },
+    {
+      "description": "Set line ending",
+      "name": "console.setLineEnding"
+    },
+    {
+      "description": "Toggle case-sensitive console search",
+      "name": "console.setSearchCaseSensitive"
+    },
+    {
+      "description": "Show/hide timestamps",
+      "name": "console.setShowTimestamp"
+    },
+    {
+      "description": "Toggle VT100 / xterm escape sequence interpretation",
+      "name": "console.setVt100Emulation"
+    },
+    {
+      "description": "Close console export file",
+      "name": "consoleExport.close"
+    },
+    {
+      "description": "Get console export status",
+      "name": "consoleExport.getStatus"
+    },
+    {
+      "description": "Enable/disable console export",
+      "name": "consoleExport.setEnabled"
+    },
+    {
+      "description": "Validate control-script source WITHOUT installing or running it (params: code). Compiles the script in a sandboxed engine with the SDK prelude, reports syntax errors with line numbers, and checks that setup() and/or loop() are defined. setup()/loop() are never executed and apiCall/tableSet have no effect. Use before controlScript.set.",
+      "name": "controlScript.dryRun"
+    },
+    {
+      "description": "Get the project's setup()/loop() control script source code.",
+      "name": "controlScript.get"
+    },
+    {
+      "description": "Get the control script source (alias of controlScript.get; matches the project.frameParser.getCode naming convention).",
+      "name": "controlScript.getCode"
+    },
+    {
+      "description": "Returns whether the control script is currently running.",
+      "name": "controlScript.getStatus"
+    },
+    {
+      "description": "Replace the project's control script source (params: code). The script is persisted in the project and applied to the live runtime; if a device is connected it is recompiled and restarted immediately. Validate first with controlScript.dryRun.",
+      "name": "controlScript.set"
+    },
+    {
+      "description": "Replace the control script source (alias of controlScript.set; params: code; matches the project.frameParser.setCode naming convention).",
+      "name": "controlScript.setCode"
+    },
+    {
+      "description": "Close the current CSV file",
+      "name": "csvExport.close"
+    },
+    {
+      "description": "Get CSV export status",
+      "name": "csvExport.getStatus"
+    },
+    {
+      "description": "Enable or disable CSV export (params: enabled)",
+      "name": "csvExport.setEnabled"
+    },
+    {
+      "description": "Set the CSV logging cadence (params: intervalMs). 0 (default) writes one row per received frame; a positive value switches the recorder to a fixed-interval snapshot log where every row carries the latest value of every column -- use this for multi-source or high-rate projects where per-frame rows explode the file size. Applies live to an open recording and persists across restarts.",
+      "name": "csvExport.setInterval"
+    },
+    {
+      "description": "Close CSV file",
+      "name": "csvPlayer.close"
+    },
+    {
+      "description": "Get player status",
+      "name": "csvPlayer.getStatus"
+    },
+    {
+      "description": "Open CSV file (params: filePath)",
+      "name": "csvPlayer.open"
+    },
+    {
+      "description": "Pause or resume playback (params: paused: bool)",
+      "name": "csvPlayer.setPaused"
+    },
+    {
+      "description": "Seek to position (params: progress: 0.0-1.0)",
+      "name": "csvPlayer.setProgress"
+    },
+    {
+      "description": "Step delta frames forward (or backward if negative; default 1)",
+      "name": "csvPlayer.step"
+    },
+    {
+      "description": "Get dashboard widget counts and latest frame data",
+      "name": "dashboard.getData"
+    },
+    {
+      "description": "Get the current visualization refresh rate",
+      "name": "dashboard.getFps"
+    },
+    {
+      "description": "Get the current operation mode",
+      "name": "dashboard.getOperationMode"
+    },
+    {
+      "description": "Get all dashboard configuration settings",
+      "name": "dashboard.getStatus"
+    },
+    {
+      "description": "Get the current visible plot time window in seconds",
+      "name": "dashboard.getTimeRange"
+    },
+    {
+      "description": "Re-run every dataset transform from the last received values and republish the frames to the dashboard (no export side effects). Dataset transforms normally run only when a device frame arrives; call this after project.dataTable.setValue writes (control scripts: tableSet()) so the dashboard reflects them while the device is silent.",
+      "name": "dashboard.reprocess"
+    },
+    {
+      "description": "Set the visualization refresh rate (params: fps - 1-240 Hz)",
+      "name": "dashboard.setFps"
+    },
+    {
+      "description": "Set the operation mode (params: mode - 0=ProjectFile, 1=ConsoleOnly, 2=QuickPlot)",
+      "name": "dashboard.setOperationMode"
+    },
+    {
+      "description": "Set the visible plot time window (params: seconds - 0.001-300)",
+      "name": "dashboard.setTimeRange"
+    },
+    {
+      "description": "Return the last N samples (timestamp + value pairs) for each plot-enabled dataset. Use to debug \"the values look wrong\" complaints without polling dashboard.getData repeatedly. Only returns datasets whose plt flag is on; toggle it via project.dataset.setOption first if you need history for a different dataset.",
+      "name": "dashboard.tailFrames"
+    },
+    {
+      "description": "Force a dashboard render from the current table/dataset state, synthesizing the project frame structure if no device frame has arrived yet. Unlike dashboard.reprocess (which no-ops until a real frame exists and never feeds exporters), this lets a control script that only writes tables (tableSet()) render table-driven computed datasets from the very first loop(), and it also fans the synthesized frame out to the enabled export sinks (CSV/MDF4/session/MQTT/InfluxDB/API). SDK: dashboardTick().",
+      "name": "dashboard.tick"
+    },
+    {
+      "description": "Check whether this machine is set up to connect: serial-port permissions and the exact command that fixes them on Linux, Bluetooth adapter power and permission, audio inputs, and whether the configured host or broker resolves and accepts a connection. THE first call when a connection fails or the Connect button does nothing. Returns immediately with the instant results already complete; slower reachability probes finish in the background. Optional param: bus.",
+      "name": "diagnostics.run"
+    },
+    {
+      "description": "Report whether a diagnostics run is still probing, when the last run finished, and how many results of each verdict stand. Poll this after diagnostics.run, then read the findings with problems.list filtered by checkerId 'diagnostics.<bus>'.",
+      "name": "diagnostics.status"
+    },
+    {
+      "description": "Add a new addon repository URL (params: url)",
+      "name": "extensions.addRepository"
+    },
+    {
+      "description": "Get detailed info for a specific extension (params: extensionId)",
+      "name": "extensions.getInfo"
+    },
+    {
+      "description": "Install an extension by selecting it (params: addonIndex)",
+      "name": "extensions.install"
+    },
+    {
+      "description": "List all available extensions from configured repositories",
+      "name": "extensions.list"
+    },
+    {
+      "description": "List configured addon repository URLs",
+      "name": "extensions.listRepositories"
+    },
+    {
+      "description": "Load plugin state from the project file (params: pluginId)",
+      "name": "extensions.loadState"
+    },
+    {
+      "description": "Refresh extension catalogs from all repositories",
+      "name": "extensions.refresh"
+    },
+    {
+      "description": "Remove a repository by index (params: index)",
+      "name": "extensions.removeRepository"
+    },
+    {
+      "description": "Save plugin state to the project file (params: pluginId, state)",
+      "name": "extensions.saveState"
+    },
+    {
+      "description": "Uninstall an extension by selecting it (params: addonIndex). DESTRUCTIVE: removes the extension files irreversibly. Pass dryRun:true to see what would be removed without committing.",
+      "name": "extensions.uninstall"
+    },
+    {
+      "description": "Snapshot the sink: enabled/isOpen, the endpoint fields, whether a token is stored, and the pulled counters (pointsWritten, pointsDropped, fieldsSkipped, httpErrors) plus the last write error.",
+      "name": "influx.getStatus"
+    },
+    {
+      "description": "Configure the InfluxDB 2.x sink: server URL, organization, bucket and the measurement every point is written under. Every field is optional, so a call changes only what it names. The token is write-only: it goes to the machine-bound credential vault, never to the project file, and no verb ever reads it back.",
+      "name": "influx.setConfig"
+    },
+    {
+      "description": "Enable or disable the InfluxDB sink for the current project. Requires a valid commercial licence; an unlicensed build reports enabled=false.",
+      "name": "influx.setEnabled"
+    },
+    {
+      "description": "Get complete audio configuration",
+      "name": "io.audio.getConfig"
+    },
+    {
+      "description": "List input devices",
+      "name": "io.audio.listInputDevices"
+    },
+    {
+      "description": "List input sample formats",
+      "name": "io.audio.listInputFormats"
+    },
+    {
+      "description": "List output devices",
+      "name": "io.audio.listOutputDevices"
+    },
+    {
+      "description": "List output sample formats",
+      "name": "io.audio.listOutputFormats"
+    },
+    {
+      "description": "List sample rates",
+      "name": "io.audio.listSampleRates"
+    },
+    {
+      "description": "Set input channel config (params: channelIndex)",
+      "name": "io.audio.setInputChannelConfig"
+    },
+    {
+      "description": "Set input device (params: deviceIndex)",
+      "name": "io.audio.setInputDevice"
+    },
+    {
+      "description": "Set input sample format (params: formatIndex)",
+      "name": "io.audio.setInputSampleFormat"
+    },
+    {
+      "description": "Enable normalized -1..1 sampling (params: enabled)",
+      "name": "io.audio.setNormalization"
+    },
+    {
+      "description": "Set output channel config (params: channelIndex)",
+      "name": "io.audio.setOutputChannelConfig"
+    },
+    {
+      "description": "Set output device (params: deviceIndex)",
+      "name": "io.audio.setOutputDevice"
+    },
+    {
+      "description": "Set output sample format (params: formatIndex)",
+      "name": "io.audio.setOutputSampleFormat"
+    },
+    {
+      "description": "Set sample rate (params: rateIndex)",
+      "name": "io.audio.setSampleRate"
+    },
+    {
+      "description": "Get current Bluetooth LE configuration",
+      "name": "io.ble.getConfig"
+    },
+    {
+      "description": "Get Bluetooth adapter availability and connection status",
+      "name": "io.ble.getStatus"
+    },
+    {
+      "description": "Get list of characteristics for the selected BLE service",
+      "name": "io.ble.listCharacteristics"
+    },
+    {
+      "description": "Get list of discovered Bluetooth LE devices",
+      "name": "io.ble.listDevices"
+    },
+    {
+      "description": "Get list of services for the selected BLE device",
+      "name": "io.ble.listServices"
+    },
+    {
+      "description": "Select BLE device by index (params: deviceIndex)",
+      "name": "io.ble.selectDevice"
+    },
+    {
+      "description": "Select BLE service by index (params: serviceIndex)",
+      "name": "io.ble.selectService"
+    },
+    {
+      "description": "Select the BLE service whose UUID matches (params: serviceUuid - 16-bit short form like 'fff0' or full 128-bit UUID). Robust alternative to selectService by index. The device must be connected.",
+      "name": "io.ble.selectServiceByUuid"
+    },
+    {
+      "description": "Select BLE characteristic by index (params: characteristicIndex)",
+      "name": "io.ble.setCharacteristicIndex"
+    },
+    {
+      "description": "Subscribe to the notify characteristic with the given UUID for incoming data (params: characteristicUuid - e.g. 'fff2'). Pairs with io.ble.writeCharacteristic for split read/write devices. A service must be selected first.",
+      "name": "io.ble.setNotifyCharacteristic"
+    },
+    {
+      "description": "Start scanning for Bluetooth LE devices",
+      "name": "io.ble.startDiscovery"
+    },
+    {
+      "description": "Write raw bytes to a BLE characteristic resolved by UUID, independent of the selected notify characteristic (params: characteristicUuid - 16-bit short form like 'fff1' or full 128-bit UUID; data - base64-encoded bytes). Lets a control script drive split read/write devices. The device must be connected and the owning service selected.",
+      "name": "io.ble.writeCharacteristic"
+    },
+    {
+      "description": "Get current CAN bus configuration",
+      "name": "io.canbus.getConfig"
+    },
+    {
+      "description": "Get interface error message if any",
+      "name": "io.canbus.getInterfaceError"
+    },
+    {
+      "description": "Get list of supported bitrates",
+      "name": "io.canbus.listBitrates"
+    },
+    {
+      "description": "Get list of available CAN interfaces",
+      "name": "io.canbus.listInterfaces"
+    },
+    {
+      "description": "Get list of available CAN plugins",
+      "name": "io.canbus.listPlugins"
+    },
+    {
+      "description": "Set CAN bitrate (params: bitrate)",
+      "name": "io.canbus.setBitrate"
+    },
+    {
+      "description": "Enable/disable CAN FD (params: enabled)",
+      "name": "io.canbus.setCanFd"
+    },
+    {
+      "description": "Set CAN FD data-phase bitrate (params: dataBitrate)",
+      "name": "io.canbus.setDataBitrate"
+    },
+    {
+      "description": "Select CAN interface by index (params: interfaceIndex)",
+      "name": "io.canbus.setInterfaceIndex"
+    },
+    {
+      "description": "Enable/disable listen-only mode (params: enabled)",
+      "name": "io.canbus.setListenOnly"
+    },
+    {
+      "description": "Enable/disable loopback mode (params: enabled)",
+      "name": "io.canbus.setLoopback"
+    },
+    {
+      "description": "Select CAN plugin by index (params: pluginIndex)",
+      "name": "io.canbus.setPluginIndex"
+    },
+    {
+      "description": "Open the I/O connection using the active bus type's currently-configured device + parameters. Configure FIRST -- the active bus's setters (io.uart.setDevice + setBaudRate, io.network.setRemoteAddress + setTcpPort, io.ble.selectDevice, etc.) must already be set. Use io.getStatus to verify configurationOk before connecting. Idempotent if already connected to the same device.",
+      "name": "io.connect"
+    },
+    {
+      "description": "Close the active I/O connection. Safe to call when already disconnected. Does NOT reset the configuration -- the next io.connect will reuse the same device + params.",
+      "name": "io.disconnect"
+    },
+    {
+      "description": "Add a CIP tag (params: name, tag, type, element)",
+      "name": "io.eip.addTag"
+    },
+    {
+      "description": "Remove every configured CIP tag",
+      "name": "io.eip.clearTags"
+    },
+    {
+      "description": "Build a project from the configured CIP tags",
+      "name": "io.eip.generateProject"
+    },
+    {
+      "description": "Get the EtherNet/IP driver configuration",
+      "name": "io.eip.getConfig"
+    },
+    {
+      "description": "Get the EtherNet/IP session status and counters",
+      "name": "io.eip.getStatus"
+    },
+    {
+      "description": "Remove a CIP tag by index (params: index)",
+      "name": "io.eip.removeTag"
+    },
+    {
+      "description": "Set an EtherNet/IP driver property (params: key, value)",
+      "name": "io.eip.setProperty"
+    },
+    {
+      "description": "Returns the latest RAW frame received from the device: sequence number, payload (text/base64) and the parser's channel tokens in values[] -- including channels NOT yet mapped to any dataset (dashboard.getData only shows mapped data). Poll it from a control script loop() to detect new channels and auto-build widgets via project mutations; the sequence field tells you when a new frame arrived. Capture runs only while a control script is running or the API server is enabled, so hasData:false means no data OR no active consumer. timestampMs is a monotonic clock in milliseconds (not Unix epoch time); use it only for deltas between frames. ageMs is the time elapsed since the frame was captured -- use it for staleness watchdogs instead of mixing clocks.",
+      "name": "io.getLatestFrame"
+    },
+    {
+      "description": "Returns the current connection state: isConnected, paused, busType + busTypeLabel, configurationOk (true when the active bus has enough config to call io.connect), readOnly/readWrite capability flags and linkState (connected, connecting or idle; connecting means a dial is in flight). Call this first when the user reports a connection issue. Reconnection is each driver's own business, so no attempt counter is reported: poll isConnected to watch a link that keeps dropping.",
+      "name": "io.getStatus"
+    },
+    {
+      "description": "Get complete HID driver configuration",
+      "name": "io.hid.getConfig"
+    },
+    {
+      "description": "List available HID devices",
+      "name": "io.hid.listDevices"
+    },
+    {
+      "description": "Select HID device by index (params: deviceIndex)",
+      "name": "io.hid.setDeviceIndex"
+    },
+    {
+      "description": "Forget every discovered information object",
+      "name": "io.iec104.clearPoints"
+    },
+    {
+      "description": "Build a project from the discovered points",
+      "name": "io.iec104.generateProject"
+    },
+    {
+      "description": "Get the IEC 60870-5-104 driver configuration",
+      "name": "io.iec104.getConfig"
+    },
+    {
+      "description": "List the information objects the station has reported",
+      "name": "io.iec104.getPoints"
+    },
+    {
+      "description": "Get the IEC 60870-5-104 link status and counters",
+      "name": "io.iec104.getStatus"
+    },
+    {
+      "description": "Set an IEC 60870-5-104 driver property (params: key, value)",
+      "name": "io.iec104.setProperty"
+    },
+    {
+      "description": "Returns the list of bus types this build supports. Pro builds have all 9; GPL builds only ship UART/Network/BLE/Audio. Use before io.setBusType to confirm the bus is available.",
+      "name": "io.listBuses"
+    },
+    {
+      "description": "Add register group (params: type, startAddress, count)",
+      "name": "io.modbus.addRegisterGroup"
+    },
+    {
+      "description": "Clear all register groups",
+      "name": "io.modbus.clearRegisterGroups"
+    },
+    {
+      "description": "Get current Modbus configuration",
+      "name": "io.modbus.getConfig"
+    },
+    {
+      "description": "Get list of baud rate options",
+      "name": "io.modbus.listBaudRates"
+    },
+    {
+      "description": "Get list of data bits options",
+      "name": "io.modbus.listDataBits"
+    },
+    {
+      "description": "Get list of parity options",
+      "name": "io.modbus.listParities"
+    },
+    {
+      "description": "Get list of supported protocols",
+      "name": "io.modbus.listProtocols"
+    },
+    {
+      "description": "Get all configured register groups",
+      "name": "io.modbus.listRegisterGroups"
+    },
+    {
+      "description": "Get list of register type names",
+      "name": "io.modbus.listRegisterTypes"
+    },
+    {
+      "description": "Get list of available serial ports",
+      "name": "io.modbus.listSerialPorts"
+    },
+    {
+      "description": "Get list of stop bits options",
+      "name": "io.modbus.listStopBits"
+    },
+    {
+      "description": "Remove register group by index (params: groupIndex)",
+      "name": "io.modbus.removeRegisterGroup"
+    },
+    {
+      "description": "Set RTU baud rate (params: baudRate)",
+      "name": "io.modbus.setBaudRate"
+    },
+    {
+      "description": "Set RTU data bits (params: dataBitsIndex)",
+      "name": "io.modbus.setDataBitsIndex"
+    },
+    {
+      "description": "Set TCP host (params: host)",
+      "name": "io.modbus.setHost"
+    },
+    {
+      "description": "Set RTU parity (params: parityIndex)",
+      "name": "io.modbus.setParityIndex"
+    },
+    {
+      "description": "Set polling interval in milliseconds (params: intervalMs)",
+      "name": "io.modbus.setPollInterval"
+    },
+    {
+      "description": "Set TCP port (params: port)",
+      "name": "io.modbus.setPort"
+    },
+    {
+      "description": "Set Modbus protocol (params: protocolIndex - 0=RTU, 1=TCP)",
+      "name": "io.modbus.setProtocolIndex"
+    },
+    {
+      "description": "Set RTU serial port by index (params: portIndex)",
+      "name": "io.modbus.setSerialPortIndex"
+    },
+    {
+      "description": "Set Modbus slave address (params: address)",
+      "name": "io.modbus.setSlaveAddress"
+    },
+    {
+      "description": "Set RTU stop bits (params: stopBitsIndex)",
+      "name": "io.modbus.setStopBitsIndex"
+    },
+    {
+      "description": "Get current network configuration",
+      "name": "io.network.getConfig"
+    },
+    {
+      "description": "Get link state and HTTP poll counters",
+      "name": "io.network.getStatus"
+    },
+    {
+      "description": "Get available socket types",
+      "name": "io.network.listSocketTypes"
+    },
+    {
+      "description": "Perform DNS lookup (params: host)",
+      "name": "io.network.lookup"
+    },
+    {
+      "description": "Set the HTTP request body (params: body)",
+      "name": "io.network.setHttpBody"
+    },
+    {
+      "description": "Set custom HTTP request headers (params: headers, one Name: Value per line)",
+      "name": "io.network.setHttpHeaders"
+    },
+    {
+      "description": "Set the HTTP poll interval in ms (params: interval; 0 = only on write)",
+      "name": "io.network.setHttpInterval"
+    },
+    {
+      "description": "Set the HTTP method (params: method - GET, POST, PUT, PATCH or DELETE)",
+      "name": "io.network.setHttpMethod"
+    },
+    {
+      "description": "Set the HTTP endpoint URL (params: url)",
+      "name": "io.network.setHttpUrl"
+    },
+    {
+      "description": "Accept untrusted certificates on wss:// and https:// (params: enabled)",
+      "name": "io.network.setIgnoreTlsErrors"
+    },
+    {
+      "description": "Set remote host address (params: address)",
+      "name": "io.network.setRemoteAddress"
+    },
+    {
+      "description": "Set socket type (params: socketTypeIndex - 0=TCP, 1=UDP, 2=WebSocket, 3=HTTP)",
+      "name": "io.network.setSocketType"
+    },
+    {
+      "description": "Set TCP port (params: port)",
+      "name": "io.network.setTcpPort"
+    },
+    {
+      "description": "Set UDP local port (params: port)",
+      "name": "io.network.setUdpLocalPort"
+    },
+    {
+      "description": "Enable/disable UDP multicast (params: enabled)",
+      "name": "io.network.setUdpMulticast"
+    },
+    {
+      "description": "Set UDP remote port (params: port)",
+      "name": "io.network.setUdpRemotePort"
+    },
+    {
+      "description": "Set the WebSocket endpoint URL (params: url)",
+      "name": "io.network.setWebSocketUrl"
+    },
+    {
+      "description": "Append one tag (params: id, name, t; optional path, unit, n)",
+      "name": "io.opcua.addTag"
+    },
+    {
+      "description": "Fetch one level of the address space (params: nodeId; empty = Objects)",
+      "name": "io.opcua.browse"
+    },
+    {
+      "description": "Remove every tag",
+      "name": "io.opcua.clearTags"
+    },
+    {
+      "description": "Request the server's endpoints; poll io.opcua.listEndpoints for the result",
+      "name": "io.opcua.discoverEndpoints"
+    },
+    {
+      "description": "Write the client certificate to a file (params: path); the key is never exported",
+      "name": "io.opcua.exportCertificate"
+    },
+    {
+      "description": "Generate a project from the tag list and load it into the editor",
+      "name": "io.opcua.generateProject"
+    },
+    {
+      "description": "Get this installation's OPC UA client certificate",
+      "name": "io.opcua.getCertificate"
+    },
+    {
+      "description": "Get current OPC UA configuration",
+      "name": "io.opcua.getConfig"
+    },
+    {
+      "description": "Get session status and pulled diagnostics counters",
+      "name": "io.opcua.getStatus"
+    },
+    {
+      "description": "Get discovered endpoints with their policy, mode and selectability",
+      "name": "io.opcua.listEndpoints"
+    },
+    {
+      "description": "Get the configured tag list and wire schema",
+      "name": "io.opcua.listTags"
+    },
+    {
+      "description": "List the accepted server certificates",
+      "name": "io.opcua.listTrusted"
+    },
+    {
+      "description": "Replace the client certificate and key; every server must trust it again",
+      "name": "io.opcua.regenerateCertificate"
+    },
+    {
+      "description": "Remove a tag by position (params: index)",
+      "name": "io.opcua.removeTag"
+    },
+    {
+      "description": "Withdraw a previously accepted server certificate (params: fingerprint)",
+      "name": "io.opcua.revokeTrust"
+    },
+    {
+      "description": "Set authentication (params: mode - 0=anonymous, 1=username/password, 2=certificate)",
+      "name": "io.opcua.setAuthMode"
+    },
+    {
+      "description": "Select a discovered endpoint by row (params: index; -1 = typed URL)",
+      "name": "io.opcua.setEndpointIndex"
+    },
+    {
+      "description": "Set the OPC UA endpoint URL (params: url, e.g. opc.tcp://host:4840/path)",
+      "name": "io.opcua.setEndpointUrl"
+    },
+    {
+      "description": "Alias of io.opcua.setAuthMode (params: type)",
+      "name": "io.opcua.setIdentityType"
+    },
+    {
+      "description": "Set the password (params: password; stored in the encrypted vault)",
+      "name": "io.opcua.setPassword"
+    },
+    {
+      "description": "Set the publishing interval in milliseconds (params: intervalMs)",
+      "name": "io.opcua.setPublishingInterval"
+    },
+    {
+      "description": "Set the message security mode (params: mode - 1=None, 2=Sign, 3=SignAndEncrypt)",
+      "name": "io.opcua.setSecurityMode"
+    },
+    {
+      "description": "Set the security policy (params: policy - full URI or short name)",
+      "name": "io.opcua.setSecurityPolicy"
+    },
+    {
+      "description": "Replace the tag list (params: tags - array of {id, name, path, unit, t, n})",
+      "name": "io.opcua.setTags"
+    },
+    {
+      "description": "Set the X.509 identity files (params: certificate, key - paths on disk)",
+      "name": "io.opcua.setUserCertificate"
+    },
+    {
+      "description": "Set the username (params: username)",
+      "name": "io.opcua.setUsername"
+    },
+    {
+      "description": "Open a browse session; poll io.opcua.browse once browsing is true",
+      "name": "io.opcua.startBrowse"
+    },
+    {
+      "description": "Close the browse session and commit the picker selection to the tag list",
+      "name": "io.opcua.stopBrowse"
+    },
+    {
+      "description": "Accept the server certificate the last attempt was refused over (params: fingerprint)",
+      "name": "io.opcua.trustServer"
+    },
+    {
+      "description": "Get complete Process driver configuration",
+      "name": "io.process.getConfig"
+    },
+    {
+      "description": "Refresh and return the list of running processes",
+      "name": "io.process.listRunning"
+    },
+    {
+      "description": "Set command-line arguments for Launch mode (params: arguments)",
+      "name": "io.process.setArguments"
+    },
+    {
+      "description": "Set executable path for Launch mode (params: executable)",
+      "name": "io.process.setExecutable"
+    },
+    {
+      "description": "Set driver mode (params: mode - 0=Launch, 1=NamedPipe)",
+      "name": "io.process.setMode"
+    },
+    {
+      "description": "Set named pipe / FIFO path for NamedPipe mode (params: pipePath)",
+      "name": "io.process.setPipePath"
+    },
+    {
+      "description": "Set working directory for Launch mode (params: workingDir)",
+      "name": "io.process.setWorkingDir"
+    },
+    {
+      "description": "Add an S7 variable (params: name, address)",
+      "name": "io.s7.addVariable"
+    },
+    {
+      "description": "Remove every configured S7 variable",
+      "name": "io.s7.clearVariables"
+    },
+    {
+      "description": "Build a project from the configured S7 variables",
+      "name": "io.s7.generateProject"
+    },
+    {
+      "description": "Get the S7comm driver configuration",
+      "name": "io.s7.getConfig"
+    },
+    {
+      "description": "Get the S7comm session status and counters",
+      "name": "io.s7.getStatus"
+    },
+    {
+      "description": "Remove an S7 variable by index (params: index)",
+      "name": "io.s7.removeVariable"
+    },
+    {
+      "description": "Set an S7comm driver property (params: key, value)",
+      "name": "io.s7.setProperty"
+    },
+    {
+      "description": "Switch the active bus. CRITICAL: this discards the previous bus's runtime config (port, baud rate, host, etc. are NOT carried over). After switching, configure the new bus with its setters before calling io.connect. The project's source list is independent -- this only affects what's currently live.",
+      "name": "io.setBusType"
+    },
+    {
+      "description": "Pause or resume frame processing without disconnecting. The device keeps streaming bytes; we drop them on the floor. Use this when the user wants to inspect the current dashboard state without it scrolling, or when running an export and the user doesn't want new frames mid-export.",
+      "name": "io.setPaused"
+    },
+    {
+      "description": "Get current UART configuration",
+      "name": "io.uart.getConfig"
+    },
+    {
+      "description": "Get list of common baud rates",
+      "name": "io.uart.listBaudRates"
+    },
+    {
+      "description": "Get list of available serial ports",
+      "name": "io.uart.listPorts"
+    },
+    {
+      "description": "Set auto-reconnect behavior (params: autoReconnect)",
+      "name": "io.uart.setAutoReconnect"
+    },
+    {
+      "description": "Set baud rate (params: baudRate)",
+      "name": "io.uart.setBaudRate"
+    },
+    {
+      "description": "Set data bits (params: dataBitsIndex - 0=5, 1=6, 2=7, 3=8)",
+      "name": "io.uart.setDataBits"
+    },
+    {
+      "description": "Set serial port by device name (params: device)",
+      "name": "io.uart.setDevice"
+    },
+    {
+      "description": "Enable/disable DTR signal (params: dtrEnabled)",
+      "name": "io.uart.setDtrEnabled"
+    },
+    {
+      "description": "Set flow control (params: flowControlIndex - 0=None, 1=Hardware, 2=Software)",
+      "name": "io.uart.setFlowControl"
+    },
+    {
+      "description": "Set parity (params: parityIndex - 0=None, 1=Even, 2=Odd, 3=Space, 4=Mark)",
+      "name": "io.uart.setParity"
+    },
+    {
+      "description": "Set serial port by index (params: portIndex)",
+      "name": "io.uart.setPortIndex"
+    },
+    {
+      "description": "Set stop bits (params: stopBitsIndex - 0=1, 1=1.5, 2=2)",
+      "name": "io.uart.setStopBits"
+    },
+    {
+      "description": "Get complete USB driver configuration",
+      "name": "io.usb.getConfig"
+    },
+    {
+      "description": "List available USB devices",
+      "name": "io.usb.listDevices"
+    },
+    {
+      "description": "Select USB device by index (params: deviceIndex)",
+      "name": "io.usb.setDeviceIndex"
+    },
+    {
+      "description": "Select IN endpoint after connection (params: endpointIndex)",
+      "name": "io.usb.setInEndpointIndex"
+    },
+    {
+      "description": "Set ISO transfer packet size in bytes (params: size)",
+      "name": "io.usb.setIsoPacketSize"
+    },
+    {
+      "description": "Select OUT endpoint after connection (params: endpointIndex)",
+      "name": "io.usb.setOutEndpointIndex"
+    },
+    {
+      "description": "Set transfer mode (params: mode - 0=Bulk, 1=Advanced, 2=Isochronous)",
+      "name": "io.usb.setTransferMode"
+    },
+    {
+      "description": "Transmit raw bytes to the device (params: data - base64 encoded). Hardware-write: remote clients must clear the one-time device-write consent prompt (the user's answer is persisted); in-process scripts are not prompted. Failure modes: not connected (connection_lost), bus busy (bus_busy). Prefer console.send for text protocols.",
+      "name": "io.writeData"
+    },
+    {
+      "description": "Activate the stored license key against the server",
+      "name": "licensing.activate"
+    },
+    {
+      "description": "Activate Pro from an offline license certificate (params: path)",
+      "name": "licensing.activateOffline"
+    },
+    {
+      "description": "Deactivate the license on this machine, freeing a seat",
+      "name": "licensing.deactivate"
+    },
+    {
+      "description": "Start the trial period for this machine",
+      "name": "licensing.enableTrial"
+    },
+    {
+      "description": "Run all build-time license guards and report results",
+      "name": "licensing.getGuardStatus"
+    },
+    {
+      "description": "Get current license activation status",
+      "name": "licensing.getStatus"
+    },
+    {
+      "description": "Get current trial status",
+      "name": "licensing.getTrialStatus"
+    },
+    {
+      "description": "Set the license key (params: licenseKey)",
+      "name": "licensing.setLicense"
+    },
+    {
+      "description": "Re-validate the current license with the server",
+      "name": "licensing.validate"
+    },
+    {
+      "description": "Close the current MDF4 file",
+      "name": "mdf4Export.close"
+    },
+    {
+      "description": "Get MDF4 export status",
+      "name": "mdf4Export.getStatus"
+    },
+    {
+      "description": "Enable or disable MDF4 export",
+      "name": "mdf4Export.setEnabled"
+    },
+    {
+      "description": "Close MDF4 file",
+      "name": "mdf4Player.close"
+    },
+    {
+      "description": "Get player status",
+      "name": "mdf4Player.getStatus"
+    },
+    {
+      "description": "Open MDF4 file (params: filePath)",
+      "name": "mdf4Player.open"
+    },
+    {
+      "description": "Pause or resume playback (params: paused: bool)",
+      "name": "mdf4Player.setPaused"
+    },
+    {
+      "description": "Seek to position (params: progress: 0.0-1.0)",
+      "name": "mdf4Player.setProgress"
+    },
+    {
+      "description": "Step delta frames forward (or backward if negative; default 1)",
+      "name": "mdf4Player.step"
+    },
+    {
+      "description": "Report whether this instance can be watched by a remote dashboard, and with what: mirror wire version, application version, current structure epoch and layout hash, dataset and source counts, the viewer limit, and the names of the connection-scoped commands (mirror.subscribe / setRate / unsubscribe) that a viewer sends on its own socket.",
+      "name": "mirror.getInfo"
+    },
+    {
+      "description": "Return the mirror structure for the current epoch: the ordered (sourceId, uniqueId) dataset list every snapshot is positional against, the layout hash over it, the remote's operation mode, plot window and frozen flag, and the serialized project. Large projects are delivered as base64 parts; read structureParts from mirror.getInfo and pass part.",
+      "name": "mirror.getStructure"
+    },
+    {
+      "description": "Erase the entire notification history",
+      "name": "notifications.clearAll"
+    },
+    {
+      "description": "Erase every event posted to the given channel",
+      "name": "notifications.clearChannel"
+    },
+    {
+      "description": "Return the number of unread Warning/Critical events",
+      "name": "notifications.getUnreadCount"
+    },
+    {
+      "description": "List historical events, newest first (params: channel?, limit?)",
+      "name": "notifications.list"
+    },
+    {
+      "description": "List channel IDs currently present in history",
+      "name": "notifications.listChannels"
+    },
+    {
+      "description": "Clear the unread badge counter",
+      "name": "notifications.markRead"
+    },
+    {
+      "description": "Post a notification (params: level, channel, title, subtitle)",
+      "name": "notifications.post"
+    },
+    {
+      "description": "Emit a companion 'Resolved' Info event",
+      "name": "notifications.resolve"
+    },
+    {
+      "description": "List the diagnostics Serial Studio currently reports about the loaded project, the live link and the parser/transform scripts. THE first call when a dashboard is blank, a widget stays empty or values look wrong: each finding names the concrete cause, a remedy and the entity to fix. Optional params: severity (info/warning/error), checkerId, limit.",
+      "name": "problems.list"
+    },
+    {
+      "description": "List the registered diagnostic checkers and the triggers each one answers to (projectChanged, linkSample, onDemand), so you can see what problems.run covers and filter problems.list by checkerId.",
+      "name": "problems.listCheckers"
+    },
+    {
+      "description": "Re-run every registered diagnostic checker and return the refreshed list in the same shape as problems.list. Read-only: checkers inspect the project, the link counters and the script engines, and never modify them. Use it after an edit to confirm a finding actually cleared.",
+      "name": "problems.run"
+    },
+    {
+      "description": "Create a new outgoing-action button shown on the toolbar. Actions transmit a configurable payload (text or binary, with optional EOL sequence) to the device on click, or repeat on a timer. After creation, populate it with project.action.update {actionId, title, txData, eolSequence, timerMode (0=Off, 1=AutoStart, 2=ToggleOnTrigger), timerIntervalMs, repeatCount, icon}. Common uses: 'send AT command', 'request telemetry', 'reset device'.",
+      "name": "project.action.add"
+    },
+    {
+      "description": "Delete an action by id (params: actionId)",
+      "name": "project.action.delete"
+    },
+    {
+      "description": "Duplicate an action by id (params: actionId)",
+      "name": "project.action.duplicate"
+    },
+    {
+      "description": "List all actions",
+      "name": "project.action.list"
+    },
+    {
+      "description": "Patch action fields by id (params: actionId, plus any of title, icon, txData, eolSequence, timerMode, timerIntervalMs, repeatCount, sourceId, txEncoding, binaryData, autoExecuteOnConnect). Unknown fields are accepted but ignored, and surfaced in result.warnings[].fields with code 'unknown_field'.",
+      "name": "project.action.update"
+    },
+    {
+      "description": "Load current project into FrameBuilder",
+      "name": "project.activate"
+    },
+    {
+      "description": "Run several project mutations atomically WITH RESPECT TO AUTOSAVE -- all ops execute sequentially under one suspended-autosave window, and a single save is flushed at the end. Use this whenever you would otherwise issue more than ~5 sequential mutations (renames, retypes, reindexes), since N round-trips cost N times the latency and N times the autosave/tree-rebuild churn.\nEach op is {command: '<registered command name>', params: {...}}; results are returned in the same order with per-op success/error fields. Set stopOnError:true to abort the batch on the first failure (default false: best-effort, all ops attempted).\nPass dryRun:true at the top level to preview every op without committing. Each op's per-result still carries the affected-entity payload as if it had run. Rejected when any op is not in the dryRun-aware command set -- mixing previewable and non-previewable ops would leave a partial mutation, which is worse than no preview at all.\nNote: NOT transactional. Already-applied ops are NOT rolled back on later failures -- this is a save-suspend wrapper, not a database transaction. Nested project.batch calls are rejected. Hard cap of 1024 ops per call.\nExample: rename 40 datasets in one round-trip:\n  ops: [\n    {command:'project.dataset.update', params:{groupId:0, datasetId:0, title:'LED 1', index:1}},\n    {command:'project.dataset.update', params:{groupId:0, datasetId:1, title:'LED 2', index:2}},\n    ...\n  ]",
+      "name": "project.batch"
+    },
+    {
+      "description": "Get the visible plot time window (alias of dashboard.getTimeRange).",
+      "name": "project.dashboard.getTimeRange"
+    },
+    {
+      "description": "Get every display-title override (entity-level rows carry only uniqueId; widget-level rows also carry widgetType), each annotated with the canonical title it shadows (canonical:null when the target no longer exists).",
+      "name": "project.dashboard.getWidgetTitles"
+    },
+    {
+      "description": "Set the visible plot time window (alias of dashboard.setTimeRange; the value is per-project and survives project reload).",
+      "name": "project.dashboard.setTimeRange"
+    },
+    {
+      "description": "Set the freeze-mode title presentation for one widget (widgetType + uniqueId): bar shows the panel header, painted shows the title on the instrument face (Bar/Gauge/Meter only, their default), hidden shows no title while the dashboard is frozen. Every other widget type defaults to bar; writing a widget's default clears its stored entry.",
+      "name": "project.dashboard.setWidgetFreezeTitle"
+    },
+    {
+      "description": "Set a display-title override for the dataset/group with the given uniqueId. Without widgetType the override is entity-level (every widget of that dataset/group); with widgetType it targets only that widget kind (e.g. only the FFT of a dataset) and wins over the entity-level entry. Display-only: widget captions, freeze headers, painted instrument titles and taskbar entries show it, while exports, dashboard.getData and project.* responses keep the canonical title. Empty/absent title clears the override.",
+      "name": "project.dashboard.setWidgetTitle"
+    },
+    {
+      "description": "Create a new empty table (params: name=\"Shared Table\")",
+      "name": "project.dataTable.add"
+    },
+    {
+      "description": "Append a variable (params: table, name, computed=true, defaultValue=0)",
+      "name": "project.dataTable.addRegister"
+    },
+    {
+      "description": "Delete a table and all its variables (params: name). Pass dryRun:true to return the variable list that WOULD be deleted without committing.",
+      "name": "project.dataTable.delete"
+    },
+    {
+      "description": "Delete a variable (params: table, name). Pass dryRun:true to return what WOULD be deleted without committing.",
+      "name": "project.dataTable.deleteRegister"
+    },
+    {
+      "description": "Return the variable list for a table (params: name). name may be the bare table name or its full \"/\"-joined folder path.",
+      "name": "project.dataTable.get"
+    },
+    {
+      "description": "Return a variable's LIVE runtime value from the data-table store (params: table, name). This is the same store the parser/transform tableGet() reads; control scripts use it through the tableGet() global.",
+      "name": "project.dataTable.getValue"
+    },
+    {
+      "description": "Return a variable's LIVE runtime value by handle (params: handle). A stale or invalid handle yields found=false. Mirrors tableGetH().",
+      "name": "project.dataTable.getValueH"
+    },
+    {
+      "description": "Resolve a variable to a reusable numeric handle for the fast get/set path (params: table, name). Returns handle=-1 for an unknown variable. Mirrors the parser/transform tableHandle() global.",
+      "name": "project.dataTable.handle"
+    },
+    {
+      "description": "List all user-defined data tables. Each entry has name (bare), path (full \"/\"-joined folder path), and registerCount. Pass path to get/getValue/handle for a table that lives inside folders.",
+      "name": "project.dataTable.list"
+    },
+    {
+      "description": "Rename a table (params: oldName, newName)",
+      "name": "project.dataTable.rename"
+    },
+    {
+      "description": "Write a variable's LIVE runtime value into the data-table store (params: table, name, value). Same effect as a parser/transform tableSet(); control scripts use it through the tableSet() global. Constant variables reject writes.",
+      "name": "project.dataTable.setValue"
+    },
+    {
+      "description": "Write a variable's LIVE runtime value by handle (params: handle, value). A stale, invalid, or constant-variable handle yields written=false. Mirrors tableSetH().",
+      "name": "project.dataTable.setValueH"
+    },
+    {
+      "description": "Update a variable (params: table, name, newName?, computed?, defaultValue?)",
+      "name": "project.dataTable.updateRegister"
+    },
+    {
+      "description": "Add a dataset to a group. A dataset is one channel of incoming data: it gets one column in CSV/MDF4 export, one entry in the frame parser's output array (its `index` field), and zero or more dashboard widgets driven by the `options` bitflags.\nPass `options` as the bitwise OR of the visualizations you want:\n  1 = Plot (time-series line)\n  2 = FFT (frequency-domain plot)\n  4 = Bar\n  8 = Gauge (radial dial; needs widgetMin/widgetMax)\n  16 = Compass (heading 0-360)\n  32 = LED (binary indicator with ledHigh threshold)\n  64 = Waterfall (Pro; spectrogram, FFT-driven)\n  0 = no widget (raw column for export only)\nCombine: 1|8 = 9 = plot AND gauge. After creation, set title, units, ranges, and transformCode via project.dataset.update.",
+      "name": "project.dataset.add"
+    },
+    {
+      "description": "Bulk-create N datasets in one call -- the right tool whenever you would otherwise loop project.dataset.add. Avoids per-call overhead and the autosave-debounce churn that comes with rapid mutation bursts. After creation, individual datasets can still be patched with project.dataset.update or another project.batch round-trip.\n  count          -- how many datasets to create (1..1024).\n  options        -- visualization bitfield (same as project.dataset.add).\n  titlePattern   -- optional, e.g. 'LED {n}'. {n} is replaced with the running counter (startNumber + i), {i} with the zero-based index. Omit to keep the auto-generated title from project.dataset.add.\n  startNumber    -- optional, default 1; first {n} value.\n  startIndex     -- optional, default -1 (auto-assign next free parser slot). Pass 0 to leave index unset, or 1+ to assign consecutive parser slots starting from there.\nReturns {count, created: [{datasetId, title, index, uniqueId}...]}.",
+      "name": "project.dataset.addMany"
+    },
+    {
+      "description": "Delete a dataset by id. Pass dryRun:true to preview the renumbering without committing -- the response carries the same {deleted, renumbered, warnings} shape as a real call, plus a top-level dryRun:true flag. Always preview before committing when destructive intent is even slightly uncertain.",
+      "name": "project.dataset.delete"
+    },
+    {
+      "description": "Duplicate a dataset by id (params: groupId, datasetId)",
+      "name": "project.dataset.duplicate"
+    },
+    {
+      "description": "Returns the dataset's coloured alarm bands as a JSON array. Each entry: {min, max, severity (0=Info, 1=OK, 2=Warning, 3=Critical), color (\"#rrggbb\" override or empty for severity default), label, blink}. Also returns rangeMin/rangeMax (the dataset's wgtMin/wgtMax) so callers can validate band ranges before writing back. An empty array means no alarms configured. Applies to bar / gauge / meter widgets and LED-panel datasets; calling on other widget types succeeds with an empty array.",
+      "name": "project.dataset.getAlarmBands"
+    },
+    {
+      "description": "Resolve a dataset by title path. Preferred for human-readable addressing -- survives uniqueId reordering.",
+      "name": "project.dataset.getByPath"
+    },
+    {
+      "description": "Resolve a dataset by exact title. Pass sourceId / groupId to disambiguate when titles repeat across groups.",
+      "name": "project.dataset.getByTitle"
+    },
+    {
+      "description": "Resolve a dataset by its uniqueId (number) or alias (string). Returns the same shape as the elements of project.dataset.list.",
+      "name": "project.dataset.getByUniqueId"
+    },
+    {
+      "description": "Returns the order datasets execute in during transform processing. Useful for debugging cross-dataset transforms (a transform reads final values only for datasets earlier in this list). Large projects: pass offset/limit to page (each row carries its absolute `position`; reply carries window/nextOffset/projectEpoch).",
+      "name": "project.dataset.getExecutionOrder"
+    },
+    {
+      "description": "Returns the dataset's FFT frequency markers as a JSON array. Each entry: {freq (Hz), endFreq (optional; present only for band markers), label, color (\"#rrggbb\" override or empty for the theme accent), warningDb, alarmDb (optional display-dB thresholds; omitted when unset)}. Also returns nyquist (fftSamplingRate / 2) so callers can validate frequencies before writing back. An empty array means no markers configured.",
+      "name": "project.dataset.getFFTMarkers"
+    },
+    {
+      "description": "List all datasets across all groups. Large projects: pass offset/limit to page the flattened dataset array (reply carries window/nextOffset/projectEpoch); datasetCount always reflects the whole project. Prefer project.search to find datasets by partial name.",
+      "name": "project.dataset.list"
+    },
+    {
+      "description": "Reorder a dataset within its group. Changes datasetId (and therefore uniqueId) for the moved dataset and any it crossed; workspace refs re-anchor automatically. Scripts that pinned a uniqueId must be updated -- prefer dataset.getByPath in scripts. Pass dryRun:true to preview the renumbering without committing.",
+      "name": "project.dataset.move"
+    },
+    {
+      "description": "Atomically replaces the dataset's alarmBands array. Each band entry must provide numeric min and max (max>min; bands with max<=min are silently dropped and counted in result.droppedInvalid), and an integer severity (0=Info, 1=OK, 2=Warning, 3=Critical). color is optional (\"#rrggbb\" override; empty/missing = severity's theme colour). label is optional (surfaces in band-edge notifications). blink is optional (boolean; LED panels flash the LED while the band is active). Bands may have gaps and may overlap; rendering paints them in array order behind the value indicator. Severity >= Warning triggers a notification when the value enters the band, even when no widget is visible (3-second per-dataset cooldown suppresses oscillation spam).\nPass an empty array to clear all alarms.",
+      "name": "project.dataset.setAlarmBands"
+    },
+    {
+      "description": "Atomically replaces the dataset's fftMarkers array (FFT plot + waterfall frequency markers). Each entry must provide a finite freq > 0 in Hz; invalid entries are silently dropped and counted in result.droppedInvalid. endFreq is optional (> freq turns the marker into a band; otherwise it is a point marker). label and color (\"#rrggbb\") are optional. warningDb and alarmDb are optional display-dB thresholds evaluated against the rendered spectrum; when both are present and reversed they are swapped. Pass an empty array to clear all markers.",
+      "name": "project.dataset.setFFTMarkers"
+    },
+    {
+      "description": "DEPRECATED -- prefer project.dataset.setOptions, which takes the full bitfield in one call and removes the singular/plural ambiguity. Kept for backward compatibility with existing scripts. Toggles one DatasetOption flag on a dataset and updates the group's compatibleWidgetTypes immediately. option values (DatasetOption bitflag): 1=Plot, 2=FFT, 4=Bar, 8=Gauge, 16=Compass, 32=LED, 64=Waterfall (Pro). Bar/Gauge/Compass are mutually exclusive. NOTE: this is a DatasetOption bitflag, NOT a DashboardWidget enum -- the numbers do not line up with project.workspace.addWidget's widgetType.",
+      "name": "project.dataset.setOption"
+    },
+    {
+      "description": "Apply several DatasetOption flags at once (plural form of project.dataset.setOption). Pass `options` as the bitwise OR of the flags you want enabled; any flag NOT set in the value is disabled. Bits: 1=Plot, 2=FFT, 4=Bar, 8=Gauge, 16=Compass, 32=LED, 64=Waterfall (Pro). Bar/Gauge/Compass are mutually exclusive -- if more than one is set, the highest bit wins. Updates the group's compatibleWidgetTypes immediately. NOTE: these are DatasetOption bitflags, NOT DashboardWidget enum values -- the numbers do not line up with project.workspace.addWidget's widgetType.",
+      "name": "project.dataset.setOptions"
+    },
+    {
+      "description": "Set dataset transformCode. Empty clears. Pass `language` whenever you author code so the dataset's transformLanguage matches the syntax you wrote -- mismatches compile-fail silently. Lua (1) is the recommended default; it's measurably faster than JavaScript on hot transforms. If this dataset is compute-only (no slot in the parser output array), also set virtual=true via project.dataset.setVirtual or project.dataset.update. Validate with project.dataset.transform.dryRun before setting. **Call meta.fetchScriptingDocs{kind: 'transform_lua' | 'transform_js'} first** for the transform(value) signature, table API (tableGet/tableSet/datasetGetRaw/datasetGetFinal), and execution-order rules -- a transform may read RAW values from any dataset but only FINAL values of datasets earlier in project.dataset.getExecutionOrder.",
+      "name": "project.dataset.setTransformCode"
+    },
+    {
+      "description": "Toggle the virtual flag on a dataset (params: groupId, datasetId, virtual)",
+      "name": "project.dataset.setVirtual"
+    },
+    {
+      "description": "Compile and execute a value-transform script against one or more sample inputs WITHOUT touching the live project. Returns the per-input transform output or compile errors. Params: code (string), language (0=JS, 1=Lua), values (array of numbers or strings).",
+      "name": "project.dataset.transform.dryRun"
+    },
+    {
+      "description": "Patch dataset fields by id: params are groupId, datasetId, plus any of the writable fields declared in this command's schema -- read the typed 'properties' block for each field's type, description and enum domain instead of guessing from prose.\nFields whose project-file spelling differs from the API name (plotMin, plotMax, widgetMin, widgetMax, xAxis, datasetSourceId) are accepted as aliases, so an object read back from the API can be written straight through without loss.\nNested collections: alarmBands takes an array of {min,max,severity,color,label,blink} objects (severity=0..3 for Info/Ok/Warning/Critical), and legacy alarmLow/alarmHigh/alarmEnabled still drive the 2-band simple mode; fftMarkers takes an array of {freq,endFreq,label,color,warningDb,alarmDb} objects (see project.dataset.setFFTMarkers for field semantics).\nThe boolean fields graph/fft/led/waterfall toggle the same flags as project.dataset.setOption -- use them here when patching multiple fields at once. Multiplot groups follow the group's FIRST dataset for plotLogX/plotLogY, so set those flags on every member to keep the group coherent.\nUnknown fields are accepted but ignored, and surfaced in result.warnings[].fields with code 'unknown_field' so the caller can self-correct on the next turn instead of silently mis-applying a typo.\nREMINDERS for compute-only datasets:\n  - Set virtual=true when the dataset's value comes from transformCode rather than from a slot in the parser output. Without virtual=true the dataset still tries to read channels[index-1] and ends up empty.\n  - `index` is the 1-based parser-output slot (0 = unassigned). Patchable via this call; bulk-renumbering 40 datasets is best done through project.batch to avoid round-trip overhead.\n  - Set transformLanguage explicitly (0=JavaScript, 1=Lua, -1=inherit from source). Mismatched language vs code = silent compile failure. Lua is the recommended default; it's faster on the hotpath.",
+      "name": "project.dataset.update"
+    },
+    {
+      "description": "End-to-end dry run: takes a sample frame body, runs the project's frame parser, then applies every dataset's transform in execution order, and returns the final per-dataset values WITHOUT touching live state. Required: sampleFrame (single body) OR sampleFrames (array of bodies); everything else defaults to the live project. Use this to verify the full parse->transform pipeline before issuing setCode/setTransformCode. Note: the table API (tableGet/tableSet/datasetGetRaw/datasetGetFinal) is NOT injected; transforms that depend on it should be tested with project.dataset.transform.dryRun individually.",
+      "name": "project.dryRun.endToEnd"
+    },
+    {
+      "description": "Export project as JSON",
+      "name": "project.exportJson"
+    },
+    {
+      "description": "Compile-only check for a frame parser. Catches syntax errors and the 'wrong-language' silent failure (e.g. Lua code passed with language=0). Returns {ok, error?, warning?} without executing the parser. Cheap; use before frameParser.setCode when authoring.",
+      "name": "project.frameParser.dryCompile"
+    },
+    {
+      "description": "Compile and execute frame parser code against raw stream bytes WITHOUT touching the live project. Drives the full pipeline: extraction (delimiters / detection) -> decoder switch -> parse(). Identical code path to the live FrameBuilder and the frame parser test dialog. Required: code, language, inputBytesHex (preferred; binary-safe) or inputBytes (UTF-8 text). Recommended: decoderMethod + frameDetection + frameStart / frameEnd + checksumAlgorithm, otherwise sensible defaults apply (PlainText, EndDelimiterOnly, no delimiters, no checksum). Returns per-frame raw / decoder / rows plus extractedCount / consumedBytes / remainingBytes / droppedFrames. For binary protocols (COBS, Modbus, custom binary) pick decoderMethod=3 (Binary); the text decoders run through QString::fromUtf8 and corrupt non-ASCII bytes.",
+      "name": "project.frameParser.dryRun"
+    },
+    {
+      "description": "Read the current frame parser source for a given data source. Returns {code, language}; Built-In sources also return {template, params} and `code` carries the JSON descriptor. Always read BEFORE rewriting -- preserve the user's existing structure where reasonable.",
+      "name": "project.frameParser.getCode"
+    },
+    {
+      "description": "Get frame parser configuration",
+      "name": "project.frameParser.getConfig"
+    },
+    {
+      "description": "Get the script language used by the frame parser for a given source",
+      "name": "project.frameParser.getLanguage"
+    },
+    {
+      "description": "Get the Built-In frame parser configuration for a source. Returns {sourceId, language, template, params}; template is empty when the source never used the Built-In language.",
+      "name": "project.frameParser.getTemplate"
+    },
+    {
+      "description": "Get the parameter schema of a Built-In frame parser template. Returns {id, name, description, params: [{key, type, label, description, default, options?, min?, max?}]}. Param types: string, char, int, float, bool, enum (enum values come from options[].value).",
+      "name": "project.frameParser.getTemplateSchema"
+    },
+    {
+      "description": "List the Built-In (C++) frame parser templates. Returns {templates: [{id, name, description}], count}. Built-In templates parse without user code and are the fastest option; configure one with project.frameParser.setTemplate after inspecting its parameters via project.frameParser.getTemplateSchema.",
+      "name": "project.frameParser.listTemplates"
+    },
+    {
+      "description": "Set frame parser code (params: code, optional sourceId, optional language). Always pass `language` when authoring code to lock in the runtime engine -- mismatch = silent compile failure. Lua (1) is the recommended default; it's faster than JavaScript on the hotpath at typical telemetry rates. Use JavaScript only when you need a JS-specific library or feature. Validate with project.frameParser.dryRun (or dryCompile for a syntax-only check) before setCode. **Call meta.fetchScriptingDocs{kind: 'frame_parser_lua' | 'frame_parser_js'} first** for the parse() signature, return-shape rules, and the tableGet/tableSet API. For Built-In (2), prefer project.frameParser.setTemplate; passing the JSON descriptor as `code` also works.",
+      "name": "project.frameParser.setCode"
+    },
+    {
+      "description": "Switch a source between JavaScript, Lua and Built-In frame parsers. WARNING: for JS/Lua this WIPES any existing frameParser code for that source -- the loaded default template for the new language replaces it. If you want to preserve+translate, frameParser.getCode first, switch, then frameParser.setCode with the translated source. Switching to Built-In (2) seeds the default 'delimited' template and leaves JS/Lua code intact for round-trips.",
+      "name": "project.frameParser.setLanguage"
+    },
+    {
+      "description": "Select a Built-In frame parser template for a source and switch the source to the Built-In language. Params are validated against the template schema; omitted params use the schema defaults. Use project.frameParser.dryRun (language 2, descriptor as code) to preview the output before or after applying.",
+      "name": "project.frameParser.setTemplate"
+    },
+    {
+      "description": "Configure frame extraction settings on a source (params: startSequence, endSequence, checksumAlgorithm, frameDetection, decoderMethod, hexadecimalDelimiters, operationMode). This is the persist path for delimiters -- parser code alone (setCode) never changes them.",
+      "name": "project.frameParser.update"
+    },
+    {
+      "description": "Returns top-level project state: title, file path, modified flag, operation mode (ProjectFile/ConsoleOnly/QuickPlot), counts of groups/datasets/sources/actions/workspaces. Useful as a sanity check before destructive operations.",
+      "name": "project.getStatus"
+    },
+    {
+      "description": "Create a new visualization group. Pick widgetType by data shape:\n  - 5 (NoGroupWidget): just hold related datasets together; per-dataset widgets render individually. Default for arbitrary scalar data.\n  - 4 (MultiPlot): N values plotted on a shared time axis. The right choice for correlated signals (sensor-array, multi-channel ADC).\n  - 0 (DataGrid): tabular numeric readout. Good for long lists of scalars where graphing isn't useful.\n  - 1/2/3 (Accelerometer / Gyroscope / GPS): typed 3-axis IMU or GPS group. Datasets must follow conventional widget tags (\"x\", \"y\", \"z\" for IMUs; \"lat\", \"lon\", \"alt\" for GPS).\n  - 6 (Plot3D, Pro): 3D point trail from three datasets.\n  - 7 (ImageView, Pro): displays an embedded JPEG/PNG stream.\n  - 8 (Painter, Pro): user-scripted JS canvas. Group can be EMPTY (no datasets) and read peer datasets via datasetGetFinal(uniqueId). See meta.howTo('add_painter').\nDon't pick 0 / DataGrid as a default -- it makes a forgettable table. Match the user's data.",
+      "name": "project.group.add"
+    },
+    {
+      "description": "Delete a group by id. Pass dryRun:true to preview what would change without committing -- the response contains the same {deleted, renumbered, warnings} fields as a real call, plus a top-level dryRun:true flag. Always preview before committing when the user doesn't have a backup workflow.",
+      "name": "project.group.delete"
+    },
+    {
+      "description": "Duplicate a group by id (params: groupId)",
+      "name": "project.group.duplicate"
+    },
+    {
+      "description": "Read one group plus a compact dataset summary (datasetId, uniqueId, index, title, units) without pulling the whole project. Address it by EITHER the positional groupId (what group.update / dataset CRUD take) OR the stable uniqueId (what workspace widget refs carry under the key 'groupId'); the response returns both ids. The summary pages via offset/limit (default 50, max 200).",
+      "name": "project.group.get"
+    },
+    {
+      "description": "List all groups with dataset counts. Large projects: pass offset/limit to page (reply carries window/nextOffset/projectEpoch); groupCount always reflects the whole project. Prefer project.search to find a group by name and project.group.get to inspect one group.",
+      "name": "project.group.list"
+    },
+    {
+      "description": "Reorder a group within the project. Changes groupId for the moved group and any it crossed (which propagates to dataset uniqueIds). Workspace refs re-anchor automatically; scripts pinning a uniqueId must be updated. Pass dryRun:true to preview the renumbering.",
+      "name": "project.group.move"
+    },
+    {
+      "description": "Patch group fields by id (params: groupId, plus any of title, widget, columns, sourceId, painterCode). Unknown fields are accepted but ignored, and surfaced in result.warnings[].fields with code 'unknown_field'.",
+      "name": "project.group.update"
+    },
+    {
+      "description": "Replace the current project with a JSON object IN MEMORY (no file association). Use when you have a project shape ready to install -- e.g. building a project from scratch in one shot, or implementing a custom template. The JSON shape must match the .ssproj schema (top-level: title, frameStart, frameEnd, frameDetection, decoder, frameParser, groups, actions, ...). Prefer project.template.apply for canned starters. Pass dryRun:true to return wouldDiscard + wouldApply summaries without loading.",
+      "name": "project.loadJson"
+    },
+    {
+      "description": "Read the MQTT publisher configuration (broker, mode, TLS, etc.). The password is NEVER returned -- inspect 'hasCredentials' instead. Use 'modes', 'mqttVersions', 'sslProtocols', 'peerVerifyModes' as the canonical enum tables when interpreting the integer fields.",
+      "name": "project.mqtt.publisher.getConfig"
+    },
+    {
+      "description": "Snapshot publisher live state (connected, messagesSent, broker endpoint). Does NOT trigger a new connection attempt.",
+      "name": "project.mqtt.publisher.getStatus"
+    },
+    {
+      "description": "Patch one or more MQTT publisher fields. Pass only the keys you want to change. Setting 'password' requires 'username' in the same call -- the credential pair is persisted to the encrypted vault, NOT to the project file. To clear credentials, pass empty strings for both. Setting 'enabled:true' starts publishing.",
+      "name": "project.mqtt.publisher.setConfig"
+    },
+    {
+      "description": "Read the MQTT subscriber driver configuration (the UI driver -- this matches what would be used the next time io.connect runs with busType=mqtt). Password is never returned.",
+      "name": "project.mqtt.subscriber.getConfig"
+    },
+    {
+      "description": "Snapshot subscriber driver live state (isOpen, hostname, port) plus the 'sparkplug' block: discovered metric count and the pulled session counters (decodeErrors, capDrops, preBirthDropped, seqGaps, ...).",
+      "name": "project.mqtt.subscriber.getStatus"
+    },
+    {
+      "description": "Patch one or more MQTT subscriber driver fields. Pass only the keys you want to change. Setting 'password' requires 'username' in the same call. Mutating fields while connected schedules a reconnect.",
+      "name": "project.mqtt.subscriber.setConfig"
+    },
+    {
+      "description": "Reset to a blank project (one default UART source, no groups, no datasets, no actions, no workspaces). DESTRUCTIVE: discards the loaded project. Use only when the user explicitly says \"start over\" or \"new project\". For starting a TYPED project, prefer project.template.apply -- it gives the user a useful skeleton instead of an empty canvas. Pass dryRun:true to see what the current project (wouldDiscard) looks like before wiping it.",
+      "name": "project.new"
+    },
+    {
+      "description": "Open a .ssproj or .json project file. Replaces the current project. Auto-switches operationMode to ProjectFile if it was QuickPlot or ConsoleOnly. Path must be absolute. Pass dryRun:true to read the file and return wouldDiscard + wouldApply summaries without loading.",
+      "name": "project.open"
+    },
+    {
+      "description": "Add an output widget to a group (params: groupId, type)",
+      "name": "project.outputWidget.add"
+    },
+    {
+      "description": "Delete an output widget by id (params: groupId, widgetId)",
+      "name": "project.outputWidget.delete"
+    },
+    {
+      "description": "Compile an output-widget transmit function WITHOUT touching the live project. Verifies the script compiles and defines transmit(value); returns ok / compileError + line. The transmitFunction is **JavaScript only** and runs with the same injected Modbus/CAN helper globals + table API as the live widget. Pass inputValue (and hex:true for hex byte input) to also execute it once and return the produced bytes (outputHex + byteCount). Validate here BEFORE project.outputWidget.update.",
+      "name": "project.outputWidget.dryRun"
+    },
+    {
+      "description": "Duplicate an output widget by id (params: groupId, widgetId)",
+      "name": "project.outputWidget.duplicate"
+    },
+    {
+      "description": "Read the current configuration of an output widget (params: groupId, widgetId). Returns title, icon, type, min/max/step/initialValue, transmitFunction. Use BEFORE rewriting the transmitFunction so you preserve the user's current ranges and labels.",
+      "name": "project.outputWidget.get"
+    },
+    {
+      "description": "Patch output-widget fields by id (params: groupId, widgetId, plus any of title, icon, transmitFunction, sourceId, txEncoding, monoIcon, minValue, maxValue, stepSize, initialValue). The transmitFunction is **JavaScript only** -- runs in QJSEngine to convert UI state into device bytes. **Call meta.fetchScriptingDocs{kind:'output_widget_js'} before authoring** for the function signature (transmit(value) returning a Uint8Array / string), the per-widget value semantics, and the injected Modbus/CAN helper globals (modbusWriteRegister / modbusWriteCoil / modbusWriteFloat / canSendFrame / canSendValue). Validate first with project.outputWidget.dryRun.",
+      "name": "project.outputWidget.update"
+    },
+    {
+      "description": "Compile a painter program WITHOUT touching the live project. Verifies that paint(ctx, w, h) exists and that the script compiles cleanly; does NOT actually render to a canvas. Returns ok / lastError. Params: code (string).",
+      "name": "project.painter.dryRun"
+    },
+    {
+      "description": "Get the canvas widget JS for a group (params: groupId)",
+      "name": "project.painter.getCode"
+    },
+    {
+      "description": "Set the canvas widget code for a group (params: groupId, code). **JavaScript only** -- canvas scripts run in QJSEngine, not Lua. Available globals: ctx (2D canvas context, QPainter-like), w, h (canvas dimensions), datasetGetFinal(uid)/datasetGetRaw(uid). The entry point is paint(ctx, w, h) and an optional zero-arg onFrame() callback. Validate with project.painter.dryRun before setCode. **Always call meta.fetchScriptingDocs{kind:'painter_js'} first** for the full API surface and worked examples -- don't invent canvas methods from JS DOM Canvas, the surface is QPainter-shaped.",
+      "name": "project.painter.setCode"
+    },
+    {
+      "description": "Replay the most recently undone project-document step. Returns {performed:false, reason} when there is nothing to redo. Any new mutation after an undo discards the redo tail.",
+      "name": "project.redo"
+    },
+    {
+      "description": "Write the current project to disk. Note: the AI runtime auto-saves after every successful mutating tool call within ~1 second, so you do NOT need to call this explicitly when editing. Call it ONLY when the user explicitly says \"save\" or wants a different file path -- in which case pass {filePath: \"/abs/path\"} for headless save-as.",
+      "name": "project.save"
+    },
+    {
+      "description": "Case-insensitive substring search across every project entity type: datasets (title, alias, units), groups, actions, sources, workspaces, and data tables (title/name). Returns compact typed rows -- never full objects -- with matchCount, window/nextOffset paging (default limit 20, max 100), and projectEpoch. THE starting point for finding anything in a large project; drill into hits with project.dataset.getByUniqueId / getByPath or project.group.get.",
+      "name": "project.search"
+    },
+    {
+      "description": "Rename the project (only the in-app title). Does not move or rename the .ssproj file on disk; auto-save still writes to the existing file path. To save to a different file, use project.save{filePath}.",
+      "name": "project.setTitle"
+    },
+    {
+      "description": "Composite read of the active project: title, sources, groups + datasets, workspaces summary, and data tables summary -- in one round trip. Pass verbose=true for source-level frame settings and frame parser source. Prefer this over chaining list/get calls.\nEvery level (top, source, group, dataset) carries an `_explanations` object with prose translations of enum/bitflag fields (operationMode, busType, frameDetection, decoderMethod, frameParserLanguage, enabledOptions, transformLanguage) and a one-line summary of the project's operating shape -- read those first; the raw int fields stay alongside for machine processing.\nResponse includes `projectEpoch`, a monotonic counter that bumps on every structural mutation (group/dataset add, delete, move, source add/delete). Cache this value alongside any uniqueIds you pull from the snapshot, then pass `expectedProjectEpoch` to any later mutating command (dataset.update/move/delete, group.move/delete) -- the response will carry a stale_project warning if the project changed under you, so you can refetch before acting on now-shifted uniqueIds.\nLarge projects: `sections` picks which blocks to include, and offset/limit windows the groups array (reply carries nextOffset); groupCount/datasetCount always reflect the whole project.",
+      "name": "project.snapshot"
+    },
+    {
+      "description": "Add a new source (Commercial)",
+      "name": "project.source.add"
+    },
+    {
+      "description": "Delete a source (Commercial; sourceId >= 1)",
+      "name": "project.source.delete"
+    },
+    {
+      "description": "Get full source configuration (params: sourceId)",
+      "name": "project.source.getConfig"
+    },
+    {
+      "description": "Get per-source JS frame parser (params: sourceId)",
+      "name": "project.source.getFrameParserCode"
+    },
+    {
+      "description": "List all project sources",
+      "name": "project.source.list"
+    },
+    {
+      "description": "Set per-source JS frame parser (params: sourceId, code)",
+      "name": "project.source.setFrameParserCode"
+    },
+    {
+      "description": "Set multiple driver properties at once (params: sourceId, settings)",
+      "name": "project.source.setProperties"
+    },
+    {
+      "description": "Set a driver connection property (params: sourceId, key, value)",
+      "name": "project.source.setProperty"
+    },
+    {
+      "description": "Patch source fields by id (Commercial). Required: sourceId. Optional fields: title, busType, frameStart, frameEnd, checksumAlgorithm, frameDetection, decoderMethod, hexadecimalDelimiters.",
+      "name": "project.source.update"
+    },
+    {
+      "description": "Replace the current project with a starter template -- the right first move when the user says \"set me up an X project\" rather than \"add an X to my existing project\". DESTRUCTIVE: discards any unsaved current state; auto-save will write the new template to disk shortly after. After applying, narrate what landed (groups, datasets) so the user knows what they got, then proceed with any follow-up edits the user requested. Available templates and their best fit:\n  blank: empty project, one default UART source. Use when the user wants to build everything themselves.\n  imu_uart: 9-DOF IMU (accelerometer X/Y/Z + gyro X/Y/Z + mag X/Y/Z) over UART, comma-separated, $ start / ; end. Replace the frame parser if your device frames differ.\n  gps_uart_nmea: GPS over UART using NMEA 0183 ($GPGGA). Lat/lon/altitude/satellites/HDOP/fixQuality. Map widget configured.\n  scope_multichannel_uart: 8 generic channels over UART, comma-separated, all plot-enabled. Adapt for ADC streams or sensor arrays.\n  telemetry_udp: CSV body parser with 5 generic value channels, intended for UDP telemetry. The template does NOT configure the connection -- set up the UDP listener via io.network.* after applying.\n  mqtt_subscriber (Pro): MQTT subscriber-mode skeleton. After applying, configure the broker via project.mqtt.subscriber.setConfig.\nPass dryRun:true to return wouldDiscard + wouldApply summaries without applying. Useful when the user is choosing between two templates.",
+      "name": "project.template.apply"
+    },
+    {
+      "description": "List built-in starter project templates (id, title, description). Use this BEFORE project.template.apply when the user asks for a starter (\"set me up an IMU project\", \"give me a GPS template\").",
+      "name": "project.template.list"
+    },
+    {
+      "description": "Undo the most recent project-document mutation (from any surface: editor UI, API, or batch -- one shared history). A batch or cascade reverts atomically as one step. Returns {performed:false, reason} when history is empty; never an error. History clears on project load/new. Not for workspace or widget-layout edits (those are outside undo history).",
+      "name": "project.undo"
+    },
+    {
+      "description": "Walk the loaded project and report inconsistencies (missing source references, parser compile errors, empty groups, duplicate dataset indexes, etc.). Returns {ok, issues:[{level, location, message}], issueCount, groupCount, sourceCount, actionCount}. Call before project.save when building a project programmatically.",
+      "name": "project.validate"
+    },
+    {
+      "description": "Create a new workspace (params: title=\"Workspace\"). Returns new id.",
+      "name": "project.workspace.add"
+    },
+    {
+      "description": "Pin a visualization tile onto a workspace. The tile renders the dashboard widget of the given widgetType fed by the given groupId. MANDATORY pre-flight: call project.group.list (for groupId + compatibleWidgetTypes) and project.workspace.list (for workspaceId) BEFORE calling this command. Calling it without that information produces validation errors. If your widgetType isn't in the group's compatibleWidgetTypes, first flip the matching dataset option via project.dataset.setOption / project.dataset.setOptions / project.dataset.update {graph|fft|led|waterfall}, then re-list and call addWidget.\nBatching: for 5+ widget mutations, wrap calls in project.batch{ops:[{command:'project.workspace.addWidget', params:{...}}, ...]} -- workspace ops execute correctly inside batch and the whole burst lands as a single autosave (see meta.describeCommand{name:'project.batch'}). Returns widgetId for use with removeWidget.",
+      "name": "project.workspace.addWidget"
+    },
+    {
+      "description": "Materialise synthetic workspaces into the customised set. No-op if already customised.",
+      "name": "project.workspace.autoGenerate"
+    },
+    {
+      "description": "Drop workspace widget refs that no longer resolve to a live group/dataset/widgetType. Scope: orphans only -- does NOT touch refs where the group still exists but compatibleWidgetTypes has changed (that's reversible state). Set dryRun:true to enumerate what would be removed without mutating.",
+      "name": "project.workspace.cleanup"
+    },
+    {
+      "description": "Wipe every workspace in one call. Forces customize mode on and leaves an empty list. Use this instead of looping project.workspace.delete -- one approval card, one autosave flush. Follow with project.workspace.autoGenerate to restore the default Overview/AllData/per-group layout, or project.workspace.add + addWidget to build a custom layout. Pass dryRun:true to enumerate every workspace that would be removed before committing.",
+      "name": "project.workspace.clearAll"
+    },
+    {
+      "description": "Delete a workspace by id. Pass dryRun:true to preview the workspace + widgetCount that would be removed without committing.",
+      "name": "project.workspace.delete"
+    },
+    {
+      "description": "Return widget refs for a workspace (params: id)",
+      "name": "project.workspace.get"
+    },
+    {
+      "description": "Return the customizeWorkspaces flag",
+      "name": "project.workspace.getCustomizeMode"
+    },
+    {
+      "description": "List all workspaces with widget counts",
+      "name": "project.workspace.list"
+    },
+    {
+      "description": "Remove a widget ref. Pass either {widgetId} from a prior addWidget/get response, or the legacy tuple {workspaceId, widgetType, groupId, relativeIndex}.\nBatching: for 5+ widget removals, wrap calls in project.batch{ops:[...]} (see meta.describeCommand{name:'project.batch'}).",
+      "name": "project.workspace.removeWidget"
+    },
+    {
+      "description": "Rename a workspace (params: id, title)",
+      "name": "project.workspace.rename"
+    },
+    {
+      "description": "Reorder user-defined workspaces (workspaceId >= 5000) in the taskbar. Pass every user workspace id in the desired order -- partial reorders are rejected to avoid silent corruption. System workspaces (auto-generated, ids 1000-4999) keep their original slots.",
+      "name": "project.workspace.reorder"
+    },
+    {
+      "description": "Flip the customizeWorkspaces flag (params: enabled)",
+      "name": "project.workspace.setCustomizeMode"
+    },
+    {
+      "description": "Patch workspace fields (params: id; optional title, icon, description)",
+      "name": "project.workspace.update"
+    },
+    {
+      "description": "Walk workspace widget refs and report orphaned references (the group/dataset/widgetType combo no longer exists). Read-only -- does not modify project state or toggle customizeWorkspaces. Pair with project.workspace.cleanup to repair. Pass an optional workspaceId to limit scope; omit to validate all workspaces.",
+      "name": "project.workspace.validate"
+    },
+    {
+      "description": "Read the body of one bundled reference script (params: kind, id). The id is the `file` field from scripts.list (no extension).",
+      "name": "scripts.get"
+    },
+    {
+      "description": "List bundled reference scripts the dashboard ships with. Use this BEFORE writing painter / frame-parser / transform / output-widget code so you can adapt real templates instead of inventing patterns. Optional params: kind (filter to one kind: painter, frame_parser_js, frame_parser_lua, transform_js, transform_lua, output_widget_js).",
+      "name": "scripts.list"
+    },
+    {
+      "description": "Create a new tag (params: label)",
+      "name": "sessions.addTag"
+    },
+    {
+      "description": "Assign a tag to a session (params: sessionId, tagId)",
+      "name": "sessions.assignTag"
+    },
+    {
+      "description": "Finalize and close the current session (no-op if none open)",
+      "name": "sessions.close"
+    },
+    {
+      "description": "Delete a stored session by id (params: sessionId)",
+      "name": "sessions.delete"
+    },
+    {
+      "description": "Delete a tag by id (params: tagId)",
+      "name": "sessions.deleteTag"
+    },
+    {
+      "description": "Export a stored session to CSV (async; params: sessionId)",
+      "name": "sessions.exportToCsv"
+    },
+    {
+      "description": "Return metadata + tags for one stored session (params: sessionId)",
+      "name": "sessions.get"
+    },
+    {
+      "description": "Return the canonical .db path for a given project title",
+      "name": "sessions.getDbPath"
+    },
+    {
+      "description": "Return the running flag, last regression drift report, and sweep status (no params)",
+      "name": "sessions.getRegression"
+    },
+    {
+      "description": "Return the session-recording flags (exportEnabled, isOpen)",
+      "name": "sessions.getStatus"
+    },
+    {
+      "description": "Return the latest stored verification verdict for a session (params: sessionId)",
+      "name": "sessions.getVerification"
+    },
+    {
+      "description": "List all sessions stored in the currently open database",
+      "name": "sessions.list"
+    },
+    {
+      "description": "List all tags defined in the open database",
+      "name": "sessions.listTags"
+    },
+    {
+      "description": "Open a historian database file for browsing (params: filePath)",
+      "name": "sessions.openDatabase"
+    },
+    {
+      "description": "Compare a stored session (or every session with a tag) against a candidate project in a child process (async; poll sessions.getRegression; params: sessionId | tag, projectPath?, projectJson?)",
+      "name": "sessions.regress"
+    },
+    {
+      "description": "Remove a tag from a session (params: sessionId, tagId)",
+      "name": "sessions.removeTag"
+    },
+    {
+      "description": "Rename a tag (params: tagId, newLabel)",
+      "name": "sessions.renameTag"
+    },
+    {
+      "description": "Start the player on a stored session (params: sessionId)",
+      "name": "sessions.replay"
+    },
+    {
+      "description": "Turn session recording on/off (params: enabled)",
+      "name": "sessions.setExportEnabled"
+    },
+    {
+      "description": "Set free-form notes on a stored session (params: sessionId, notes)",
+      "name": "sessions.setNotes"
+    },
+    {
+      "description": "Verify a stored session's reproducibility in a child process (async; poll sessions.getVerification; params: sessionId)",
+      "name": "sessions.verify"
+    },
+    {
+      "description": "Report the typed sample-stream surface: how many stream sources are live, the wire encoding of a streamBlock line (base64 float32le), the per-subscriber queue depth before the oldest block is dropped and counted, and the names of the connection-scoped commands (stream.subscribe / stream.unsubscribe) a subscriber sends on its own socket.",
+      "name": "stream.getInfo"
+    },
+    {
+      "description": "List every live stream source: sourceId, channel count, sample rate, and the dataset uniqueIds its blocks carry.",
+      "name": "stream.getSources"
+    },
+    {
+      "description": "Launch a helper process (e.g. \"python\" with a script path). Control script only -- rejected over the network/SDK. workingDir defaults to the project directory. Returns a processId. The process is terminated automatically when the device disconnects, the project changes, or the app quits.",
+      "name": "system.exec"
+    },
+    {
+      "description": "Terminate a managed helper process by id. Control script only.",
+      "name": "system.kill"
+    },
+    {
+      "description": "Return the loaded project's directory, file path, and file name. Use this to resolve paths relative to the .ssproj (e.g. a sibling Python script) before calling system.exec.",
+      "name": "system.projectDir"
+    },
+    {
+      "description": "List the helper processes currently managed by system.exec.",
+      "name": "system.runningProcesses"
+    },
+    {
+      "description": "Get serialized layout JSON from WindowManager",
+      "name": "ui.window.getLayout"
+    },
+    {
+      "description": "Get dashboard window status: activeGroupId, groupCount, autoLayoutEnabled",
+      "name": "ui.window.getStatus"
+    },
+    {
+      "description": "Get saved widget settings (params: widgetId string)",
+      "name": "ui.window.getWidgetSettings"
+    },
+    {
+      "description": "Get list of groups as [{id, text, icon}]",
+      "name": "ui.window.listGroups"
+    },
+    {
+      "description": "Get window states array [{id, state}] for current group",
+      "name": "ui.window.listWindowStates"
+    },
+    {
+      "description": "Load window layout from project",
+      "name": "ui.window.loadLayout"
+    },
+    {
+      "description": "Save current window layout to project",
+      "name": "ui.window.saveLayout"
+    },
+    {
+      "description": "Set active group by ID (params: groupId int)",
+      "name": "ui.window.setActiveGroup"
+    },
+    {
+      "description": "Set active group by index (params: index int)",
+      "name": "ui.window.setActiveGroupIndex"
+    },
+    {
+      "description": "Enable or disable auto layout (params: enabled bool)",
+      "name": "ui.window.setAutoLayout"
+    },
+    {
+      "description": "Apply a layout to WindowManager (params: layout object)",
+      "name": "ui.window.setLayout"
+    },
+    {
+      "description": "Set the auto-layout pattern of the workspace or group on screen. Pattern is '' (Grid), master-stack, master-grid, row, column or spiral; ratio is the primary split in sixteenths (1..15, default 8) and only applies to the patterns with a primary region. Stored beside that workspace's window geometry, so it does not touch the workspace list.",
+      "name": "ui.window.setLayoutPattern"
+    },
+    {
+      "description": "Set a widget setting (params: widgetId string, key string, value any)",
+      "name": "ui.window.setWidgetSetting"
+    },
+    {
+      "description": "Set window state (params: id int, state int: 0=normal,1=minimized,2=closed)",
+      "name": "ui.window.setWindowState"
+    }
+  ]
+}
