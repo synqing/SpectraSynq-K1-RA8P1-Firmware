@@ -2,10 +2,11 @@
 
 #include <stdint.h>
 
-/* K1 CONFIG.SENSITIVITY analogue on PCM. SINCRNG 10 is the filter window;
-   do not also keep the old ×16 that existed to un-bury SINCRNG 5.
-   Q8: 2.4 → 614. Loud-guard keeps a snap from railing int16. */
-#define K1_PDM_SENSITIVITY_Q8 614u
+/* K1 CONFIG.SENSITIVITY analogue on PCM. SINCRNG 10 is the CIC window.
+   Adjacent-speaker hops at 2.4× (614) were ~148 raw / ~355 after gain.
+   Restore the DualMCU ×16 analogue. Loud-guard, not a lower nominal,
+   is what stops a snap railing int16. */
+#define K1_PDM_SENSITIVITY_Q8 4096u
 #define K1_PDM_LOUD_GUARD_CEILING 30000u
 
 static inline uint32_t k1_pdm_loud_guard_q8(uint32_t peak) {
