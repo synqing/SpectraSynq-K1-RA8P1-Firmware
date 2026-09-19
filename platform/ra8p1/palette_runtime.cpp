@@ -160,6 +160,7 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
 #endif
   next_us_ = now_us; last_us_ = now_us; cycle_start_us_ = now_us;
   last_live_us_ = 0U;
+  last_live_valid_ = false;
   waiting_for_audio_ = false;
   dwell_armed_[0] = dwell_armed_[1] = false;
   visual_path_ = "none";
@@ -216,14 +217,19 @@ bool PaletteRuntime::step(std::uint64_t now_us,
 #endif
     else if (audio) {
       contract::AudioFeaturesV1 governed_audio = audio->audio;
-      applyK1PresencePolicy(governed_audio, now_us, last_live_us_);
+      applyK1PresencePolicy(governed_audio, now_us, last_live_us_,
+                            last_live_valid_);
       const bool musical = k1MusicalPresence(governed_audio);
       const bool in_dwell =
-          last_live_us_ != 0U && now_us - last_live_us_ < kTitanSilenceDwellUs;
+          last_live_valid_ && now_us - last_live_us_ < kTitanSilenceDwellUs;
+      // DualMCU keeps the product renderer running for SILENCE_DWELL_MS after
+      // the last musical peak. The outer 0.25 gate only *arms* that window;
+      // chopping to dwell-age on every dip is the staggered-frame stutter.
+      const bool keep_live = musical || in_dwell;
       if (channel_index == 0U) {
         last_musical_ = musical;
         last_in_dwell_ = in_dwell;
-        last_live_age_us_ = last_live_us_ == 0U ? 0U : now_us - last_live_us_;
+        last_live_age_us_ = last_live_valid_ ? now_us - last_live_us_ : 0U;
         auto milli = [](float value) -> std::uint32_t {
           if (value <= 0.0F) return 0U;
           if (value >= 1000.0F) return 10000000U;
@@ -234,7 +240,7 @@ bool PaletteRuntime::step(std::uint64_t now_us,
         last_chroma_milli_ = milli(governed_audio.chroma_strength);
         last_wave_milli_ = milli(audio->waveform.peak_scaled);
       }
-      if (!musical) {
+      if (!keep_live) {
         // Age authored history in Q8.8 with elapsed time. Do not clamp to 1.
         // Mirror and output treatment stay display-only.
         // Not-musical DualMCU after dwell expiry redrew the plate (run-29).
@@ -259,7 +265,7 @@ bool PaletteRuntime::step(std::uint64_t now_us,
         channel->clearFrame();
         (void)renderProductChannel(*channel, governed, dt);
         if (channel_index == 0U) {
-          visual_path_ = "effect";
+          visual_path_ = musical ? "effect" : "hold";
           last_dwell_reinit_ = false;
           ++effect_frames_;
         }

@@ -305,8 +305,9 @@ int main() {
         auto& ref = ch ? ref_b : ref_a;
         contract::AudioFeaturesV1 governed_audio = audio;
         std::uint64_t last_live = 0U;
+        bool last_live_valid = false;
         applyK1PresencePolicy(governed_audio, std::uint64_t(frame) * kPalettePeriodUs,
-                              last_live);
+                              last_live, last_live_valid);
         const VisualAudioFrameView governed{governed_audio, tempo, wave, 0U};
         ref.prepareAudio(governed_audio);
         ref.clearFrame();

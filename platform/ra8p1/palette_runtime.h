@@ -27,13 +27,18 @@ inline constexpr std::uint64_t kTitanSilenceDwellUs = 5000000U;
 inline constexpr float kTitanDwellTauS = 1.17F;
 inline bool k1MusicalPresence(const k1::contract::AudioFeaturesV1& features) noexcept {
   // Quiet-room chroma sits near 0.1. Do not treat it as music.
+  // This arms the 5 s keep-alive window. It must not chop the renderer.
   return features.peak_scaled > 0.25F || features.vu_level > 0.25F;
 }
 inline void applyK1PresencePolicy(k1::contract::AudioFeaturesV1& features,
                                   std::uint64_t now_us,
-                                  std::uint64_t& last_live_us) noexcept {
-  if (k1MusicalPresence(features)) last_live_us = now_us;
-  if (last_live_us != 0U && now_us - last_live_us < kTitanSilenceDwellUs) {
+                                  std::uint64_t& last_live_us,
+                                  bool& last_live_valid) noexcept {
+  if (k1MusicalPresence(features)) {
+    last_live_us = now_us;
+    last_live_valid = true;
+  }
+  if (last_live_valid && now_us - last_live_us < kTitanSilenceDwellUs) {
     features.event_flags &= ~k1::contract::kEventSilence;
   }
 }
@@ -84,6 +89,7 @@ class PaletteRuntime {
 #endif
   std::uint64_t next_us_ = 0U, last_us_ = 0U, cycle_start_us_ = 0U,
       last_live_us_ = 0U;
+  bool last_live_valid_ = false;
   std::uint64_t frames_ = 0U, skipped_ = 0U, emitted_ = 0U, emit_errors_ = 0U;
   std::uint32_t last_emit_cycles_ = 0U, maximum_emit_cycles_ = 0U;
   bool waiting_for_audio_ = false;

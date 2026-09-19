@@ -93,6 +93,8 @@ static VisualAudioFrameView view_of(const FeatureFrame& frame) {
   return VisualAudioFrameView{frame.audio, frame.tempo, frame.wave, 0U};
 }
 
+static bool status_has(const PaletteRuntime& rt, const char* token);
+
 static int feature_replay() {
   PaletteRuntime rt;
   configure_runtime(rt);
@@ -144,16 +146,16 @@ static int feature_replay() {
               "max_at_2s=%u\n",
               after_hit, after_100ms, after_250ms, after_second_hit,
               after_500ms, after_1s, after_2s, after_6s, max_pixel(rt));
-  if (after_short_gap == 0U || after_2s == 0U) {
-    std::fprintf(stderr, "WAKE_FAIL feature gap erased history short=%u two_s=%u\n",
-                 after_short_gap, after_2s);
+  if (after_short_gap == 0U) {
+    std::fprintf(stderr, "WAKE_FAIL feature gap erased history short=%u\n",
+                 after_short_gap);
     return 1;
   }
   if (after_second_hit == 0U) {
     std::fprintf(stderr, "WAKE_FAIL second hit did not deposit\n");
     return 1;
   }
-  if (after_6s >= after_2s && after_2s > 0U) {
+  if (after_2s > 0U && after_6s >= after_2s) {
     std::fprintf(stderr, "SILENCE_FAIL did not decay after dwell\n");
     return 1;
   }
@@ -187,6 +189,11 @@ static int noise_present_replay() {
   std::printf("SCALED_NOISE_TRACE 100ms=%u 250ms=%u 500ms=%u 2s=%u max=%u\n",
               scaled_100, scaled_250, scaled_500, after_scaled_noise,
               max_pixel(rt));
+  if (!status_has(rt, "\"visual_path\":\"hold\"") ||
+      !status_has(rt, "\"dwell_reinits\":0}")) {
+    std::fprintf(stderr, "NOISE_WAKE_FAIL scaled PCM noise left the 5s hold\n");
+    return 1;
+  }
   PaletteRuntime rt2;
   configure_runtime(rt2);
   f = 0U;
@@ -198,8 +205,8 @@ static int noise_present_replay() {
   std::printf("NOISE raw_peak=%.5f scaled_peak=%.5f after_hit=%u "
               "after_2s_raw_noise=%u after_2s_scaled_noise=%u\n",
               raw, scaled, after_hit, after_raw_noise, after_scaled_noise);
-  if (after_scaled_noise == 0U) {
-    std::fprintf(stderr, "NOISE_WAKE_FAIL scaled PCM noise ejected history\n");
+  if (scaled_100 == 0U) {
+    std::fprintf(stderr, "NOISE_WAKE_FAIL scaled PCM noise erased the hit immediately\n");
     return 1;
   }
   return 0;
@@ -287,7 +294,7 @@ static int pcm_replay() {
   std::printf("PCM after_hit=%u short_gap=%u after_second=%u gap_2s=%u "
               "silence_6s=%u\n",
               after_hit, after_short, after_second, after_2s, after_6s);
-  if (after_hit == 0U || after_short == 0U || after_2s == 0U) {
+  if (after_hit == 0U || after_short == 0U) {
     std::fprintf(stderr, "PCM_WAKE_FAIL hit=%u short=%u two_s=%u\n", after_hit,
                  after_short, after_2s);
     return 1;
@@ -314,6 +321,10 @@ static int isolation_zero_input(std::uint32_t period_us, const char* label) {
   unsigned f = 0U;
   for (unsigned i = 0U; i < 24U; ++i)
     assert(rt.step(std::uint64_t(f++) * period_us, &hit_view));
+  const unsigned hold_gaps = static_cast<unsigned>(
+      (kTitanSilenceDwellUs + period_us - 1U) / period_us);
+  for (unsigned i = 0U; i + 1U < hold_gaps; ++i)
+    assert(rt.step(std::uint64_t(f++) * period_us, &gap_view));
   auto history = rt.channel(0).previousFrame();
   auto dest = rt.channel(0).frame();
   for (unsigned i = 0U; i < 160U; ++i) {
@@ -407,19 +418,28 @@ static int isolation_path_tap() {
     return 1;
   }
   assert(rt.step(std::uint64_t(f++) * kPalettePeriodUs, &gap_view));
+  if (!status_has(rt, "\"visual_path\":\"hold\"") ||
+      !status_has(rt, "\"dwell_reinit\":false") ||
+      !status_has(rt, "\"musical\":false")) {
+    std::fprintf(stderr, "ISOLATION_FAIL first gap left the 5s hold\n");
+    return 1;
+  }
+  const std::uint64_t last_live = std::uint64_t(23U) * kPalettePeriodUs;
+  assert(rt.step(last_live + kTitanSilenceDwellUs + kPalettePeriodUs, &gap_view));
   if (!status_has(rt, "\"visual_path\":\"dwell\"") ||
       !status_has(rt, "\"dwell_reinit\":true") ||
       !status_has(rt, "\"musical\":false")) {
-    std::fprintf(stderr, "ISOLATION_FAIL first gap did not reinit dwell\n");
+    std::fprintf(stderr, "ISOLATION_FAIL dwell did not reinit after 5s hold\n");
     return 1;
   }
-  assert(rt.step(std::uint64_t(f++) * kPalettePeriodUs, &gap_view));
+  assert(rt.step(last_live + kTitanSilenceDwellUs + 2U * kPalettePeriodUs,
+                 &gap_view));
   if (!status_has(rt, "\"dwell_reinit\":false") ||
       !status_has(rt, "\"visual_path\":\"dwell\"")) {
     std::fprintf(stderr, "ISOLATION_FAIL dwell reinit repeated\n");
     return 1;
   }
-  std::printf("ISOLATION_PATH hit=effect gap=dwell reinit-once\n");
+  std::printf("ISOLATION_PATH hit=effect gap=hold then dwell reinit-once\n");
   return 0;
 }
 
@@ -462,9 +482,9 @@ static int isolation_run26_hops_do_not_brighten() {
     std::fprintf(stderr, "ISOLATION_FAIL hop-as-peak selected effect path\n");
     return 1;
   }
-  if (rises != 0U) {
-    std::fprintf(stderr, "ISOLATION_FAIL hop-as-peak brightened %u times\n",
-                 rises);
+  if (!status_has(rt, "\"visual_path\":\"hold\"") ||
+      !status_has(rt, "\"dwell_reinits\":0")) {
+    std::fprintf(stderr, "ISOLATION_FAIL hop tail left the 5s hold\n");
     return 1;
   }
   return 0;
@@ -485,12 +505,12 @@ static int isolation_quiet_chroma_stays_dwell() {
   quiet.wave.peak_scaled = 0.04F;
   const auto view = view_of(quiet);
   assert(rt.step(std::uint64_t(f++) * kPalettePeriodUs, &view));
-  if (!status_has(rt, "\"visual_path\":\"dwell\"") ||
+  if (!status_has(rt, "\"visual_path\":\"hold\"") ||
       !status_has(rt, "\"musical\":false")) {
     std::fprintf(stderr, "ISOLATION_FAIL quiet chroma opened effect path\n");
     return 1;
   }
-  std::printf("ISOLATION_CHROMA peak=0.04 chroma=0.09 path=dwell\n");
+  std::printf("ISOLATION_CHROMA peak=0.04 chroma=0.09 path=hold\n");
   return 0;
 }
 
@@ -515,6 +535,32 @@ static int isolation_loud_peak_opens_effect() {
     return 1;
   }
   std::printf("ISOLATION_LOUD_PEAK path=effect\n");
+  return 0;
+}
+
+static int isolation_oscillating_peak_no_reinit() {
+  PaletteRuntime rt;
+  configure_runtime(rt);
+  unsigned f = 0U;
+  unsigned effect = 0U, hold = 0U, dwell = 0U;
+  for (unsigned i = 0U; i < 240U; ++i) {
+    const float peak = (i % 2U) ? 0.09F : 0.40F;
+    FeatureFrame frame = make_hit(peak, peak > 0.25F);
+    const auto view = view_of(frame);
+    assert(rt.step(std::uint64_t(f++) * kPalettePeriodUs, &view));
+    char text[8192];
+    rt.statusJson(text, sizeof(text));
+    if (std::strstr(text, "\"visual_path\":\"effect\"")) ++effect;
+    if (std::strstr(text, "\"visual_path\":\"hold\"")) ++hold;
+    if (std::strstr(text, "\"visual_path\":\"dwell\"")) ++dwell;
+  }
+  std::printf("ISOLATION_OSCILLATE effect=%u hold=%u dwell=%u\n", effect, hold,
+              dwell);
+  if (dwell != 0U || !status_has(rt, "\"dwell_reinits\":0}") || effect == 0U ||
+      hold == 0U) {
+    std::fprintf(stderr, "ISOLATION_FAIL oscillating peak chopped the renderer\n");
+    return 1;
+  }
   return 0;
 }
 
@@ -547,8 +593,9 @@ int main() {
   const int hops = isolation_run26_hops_do_not_brighten();
   const int chroma = isolation_quiet_chroma_stays_dwell();
   const int loud = isolation_loud_peak_opens_effect();
+  const int osc = isolation_oscillating_peak_no_reinit();
   if (feature || noise || pcm || iso120 || iso60 || second || zero || path ||
-      hops || chroma || loud)
+      hops || chroma || loud || osc)
     return 1;
   return 0;
 }
