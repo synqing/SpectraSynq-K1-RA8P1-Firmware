@@ -153,6 +153,56 @@ int main() {
   std::string full_body(reinterpret_cast<const char*>(full.data()+32),full.size()-32);
   assert(full_body.find("\"transition_a_q16\":65535")!=std::string::npos);
 #endif
+  // SET_CONFIG v4 (INT, round 4): v3 layout + u32 LE switch mask at offset 40.
+  {
+    const auto body_of=[](const std::vector<std::uint8_t>& reply) {
+      return std::string(reinterpret_cast<const char*>(reply.data()+32),reply.size()-32);
+    };
+    const auto v4=[](unsigned mask) {
+      auto c=config(33,43,1); c.resize(44); put(c.data(),4);
+      put(c.data()+32,0); put(c.data()+36,4000); put(c.data()+40,mask); return c;
+    };
+    auto c3=config(33,43,1); c3.resize(40); put(c3.data(),3); put(c3.data()+36,4000);
+#ifdef K1_PALETTE_MORPH
+    const bool v3_accepted=true;
+#else
+    const bool v3_accepted=false;
+#endif
+    // Both switches on through the wire; readback via status.
+    auto on=request(16,v4(3)); assert(get(on.data()+4)==0);
+    std::string body=body_of(request(17));
+    assert(body.find("\"config_version\":4,\"wide_route\":true,\"wide_native16\":true")!=std::string::npos);
+    // Each bit alone.
+    assert(get(request(16,v4(1)).data()+4)==0);
+    body=body_of(request(17));
+    assert(body.find("\"wide_route\":true,\"wide_native16\":false")!=std::string::npos);
+    assert(get(request(16,v4(2)).data()+4)==0);
+    body=body_of(request(17));
+    assert(body.find("\"wide_route\":false,\"wide_native16\":true")!=std::string::npos);
+    // An older version decodes with both switches off (after they were on).
+    assert(get(request(16,v4(3)).data()+4)==0);
+    if (v3_accepted) {
+      assert(get(request(16,c3).data()+4)==0);
+      body=body_of(request(17));
+      assert(body.find("\"config_version\":3,\"wide_route\":false,\"wide_native16\":false")!=std::string::npos);
+    }
+    assert(get(request(16,v4(3)).data()+4)==0);
+    assert(get(request(16,config(33,43,1)).data()+4)==0);
+    body=body_of(request(17));
+    assert(body.find("\"config_version\":1,\"wide_route\":false,\"wide_native16\":false")!=std::string::npos);
+    // Refusals leave the running configuration untouched.
+    assert(get(request(16,v4(4)).data()+4)==3);            // unknown bit
+    assert(get(request(16,v4(0x80000003U)).data()+4)==3);  // unknown high bit
+    auto short_v4=v4(3); short_v4.resize(40);               // v4 header, v3 size
+    assert(get(request(16,short_v4).data()+4)==3);
+    auto long_v4=v4(3); long_v4.resize(48);                 // bad size
+    assert(get(request(16,long_v4).data()+4)!=0);
+    auto v3_as_v4=v4(3); put(v3_as_v4.data(),3);           // v3 header, v4 size
+    assert(get(request(16,v3_as_v4).data()+4)==3);
+    body=body_of(request(17));
+    assert(body.find("\"config_version\":1,\"wide_route\":false,\"wide_native16\":false")!=std::string::npos);
+    std::puts("PALETTE_CONFIG_V4_PASS switches=route,native16 older_versions_off=true unknown_bit_rejected=true bad_size_rejected=true");
+  }
   // The tap must retain failed submission status rather than certify it as light.
 #ifdef K1_PALETTE_WS2816
   emission_failure=-7;

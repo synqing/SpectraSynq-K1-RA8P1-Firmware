@@ -545,18 +545,29 @@ void execute() {
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
-  } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U || size == 40U)) {
+  } else if (command == k1::titan::kPaletteConfigureOpcode &&
+             (size == 32U || size == 36U || size == 40U ||
+              size == k1::titan::kPaletteConfigV4Bytes)) {
 #ifdef K1_RESIDENT_SCHEDULE
     if (k1_fixture_schedule_active()) { error(10); return; }
 #endif
     const auto* p = rx + 32;
     if ((size == 32U && get32(p) != 1U) ||
         (size == 36U && get32(p) != 2U) ||
-        (size == 40U && get32(p) != 3U)) { error(3); return; }
-    const k1::titan::PaletteConfig config{
+        (size == 40U && get32(p) != 3U) ||
+        (size == k1::titan::kPaletteConfigV4Bytes && get32(p) != 4U)) { error(3); return; }
+    // Version 4 only: explicit wide switch mask (little-endian u32 at payload
+    // offset 40). Unknown bits are refused; older versions carry no mask, so
+    // both switches stay off (default behaviour unchanged).
+    const std::uint32_t switches = size == k1::titan::kPaletteConfigV4Bytes
+        ? get32(p + k1::titan::kPaletteConfigSwitchOffset) : 0U;
+    if (switches & ~k1::titan::kPaletteSwitchMask) { error(3); return; }
+    k1::titan::PaletteConfig config{
         get32(p), get32(p+4), get32(p+8), get32(p+12),
         get32(p+16), get32(p+20), get32(p+24), get32(p+28),
-        size >= 36U ? get32(p+32) : 0U, size == 40U ? get32(p+36) : 4000U};
+        size >= 36U ? get32(p+32) : 0U, size >= 40U ? get32(p+36) : 4000U};
+    config.use_wide_route = (switches & k1::titan::kPaletteSwitchWideRoute) != 0U;
+    config.use_wide_native16 = (switches & k1::titan::kPaletteSwitchWideNative16) != 0U;
     if (!palettes.configure(config, palette_time_us)) { error(3); return; }
     palette_step(false);
     const auto n = palettes.statusJson(trace.data, sizeof(trace.data));

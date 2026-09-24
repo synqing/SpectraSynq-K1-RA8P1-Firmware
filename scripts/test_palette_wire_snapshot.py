@@ -12,6 +12,23 @@ def fixture(brightness=128):
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_native16_words(self):
+        # Native words off the x257 lattice: the lift law fails them, the
+        # native16 scorer accepts them and reports the precision evidence.
+        payload = bytearray(fixture(255))
+        struct.pack_into('>H', payload, 544, struct.unpack_from('>H', payload, 544)[0] ^ 1)
+        struct.pack_into('>H', payload, 544+6, struct.unpack_from('>H', payload, 544+6)[0] ^ 3)
+        self.assertFalse(score_snapshot(bytes(payload))['pass_wire'])
+        native = score_snapshot(bytes(payload), native16=True)
+        self.assertTrue(native['pass_wire'])
+        self.assertTrue(native['native16'])
+        self.assertEqual(native['offlattice_words'], 2)
+        legacy = score_snapshot(fixture(255))
+        self.assertEqual((legacy['offlattice_words'], legacy['native16']), (0, False))
+        # A failed emitter status still fails the native path.
+        failed = bytearray(payload); struct.pack_into('<I', failed, 48, 7)
+        self.assertFalse(score_snapshot(bytes(failed), native16=True)['pass_wire'])
+
     def test_positive_and_black(self):
         for brightness in (0, 24, 128, 255):
             result = score_snapshot(fixture(brightness))

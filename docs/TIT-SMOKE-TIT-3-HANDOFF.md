@@ -148,9 +148,9 @@ adds beyond the host proof already in each commit message and
   `WIDE_ROUTE_A4_PASS` — the latter also covers `use_wide_route` on/off with
   native16 off, per ORCH's A4 scope). On target: confirm the real WS2816
   emit path in `fixture_app.cpp` produces identical optical/electrical
-  output to the pre-DUR-011 image at the same `PaletteConfig` — no wire
-  decoder sets either flag yet, so every live `SET_CONFIG` still lands on
-  the legacy path.
+  output to the pre-DUR-011 image at the same `PaletteConfig`. Only a
+  `SET_CONFIG` version-4 frame can set either flag (INT, round 4, below);
+  versions 1-3 decode with both off.
 - **DUR-011 native-output path, on**: genuinely wired end to end now (the
   round-3 Pixel8-lift producer is deleted). Capture happens before
   `applyProductOutputTreatment` mutates `frame()`; the legacy Pixel8
@@ -211,6 +211,56 @@ adds beyond the host proof already in each commit message and
   the same JSON. Note the correction to the originally proposed opcode: 20
   was already `status_command`; 21 is the first free slot (1-20 and 22 all
   reserved; `K1_WS281X_GPT_DIAG_OPCODE`=22).
+
+### 5.1 Bench switch commands (SET_CONFIG v4, INT round 4)
+
+Wire: opcode 16 version 4 is the version-3 layout (10 x u32 little-endian,
+40 bytes) plus one u32 little-endian switch mask at payload offset 40
+(44 bytes): bit 0 `use_wide_route`, bit 1 `use_wide_native16`. Any other bit,
+a version-4 header at another size, or another version at 44 bytes is
+refused with status 3 and leaves the running configuration unchanged.
+Versions 1-3 decode with both switches off, so the incumbent path is the
+default and any older sender turns the switches off again. Status (opcode
+17) reads back `"config_version"`, `"wide_route"` and `"wide_native16"`.
+Host proof: `PALETTE_CONFIG_V4_PASS` in all eight protocol variants of
+`scripts/test_palette_runtime.py`.
+
+Image: the native16 lane pack runs only on the WS2816 emit path, so build
+with `--palette-ws2816`:
+
+```
+python3 scripts/build_scalar.py --output <new-build-dir> --optimisation o2 \
+    --dcache enabled --palette-runtime --palette-autostart --palette-ws2816
+```
+
+Programme it through the approved route in section 3 (unresolved here).
+Then, with `<build>` the build directory whose `receipt.json` the runner
+checks:
+
+| Path | Command |
+|---|---|
+| both off (incumbent) | `python3 scripts/run_titan_palettes.py --build <build> --palette 33 --palette-b 43 --mode-a 3 --mode-b 3 --brightness 64` |
+| wide route only (DUR-007) | same command plus `--wide-route` |
+| native16 only (DUR-011, lifted capture) | same command plus `--wide-native16` |
+| route + native16 (DUR-011 end to end) | same command plus `--wide-route --wide-native16` |
+| read back the switches | `python3 scripts/run_titan_palettes.py --build <build> --status` (expect `"config_version":4,"wide_route":true,"wide_native16":true` for the last row) |
+| capture submitted wire | `python3 scripts/run_titan_palettes.py --build <build> --capture-frames 5 --output <new-receipt-dir>` |
+| switch both off again | re-run the first row (it sends version 1, which decodes both off), or `--stop` |
+
+`--capture-frames` reads status first and scores each snapshot with the
+matching law. With native16 off, the wire must equal the legacy lift
+(`rgb*257*brightness/255`, `mismatches=0`). With native16 on, each
+`WIRE_SAMPLE` line reports `native16=True`, `offlattice_words` and
+`samebyte_diffnative_pairs` instead. Record those counts rather than assume
+them: the bench SET_CONFIG always enables palette mode, while the host A2
+proof uses the chromatic injection path, so off-lattice words on the bench
+come from the FP32 trail transport, not from injection. None of this is a
+photon or GPIO-timing claim.
+
+Seam checks INT added (host, round 4): `WIDE_ROUTE_A5_ALLOC_PASS`
+(`operator new` counted at 0 across 90 `step()` calls with both switches on)
+and `WIDE_ROUTE_A6_PASS` (capture precedes a non-identity output treatment;
+without A6 a capture moved after the treatment passed A2 unchanged).
 
 ## 6. Recovery
 

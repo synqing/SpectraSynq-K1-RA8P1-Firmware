@@ -19,6 +19,20 @@ inline constexpr std::uint32_t kPaletteConfigureOpcode = 16U;
 inline constexpr std::uint32_t kPaletteStatusOpcode = 17U;
 inline constexpr std::uint32_t kPaletteFrameOpcode = 18U;
 inline constexpr std::uint32_t kPaletteWireSnapshotOpcode = 19U; // WS2816 only; last submission, not photons.
+// SET_CONFIG (opcode 16) wire version 4 (INT, round 4): the version-3 layout
+// (10 x u32, little-endian, 40 bytes) followed by one u32 little-endian
+// switch mask at payload offset 40 (44 bytes). Bit 0 = use_wide_route,
+// bit 1 = use_wide_native16; any other bit is refused. Versions 1..3 carry
+// no mask and decode with both switches off (the incumbent path).
+inline constexpr std::uint32_t kPaletteConfigV4Bytes = 44U;
+inline constexpr std::uint32_t kPaletteConfigSwitchOffset = 40U;
+inline constexpr std::uint32_t kPaletteSwitchWideRoute = 1U << 0U;
+inline constexpr std::uint32_t kPaletteSwitchWideNative16 = 1U << 1U;
+inline constexpr std::uint32_t kPaletteSwitchMask =
+    kPaletteSwitchWideRoute | kPaletteSwitchWideNative16;
+static_assert(kPaletteConfigV4Bytes == 11U * 4U &&
+              kPaletteConfigSwitchOffset + 4U == kPaletteConfigV4Bytes,
+              "SET_CONFIG v4 is the v3 layout plus one u32 switch mask");
 #ifdef K1_PALETTE_WS2816
 // Two sequential 80-pixel GRB48 transfers need more than an 8.333 ms slot.
 inline constexpr std::uint32_t kPalettePeriodUs = 16667U;

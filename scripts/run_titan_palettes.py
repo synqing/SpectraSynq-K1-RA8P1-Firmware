@@ -39,6 +39,8 @@ def main():
     parser.add_argument('--inward',action='store_true',help='new centre effects travel from both edges towards the centre')
     parser.add_argument('--showcase',action='store_true',help='cycle four native centre effects every 12 seconds')
     parser.add_argument('--travel-ms',type=int,default=4000,help='500..30000 ms from centre to edge (or edge to centre)')
+    parser.add_argument('--wide-route',action='store_true',help='DUR-007/DUR-011: render admitted modes through the wide route (SET_CONFIG v4 switch bit 0)')
+    parser.add_argument('--wide-native16',action='store_true',help='DUR-011: emit the wide endpoint\'s native 16-bit words (SET_CONFIG v4 switch bit 1; WS2816 images)')
     args=parser.parse_args()
     if not 500<=args.travel_ms<=30000: parser.error('travel-ms must be 500..30000')
     if args.effect_a: args.mode_a=effects[args.effect_a]
@@ -109,6 +111,11 @@ def main():
                    args.mode_b if mode_b is None else mode_b,flags,
                    args.brightness if brightness is None else brightness,args.output_channel)
             duration=args.transition_ms if transition_ms is None else transition_ms
+            switches=(1 if args.wide_route else 0)|(2 if args.wide_native16 else 0)
+            if switches:
+                # SET_CONFIG v4: v3 layout + u32 little-endian switch mask (44 bytes).
+                words=(4,*words[1:],duration,args.travel_ms,switches)
+                return transact(16,struct.pack('<11I',*words))
             if args.inward or args.showcase or args.travel_ms!=4000 or words[3]>=100 or words[4]>=100:
                 words=(3,*words[1:],duration,args.travel_ms)
                 return transact(16,struct.pack('<10I',*words))
@@ -126,13 +133,13 @@ def main():
             receipt['wire_snapshots']=[]
             for index in range(args.capture_frames):
                 if index: time.sleep(1)
-                sample=score_snapshot(transact(19,raw=True))
+                sample=score_snapshot(transact(19,raw=True),native16=bool(receipt['initial'].get('wide_native16')))
                 sample['host_monotonic_s']=time.monotonic()
                 receipt['wire_snapshots'].append(sample)
                 if not sample['pass_wire']: raise RuntimeError('submission packing/scaling or emitter status failed')
                 if index and sample['sequence']==receipt['wire_snapshots'][-2]['sequence']:
                     raise RuntimeError('native output stopped advancing')
-                print(f"WIRE_SAMPLE {index+1}/{args.capture_frames} mode={sample['mode']} palette={sample['palette']} lanes={sample['lane_nonzero_counts']} mismatches={sample['scaling_byte_mismatches']}",flush=True)
+                print(f"WIRE_SAMPLE {index+1}/{args.capture_frames} mode={sample['mode']} palette={sample['palette']} lanes={sample['lane_nonzero_counts']} mismatches={sample['scaling_byte_mismatches']} native16={sample['native16']} offlattice_words={sample['offlattice_words']} samebyte_diffnative_pairs={sample['samebyte_diffnative_pairs']}",flush=True)
             samples=receipt['wire_snapshots']
             receipt['final']=transact(17)
             receipt['observed_modes']=sorted({s['mode'] for s in samples})

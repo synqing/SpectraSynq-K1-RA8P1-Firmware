@@ -116,13 +116,18 @@ void diagnosticBounce(ChannelRenderState& channel, std::uint64_t now_us) noexcep
 }
 }
 bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us) noexcept {
+  // Version 4 (INT, round 4) is the version-3 field layout plus the wide
+  // switch mask the wire decoder maps to use_wide_route/use_wide_native16;
+  // its fields follow version 3's rules (MORPH) or version 1's (otherwise).
+  const std::uint32_t layout = config.version == 4U ? 3U : config.version;
 #ifdef K1_PALETTE_MORPH
-  const bool version_ok = ((config.version == 1U && config.transition_ms == 0U) ||
-      (config.version == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs))
+  const bool version_ok = ((layout == 1U && config.transition_ms == 0U) ||
+      (layout == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs))
       ? config.travel_ms == 4000U
-      : config.version == 3U && config.transition_ms <= PaletteTransition::kMaximumDurationMs &&
+      : layout == 3U && config.transition_ms <= PaletteTransition::kMaximumDurationMs &&
         config.travel_ms >= 500U && config.travel_ms <= 30000U;
-  if ((isCentreEffect(config.mode_a) || isCentreEffect(config.mode_b)) && config.version != 3U)
+  const std::uint32_t flag_mask = layout == 3U ? 31U : 7U;
+  if ((isCentreEffect(config.mode_a) || isCentreEffect(config.mode_b)) && layout != 3U)
     return false;
   if ((config.flags & 8U) &&
       ((config.mode_a && !isCentreEffect(config.mode_a)) ||
@@ -130,11 +135,14 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   if ((config.flags & 16U) &&
       (!isCentreEffect(config.mode_a) || !isCentreEffect(config.mode_b))) return false;
 #else
-  const bool version_ok = config.version == 1U && config.transition_ms == 0U && config.travel_ms == 4000U;
+  const bool version_ok = (config.version == 1U || config.version == 4U) &&
+      config.transition_ms == 0U && config.travel_ms == 4000U;
+  const std::uint32_t flag_mask = 7U;
+  (void)layout;
 #endif
   if (!version_ok || config.palette_a >= kProductPaletteCount ||
       config.palette_b >= kProductPaletteCount || !supportedMode(config.mode_a) ||
-      !supportedMode(config.mode_b) || (config.flags & ~(config.version == 3U ? 31U : 7U)) ||
+      !supportedMode(config.mode_b) || (config.flags & ~flag_mask) ||
       config.brightness > 255U || config.output_channel > 1U)
     return false;
   const bool cut = config.mode_a != config_.mode_a || config.mode_b != config_.mode_b;
@@ -423,7 +431,8 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
 #else
       "\"bench_pixels\":128,\"wire_profile\":1,\"wire_bits_per_pixel\":24,"
 #endif
-      "\"host_pixel_stream_required\":false"
+      "\"host_pixel_stream_required\":false,\"config_version\":%lu,"
+      "\"wide_route\":%s,\"wide_native16\":%s"
 #ifdef K1_PALETTE_MORPH
       ",\"morph_supported\":true,\"transition_ms\":%lu,\"transition_a_q16\":%u,"
       "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u,"
@@ -443,7 +452,9 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long)kPalettePeriodUs, (unsigned long long)frames_, (unsigned long long)skipped_,
       (unsigned long long)emitted_, (unsigned long long)emit_errors_,
       (unsigned long)last_emit_cycles_, (unsigned long)maximum_emit_cycles_,
-      (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
+      (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame()),
+      (unsigned long)config_.version, config_.use_wide_route ? "true" : "false",
+      config_.use_wide_native16 ? "true" : "false"
 #ifdef K1_PALETTE_MORPH
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),
       transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors(),
