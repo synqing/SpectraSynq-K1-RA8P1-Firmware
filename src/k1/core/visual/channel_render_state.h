@@ -6,6 +6,7 @@
 #include "core/pixel.h"
 #include "core/visual/audio_focus.h"
 #include "core/visual/channel_effect_state.h"
+#include "core/visual/modes/liveiness_contract.h"
 #include "core/visual/pixel_topology.h"
 #include "core/visual/product_output_treatment.h"
 
@@ -57,6 +58,9 @@ struct ChannelVisualControls final {
   float vp_waveform_chroma_blend_gain = 2.0F;
   float vp_waveform_fallback_brightness = 1.0F;
   float vp_waveform_vu_floor = 0.02F;
+  // Liveiness v1 (MOD). The default is the legacy profile (disabled,
+  // neutral), which is exact identity in every mode.
+  modes::LiveinessInput liveiness{};
 };
 
 class ChannelRenderState final {

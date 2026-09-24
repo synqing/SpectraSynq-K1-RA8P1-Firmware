@@ -1,0 +1,1569 @@
+{
+  "generator_version": "1.0.0",
+  "platforms": {
+    "console": {
+      "capacities": {
+        "channel_count": {
+          "class": "measured",
+          "source": "R2 channel-first model: Primary/Top and Secondary/Bottom",
+          "value": 2
+        },
+        "duplicate_window": {
+          "class": "derived",
+          "source": "not an engine: no receipt cache",
+          "value": 0
+        },
+        "lease_timeout_us": {
+          "class": "derived",
+          "source": "not an engine: leases are engine-side",
+          "value": 0
+        },
+        "max_concurrent_leases": {
+          "class": "derived",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.bindings_fader 9 (measured): one active gesture per fader",
+          "value": 9
+        },
+        "max_label_bytes": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.string_bytes_on_wire 32 (measured, host-local); binding/page label width 16 B",
+          "value": 16
+        },
+        "max_pages": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.persistence_bytes_nvs_partition 24 576 (measured, shared): A/B slots plus a pre-migration backup of a 6-page profile = 3 x 4352 B = 13056 B, leaving room for BLE bonds and the 84 B of settings. Two default pages plus one custom page per channel. More pages need a dedicated partition (open decision).",
+          "value": 6
+        },
+        "max_snapshot_entries": {
+          "class": "proposed",
+          "source": "= max_targets",
+          "value": 64
+        },
+        "max_targets": {
+          "class": "proposed",
+          "source": "the console mirrors engine targets for UI state",
+          "value": 64
+        },
+        "max_transaction_ops": {
+          "class": "proposed",
+          "source": "same as RT1062 so editor transactions are never truncated",
+          "value": 16
+        },
+        "max_writers": {
+          "class": "derived",
+          "source": "the console is one writer",
+          "value": 1
+        },
+        "persistence_slot_bytes": {
+          "class": "derived",
+          "source": "4304 B 6-page profile + 32 B record header, rounded up to 64 B",
+          "value": 4352
+        },
+        "ram_budget_bytes": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.lvgl_mem_size_bytes 49 152 (measured) sets the scale; one CompiledProfile plus a draft",
+          "value": 24576
+        }
+      },
+      "capacity_status": "proposed",
+      "control_path": "nine faders and touch UI -> BLE -> S3 radio bridge",
+      "custom_pages_admitted": true,
+      "default_profile": "admitted",
+      "derived": {
+        "max_bindings": 54,
+        "max_profile_bytes": 4304
+      },
+      "description": "K1.Sliders 2.41-inch console: profile owner and compiler, not an engine.",
+      "engine": false,
+      "features": {
+        "audio_focus": "not_applicable",
+        "base_coat": "not_applicable",
+        "colour_treatment": "not_applicable",
+        "liveiness": "not_applicable",
+        "palette_travel": "not_applicable",
+        "persistence": "not_applicable",
+        "rhythm_layer": "not_applicable"
+      },
+      "input_modalities": [
+        "absolute",
+        "relative"
+      ],
+      "liveiness_modes": {},
+      "parameters": {
+        "artistic_density": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "audio_focus": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "audio_focus_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "base_coat": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "base_coat_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "blackout": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "channel_intensity": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "chroma_legacy": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "colour_treatment_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "contrast": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "current_limit_ma": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "global_master": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "liveiness": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "liveiness_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "mode": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "mood_legacy": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "motion": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "palette": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "palette_position": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "palette_span": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "palette_transition": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "palette_travel": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "palette_travel_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "persistence": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "persistence_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "photons_legacy": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "rhythm_layer_on": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "rhythm_mix": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "saturation": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "saturation_legacy": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "warmth": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        },
+        "width": {
+          "evidence": "R2 ownership law: the single active engine owns canonical values",
+          "integration": "n/a",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "status": "not_applicable"
+        }
+      },
+      "services": {
+        "persistence": true,
+        "profile_transfer": false,
+        "route_ble": true,
+        "route_fixture": false,
+        "route_local": false
+      }
+    },
+    "rt1062": {
+      "capacities": {
+        "channel_count": {
+          "class": "measured",
+          "source": "core/visual/pixel_topology.h:13 kChannelCount",
+          "value": 2
+        },
+        "duplicate_window": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.transaction_queue_depth_ble_ordered 8 (measured) x 2, so every retry inside the ordered window finds its original receipt",
+          "value": 16
+        },
+        "lease_timeout_us": {
+          "class": "proposed",
+          "source": "console scan 5 000 us and BLE interval 7.5-15 ms (measured, capacity-proposal console.*); 500 ms >> worst inter-sample gap; freeze from HMI movement cadence before target tests",
+          "value": 500000
+        },
+        "max_concurrent_leases": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.bindings_fader 9 + bindings_pad 7 (derived) = 16 simultaneous gesture owners",
+          "value": 16
+        },
+        "max_label_bytes": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.string_bytes_on_wire 0 (measured): labels are new bounded UTF-8 fields; binding/page label field width 16 B including NUL",
+          "value": 16
+        },
+        "max_pages": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.pages (no page constant exists); anchored on standalone K1_PRESET_SLOT_COUNT=10, the only persisted slot precedent. The engine holds only ProfileIdentity, so this bounds the console-compiled profile the engine will accept identities for.",
+          "value": 10
+        },
+        "max_snapshot_entries": {
+          "class": "proposed",
+          "source": "= max_targets; StateSnapshot 92+20n+4 bytes fragments over TRN's reliable lane (<= 2 496 B per message)",
+          "value": 64
+        },
+        "max_targets": {
+          "class": "proposed",
+          "source": "registry declares 61 targets (29 channel parameters x 2 + 3 global); codec capacity kMaxSnapshotEntries=64",
+          "value": 64
+        },
+        "max_transaction_ops": {
+          "class": "proposed",
+          "source": "ControlTransaction 36+24*16 = 420 B fits TRN's 2 496 B fragmented message; covers one channel's preset recall",
+          "value": 16
+        },
+        "max_writers": {
+          "class": "proposed",
+          "source": "console, companion editor, automation, external sync",
+          "value": 4
+        },
+        "persistence_slot_bytes": {
+          "class": "measured-absent",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.persistence_bytes (measured-absent: no control/parameter store on RT1062)",
+          "value": 0
+        },
+        "ram_budget_bytes": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.rt1062_t40_ram1_free_bytes_2026_09_20 = 243 328 B (measured); engine state budget is a proposal",
+          "value": 32768
+        }
+      },
+      "capacity_status": "proposed",
+      "control_path": "BLE (console) -> S3 radio bridge -> K1BR SPI -> RT1062 engine",
+      "custom_pages_admitted": true,
+      "default_profile": "admitted",
+      "derived": {
+        "max_bindings": 90,
+        "max_profile_bytes": 7120
+      },
+      "description": "DualMCU RT1062 real-time engine (AP+VP) behind the S3 radio bridge.",
+      "engine": true,
+      "features": {
+        "audio_focus": "planned",
+        "base_coat": "planned",
+        "colour_treatment": "planned",
+        "liveiness": "planned",
+        "palette_travel": "planned",
+        "persistence": "planned",
+        "rhythm_layer": "planned"
+      },
+      "input_modalities": [
+        "absolute",
+        "relative"
+      ],
+      "liveiness_modes": {
+        "11": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "12": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "13": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "14": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "15": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "16": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "18": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "19": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "20": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "21": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "22": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "23": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "24": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "25": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "26": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "27": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "28": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "29": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "3": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "32": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "7": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "8": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "9": {
+          "adapter_version": 0,
+          "support": "planned"
+        }
+      },
+      "parameters": {
+        "artistic_density": {
+          "evidence": "INTERFACE-FREEZE.md: unresolved semantics are marked unadvertised",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "Semantic reserved to keep meanings distinct; unit and consumer not yet defined.",
+          "status": "unadvertised"
+        },
+        "audio_focus": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "MOD",
+          "reason": "No mode-adapted body/transient balance exists.",
+          "status": "planned"
+        },
+        "audio_focus_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "MOD",
+          "reason": "No audio-focus stage exists.",
+          "status": "planned"
+        },
+        "base_coat": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No bounded foundation stage with this semantic exists.",
+          "status": "planned"
+        },
+        "base_coat_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No foundation stage with this semantic exists.",
+          "status": "planned"
+        },
+        "blackout": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "INT",
+          "reason": "No blackout control exists in the v1 catalogue; output authority integration pending.",
+          "status": "planned"
+        },
+        "channel_intensity": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No channel-intensity stage exists; VP owns the consumer.",
+          "status": "planned"
+        },
+        "chroma_legacy": {
+          "evidence": "core/control/bridge_command_processor.cpp kPrimaryChroma; core/visual/product_effect_renderer.cpp paletteColour energy floor",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "colour_treatment_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists.",
+          "status": "planned"
+        },
+        "contrast": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists.",
+          "status": "planned"
+        },
+        "current_limit_ma": {
+          "evidence": "firmware/rt1062/production_runtime.cpp:614,706 policy.max_current_ma",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "global_master": {
+          "evidence": "core/control/bridge_command_processor.cpp masterBrightnessQ0_16; firmware/rt1062/production_runtime.cpp:701",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "liveiness": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "MOD",
+          "reason": "No per-mode Liveiness adapter is admitted; MOD owns adapters, VP owns effective units.",
+          "status": "planned"
+        },
+        "liveiness_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "MOD",
+          "reason": "No Liveiness adapter is admitted.",
+          "status": "planned"
+        },
+        "mode": {
+          "evidence": "core/control/bridge_command_processor.cpp kModeSelect; core/visual/product_catalogue.cpp productModeEnabled",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "mood_legacy": {
+          "evidence": "core/visual/product_effect_renderer.cpp controls.mood (Bloom, Bloom Fast, Aurora, Comet, Dense Forge, Dense Forge Chord)",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "motion": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No base transport-velocity stage exists.",
+          "status": "planned"
+        },
+        "palette": {
+          "evidence": "core/control/bridge_command_processor.cpp kPaletteSelect; kProductPaletteCount 44",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "palette_position": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "chroma_value is read but never assigned; no palette-position control path exists.",
+          "status": "planned"
+        },
+        "palette_span": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No palette-window stage exists.",
+          "status": "planned"
+        },
+        "palette_transition": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No palette-selection transition stage exists on RT1062 (Titan's palette_transition is not a control path).",
+          "status": "planned"
+        },
+        "palette_travel": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No bounded palette-excursion stage exists.",
+          "status": "planned"
+        },
+        "palette_travel_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No palette-excursion stage exists.",
+          "status": "planned"
+        },
+        "persistence": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No common history stage with a half-life semantic exists.",
+          "status": "planned"
+        },
+        "persistence_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No common history stage exists.",
+          "status": "planned"
+        },
+        "photons_legacy": {
+          "evidence": "core/control/bridge_command_processor.cpp cc14ToPhotons; firmware/rt1062/production_runtime.cpp applyChannelControls photons_id",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "rhythm_layer_on": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "MOD",
+          "reason": "No rhythmic-layer stage exists.",
+          "status": "planned"
+        },
+        "rhythm_mix": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "MOD",
+          "reason": "No rhythmic-layer balance stage exists.",
+          "status": "planned"
+        },
+        "saturation": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists (source audit section 4).",
+          "status": "planned"
+        },
+        "saturation_legacy": {
+          "evidence": "core/visual/product_effect_renderer.cpp controls.saturation (HSV and fallback branches)",
+          "integration": "v2 routing pending (INT)",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "status": "implemented"
+        },
+        "warmth": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists.",
+          "status": "planned"
+        },
+        "width": {
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "No base width stage exists.",
+          "status": "planned"
+        }
+      },
+      "services": {
+        "persistence": false,
+        "profile_transfer": false,
+        "route_ble": true,
+        "route_fixture": false,
+        "route_local": false
+      }
+    },
+    "standalone_s3": {
+      "capacities": {
+        "channel_count": {
+          "class": "proposed",
+          "source": "K1 product geometry: two logical channels",
+          "value": 2
+        },
+        "duplicate_window": {
+          "class": "proposed",
+          "source": "same as RT1062",
+          "value": 16
+        },
+        "lease_timeout_us": {
+          "class": "proposed",
+          "source": "same as RT1062",
+          "value": 500000
+        },
+        "max_concurrent_leases": {
+          "class": "proposed",
+          "source": "remote client gestures plus local buttons",
+          "value": 12
+        },
+        "max_label_bytes": {
+          "class": "proposed",
+          "source": "same bounded UTF-8 label width",
+          "value": 16
+        },
+        "max_pages": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json standalone.pages K1_PRESET_SLOT_COUNT=10 (measured precedent, not a binding constraint)",
+          "value": 10
+        },
+        "max_snapshot_entries": {
+          "class": "proposed",
+          "source": "= max_targets",
+          "value": 64
+        },
+        "max_targets": {
+          "class": "proposed",
+          "source": "same registry target set",
+          "value": 64
+        },
+        "max_transaction_ops": {
+          "class": "proposed",
+          "source": "same as RT1062",
+          "value": 16
+        },
+        "max_writers": {
+          "class": "proposed",
+          "source": "remote client and local controls",
+          "value": 2
+        },
+        "persistence_slot_bytes": {
+          "class": "derived",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json standalone.fs_min_internal_block_bytes 8192 (measured): one LittleFS block per A/B slot holds a 10-page profile (7120 B) plus its 32-byte record header",
+          "value": 8192
+        },
+        "ram_budget_bytes": {
+          "class": "proposed",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json standalone.sram_total_bytes 524 288 (measured)",
+          "value": 32768
+        }
+      },
+      "capacity_status": "proposed",
+      "control_path": "in-process local control plus the standalone remote client (source admission pending)",
+      "custom_pages_admitted": true,
+      "default_profile": "admitted",
+      "derived": {
+        "max_bindings": 90,
+        "max_profile_bytes": 7120
+      },
+      "description": "Standalone ESP32-S3 engine (separately admitted lane).",
+      "engine": true,
+      "features": {
+        "audio_focus": "planned",
+        "base_coat": "planned",
+        "colour_treatment": "planned",
+        "liveiness": "planned",
+        "palette_travel": "planned",
+        "persistence": "planned",
+        "rhythm_layer": "planned"
+      },
+      "input_modalities": [
+        "absolute",
+        "relative"
+      ],
+      "liveiness_modes": {
+        "11": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "12": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "13": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "14": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "15": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "16": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "18": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "19": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "20": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "21": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "22": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "23": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "24": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "25": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "26": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "27": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "28": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "29": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "3": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "32": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "7": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "8": {
+          "adapter_version": 0,
+          "support": "planned"
+        },
+        "9": {
+          "adapter_version": 0,
+          "support": "planned"
+        }
+      },
+      "parameters": {
+        "artistic_density": {
+          "evidence": "INTERFACE-FREEZE.md: unresolved semantics are marked unadvertised",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "Semantic reserved to keep meanings distinct; unit and consumer not yet defined.",
+          "status": "unadvertised"
+        },
+        "audio_focus": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "audio_focus_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "base_coat": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "base_coat_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "blackout": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for blackout.",
+          "status": "planned"
+        },
+        "channel_intensity": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "chroma_legacy": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Chroma.",
+          "status": "planned"
+        },
+        "colour_treatment_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "contrast": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "current_limit_ma": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for the current limit.",
+          "status": "planned"
+        },
+        "global_master": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for the global master.",
+          "status": "planned"
+        },
+        "liveiness": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "liveiness_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "mode": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for mode selection.",
+          "status": "planned"
+        },
+        "mood_legacy": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Mood.",
+          "status": "planned"
+        },
+        "motion": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "palette": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for palette selection.",
+          "status": "planned"
+        },
+        "palette_position": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "palette_span": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "palette_transition": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "palette_travel": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "palette_travel_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "persistence": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "persistence_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "photons_legacy": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Photons.",
+          "status": "planned"
+        },
+        "rhythm_layer_on": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "rhythm_mix": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "saturation": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "saturation_legacy": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Saturation.",
+          "status": "planned"
+        },
+        "warmth": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        },
+        "width": {
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "status": "planned"
+        }
+      },
+      "services": {
+        "persistence": true,
+        "profile_transfer": false,
+        "route_ble": false,
+        "route_fixture": false,
+        "route_local": true
+      }
+    },
+    "titan": {
+      "capacities": {
+        "channel_count": {
+          "class": "measured",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.ws2816_pixels_per_lane 80 x 2 lanes",
+          "value": 2
+        },
+        "duplicate_window": {
+          "class": "proposed",
+          "source": "fixture client retries only; half the RT1062 window",
+          "value": 8
+        },
+        "lease_timeout_us": {
+          "class": "measured-absent",
+          "source": "no leases without a gesture source",
+          "value": 0
+        },
+        "max_concurrent_leases": {
+          "class": "measured-absent",
+          "source": "no gesture source on Titan today: no leases",
+          "value": 0
+        },
+        "max_label_bytes": {
+          "class": "measured-absent",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.string_bytes_on_wire (measured-absent)",
+          "value": 0
+        },
+        "max_pages": {
+          "class": "measured-absent",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.bindings (measured-absent: no physical binding path or console link); profiles are explicitly rejected",
+          "value": 0
+        },
+        "max_snapshot_entries": {
+          "class": "proposed",
+          "source": "= max_targets",
+          "value": 64
+        },
+        "max_targets": {
+          "class": "proposed",
+          "source": "portable engine imported deliberately (Titan REFERENCE-MANIFEST); same registry target set",
+          "value": 64
+        },
+        "max_transaction_ops": {
+          "class": "derived",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.fixture_protocol_payload_bytes_max 360 (measured): 36 + 24 n <= 360 gives n <= 13; 10 leaves room for the fixture envelope",
+          "value": 10
+        },
+        "max_writers": {
+          "class": "derived",
+          "source": "one host fixture client",
+          "value": 1
+        },
+        "persistence_slot_bytes": {
+          "class": "measured-absent",
+          "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.persistence_bytes (measured-absent: no flash-backed config store)",
+          "value": 0
+        },
+        "ram_budget_bytes": {
+          "class": "proposed",
+          "source": "RA8P1 SRAM is larger than RT1062's engine budget; proposal mirrors RT1062",
+          "value": 32768
+        }
+      },
+      "capacity_status": "proposed",
+      "control_path": "host USB-CDC fixture adapter (intermediate control path; no BLE route today)",
+      "custom_pages_admitted": false,
+      "default_profile": "rejected: capacity_pages",
+      "derived": {
+        "max_bindings": 0,
+        "max_profile_bytes": 0
+      },
+      "description": "RA8P1 Titan Mini: scalar functional-parity probe with a USB-CDC fixture shell.",
+      "engine": true,
+      "features": {
+        "audio_focus": "unsupported",
+        "base_coat": "unsupported",
+        "colour_treatment": "unsupported",
+        "liveiness": "unsupported",
+        "palette_travel": "unsupported",
+        "persistence": "unsupported",
+        "rhythm_layer": "unsupported"
+      },
+      "input_modalities": [
+        "absolute"
+      ],
+      "liveiness_modes": {
+        "11": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "12": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "13": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "14": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "15": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "16": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "18": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "19": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "20": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "21": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "22": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "23": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "24": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "25": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "26": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "27": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "28": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "29": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "3": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "32": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "7": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "8": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        },
+        "9": {
+          "adapter_version": 0,
+          "support": "unsupported"
+        }
+      },
+      "parameters": {
+        "artistic_density": {
+          "evidence": "INTERFACE-FREEZE.md: unresolved semantics are marked unadvertised",
+          "integration": "n/a",
+          "owner": "VP",
+          "reason": "Semantic reserved to keep meanings distinct; unit and consumer not yet defined.",
+          "status": "unadvertised"
+        },
+        "audio_focus": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "audio_focus_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "base_coat": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "base_coat_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "blackout": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "channel_intensity": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "chroma_legacy": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "colour_treatment_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "contrast": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "current_limit_ma": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "global_master": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "liveiness": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "liveiness_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "mode": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "mood_legacy": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "motion": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "palette": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "palette_position": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "palette_span": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "palette_transition": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "palette_travel": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "palette_travel_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "persistence": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "persistence_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "photons_legacy": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "rhythm_layer_on": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "rhythm_mix": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "saturation": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "saturation_legacy": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "warmth": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        },
+        "width": {
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)",
+          "integration": "n/a",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "status": "unsupported"
+        }
+      },
+      "services": {
+        "persistence": false,
+        "profile_transfer": false,
+        "route_ble": false,
+        "route_fixture": true,
+        "route_local": false
+      }
+    }
+  },
+  "registry_sha256": "da4f018034ce5cd83b43104e958afe9dfed764dc60ff2c97ccd8d344319bdffc",
+  "schema": "k1.control-capability-matrix/2"
+}

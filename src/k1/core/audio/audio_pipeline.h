@@ -51,6 +51,13 @@ class AudioPipeline final {
     [[nodiscard]] AudioPipelineOutput process(
         const AudioPipelineInput& input) noexcept;
 
+    // Read-only view of the incumbent tempo state for observers such as the
+    // TempoFieldV1 sidecar (core/audio/tempo_field.h). Const by construction:
+    // an observer cannot feed back into the winner/flywheel trajectory.
+    [[nodiscard]] const TempoTrackerState& tempoTrackerState() const noexcept {
+        return tempo_state_;
+    }
+
   private:
     GdftConfiguration gdft_configuration_{};
     GdftPostprocessState gdft_state_{};

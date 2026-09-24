@@ -11,7 +11,7 @@ import struct
 import subprocess
 import tempfile
 from datetime import datetime, timezone
-from verify_imports import ROOT, REFERENCE, PIN, verify
+from verify_imports import ROOT, REFERENCE, PIN, verify, commit_for
 from run_host import run
 from fixture_wire import read_schema, decode
 
@@ -147,7 +147,7 @@ def main():
             for name in names:
                 path = donor / name
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(subprocess.check_output(['git', '-C', str(REFERENCE), 'show', f'{PIN}:{name}']))
+                path.write_bytes(subprocess.check_output(['git', '-C', str(REFERENCE), 'show', f'{commit_for(name)}:{name}']))
             binaries = {}
             for label, source in [('reference', donor), ('candidate', ROOT / 'src/k1')]:
                 executable = args.output / label

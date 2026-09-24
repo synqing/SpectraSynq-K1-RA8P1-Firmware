@@ -1,0 +1,997 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:spectrasynq:k1:control-registry:2",
+  "title": "K1 control semantic registry, version 2",
+  "description": "Structural schema for the canonical v2 registry. Identifier uniqueness, cross references, v1 alias exactness, domain ordering and feature/context consistency are enforced by scripts/export_control_bundle.py.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "registry_major",
+    "registry_minor",
+    "status",
+    "id_space",
+    "sources",
+    "channels",
+    "parameters",
+    "features",
+    "contexts",
+    "response_policies",
+    "liveiness_adapters",
+    "notes"
+  ],
+  "properties": {
+    "schema": {
+      "const": "k1.control-registry/2"
+    },
+    "registry_major": {
+      "const": 2
+    },
+    "registry_minor": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 65535
+    },
+    "status": {
+      "enum": [
+        "proposed",
+        "frozen"
+      ]
+    },
+    "id_space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parameters",
+        "features",
+        "contexts"
+      ],
+      "properties": {
+        "parameters": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "features": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer"
+          }
+        },
+        "contexts": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "v1_control_map",
+        "mode_catalogue",
+        "palette_catalogue"
+      ],
+      "properties": {
+        "v1_control_map": {
+          "type": "string"
+        },
+        "mode_catalogue": {
+          "type": "string"
+        },
+        "palette_catalogue": {
+          "type": "string"
+        }
+      }
+    },
+    "channels": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "channel",
+          "label",
+          "v1_target"
+        ],
+        "properties": {
+          "channel": {
+            "enum": [
+              "primary",
+              "secondary"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 23
+          },
+          "v1_target": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "parameters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/parameter"
+      }
+    },
+    "features": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/feature"
+      }
+    },
+    "contexts": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/context"
+      }
+    },
+    "response_policies": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 32,
+      "items": {
+        "$ref": "#/$defs/policy"
+      }
+    },
+    "liveiness_adapters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "semantic",
+        "semantic_version",
+        "neutral",
+        "owner",
+        "applies_to",
+        "admitted",
+        "unadmitted_reason"
+      ],
+      "properties": {
+        "semantic": {
+          "const": "liveiness"
+        },
+        "semantic_version": {
+          "const": 1
+        },
+        "neutral": {
+          "const": 0.5
+        },
+        "owner": {
+          "const": "MOD"
+        },
+        "applies_to": {
+          "const": "enabled_product_modes"
+        },
+        "admitted": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode_id",
+              "adapter_version",
+              "fixture"
+            ],
+            "properties": {
+              "mode_id": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 255
+              },
+              "adapter_version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 255
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "unadmitted_reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "key": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,23}$"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 23
+    },
+    "parameter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "short_label",
+        "semantic_version",
+        "value_kind",
+        "scope",
+        "unit",
+        "formatter",
+        "legal_min",
+        "legal_max",
+        "default",
+        "neutral",
+        "canonical_step",
+        "numeric_encoding",
+        "response_owner",
+        "lifecycle",
+        "migration_policy",
+        "flags",
+        "feature",
+        "enable",
+        "dependency",
+        "context",
+        "v1_alias",
+        "enum",
+        "description",
+        "support"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 4095
+        },
+        "key": {
+          "$ref": "#/$defs/key"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "short_label": {
+          "$ref": "#/$defs/label"
+        },
+        "semantic_version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "value_kind": {
+          "enum": [
+            "real",
+            "integer",
+            "boolean",
+            "enum"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "channel",
+            "global"
+          ]
+        },
+        "unit": {
+          "enum": [
+            "none",
+            "fraction",
+            "bipolar_fraction",
+            "ratio",
+            "pixels",
+            "pixels_per_second",
+            "seconds",
+            "milliseconds",
+            "q0_16",
+            "cc14",
+            "milliamps",
+            "enum_index",
+            "boolean"
+          ]
+        },
+        "formatter": {
+          "enum": [
+            "raw",
+            "percent",
+            "signed_percent",
+            "decimal2",
+            "seconds",
+            "pixels",
+            "pixels_per_second",
+            "on_off",
+            "enum_label",
+            "q0_16_percent",
+            "cc14_percent",
+            "milliamps",
+            "ratio"
+          ]
+        },
+        "legal_min": {
+          "type": "number"
+        },
+        "legal_max": {
+          "type": "number"
+        },
+        "default": {
+          "type": "number"
+        },
+        "neutral": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "canonical_step": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "numeric_encoding": {
+          "enum": [
+            "f32",
+            "i32",
+            "u16_q0_16",
+            "cc14",
+            "boolean",
+            "enum_u16"
+          ]
+        },
+        "response_owner": {
+          "enum": [
+            "immediate",
+            "engine",
+            "mode_adapter"
+          ]
+        },
+        "lifecycle": {
+          "enum": [
+            "proposed",
+            "frozen",
+            "deprecated",
+            "unadvertised"
+          ]
+        },
+        "migration_policy": {
+          "enum": [
+            "none",
+            "legacy_preserved",
+            "named_migration_required",
+            "default_for_new_field"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "enable",
+              "legacy_alias",
+              "log_domain_legal",
+              "relative_admitted",
+              "sparse_enum",
+              "output_authority"
+            ]
+          }
+        },
+        "feature": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "enable": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dependency": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "context": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "v1_alias": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "primary",
+                "secondary"
+              ],
+              "properties": {
+                "primary": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 70
+                },
+                "secondary": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 70
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "global"
+              ],
+              "properties": {
+                "global": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 70
+                }
+              }
+            }
+          ]
+        },
+        "enum": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "count",
+                "legal"
+              ],
+              "properties": {
+                "count": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65536
+                },
+                "legal": {
+                  "enum": [
+                    null,
+                    "enabled_product_modes"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "support": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rt1062",
+            "titan",
+            "standalone_s3",
+            "console"
+          ],
+          "properties": {
+            "rt1062": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "owner",
+                "reason",
+                "evidence"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "implemented",
+                    "planned",
+                    "unsupported",
+                    "unadvertised",
+                    "not_applicable"
+                  ]
+                },
+                "owner": {
+                  "enum": [
+                    "VP",
+                    "AP",
+                    "MOD",
+                    "CTL",
+                    "INT",
+                    "TRN",
+                    "UI",
+                    "INP",
+                    "TIT",
+                    "S3"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "titan": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "owner",
+                "reason",
+                "evidence"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "implemented",
+                    "planned",
+                    "unsupported",
+                    "unadvertised",
+                    "not_applicable"
+                  ]
+                },
+                "owner": {
+                  "enum": [
+                    "VP",
+                    "AP",
+                    "MOD",
+                    "CTL",
+                    "INT",
+                    "TRN",
+                    "UI",
+                    "INP",
+                    "TIT",
+                    "S3"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "standalone_s3": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "owner",
+                "reason",
+                "evidence"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "implemented",
+                    "planned",
+                    "unsupported",
+                    "unadvertised",
+                    "not_applicable"
+                  ]
+                },
+                "owner": {
+                  "enum": [
+                    "VP",
+                    "AP",
+                    "MOD",
+                    "CTL",
+                    "INT",
+                    "TRN",
+                    "UI",
+                    "INP",
+                    "TIT",
+                    "S3"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            },
+            "console": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "owner",
+                "reason",
+                "evidence"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "implemented",
+                    "planned",
+                    "unsupported",
+                    "unadvertised",
+                    "not_applicable"
+                  ]
+                },
+                "owner": {
+                  "enum": [
+                    "VP",
+                    "AP",
+                    "MOD",
+                    "CTL",
+                    "INT",
+                    "TRN",
+                    "UI",
+                    "INP",
+                    "TIT",
+                    "S3"
+                  ]
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "feature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "version",
+        "enable",
+        "owner",
+        "stage_order",
+        "bypass",
+        "reenable",
+        "reset_causes",
+        "state_bytes_per_channel",
+        "max_instances_per_channel",
+        "amounts",
+        "dependencies",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 4096,
+          "maximum": 8191
+        },
+        "key": {
+          "$ref": "#/$defs/key"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "enable": {
+          "$ref": "#/$defs/key"
+        },
+        "owner": {
+          "enum": [
+            "VP",
+            "AP",
+            "MOD",
+            "CTL"
+          ]
+        },
+        "stage_order": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 255
+        },
+        "bypass": {
+          "enum": [
+            "identity",
+            "hold_last",
+            "release_to_base"
+          ]
+        },
+        "reenable": {
+          "enum": [
+            "resume_from_base",
+            "reinitialise"
+          ]
+        },
+        "reset_causes": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "mode_change",
+              "palette_change",
+              "engine_epoch",
+              "profile_commit",
+              "blackout",
+              "explicit_reset"
+            ]
+          }
+        },
+        "state_bytes_per_channel": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 4294967295
+        },
+        "max_instances_per_channel": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 255
+        },
+        "amounts": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/key"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/key"
+          }
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "label",
+        "version",
+        "visualiser",
+        "scope",
+        "unit",
+        "preview_basis",
+        "parameters",
+        "dependencies",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 8192,
+          "maximum": 12287
+        },
+        "key": {
+          "$ref": "#/$defs/key"
+        },
+        "label": {
+          "$ref": "#/$defs/label"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "visualiser": {
+          "enum": [
+            "palette_path",
+            "colour_change",
+            "transfer_curve",
+            "trajectory",
+            "decay_envelope",
+            "rhythm_evidence",
+            "response_trace",
+            "liveiness_modulation",
+            "output_power"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "channel",
+            "global"
+          ]
+        },
+        "unit": {
+          "type": "string"
+        },
+        "preview_basis": {
+          "enum": [
+            "illustrative",
+            "measured"
+          ]
+        },
+        "parameters": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/key"
+          }
+        },
+        "dependencies": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/key"
+          }
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "key",
+        "kind",
+        "description"
+      ],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 31
+        },
+        "key": {
+          "$ref": "#/$defs/key"
+        },
+        "kind": {
+          "enum": [
+            "descriptor_default",
+            "direct",
+            "exponential",
+            "slew"
+          ]
+        },
+        "tau_ms": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 5000
+        },
+        "span_per_second": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "exponential"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "tau_ms"
+            ],
+            "not": {
+              "required": [
+                "span_per_second"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "slew"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "span_per_second"
+            ],
+            "not": {
+              "required": [
+                "tau_ms"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "descriptor_default",
+                  "direct"
+                ]
+              }
+            }
+          },
+          "then": {
+            "allOf": [
+              {
+                "not": {
+                  "required": [
+                    "tau_ms"
+                  ]
+                }
+              },
+              {
+                "not": {
+                  "required": [
+                    "span_per_second"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

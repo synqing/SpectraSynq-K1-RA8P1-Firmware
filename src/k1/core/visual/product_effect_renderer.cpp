@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "core/visual/fastled_colour_compat.h"
+#include "core/visual/modes/liveiness_registry.h"
 #include "core/visual/pixel_topology.h"
 #include "core/visual/product_catalogue.h"
 #include "core/visual/product_palette.h"
@@ -582,8 +583,11 @@ void renderSpectrumRiver(ChannelRenderState& channel, const std::uint16_t mode,
         (kRiverTideFloor + kRiverTideSurge * state.surge_tide_env) *
         updateRiverSurge(state, channel.focusedAudio(), delta_seconds);
   }
-  const float drift = kRiverDriftBase * drift_multiplier *
-                      static_cast<float>(kPixelsPerChannel) / 128.0F;
+  const float drift = modes::liveinessEffective(
+      mode,
+      kRiverDriftBase * drift_multiplier *
+          static_cast<float>(kPixelsPerChannel) / 128.0F,
+      channel.controls().liveiness);
   transportOutward(channel.frame(), channel.previousFrame(), drift,
                    kRiverAlpha, delta_seconds);
   clearLeftHalf(channel.frame());
@@ -600,9 +604,11 @@ void renderSpectrumRiver(ChannelRenderState& channel, const std::uint16_t mode,
 void renderEmber(ChannelRenderState& channel,
                  const float delta_seconds) noexcept {
   const float energy = clamp01(channel.focusedAudio().spectral_energy);
-  const float drift = kEmberDriftBase *
-                      (kEmberDriftFloor + kEmberDriftSurge * energy) *
-                      static_cast<float>(kPixelsPerChannel) / 128.0F;
+  const float drift = modes::liveinessEffective(
+      16U,
+      kEmberDriftBase * (kEmberDriftFloor + kEmberDriftSurge * energy) *
+          static_cast<float>(kPixelsPerChannel) / 128.0F,
+      channel.controls().liveiness);
   transportOutward(channel.frame(), channel.previousFrame(), drift,
                    kEmberAlpha, delta_seconds);
   clearLeftHalf(channel.frame());
@@ -769,8 +775,9 @@ void renderWaveformFamily(ChannelRenderState& channel,
         target_retention,
         clamp01(channel.controls().vp_waveform_idle_fade), 0.999F);
   }
-  const float pixels_per_frame =
-      scroll_pixels_per_second / kNominalFramesPerSecond;
+  const float pixels_per_frame = modes::liveinessEffective(
+      mode, scroll_pixels_per_second / kNominalFramesPerSecond,
+      channel.controls().liveiness);
   transportOutward(channel.frame(), channel.previousFrame(), pixels_per_frame,
                    clamp01(target_retention), delta_seconds);
   clearLeftHalf(channel.frame());
@@ -852,7 +859,9 @@ void renderWaveformK1(ChannelRenderState& channel,
       ::expf(-decay_rate / kNominalFramesPerSecond);
   transportOutward(
       channel.frame(), channel.previousFrame(),
-      kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond,
+      modes::liveinessEffective(
+          32U, kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond,
+          channel.controls().liveiness),
       nominal_retention, dt);
   clearLeftHalf(channel.frame());
   if (present) {
@@ -908,7 +917,10 @@ void renderComet(ChannelRenderState& channel,
     if (state.comet_life[index] <= 0.01F) {
       continue;
     }
-    state.comet_pos[index] += state.comet_vel[index] * frames;
+    state.comet_pos[index] +=
+        modes::liveinessEffective(13U, state.comet_vel[index],
+                                  channel.controls().liveiness) *
+        frames;
     if (state.comet_pos[index] >= static_cast<float>(kPixelsPerChannel)) {
       state.comet_life[index] = 0.0F;
       continue;
@@ -1073,7 +1085,10 @@ void renderPercussionBurst(ChannelRenderState& channel,
         continue;
       }
       state.percussion_last_pos[index] = state.percussion_pos[index];
-      state.percussion_pos[index] += state.percussion_velocity[index] * dt;
+      state.percussion_pos[index] +=
+          modes::liveinessEffective(26U, state.percussion_velocity[index],
+                                    channel.controls().liveiness) *
+          dt;
       state.percussion_life[index] -= dt;
       if (state.percussion_life[index] <= 0.0F ||
           state.percussion_pos[index] < 0.0F ||
@@ -1139,6 +1154,8 @@ void renderTempoRiver(ChannelRenderState& channel,
                                 visual.tempo.confidence);
   float velocity = idle_pixels_per_second +
                    (tempo_pixels_per_second - idle_pixels_per_second) * gate;
+  velocity = modes::liveinessEffective(19U, velocity,
+                                       channel.controls().liveiness);
   const float floor_velocity = kTempoRiverFloorPixelsPerFrame * scale *
                                kNominalFramesPerSecond;
   const float maximum_velocity = kTempoRiverMaximumPixelsPerFrame * scale *
@@ -1163,7 +1180,9 @@ void drawTempoComet(ChannelRenderState& channel, const std::size_t index,
                     const float frames) noexcept {
   ChannelEffectState& state = channel.effectState();
   state.tempo_comet_pos[index] +=
-      state.tempo_comet_vel[index] * frames / kNominalFramesPerSecond;
+      modes::liveinessEffective(20U, state.tempo_comet_vel[index],
+                                channel.controls().liveiness) *
+      frames / kNominalFramesPerSecond;
   if (state.tempo_comet_pos[index] >=
       static_cast<float>(kPixelsPerChannel)) {
     state.tempo_comet_life[index] = 0.0F;
@@ -1336,8 +1355,10 @@ void renderWaveformTempo(ChannelRenderState& channel,
   const bool silent =
       (channel.focusedAudio().event_flags & contract::kEventSilence) != 0U &&
       peak < 0.02F;
-  const float velocity = tempoVelocityPixelsPerSecond(
-      visual.tempo, 24.0F, 0.50F, 30.0F, silent);
+  const float velocity = modes::liveinessEffective(
+      18U, tempoVelocityPixelsPerSecond(visual.tempo, 24.0F, 0.50F, 30.0F,
+                                        silent),
+      channel.controls().liveiness);
   const float retention = present ? 1.0F - 0.10F * peak : 0.82F;
   transportOutward(channel.frame(), channel.previousFrame(),
                    velocity / kNominalFramesPerSecond, retention,
@@ -1424,10 +1445,12 @@ void renderTempoCometAnticipate(ChannelRenderState& channel,
         }
       }
       state.anticipate_launch[slot] = static_cast<float>(kCentreRight);
-      state.anticipate_target[slot] =
+      state.anticipate_target[slot] = modes::liveinessEffective(
+          27U,
           (kTempoCometReachMinimum +
            (kTempoCometReachMaximum - kTempoCometReachMinimum) * strength) *
-          static_cast<float>(kPixelsPerHalf);
+              static_cast<float>(kPixelsPerHalf),
+          channel.controls().liveiness);
       state.anticipate_period[slot] = 60.0F / run_bpm;
       state.anticipate_time[slot] = 0.0F;
       state.anticipate_size[slot] =
@@ -1541,6 +1564,8 @@ void renderTempoRiverWalk(ChannelRenderState& channel,
       visual.tempo, kTempoRiverPixelsPerBeat * scale, kTempoRiverDepth,
       kTempoRiverIdlePixelsPerFrame * scale * kNominalFramesPerSecond,
       false);
+  velocity = modes::liveinessEffective(29U, velocity,
+                                       channel.controls().liveiness);
   const float floor_velocity = kTempoRiverFloorPixelsPerFrame * scale *
                                kNominalFramesPerSecond;
   const float maximum_velocity = kTempoRiverMaximumPixelsPerFrame * scale *
@@ -1725,6 +1750,8 @@ void renderDenseForge(ChannelRenderState& channel, const bool chord_aware,
     if (chord_aware) {
       base_hue = heldChordHue(state, audio, base_hue, dt);
     }
+    const float contrast = modes::liveinessEffective(
+        chord_aware ? 24U : 21U, 1.0F, channel.controls().liveiness);
     for (std::size_t distance = 0U; distance < kPixelsPerHalf; ++distance) {
       const float unit = static_cast<float>(distance) /
                          static_cast<float>(kPixelsPerHalf - 1U);
@@ -1744,7 +1771,7 @@ void renderDenseForge(ChannelRenderState& channel, const bool chord_aware,
       const float spectrum =
           bin_count > 0U ? clamp01(audio.spectrum[bin]) : 0.0F;
       const float level = clamp01(
-          (0.48F * interference + 0.52F * spectrum) *
+          (0.48F * interference * contrast + 0.52F * spectrum) *
           state.dense_activity_env);
       if (level >= 0.008F) {
         addWeighted(channel.frame()[kCentreRight + distance],
@@ -1806,7 +1833,9 @@ void renderSnapwave(ChannelRenderState& channel,
     oscillator /= static_cast<float>(notes);
   }
   oscillator = ::tanhf(2.0F * oscillator);
-  float amplitude = oscillator * state.snap_peak_env * 0.97F;
+  float amplitude = modes::liveinessEffective(
+      22U, oscillator * state.snap_peak_env * 0.97F,
+      channel.controls().liveiness);
   if (audio.kick_strength > 0.0F) {
     amplitude += (amplitude < 0.0F ? -1.0F : 1.0F) *
                  0.05F * clamp01(audio.kick_strength);
@@ -1933,7 +1962,10 @@ void renderPulsePrism(ChannelRenderState& channel,
     if (state.prism_life[ring] <= 0.0F) {
       continue;
     }
-    state.prism_radius[ring] += state.prism_velocity[ring] * dt;
+    state.prism_radius[ring] +=
+        modes::liveinessEffective(23U, state.prism_velocity[ring],
+                                  channel.controls().liveiness) *
+        dt;
     state.prism_life[ring] -= 0.58F * dt;
     if (state.prism_life[ring] <= 0.0F ||
         state.prism_radius[ring] >= static_cast<float>(kPixelsPerHalf)) {
@@ -1969,9 +2001,11 @@ void renderChromaConstellation(ChannelRenderState& channel,
   const bool present =
       audio.spectral_energy >= 0.08F || audio.novelty >= 0.08F;
   if (!silent) {
-    const float drift = 0.35F *
-                        (0.40F + 0.60F * clamp01(audio.spectral_energy)) *
-                        (static_cast<float>(kPixelsPerChannel) / 128.0F);
+    const float drift = modes::liveinessEffective(
+        25U,
+        0.35F * (0.40F + 0.60F * clamp01(audio.spectral_energy)) *
+            (static_cast<float>(kPixelsPerChannel) / 128.0F),
+        channel.controls().liveiness);
     transportOutward(channel.frame(), channel.previousFrame(), drift,
                      present ? 0.90F : 0.82F, dt);
   }
@@ -2045,6 +2079,8 @@ void renderBloomFamily(ChannelRenderState& channel, const std::uint16_t mode,
                   resolution_scale * multiplier;
   }
   propagation *= std::clamp(controls.vp_bloom_shift_scale, 0.25F, 2.00F);
+  propagation = modes::liveinessEffective(mode, propagation,
+                                          controls.liveiness);
   transportOutward(channel.frame(), channel.previousFrame(), propagation,
                    alpha, delta_seconds);
   Pixel8 injection = injectionColour(channel);

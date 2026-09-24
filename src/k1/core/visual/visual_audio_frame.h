@@ -7,6 +7,10 @@
 #include "contract/audio_features_v1.h"
 #include "core/audio/tempo_tracker.h"
 
+namespace k1::contract {
+struct TempoFieldV1;
+}  // namespace k1::contract
+
 namespace k1::core::visual {
 
 inline constexpr std::size_t kVisualWaveformHistoryFrames = 4U;
@@ -32,6 +36,10 @@ struct VisualAudioFrameView final {
   const audio::TempoTrackerEvent& tempo;
   const VisualWaveformHistory& waveform;
   std::uint64_t source_publication_us;
+  // Optional rhythmic evidence published beside `tempo` (never instead of it).
+  // Null, or a field without kTempoFieldEnabled, means unavailable. Valid for
+  // this render call only; consumers validate and project, never mutate.
+  const contract::TempoFieldV1* tempo_field = nullptr;
 };
 
 }  // namespace k1::core::visual
