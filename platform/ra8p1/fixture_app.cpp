@@ -106,7 +106,12 @@ void palette_step(bool emit) {
     std::uint32_t cycles = 0;
     for (unsigned lane = 0; lane < 2; ++lane) {
       auto* wire = palette_wire_snapshot + 64U + 480U + lane*480U;
-      const auto size = palettes.packBenchGrb48Lane(wire, 480U, lane);
+      // packNative16Lane's own config_.use_wide_native16 gate (default
+      // false) makes this byte-identical to packBenchGrb48Lane unless the
+      // switch is on; wideFrame() is only ever produced by step() when that
+      // same flag is on, so this is never a stale-frame read either way.
+      const auto size = palettes.packNative16Lane(
+          wire, 480U, lane, &palettes.wideFrame(config.output_channel));
       k1_ws281x_diag_result_t result{};
       const int emitted = k1_ws281x_diag_emit(wire, size, 4U, lane, palette_clock_hz, &result);
       snapshot_word(12U+lane, static_cast<std::uint32_t>(emitted));

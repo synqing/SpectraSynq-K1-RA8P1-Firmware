@@ -279,6 +279,49 @@ bool PaletteRuntime::step(std::uint64_t now_us,
                                 channel->outputTreatmentState());
     ++channel_index;
   }
+  // TIT-2 wide-native16 producer. config_.use_wide_native16 gates this so a
+  // disabled run does no extra work and packNative16Lane's own gate (see
+  // its definition below) never reads stale content -- but note wide_a_/
+  // wide_b_ still hold whatever they last held once the flag is turned
+  // back off, which is why packNative16Lane checks the flag itself rather
+  // than trusting the pointer alone.
+  //
+  // What this does: takes each channel's just-rendered, just-output-treated
+  // Pixel8 frame (the same frame() packBenchGrb48Lane already reads) and
+  // quantises it through the imported wide endpoint's own exact law,
+  // core::visual::wide::quantiseUnorm16(pixel / 255.0F). What this does
+  // NOT do: run the wide endpoint's E1-E4 stages (finite/enabled checks,
+  // intensity*master gain, device transfer curve, shared current-limit
+  // scale -- see core/visual/wide/wide_endpoint.h's endpoint-stage-order
+  // comment) -- there is no pre-quantisation working-domain F32 frame
+  // exposed by ChannelRenderState/product_effect_renderer to feed them.
+  // Only E5 (quantise) is exercised. A lane that wants the full E1-E4
+  // pipeline needs the renderer to expose that F32 frame first; that is a
+  // larger change than this producer, and is not attempted here.
+  //
+  // PROVEN, NOT ASSUMED (tests/host/test_palette_runtime.cpp,
+  // WIDE_NATIVE16_PRODUCER_PASS): because the source here is already
+  // quantised to Pixel8, this producer's packed output is currently
+  // byte-identical to the legacy lift-to-16 path for every pixel a live
+  // render has actually produced. quantiseUnorm16 is exact and
+  // 65535/255 == 257 exactly, so no integer Pixel8 value is ever near a
+  // half-way rounding boundary the float division in `p.red / 255.0F`
+  // could push it across. Turning this switch on today changes nothing
+  // observable; it only becomes meaningful once a true working-domain F32
+  // source feeds it (see above).
+  if (config_.use_wide_native16) {
+    const auto fill = [](core::PixelSpan frame,
+                         core::visual::wide::DeviceRgb16Frame& out) noexcept {
+      for (std::size_t i = 0; i < frame.size(); ++i) {
+        const auto p = frame[i];
+        out[i] = {core::visual::wide::quantiseUnorm16(float(p.red) / 255.0F),
+                  core::visual::wide::quantiseUnorm16(float(p.green) / 255.0F),
+                  core::visual::wide::quantiseUnorm16(float(p.blue) / 255.0F)};
+      }
+    };
+    fill(a_.frame(), wide_a_);
+    fill(b_.frame(), wide_b_);
+  }
   ++frames_;
   return true;
 }

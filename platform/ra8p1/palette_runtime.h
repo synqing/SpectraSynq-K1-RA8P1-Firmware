@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
+#include "core/visual/wide/wide_endpoint.h"
 #include "core/visual/wide/wide_types.h"
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
@@ -101,6 +102,17 @@ class PaletteRuntime {
   std::size_t packNative16Lane(std::uint8_t* destination, std::size_t capacity,
                               unsigned lane,
                               const core::visual::wide::DeviceRgb16Frame* wide_frame) const noexcept;
+  // step()'s own wide-native16 producer output for channel i (0=A, 1=B):
+  // core::visual::wide::quantiseUnorm16(pixel / 255.0F) per component,
+  // straight from that channel's rendered Pixel8 frame -- see step()'s
+  // implementation comment for exactly what this does and does not exercise
+  // of the wide endpoint's full E1-E5 pipeline. Produced only when
+  // config_.use_wide_native16 is true; holds its default-constructed
+  // (all-black) value otherwise, so a caller must still gate on
+  // config().use_wide_native16 itself, exactly as packNative16Lane does.
+  const core::visual::wide::DeviceRgb16Frame& wideFrame(unsigned i) const noexcept {
+    return i ? wide_b_ : wide_a_;
+  }
   std::size_t catalogueJson(char* out, std::size_t capacity) const noexcept;
   std::size_t statusJson(char* out, std::size_t capacity) const noexcept;
   void recordEmit(int result, std::uint32_t cycles) noexcept;
@@ -131,5 +143,6 @@ class PaletteRuntime {
   std::uint64_t effect_frames_ = 0U;
   std::uint64_t dwell_frames_ = 0U;
   std::uint64_t dwell_reinits_ = 0U;
+  core::visual::wide::DeviceRgb16Frame wide_a_{}, wide_b_{};
 };
 } // namespace k1::titan

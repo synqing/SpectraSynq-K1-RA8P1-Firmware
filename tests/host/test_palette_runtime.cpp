@@ -121,6 +121,66 @@ int main() {
       assert(any_lane_differs);
       std::printf("WIDE_NATIVE16_MUTATION_PASS default_off_identical=true switched_on_differs=true\n");
     }
+    // step()'s own wide-native16 producer, on LIVE render output (the same
+    // palette-preview frame this test already verified above via
+    // sampleProductPaletteFastLed16 -- not a hand-constructed frame).
+    {
+      auto transport = c; transport.output_channel = 0U; transport.brightness = 255U;
+      transport.use_wide_native16 = false;
+      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
+      // Off: packNative16Lane through the real (default) config equals the
+      // legacy pack, exactly as fixture_app.cpp's emit path now calls it.
+      for (unsigned lane = 0; lane < 2; ++lane) {
+        std::uint8_t legacy[480], routed[480];
+        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
+        assert(runtime.packNative16Lane(routed, sizeof(routed), lane,
+                                        &runtime.wideFrame(0U)) == 480);
+        assert(!std::memcmp(legacy, routed, sizeof(legacy)));
+      }
+      transport.use_wide_native16 = true;
+      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
+      bool live_pixels_nonzero = false;
+      for (unsigned lane = 0; lane < 2; ++lane) {
+        std::uint8_t legacy[480], routed[480];
+        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
+        assert(runtime.packNative16Lane(routed, sizeof(routed), lane,
+                                        &runtime.wideFrame(0U)) == 480);
+        // Documented finding, not an assumption: for a source already
+        // quantised to Pixel8, this producer is mathematically
+        // indistinguishable from the legacy lift. quantiseUnorm16 is exact
+        // (floor(clamp(x,0,1)*65535+0.5) via integer arithmetic on the
+        // IEEE-754 significand), and 65535/255 == 257 exactly, so
+        // v*257 (the legacy lift) is never near a half-way rounding
+        // boundary for any integer v in [0,255] -- the float32 rounding in
+        // `float(v)/255.0F` is far too small (~2^-24 relative) to move the
+        // exact law's result off that same integer. Byte-for-byte identity
+        // here is therefore expected and asserted, not a bug: this producer
+        // only reaches E5 of the wide endpoint's stage order (see its
+        // comment in palette_runtime.cpp's step()); genuine divergence from
+        // the legacy path needs a true working-domain F32 source upstream
+        // of Pixel8 quantisation, which product_effect_renderer does not
+        // yet expose. WIDE_NATIVE16_MUTATION_PASS above already proves the
+        // pack/selector machinery itself is live (using a hand-built wide
+        // frame whose values are not on the v*257 grid); this block proves
+        // the current producer's honest limit on real render output.
+        assert(!std::memcmp(legacy, routed, sizeof(legacy)));
+        for (unsigned i = 0; i < 80; ++i) {
+          const auto pixel = runtime.channel(0).frame()[lane * 80 + i];
+          if (pixel.red || pixel.green || pixel.blue) live_pixels_nonzero = true;
+          const std::uint16_t expect_native[3]{
+              core::visual::wide::quantiseUnorm16(float(pixel.green) / 255.0F),
+              core::visual::wide::quantiseUnorm16(float(pixel.red) / 255.0F),
+              core::visual::wide::quantiseUnorm16(float(pixel.blue) / 255.0F)};
+          for (unsigned component = 0; component < 3; ++component) {
+            const unsigned value = (unsigned(routed[i*6+component*2]) << 8) | routed[i*6+component*2+1];
+            assert(value == expect_native[component]);
+          }
+        }
+      }
+      assert(live_pixels_nonzero);  // A vacuous all-black test proves nothing.
+      std::printf("WIDE_NATIVE16_PRODUCER_PASS live_render=true nonzero_pixels=true "
+                  "pixel8_sourced_identity_confirmed=true\n");
+    }
     assert(runtime.configure(c,0U));
     auto invalid = c; invalid.palette_b = 44;
     assert(!runtime.configure(invalid, 1));
