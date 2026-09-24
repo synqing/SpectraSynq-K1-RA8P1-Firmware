@@ -21,7 +21,10 @@ PIN = "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a"
 # two commits for an unrelated, AP-owned reason that is explicitly NOT
 # imported here).
 PIN_TIT2 = "16f70a9b2907c03c8262e79d05f5a05ed1795917"
-ALLOWED_PINS = {PIN, PIN_TIT2}
+# Round 4: VP's DUR-011 native-output interface (core/visual/wide/wide_native_output.{h,cpp}
+# only -- see scripts/import_tit2_delta.py's ROUND4_PIN comment for the scope check).
+PIN_TIT2_ROUND4 = "5b34f98085e85cb6b58d8b61290a932d9e22e8fe"
+ALLOWED_PINS = {PIN, PIN_TIT2, PIN_TIT2_ROUND4}
 
 
 def commit_for(name: str, root: Path = ROOT) -> str:

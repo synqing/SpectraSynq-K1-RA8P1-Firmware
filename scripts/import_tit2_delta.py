@@ -109,10 +109,34 @@ NEW_FILES = [
     "core/control/v2/control_engine.cpp",
 ]
 
-ALL_FILES = BUMPED_FILES + NEW_FILES
+# Round 4 (ORCH, VP's DUR-011 native-output interface). Ancestor-verified
+# forward move from NEW_PIN: `git merge-base --is-ancestor 16f70a9 5b34f98`
+# exits 0. Scope checked against `git diff --stat 16f70a9 5b34f98 -- core
+# contract`: wide_native_output.{h,cpp} depend only on already-imported
+# wide_bloom.h/wide_endpoint.h/wide_types.h/channel_render_state.h (grepped
+# their own #include lines), so no further file is pulled in transitively.
+# Excluded, deliberately, as out of this delta's scope even though they
+# changed in the same commit range: contract/bridge_protocol.{h,cpp},
+# core/control/bridge_command_processor.h (a different lane's work, already
+# dirty in this shared checkout before this session started),
+# core/control/v2/control_engine.{h,cpp} + the control_v2 generated/*.json +
+# control_v2_types.h (CTL's own advancing work, not asked for here),
+# core/visual/modes/mood_liveiness_migration_v1.h and core/audio/tempo_field.cpp
+# (also changed in this range; wide_native_output does not include either).
+ROUND4_PIN = "5b34f98085e85cb6b58d8b61290a932d9e22e8fe"
+ROUND4_NEW_FILES = [
+    "core/visual/wide/wide_native_output.h",
+    "core/visual/wide/wide_native_output.cpp",
+]
+
+# (path, source_commit) pairs this script owns end to end.
+ALL_FILES: list[tuple[str, str]] = (
+    [(p, NEW_PIN) for p in BUMPED_FILES + NEW_FILES]
+    + [(p, ROUND4_PIN) for p in ROUND4_NEW_FILES]
+)
 
 
-def reference_bytes(path: str, commit: str = NEW_PIN) -> bytes:
+def reference_bytes(path: str, commit: str) -> bytes:
     return subprocess.run(
         ["git", "-C", str(REFERENCE), "show", f"{commit}:{path}"],
         capture_output=True, check=True,
@@ -138,8 +162,8 @@ def write_manifest(fieldnames: list[str], rows: dict[str, dict]) -> None:
 
 def do_write() -> int:
     fieldnames, rows = load_manifest()
-    for path in ALL_FILES:
-        data = reference_bytes(path, NEW_PIN)
+    for path, commit in ALL_FILES:
+        data = reference_bytes(path, commit)
         destination = ROOT / "src/k1" / path
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_bytes(data)
@@ -147,25 +171,25 @@ def do_write() -> int:
             "path": path,
             "sha256": hashlib.sha256(data).hexdigest(),
             "bytes": str(len(data)),
-            "source_commit": NEW_PIN,
+            "source_commit": commit,
         }
-        print(f"WROTE {path} bytes={len(data)}")
+        print(f"WROTE {path} bytes={len(data)} pin={commit}")
     write_manifest(fieldnames, rows)
-    print(f"K1_TIT2_IMPORT=WRITE files={len(ALL_FILES)} pin={NEW_PIN}")
+    print(f"K1_TIT2_IMPORT=WRITE files={len(ALL_FILES)}")
     return 0
 
 
 def do_check() -> int:
     _, rows = load_manifest()
     errors = []
-    for path in ALL_FILES:
-        data = reference_bytes(path, NEW_PIN)
+    for path, commit in ALL_FILES:
+        data = reference_bytes(path, commit)
         expected_sha = hashlib.sha256(data).hexdigest()
         row = rows.get(path)
         if row is None:
             errors.append(f"missing manifest row: {path}")
             continue
-        if row["source_commit"] != NEW_PIN:
+        if row["source_commit"] != commit:
             errors.append(f"manifest source_commit stale: {path} has {row['source_commit']}")
         if row["sha256"] != expected_sha or int(row["bytes"]) != len(data):
             errors.append(f"manifest hash/size stale: {path}")
@@ -178,9 +202,9 @@ def do_check() -> int:
     if errors:
         for error in errors:
             print(f"ERROR {error}")
-        print(f"K1_TIT2_IMPORT=CHECK_FAIL files={len(ALL_FILES)} errors={len(errors)} pin={NEW_PIN}")
+        print(f"K1_TIT2_IMPORT=CHECK_FAIL files={len(ALL_FILES)} errors={len(errors)} pins={NEW_PIN},{ROUND4_PIN}")
         return 2
-    print(f"K1_TIT2_IMPORT=CHECK_PASS files={len(ALL_FILES)} pin={NEW_PIN}")
+    print(f"K1_TIT2_IMPORT=CHECK_PASS files={len(ALL_FILES)} pins={NEW_PIN},{ROUND4_PIN}")
     return 0
 
 

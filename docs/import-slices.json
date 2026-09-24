@@ -117,6 +117,8 @@
     "core/control/v2/profile_compiler.h",
     "core/control/v2/profile_compiler.cpp",
     "core/control/v2/control_engine.h",
-    "core/control/v2/control_engine.cpp"
+    "core/control/v2/control_engine.cpp",
+    "core/visual/wide/wide_native_output.h",
+    "core/visual/wide/wide_native_output.cpp"
   ]
 }

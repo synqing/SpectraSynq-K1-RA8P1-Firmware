@@ -2,6 +2,8 @@
 #include "core/visual/product_palette.h"
 #include "core/visual/product_effect_renderer.h"
 #include <cassert>
+#include <cmath>
+#include <ctime>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
@@ -67,119 +69,139 @@ int main() {
         for(auto byte:packed) assert(byte==0xa5);
       }
     }
-    // TIT-2: packNative16Lane's default-off switch is bit-identical to the
-    // legacy lift-to-16 path, for every input this cycle's route could see:
-    // no wide frame at all, and a wide frame present but the switch off.
+    // Round 4 (ORCH) acceptance A1-A4, through PaletteRuntime::step() (not
+    // the endpoint alone). A6 (test_hd_pixel16 from its runner) lives in
+    // scripts/test_hd_pixel16.py, unrelated to this file.
     {
-      using core::visual::wide::DeviceRgb16Frame;
-      DeviceRgb16Frame wide{};
-      for (unsigned i = 0; i < wide.size(); ++i) {
-        wide[i] = {static_cast<std::uint16_t>(i * 401U),
-                   static_cast<std::uint16_t>(i * 613U + 7U),
-                   static_cast<std::uint16_t>(65535U - i * 199U)};
-      }
-      auto transport = c; transport.output_channel = 0U; transport.brightness = 200U;
-      transport.use_wide_native16 = false;
-      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
-      for (unsigned lane = 0; lane < 2; ++lane) {
-        std::uint8_t legacy[480], selected_no_frame[480], selected_flag_off[480];
-        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
-        assert(runtime.packNative16Lane(selected_no_frame, sizeof(selected_no_frame), lane, nullptr) == 480);
-        assert(runtime.packNative16Lane(selected_flag_off, sizeof(selected_flag_off), lane, &wide) == 480);
-        assert(!std::memcmp(legacy, selected_no_frame, sizeof(legacy)));
-        assert(!std::memcmp(legacy, selected_flag_off, sizeof(legacy)));
-      }
-      // Flip the switch on with the same wide frame: output must now be the
-      // wide endpoint's own words (brightness-scaled the same way as the
-      // legacy path), matching packWs2816PixelV1's byte order exactly, and
-      // it must differ from the legacy lift -- proving this is a live route,
-      // not a dead branch.
-      transport.use_wide_native16 = true;
-      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
-      bool any_lane_differs = false;
-      for (unsigned lane = 0; lane < 2; ++lane) {
-        std::uint8_t legacy[480], routed[480];
-        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
-        assert(runtime.packNative16Lane(routed, sizeof(routed), lane, &wide) == 480);
-        assert(runtime.packWideNative16Lane(routed, sizeof(routed), lane, wide) == 480);
-        if (std::memcmp(legacy, routed, sizeof(legacy)) != 0) any_lane_differs = true;
-        for (unsigned i = 0; i < 80; ++i) {
-          const auto& p = wide[lane * 80 + i];
-          const std::uint16_t expect[3]{
-              static_cast<std::uint16_t>(std::uint32_t(p.green) * 200U / 255U),
-              static_cast<std::uint16_t>(std::uint32_t(p.red) * 200U / 255U),
-              static_cast<std::uint16_t>(std::uint32_t(p.blue) * 200U / 255U)};
-          for (unsigned component = 0; component < 3; ++component) {
-            const unsigned value = (unsigned(routed[i*6+component*2]) << 8) | routed[i*6+component*2+1];
-            assert(value == expect[component]);
-          }
-        }
-        assert(!runtime.packWideNative16Lane(routed, sizeof(routed)-1, lane, wide));
-        assert(!runtime.packWideNative16Lane(routed, sizeof(routed), 2, wide));
-        assert(!runtime.packWideNative16Lane(nullptr, sizeof(routed), lane, wide));
-      }
-      assert(any_lane_differs);
-      std::printf("WIDE_NATIVE16_MUTATION_PASS default_off_identical=true switched_on_differs=true\n");
-    }
-    // step()'s own wide-native16 producer, on LIVE render output (the same
-    // palette-preview frame this test already verified above via
-    // sampleProductPaletteFastLed16 -- not a hand-constructed frame).
-    {
-      auto transport = c; transport.output_channel = 0U; transport.brightness = 255U;
-      transport.use_wide_native16 = false;
-      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
-      // Off: packNative16Lane through the real (default) config equals the
-      // legacy pack, exactly as fixture_app.cpp's emit path now calls it.
-      for (unsigned lane = 0; lane < 2; ++lane) {
-        std::uint8_t legacy[480], routed[480];
-        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
-        assert(runtime.packNative16Lane(routed, sizeof(routed), lane,
-                                        &runtime.wideFrame(0U)) == 480);
-        assert(!std::memcmp(legacy, routed, sizeof(legacy)));
-      }
-      transport.use_wide_native16 = true;
-      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
-      bool live_pixels_nonzero = false;
-      for (unsigned lane = 0; lane < 2; ++lane) {
-        std::uint8_t legacy[480], routed[480];
-        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
-        assert(runtime.packNative16Lane(routed, sizeof(routed), lane,
-                                        &runtime.wideFrame(0U)) == 480);
-        // Documented finding, not an assumption: for a source already
-        // quantised to Pixel8, this producer is mathematically
-        // indistinguishable from the legacy lift. quantiseUnorm16 is exact
-        // (floor(clamp(x,0,1)*65535+0.5) via integer arithmetic on the
-        // IEEE-754 significand), and 65535/255 == 257 exactly, so
-        // v*257 (the legacy lift) is never near a half-way rounding
-        // boundary for any integer v in [0,255] -- the float32 rounding in
-        // `float(v)/255.0F` is far too small (~2^-24 relative) to move the
-        // exact law's result off that same integer. Byte-for-byte identity
-        // here is therefore expected and asserted, not a bug: this producer
-        // only reaches E5 of the wide endpoint's stage order (see its
-        // comment in palette_runtime.cpp's step()); genuine divergence from
-        // the legacy path needs a true working-domain F32 source upstream
-        // of Pixel8 quantisation, which product_effect_renderer does not
-        // yet expose. WIDE_NATIVE16_MUTATION_PASS above already proves the
-        // pack/selector machinery itself is live (using a hand-built wide
-        // frame whose values are not on the v*257 grid); this block proves
-        // the current producer's honest limit on real render output.
-        assert(!std::memcmp(legacy, routed, sizeof(legacy)));
-        for (unsigned i = 0; i < 80; ++i) {
-          const auto pixel = runtime.channel(0).frame()[lane * 80 + i];
-          if (pixel.red || pixel.green || pixel.blue) live_pixels_nonzero = true;
-          const std::uint16_t expect_native[3]{
-              core::visual::wide::quantiseUnorm16(float(pixel.green) / 255.0F),
-              core::visual::wide::quantiseUnorm16(float(pixel.red) / 255.0F),
-              core::visual::wide::quantiseUnorm16(float(pixel.blue) / 255.0F)};
-          for (unsigned component = 0; component < 3; ++component) {
-            const unsigned value = (unsigned(routed[i*6+component*2]) << 8) | routed[i*6+component*2+1];
-            assert(value == expect_native[component]);
-          }
+      using core::visual::wide::WideCaptureProvenanceV1;
+      // A1: use_wide_native16=false gives packed bytes identical to
+      // packBenchGrb48Lane, whether or not use_wide_route is also on (mode 0
+      // here is outside kWideRouteAdmittedModesV1 regardless).
+      for (bool route : {false, true}) {
+        auto transport = c; transport.output_channel = 0U; transport.brightness = 200U;
+        transport.use_wide_native16 = false; transport.use_wide_route = route;
+        assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
+        for (unsigned lane = 0; lane < 2; ++lane) {
+          std::uint8_t legacy[480], selected[480];
+          assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
+          assert(runtime.packNative16Lane(selected, sizeof(selected), lane,
+                                          &runtime.wideFrame(0U)) == 480);
+          assert(!std::memcmp(legacy, selected, sizeof(legacy)));
         }
       }
-      assert(live_pixels_nonzero);  // A vacuous all-black test proves nothing.
-      std::printf("WIDE_NATIVE16_PRODUCER_PASS live_render=true nonzero_pixels=true "
-                  "pixel8_sourced_identity_confirmed=true\n");
+      std::printf("WIDE_ROUTE_A1_PASS default_off_identical=true routes_checked=2\n");
+
+      // A4: with use_wide_native16=false, route on and route off keep the
+      // legacy Pixel8 behaviour identically (mode 0/preview is outside
+      // kWideRouteAdmittedModesV1, so this is expected -- confirms A1's
+      // route=false/route=true cases agree with each other, not just each
+      // with the legacy pack).
+      {
+        auto route_off = c; route_off.output_channel = 0U;
+        route_off.use_wide_native16 = false; route_off.use_wide_route = false;
+        auto route_on = route_off; route_on.use_wide_route = true;
+        assert(runtime.configure(route_off, 0U)); assert(runtime.step(0U, nullptr));
+        Pixel8 frame_off[160];
+        std::memcpy(frame_off, runtime.channel(0).frame().data(), sizeof(frame_off));
+        assert(runtime.configure(route_on, 0U)); assert(runtime.step(0U, nullptr));
+        assert(!std::memcmp(frame_off, runtime.channel(0).frame().data(), sizeof(frame_off)));
+        std::printf("WIDE_ROUTE_A4_PASS native16_off_route_toggle_identical=true\n");
+      }
+
+      // A2/A3: route on, native16 on, mode 3 (Bloom), driven with real
+      // audio through step() (not a hand-built frame).
+      {
+        contract::AudioFeaturesV1 features{};
+        audio::TempoTrackerEvent tempo{};
+        VisualWaveformHistory waveform{};
+        auto live = c; live.output_channel = 0U; live.mode_a = 3U; live.mode_b = 3U;
+        live.flags = 1U; live.use_wide_route = true; live.use_wide_native16 = true;
+        live.brightness = 255U;
+        assert(runtime.configure(live, 0U));
+        // Force the chromatic injection path (byte-domain HSV, "a declared
+        // narrowing adapter, scaled afterwards in float" per wide_bloom.h) --
+        // the palette path instead ports paletteColour() operation for
+        // operation, which reproduces legacy byte output exactly and so never
+        // carries extra precision at injection.
+        runtime.channel(0U).controls().palette_mode_enabled = false;
+        runtime.channel(1U).controls().palette_mode_enabled = false;
+        const auto a5_start = std::clock();
+        for (unsigned frame = 0; frame < 90; ++frame) {
+          // Continuously time-varying level (never a fixed-point repeat), so
+          // Bloom's exponential retention (alpha^frames) actually produces a
+          // spread of distinct floats across the strip instead of settling
+          // into one repeated 8-bit-exact injected value everywhere.
+          features.peak_scaled = 0.5F + 0.45F * std::sin(float(frame) * 0.37F);
+          features.vu_level = 0.5F + 0.45F * std::cos(float(frame) * 0.53F);
+          // Colour/injection amplitude comes from chroma_a_origin, NOT
+          // peak_scaled/vu_level (those only gate musical-presence/keep_live
+          // in k1MusicalPresence) -- see chromaticColour()/paletteColour()
+          // in product_effect_renderer.cpp. A left-zeroed chroma vector
+          // renders exactly black regardless of peak/vu, which is what an
+          // earlier version of this test discovered the hard way.
+          for (unsigned bin = 0; bin < contract::kChromaBinCount; ++bin) {
+            features.chroma_a_origin[bin] =
+                0.5F + 0.45F * std::sin(float(frame) * 0.29F + float(bin) * 0.8F);
+          }
+          const VisualAudioFrameView view{features, tempo, waveform, 0U};
+          assert(runtime.step(std::uint64_t(frame) * 20000U, &view));
+        }
+        // A5: no allocation in step() (by construction -- wide_workspace_,
+        // wide_a_/wide_b_, wide_route_a_/wide_route_b_ are all
+        // PaletteRuntime members, not step()-local). Host cost figure
+        // (labelled host, not a target timing claim): both channels,
+        // use_wide_native16 on, per step() call including the legacy
+        // Pixel8 render/treatment this cycle still runs too.
+        const double a5_host_us_per_step =
+            1e6 * double(std::clock() - a5_start) / double(CLOCKS_PER_SEC) / 90.0;
+        std::printf("WIDE_ROUTE_A5_HOST_COST host_us_per_step=%.2f label=host\n", a5_host_us_per_step);
+        assert(runtime.provenance(0U) == WideCaptureProvenanceV1::kWideRenderer);
+        const auto pixels = runtime.channel(0).frame();
+        const auto& native = runtime.wideFrame(0U);
+        bool offlattice = false, samebyte_diffnative = false;
+        for (unsigned i = 0; i < 160 && !offlattice; ++i) {
+          const auto& n = native[i];
+          if (n.red % 257U || n.green % 257U || n.blue % 257U) offlattice = true;
+        }
+        for (unsigned i = 0; i < 160 && !samebyte_diffnative; ++i) {
+          for (unsigned j = i + 1; j < 160; ++j) {
+            if (pixels[i].red == pixels[j].red && pixels[i].green == pixels[j].green &&
+                pixels[i].blue == pixels[j].blue &&
+                (native[i].red != native[j].red || native[i].green != native[j].green ||
+                 native[i].blue != native[j].blue)) {
+              samebyte_diffnative = true;
+              break;
+            }
+          }
+        }
+        assert(offlattice);
+        assert(samebyte_diffnative);
+        // Titan's incumbent current limiting: none (see endpointConfig()'s
+        // comment in palette_runtime.h). Proof: even this near-saturated
+        // centre-injected render never trips the limiter.
+        assert(runtime.endpointReport().limiter_scale == 1.0F);
+        assert(runtime.endpointReport().channel[0].nonfinite == 0U);
+        assert(runtime.endpointReport().channel[1].nonfinite == 0U);
+        std::printf("WIDE_ROUTE_A2_PASS mode3_routed=true offlattice_words=true "
+                    "samebyte_diffnative_pair=true limiter_inert=true\n");
+
+        // A3 negative case: force capture to lift Pixel8 by re-rendering
+        // mode 0 (preview, outside kWideRouteAdmittedModesV1) so
+        // captureRenderedFrameV1 falls back to kLiftedPixel8 -- then the
+        // off-lattice claim must go red (a lifted Pixel8 word is always an
+        // exact multiple of 257), proving A2 is not vacuous. Revert after.
+        auto lifted = live; lifted.mode_a = 0U; lifted.mode_b = 0U;
+        assert(runtime.configure(lifted, 0U)); assert(runtime.step(0U, nullptr));
+        assert(runtime.provenance(0U) == WideCaptureProvenanceV1::kLiftedPixel8);
+        bool lifted_offlattice = false;
+        for (unsigned i = 0; i < 160; ++i) {
+          const auto& n = runtime.wideFrame(0U)[i];
+          if (n.red % 257U || n.green % 257U || n.blue % 257U) { lifted_offlattice = true; break; }
+        }
+        assert(!lifted_offlattice);  // A2's own claim, correctly, does not hold here
+        assert(runtime.configure(live, 0U));  // revert to the routed config
+        std::printf("WIDE_ROUTE_A3_MUTATION_PASS forced_lift_stays_on_lattice=true reverted=true\n");
+      }
     }
     assert(runtime.configure(c,0U));
     auto invalid = c; invalid.palette_b = 44;

@@ -286,52 +286,47 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       waiting_for_audio_ = true;
       if (channel_index == 0U) visual_path_ = "no_audio";
     }
-    applyProductOutputTreatment(channel->frame(), channel->controls(),
-                                channel->outputTreatmentState());
     ++channel_index;
   }
-  // TIT-2 wide-native16 producer. config_.use_wide_native16 gates this so a
-  // disabled run does no extra work and packNative16Lane's own gate (see
-  // its definition below) never reads stale content -- but note wide_a_/
-  // wide_b_ still hold whatever they last held once the flag is turned
-  // back off, which is why packNative16Lane checks the flag itself rather
-  // than trusting the pointer alone.
+  // DUR-011 (Round 4, VP's core/visual/wide/wide_native_output.h): capture
+  // must happen BEFORE applyProductOutputTreatment mutates frame(), so this
+  // runs between the render loop above and the legacy treatment loop below.
+  // resolveNativeOutputV1() internally does capture -> FP32 output
+  // treatment -> resolveWideEndpointV1 (E1-E5) for both channels in one
+  // call, reading each channel's still-untreated Pixel8 frame and its
+  // WideRoutedChannelV1 (kWideRenderer provenance when this frame took the
+  // wide route and its Pixel8 frame still matches the wide display's
+  // rounded bytes; kLiftedPixel8 -- declared, not silently claimed wide --
+  // for preview/bounce/centre effects and any frame that did not route).
   //
-  // What this does: takes each channel's just-rendered, just-output-treated
-  // Pixel8 frame (the same frame() packBenchGrb48Lane already reads) and
-  // quantises it through the imported wide endpoint's own exact law,
-  // core::visual::wide::quantiseUnorm16(pixel / 255.0F). What this does
-  // NOT do: run the wide endpoint's E1-E4 stages (finite/enabled checks,
-  // intensity*master gain, device transfer curve, shared current-limit
-  // scale -- see core/visual/wide/wide_endpoint.h's endpoint-stage-order
-  // comment) -- there is no pre-quantisation working-domain F32 frame
-  // exposed by ChannelRenderState/product_effect_renderer to feed them.
-  // Only E5 (quantise) is exercised. A lane that wants the full E1-E4
-  // pipeline needs the renderer to expose that F32 frame first; that is a
-  // larger change than this producer, and is not attempted here.
-  //
-  // PROVEN, NOT ASSUMED (tests/host/test_palette_runtime.cpp,
-  // WIDE_NATIVE16_PRODUCER_PASS): because the source here is already
-  // quantised to Pixel8, this producer's packed output is currently
-  // byte-identical to the legacy lift-to-16 path for every pixel a live
-  // render has actually produced. quantiseUnorm16 is exact and
-  // 65535/255 == 257 exactly, so no integer Pixel8 value is ever near a
-  // half-way rounding boundary the float division in `p.red / 255.0F`
-  // could push it across. Turning this switch on today changes nothing
-  // observable; it only becomes meaningful once a true working-domain F32
-  // source feeds it (see above).
+  // "Only ONE treatment may advance a given ProductOutputTreatmentState per
+  // frame" (ORCH): resolveNativeOutputV1 advances the REAL
+  // outputTreatmentState() internally (it has no state parameter of its
+  // own to redirect). The legacy applyProductOutputTreatment below must
+  // still run unconditionally for packBenchGrb48Lane/status CRCs/the dwell
+  // path, and must see the phase it actually left off at, not a phase the
+  // wide treatment already advanced. So: snapshot each channel's state
+  // before resolving, let resolveNativeOutputV1 advance the real one, then
+  // restore the snapshot before the legacy call -- from the legacy
+  // treatment's perspective the wide treatment only ever touched a copy.
   if (config_.use_wide_native16) {
-    const auto fill = [](core::PixelSpan frame,
-                         core::visual::wide::DeviceRgb16Frame& out) noexcept {
-      for (std::size_t i = 0; i < frame.size(); ++i) {
-        const auto p = frame[i];
-        out[i] = {core::visual::wide::quantiseUnorm16(float(p.red) / 255.0F),
-                  core::visual::wide::quantiseUnorm16(float(p.green) / 255.0F),
-                  core::visual::wide::quantiseUnorm16(float(p.blue) / 255.0F)};
-      }
-    };
-    fill(a_.frame(), wide_a_);
-    fill(b_.frame(), wide_b_);
+    const auto state_a = a_.outputTreatmentState();
+    const auto state_b = b_.outputTreatmentState();
+    wide::EndpointChannelIntentV1 intent_a{}, intent_b{};
+    intent_a.enabled = a_.controls().enabled;
+    intent_b.enabled = b_.controls().enabled;
+    const auto endpoint_config = endpointConfig(config_.brightness);
+    const auto result = wide::resolveNativeOutputV1(
+        a_, wide_route_a_, b_, wide_route_b_, intent_a, intent_b,
+        endpoint_config, wide_workspace_, wide_a_, wide_b_);
+    endpoint_report_ = result.endpoint;
+    provenance_ = result.provenance;
+    a_.outputTreatmentState() = state_a;
+    b_.outputTreatmentState() = state_b;
+  }
+  for (auto* channel : {&a_, &b_}) {
+    applyProductOutputTreatment(channel->frame(), channel->controls(),
+                                channel->outputTreatmentState());
   }
   ++frames_;
   return true;
@@ -392,12 +387,13 @@ std::size_t PaletteRuntime::packWideNative16Lane(
     std::uint8_t* out, std::size_t capacity, unsigned lane,
     const core::visual::wide::DeviceRgb16Frame& frame) const noexcept {
   if (!out || capacity < kPackedBytesPerLane || lane > 1U) return 0U;
-  const auto scale = [this](std::uint16_t value) {
-    return static_cast<std::uint16_t>((std::uint32_t(value) * config_.brightness) / 255U);
-  };
+  // No brightness rescaling here (Round 4): resolveWideEndpointV1 already
+  // applied EndpointConfigV1::master once, in the FP32 drive domain, before
+  // quantising these words. Packs unchanged, matching DualMCU's own
+  // packWs2816PixelV1 byte for byte.
   for (unsigned i = 0; i < kPixelsPerHalf; ++i) {
     const auto& pixel = frame[lane * kPixelsPerHalf + i];
-    packPixel(Pixel16{scale(pixel.red), scale(pixel.green), scale(pixel.blue)},
+    packPixel(Pixel16{pixel.red, pixel.green, pixel.blue},
               out + i * kPackedBytesPerPixel);
   }
   return kPackedBytesPerLane;
