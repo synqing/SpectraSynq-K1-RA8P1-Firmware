@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
+#include "core/visual/wide/wide_bloom.h"
 #include "core/visual/wide/wide_endpoint.h"
 #include "core/visual/wide/wide_types.h"
 #ifdef K1_PALETTE_MORPH
@@ -62,6 +63,14 @@ struct PaletteConfig {
   // freeze); no current wire decoder sets this field, so every live SET_CONFIG
   // still lands on the legacy path until a decoder explicitly opts in.
   bool use_wide_native16 = false;
+  // Round 4 (ORCH): maps to core::visual::wide::WideRoutedChannelV1::route_enabled,
+  // INT's declared switch at the renderProductChannel call site itself
+  // (core/visual/wide/wide_bloom.h). Default OFF: renderRoutedProductChannelV1
+  // with route_enabled=false, or any mode outside kWideRouteAdmittedModesV1,
+  // is documented and host-proven to be exactly the legacy renderProductChannel
+  // call (bit-identical output) -- see docs/reference-import-receipt-tit2.md
+  // and tests/host/test_palette_runtime.cpp's WIDE_ROUTE_* assertions.
+  bool use_wide_route = false;
 };
 class PaletteRuntime {
  public:
@@ -144,5 +153,10 @@ class PaletteRuntime {
   std::uint64_t dwell_frames_ = 0U;
   std::uint64_t dwell_reinits_ = 0U;
   core::visual::wide::DeviceRgb16Frame wide_a_{}, wide_b_{};
+  // Persistent per-channel wide-route state (bloom history, frame counters,
+  // route_enabled) for renderRoutedProductChannelV1 -- must outlive a
+  // single step() call so the wide Bloom adapter's own history survives
+  // frame to frame exactly like the legacy renderer's channel state does.
+  core::visual::wide::WideRoutedChannelV1 wide_route_a_{}, wide_route_b_{};
 };
 } // namespace k1::titan

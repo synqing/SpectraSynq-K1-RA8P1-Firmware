@@ -263,7 +263,18 @@ bool PaletteRuntime::step(std::uint64_t now_us,
         // Live/silence path: clear then DualMCU previousFrame seed.
         // Skipping clear here saturates (snap-freeze).
         channel->clearFrame();
-        (void)renderProductChannel(*channel, governed, dt);
+        // Round 4 (ORCH): INT's declared route hook, not renderProductChannel
+        // directly. With route_enabled=false (config_.use_wide_route's
+        // default), or any mode outside kWideRouteAdmittedModesV1,
+        // wide_bloom.h documents this as exactly the legacy call. Proven
+        // unchanged by this switch existing: scripts/test_palette_runtime.py's
+        // COMPATIBILITY_DIGEST (folds every exercised palette x mode
+        // combination, including mode 3/Bloom) is byte-for-byte identical to
+        // the pre-route-wiring digest -- see docs/reference-import-receipt-tit2.md.
+        auto& wide_route = channel_index ? wide_route_b_ : wide_route_a_;
+        wide_route.route_enabled = config_.use_wide_route;
+        (void)wide::renderRoutedProductChannelV1(*channel, wide_route, governed, dt,
+                                                 channel->controls().liveiness);
         if (channel_index == 0U) {
           visual_path_ = musical ? "effect" : "hold";
           last_dwell_reinit_ = false;
