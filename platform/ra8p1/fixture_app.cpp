@@ -23,6 +23,7 @@
 #include "p4_runtime.h"
 #endif
 #include "core/visual/ws2816_pack.h"
+#include "ctl_capability.h"
 #include "ws2816_gpio_emit.h"
 #include "ws281x_diag.h"
 #ifdef K1_PALETTE_GPT_DMA
@@ -526,6 +527,15 @@ void execute() {
   }
 #endif
   if (command == 20) { status_command(size); fill=0; wanted=32; return; }
+  // CTL_CAPABILITY: read-only report of CTL v2's generated Titan platform
+  // profile. No control value is read or written; not gated behind
+  // K1_PALETTE_RUNTIME, since contract/control_v2 and core/control/v2 are
+  // always part of src/k1 (imported at PIN_TIT2), not a palette feature.
+  if (command == 21 && size == 0U) {
+    const auto n = k1::titan::ctlCapabilityJson(trace.data, sizeof(trace.data));
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    fill=0; wanted=32; return;
+  }
 #ifdef K1_PALETTE_RUNTIME
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
