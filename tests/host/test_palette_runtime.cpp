@@ -67,6 +67,60 @@ int main() {
         for(auto byte:packed) assert(byte==0xa5);
       }
     }
+    // TIT-2: packNative16Lane's default-off switch is bit-identical to the
+    // legacy lift-to-16 path, for every input this cycle's route could see:
+    // no wide frame at all, and a wide frame present but the switch off.
+    {
+      using core::visual::wide::DeviceRgb16Frame;
+      DeviceRgb16Frame wide{};
+      for (unsigned i = 0; i < wide.size(); ++i) {
+        wide[i] = {static_cast<std::uint16_t>(i * 401U),
+                   static_cast<std::uint16_t>(i * 613U + 7U),
+                   static_cast<std::uint16_t>(65535U - i * 199U)};
+      }
+      auto transport = c; transport.output_channel = 0U; transport.brightness = 200U;
+      transport.use_wide_native16 = false;
+      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
+      for (unsigned lane = 0; lane < 2; ++lane) {
+        std::uint8_t legacy[480], selected_no_frame[480], selected_flag_off[480];
+        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
+        assert(runtime.packNative16Lane(selected_no_frame, sizeof(selected_no_frame), lane, nullptr) == 480);
+        assert(runtime.packNative16Lane(selected_flag_off, sizeof(selected_flag_off), lane, &wide) == 480);
+        assert(!std::memcmp(legacy, selected_no_frame, sizeof(legacy)));
+        assert(!std::memcmp(legacy, selected_flag_off, sizeof(legacy)));
+      }
+      // Flip the switch on with the same wide frame: output must now be the
+      // wide endpoint's own words (brightness-scaled the same way as the
+      // legacy path), matching packWs2816PixelV1's byte order exactly, and
+      // it must differ from the legacy lift -- proving this is a live route,
+      // not a dead branch.
+      transport.use_wide_native16 = true;
+      assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
+      bool any_lane_differs = false;
+      for (unsigned lane = 0; lane < 2; ++lane) {
+        std::uint8_t legacy[480], routed[480];
+        assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
+        assert(runtime.packNative16Lane(routed, sizeof(routed), lane, &wide) == 480);
+        assert(runtime.packWideNative16Lane(routed, sizeof(routed), lane, wide) == 480);
+        if (std::memcmp(legacy, routed, sizeof(legacy)) != 0) any_lane_differs = true;
+        for (unsigned i = 0; i < 80; ++i) {
+          const auto& p = wide[lane * 80 + i];
+          const std::uint16_t expect[3]{
+              static_cast<std::uint16_t>(std::uint32_t(p.green) * 200U / 255U),
+              static_cast<std::uint16_t>(std::uint32_t(p.red) * 200U / 255U),
+              static_cast<std::uint16_t>(std::uint32_t(p.blue) * 200U / 255U)};
+          for (unsigned component = 0; component < 3; ++component) {
+            const unsigned value = (unsigned(routed[i*6+component*2]) << 8) | routed[i*6+component*2+1];
+            assert(value == expect[component]);
+          }
+        }
+        assert(!runtime.packWideNative16Lane(routed, sizeof(routed)-1, lane, wide));
+        assert(!runtime.packWideNative16Lane(routed, sizeof(routed), 2, wide));
+        assert(!runtime.packWideNative16Lane(nullptr, sizeof(routed), lane, wide));
+      }
+      assert(any_lane_differs);
+      std::printf("WIDE_NATIVE16_MUTATION_PASS default_off_identical=true switched_on_differs=true\n");
+    }
     assert(runtime.configure(c,0U));
     auto invalid = c; invalid.palette_b = 44;
     assert(!runtime.configure(invalid, 1));

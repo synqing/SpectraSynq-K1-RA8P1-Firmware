@@ -334,6 +334,28 @@ std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
   }
   return kPackedBytesPerLane;
 }
+std::size_t PaletteRuntime::packWideNative16Lane(
+    std::uint8_t* out, std::size_t capacity, unsigned lane,
+    const core::visual::wide::DeviceRgb16Frame& frame) const noexcept {
+  if (!out || capacity < kPackedBytesPerLane || lane > 1U) return 0U;
+  const auto scale = [this](std::uint16_t value) {
+    return static_cast<std::uint16_t>((std::uint32_t(value) * config_.brightness) / 255U);
+  };
+  for (unsigned i = 0; i < kPixelsPerHalf; ++i) {
+    const auto& pixel = frame[lane * kPixelsPerHalf + i];
+    packPixel(Pixel16{scale(pixel.red), scale(pixel.green), scale(pixel.blue)},
+              out + i * kPackedBytesPerPixel);
+  }
+  return kPackedBytesPerLane;
+}
+std::size_t PaletteRuntime::packNative16Lane(
+    std::uint8_t* out, std::size_t capacity, unsigned lane,
+    const core::visual::wide::DeviceRgb16Frame* wide_frame) const noexcept {
+  if (config_.use_wide_native16 && wide_frame != nullptr) {
+    return packWideNative16Lane(out, capacity, lane, *wide_frame);
+  }
+  return packBenchGrb48Lane(out, capacity, lane);
+}
 std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const noexcept {
   if (!out || capacity == 0U) return 0U;
   const int n = std::snprintf(out, capacity,

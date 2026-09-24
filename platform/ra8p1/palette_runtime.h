@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
+#include "core/visual/wide/wide_types.h"
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
 #include "centre_palette_engine.h"
@@ -54,6 +55,12 @@ struct PaletteConfig {
   std::uint32_t flags = 0U, brightness = 24U, output_channel = 0U;
   std::uint32_t transition_ms = 0U; // Versions 2/3; 0 is an immediate cut.
   std::uint32_t travel_ms = 4000U; // Version 3: centre-to-edge travel duration.
+  // TIT-2: select the wide endpoint's genuine 16-bit-per-channel words over
+  // the legacy Pixel8 lift-to-16 (value*257) in packNative16Lane(). Default
+  // OFF is bit-identical to today's packBenchGrb48Lane (functional-scope
+  // freeze); no current wire decoder sets this field, so every live SET_CONFIG
+  // still lands on the legacy path until a decoder explicitly opts in.
+  bool use_wide_native16 = false;
 };
 class PaletteRuntime {
  public:
@@ -77,6 +84,23 @@ class PaletteRuntime {
                          unsigned pixels = 128U) const noexcept;
   std::size_t packBenchGrb48Lane(std::uint8_t* destination, std::size_t capacity,
                                unsigned lane) const noexcept;
+  // Wide endpoint's native DeviceRgb16V1 words, packed to the identical
+  // GRB48 wire layout packBenchGrb48Lane already uses (G_hi,G_lo,R_hi,R_lo,
+  // B_hi,B_lo -- see src/k1/core/visual/ws2816_pack.h and DualMCU's
+  // packWs2816PixelV1, which this mirrors byte for byte). brightness is
+  // applied the same way as the legacy path (value*brightness/255) so the
+  // two paths stay comparable at any brightness setting.
+  std::size_t packWideNative16Lane(std::uint8_t* destination, std::size_t capacity,
+                                  unsigned lane,
+                                  const core::visual::wide::DeviceRgb16Frame& frame) const noexcept;
+  // Selector: config_.use_wide_native16 (default false) picks
+  // packWideNative16Lane over packBenchGrb48Lane when a wide frame is
+  // supplied. wide_frame == nullptr always falls back to the legacy path
+  // regardless of the flag, so a caller that has not produced a wide frame
+  // this cycle never silently emits stale/uninitialised wide data.
+  std::size_t packNative16Lane(std::uint8_t* destination, std::size_t capacity,
+                              unsigned lane,
+                              const core::visual::wide::DeviceRgb16Frame* wide_frame) const noexcept;
   std::size_t catalogueJson(char* out, std::size_t capacity) const noexcept;
   std::size_t statusJson(char* out, std::size_t capacity) const noexcept;
   void recordEmit(int result, std::uint32_t cycles) noexcept;

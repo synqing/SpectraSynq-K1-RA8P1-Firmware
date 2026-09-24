@@ -26,14 +26,24 @@ def apply_palette_overlay(root):
              'selectedPalette(controls, wrap01(phase), level)'),
             ('if (quiet < 0.90F) {\n    decay_rate += kWaveformK1SilenceDecay * (1.0F - quiet);\n  }',
              'if (!present && !silent) {\n    decay_rate = 0.15F;\n  } else if (silent && quiet < 0.90F) {\n    decay_rate += kWaveformK1SilenceDecay * (1.0F - quiet);\n  }'),
+            # TIT-2 (16f70a9): the speed argument is now wrapped in
+            # modes::liveinessEffective(...) (the wide-route/Liveiness hook).
+            # The travel gate composes with that wrapper's own default-off
+            # identity: it only ever narrows the *base* speed the wrapper
+            # receives, never bypasses liveinessEffective().
             ('transportOutward(\n      channel.frame(), channel.previousFrame(),\n'
-             '      kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond,\n'
+             '      modes::liveinessEffective(\n'
+             '          32U, kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond,\n'
+             '          channel.controls().liveiness),\n'
              '      nominal_retention, dt);',
              'const bool travel = present && (peak > 0.25F || vu > 0.25F ||\n'
              '                         channel.focusedAudio().chroma_strength > 0.08F);\n'
              '  transportOutward(\n      channel.frame(), channel.previousFrame(),\n'
-             '      travel ? kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond\n'
-             '             : 0.0F,\n'
+             '      modes::liveinessEffective(\n'
+             '          32U,\n'
+             '          travel ? kWaveformK1ScrollPixelsPerSecond / kNominalFramesPerSecond\n'
+             '                 : 0.0F,\n'
+             '          channel.controls().liveiness),\n'
              '      nominal_retention, dt);'),
             ('const Pixel8 raw_colour = injectionColour(channel);\n'
              '  const float colour_alpha = exponentialAlpha(dt, kWaveformK1ColourTau);',
