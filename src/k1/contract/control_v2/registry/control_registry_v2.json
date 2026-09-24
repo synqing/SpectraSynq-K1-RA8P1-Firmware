@@ -1,0 +1,2333 @@
+{
+  "schema": "k1.control-registry/2",
+  "registry_major": 2,
+  "registry_minor": 0,
+  "status": "proposed",
+  "id_space": {
+    "parameters": [
+      256,
+      4095
+    ],
+    "features": [
+      4096,
+      8191
+    ],
+    "contexts": [
+      8192,
+      12287
+    ]
+  },
+  "sources": {
+    "v1_control_map": "contract/product/control_map_v1.json",
+    "mode_catalogue": "contract/product/mode_catalogue_v1.json",
+    "palette_catalogue": "contract/product/palette_catalogue_v1.json"
+  },
+  "channels": [
+    {
+      "channel": "primary",
+      "label": "Primary / Top",
+      "v1_target": 0
+    },
+    {
+      "channel": "secondary",
+      "label": "Secondary / Bottom",
+      "v1_target": 1
+    }
+  ],
+  "parameters": [
+    {
+      "id": 257,
+      "key": "channel_intensity",
+      "label": "Intensity",
+      "short_label": "Inten\u00adsity",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 1.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "transfer_curve",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Channel radiance scale before the shared output power policy. Distinct from legacy Photons and its 0.05 floor, artistic density, the global master and the electrical current limit. Identity default 1.0 preserves incumbent output.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No channel-intensity stage exists; VP owns the consumer.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 258,
+      "key": "liveiness",
+      "label": "Liveiness",
+      "short_label": "Live\u00adiness",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 0.5,
+      "neutral": 0.5,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "liveiness",
+      "enable": "liveiness_on",
+      "dependency": null,
+      "context": "liveiness_modulation",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Versioned mode-adapted expressive intent (semantic version 1). Neutral 0.5 is identity. Changes effective appearance through a versioned adapter; never rewrites Motion, Width or Persistence bases, nor AP time, BPM, phase or confidence. Not a rename of legacy Mood (v1 IDs 5 and 25).",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "MOD",
+          "reason": "No per-mode Liveiness adapter is admitted; MOD owns adapters, VP owns effective units.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 259,
+      "key": "motion",
+      "label": "Motion",
+      "short_label": "Motion",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "pixels_per_second",
+      "formatter": "pixels_per_second",
+      "legal_min": 0.0,
+      "legal_max": 240.0,
+      "default": 80.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "trajectory",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Base centre-origin transport velocity; changes future movement continuously.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No base transport-velocity stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 260,
+      "key": "width",
+      "label": "Width",
+      "short_label": "Width",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "pixels",
+      "formatter": "pixels",
+      "legal_min": 0.5,
+      "legal_max": 24.0,
+      "default": 4.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "log_domain_legal",
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "trajectory",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Base ribbon or gesture width.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No base width stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 261,
+      "key": "persistence",
+      "label": "Persistence",
+      "short_label": "Persis\u00adtence",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "seconds",
+      "formatter": "seconds",
+      "legal_min": 0.02,
+      "legal_max": 4.0,
+      "default": 0.35,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "log_domain_legal",
+        "relative_admitted"
+      ],
+      "feature": "persistence",
+      "enable": "persistence_on",
+      "dependency": null,
+      "context": "decay_envelope",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Visual lifetime half-life. Its enable is the defined bypass; the minimum amount is not a bypass.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No common history stage with a half-life semantic exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 262,
+      "key": "rhythm_mix",
+      "label": "Rhythm mix",
+      "short_label": "Rhythm mix",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 0.4,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "rhythm_layer",
+      "enable": "rhythm_layer_on",
+      "dependency": null,
+      "context": "rhythm_evidence",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Balance of eligible rhythmic visual layers. Authored mix, not detector confidence or BPM estimation.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "MOD",
+          "reason": "No rhythmic-layer balance stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 263,
+      "key": "audio_focus",
+      "label": "Audio focus",
+      "short_label": "Audio focus",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 0.5,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "audio_focus",
+      "enable": "audio_focus_on",
+      "dependency": null,
+      "context": "rhythm_evidence",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Mode-adapted balance between broad body and selective transient evidence.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "MOD",
+          "reason": "No mode-adapted body/transient balance exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 264,
+      "key": "palette_position",
+      "label": "Palette position",
+      "short_label": "Palette position",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 0.3,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "palette_path",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Position within the selected palette; not a full colour-wheel hue.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "chroma_value is read but never assigned; no palette-position control path exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 265,
+      "key": "palette_travel",
+      "label": "Palette travel",
+      "short_label": "Palette travel",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 0.2,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "palette_travel",
+      "enable": "palette_travel_on",
+      "dependency": null,
+      "context": "palette_path",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Excursion depth of automatic palette movement as a fraction of the selected span. Not a speed; any travel rate is a separate expert parameter.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No bounded palette-excursion stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 266,
+      "key": "palette_span",
+      "label": "Palette span",
+      "short_label": "Palette span",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.02,
+      "legal_max": 1.0,
+      "default": 0.7,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "log_domain_legal",
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "palette_path",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Fraction of the selected palette addressed by the current artwork.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No palette-window stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 267,
+      "key": "saturation",
+      "label": "Saturation",
+      "short_label": "Satu\u00adration",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 1.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "colour_treatment",
+      "enable": "colour_treatment_on",
+      "dependency": null,
+      "context": "colour_change",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Colourfulness in the common colour-treatment stage's declared working domain. Not the legacy per-branch saturation scalar (see saturation_legacy, v1 IDs 6 and 26).",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists (source audit section 4).",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 268,
+      "key": "warmth",
+      "label": "Warmth",
+      "short_label": "Warmth",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "bipolar_fraction",
+      "formatter": "signed_percent",
+      "legal_min": -1.0,
+      "legal_max": 1.0,
+      "default": 0.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "colour_treatment",
+      "enable": null,
+      "dependency": null,
+      "context": "transfer_curve",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Bounded artistic colour bias; not a physical colour-temperature calibration.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 269,
+      "key": "contrast",
+      "label": "Contrast",
+      "short_label": "Contrast",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "ratio",
+      "formatter": "ratio",
+      "legal_min": 0.25,
+      "legal_max": 3.0,
+      "default": 1.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "log_domain_legal",
+        "relative_admitted"
+      ],
+      "feature": "colour_treatment",
+      "enable": null,
+      "dependency": null,
+      "context": "transfer_curve",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Artistic tone mapping; the physical output limiter remains authoritative.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 270,
+      "key": "base_coat",
+      "label": "Base coat",
+      "short_label": "Base coat",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 0.04,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "relative_admitted"
+      ],
+      "feature": "base_coat",
+      "enable": "base_coat_on",
+      "dependency": null,
+      "context": "transfer_curve",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Bounded foundation beneath active material; never revives disabled material. Not the legacy base-coat intensity (v1 IDs 15 and 31).",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No bounded foundation stage with this semantic exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 271,
+      "key": "palette_transition",
+      "label": "Palette transition",
+      "short_label": "Palette transi\u00adtion",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "seconds",
+      "formatter": "seconds",
+      "legal_min": 0.02,
+      "legal_max": 5.0,
+      "default": 0.5,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "proposed",
+      "migration_policy": "none",
+      "flags": [
+        "log_domain_legal",
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "palette_path",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Duration of transitions between palette selections; invisible until a palette transition occurs.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No palette-selection transition stage exists on RT1062 (Titan's palette_transition is not a control path).",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 272,
+      "key": "artistic_density",
+      "label": "Artistic density",
+      "short_label": "Density",
+      "semantic_version": 1,
+      "value_kind": "real",
+      "scope": "channel",
+      "unit": "fraction",
+      "formatter": "percent",
+      "legal_min": 0.0,
+      "legal_max": 1.0,
+      "default": 1.0,
+      "neutral": null,
+      "canonical_step": 0.0,
+      "numeric_encoding": "f32",
+      "response_owner": "engine",
+      "lifecycle": "unadvertised",
+      "migration_policy": "none",
+      "flags": [],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": null,
+      "v1_alias": null,
+      "enum": null,
+      "description": "Reserved so authored occupancy is never conflated with channel intensity, legacy Photons, the global master or electrical limits. Unadvertised until VP defines its unit and consumer.",
+      "support": {
+        "rt1062": {
+          "status": "unadvertised",
+          "owner": "VP",
+          "reason": "Semantic reserved to keep meanings distinct; unit and consumer not yet defined.",
+          "evidence": "INTERFACE-FREEZE.md: unresolved semantics are marked unadvertised"
+        },
+        "titan": {
+          "status": "unadvertised",
+          "owner": "VP",
+          "reason": "Semantic reserved to keep meanings distinct; unit and consumer not yet defined.",
+          "evidence": "INTERFACE-FREEZE.md: unresolved semantics are marked unadvertised"
+        },
+        "standalone_s3": {
+          "status": "unadvertised",
+          "owner": "VP",
+          "reason": "Semantic reserved to keep meanings distinct; unit and consumer not yet defined.",
+          "evidence": "INTERFACE-FREEZE.md: unresolved semantics are marked unadvertised"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 288,
+      "key": "photons_legacy",
+      "label": "Photons (legacy)",
+      "short_label": "Photons (legacy)",
+      "semantic_version": 1,
+      "value_kind": "integer",
+      "scope": "channel",
+      "unit": "q0_16",
+      "formatter": "q0_16_percent",
+      "legal_min": 3277,
+      "legal_max": 65535,
+      "default": 65535,
+      "neutral": null,
+      "canonical_step": 1,
+      "numeric_encoding": "u16_q0_16",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias",
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "transfer_curve",
+      "v1_alias": {
+        "primary": 3,
+        "secondary": 23
+      },
+      "enum": null,
+      "description": "Legacy Photons with its nonzero floor 0.05 = Q0.16 3277 (bridge kMinimumPhotonsQ0_16). Exact v1 meaning of IDs 3 and 23; never electrical brightness or channel intensity.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/control/bridge_command_processor.cpp cc14ToPhotons; firmware/rt1062/production_runtime.cpp applyChannelControls photons_id"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Photons.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 289,
+      "key": "chroma_legacy",
+      "label": "Chroma (legacy)",
+      "short_label": "Chroma (legacy)",
+      "semantic_version": 1,
+      "value_kind": "integer",
+      "scope": "channel",
+      "unit": "cc14",
+      "formatter": "cc14_percent",
+      "legal_min": 0,
+      "legal_max": 16383,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": 1,
+      "numeric_encoding": "cc14",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "colour_change",
+      "v1_alias": {
+        "primary": 4,
+        "secondary": 24
+      },
+      "enum": null,
+      "description": "Legacy physical Chroma scalar with its v1 compatibility decoding (value / 16383). Acts as an injection brightness floor in some palette paths. Distinct from AP pitch-class chroma, internal chroma_value and colour-science chroma. Not on the default Perform page.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/control/bridge_command_processor.cpp kPrimaryChroma; core/visual/product_effect_renderer.cpp paletteColour energy floor"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Chroma.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 290,
+      "key": "mood_legacy",
+      "label": "Mood (legacy)",
+      "short_label": "Mood (legacy)",
+      "semantic_version": 1,
+      "value_kind": "integer",
+      "scope": "channel",
+      "unit": "cc14",
+      "formatter": "cc14_percent",
+      "legal_min": 0,
+      "legal_max": 16383,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": 1,
+      "numeric_encoding": "cc14",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "named_migration_required",
+      "flags": [
+        "legacy_alias"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "trajectory",
+      "v1_alias": {
+        "primary": 5,
+        "secondary": 25
+      },
+      "enum": null,
+      "description": "Legacy Mood (v1 IDs 5 and 25), read by 6 of 23 enabled modes with mode-specific laws. Keeps its legacy meaning; it maps to Liveiness only through an explicit named migration with an admitted per-mode equivalence.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/visual/product_effect_renderer.cpp controls.mood (Bloom, Bloom Fast, Aurora, Comet, Dense Forge, Dense Forge Chord)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Mood.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 291,
+      "key": "saturation_legacy",
+      "label": "Saturation (legacy)",
+      "short_label": "Sat. (legacy)",
+      "semantic_version": 1,
+      "value_kind": "integer",
+      "scope": "channel",
+      "unit": "cc14",
+      "formatter": "cc14_percent",
+      "legal_min": 0,
+      "legal_max": 16383,
+      "default": 16383,
+      "neutral": null,
+      "canonical_step": 1,
+      "numeric_encoding": "cc14",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "colour_change",
+      "v1_alias": {
+        "primary": 6,
+        "secondary": 26
+      },
+      "enum": null,
+      "description": "Legacy per-branch saturation scalar (v1 IDs 6 and 26, value / 16383). Applied only in HSV and fallback branches; not the common colour-treatment Saturation.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/visual/product_effect_renderer.cpp controls.saturation (HSV and fallback branches)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for legacy Saturation.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 292,
+      "key": "mode",
+      "label": "Mode",
+      "short_label": "Mode",
+      "semantic_version": 1,
+      "value_kind": "enum",
+      "scope": "channel",
+      "unit": "enum_index",
+      "formatter": "enum_label",
+      "legal_min": 0,
+      "legal_max": 37,
+      "default": 3,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "enum_u16",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias",
+        "sparse_enum"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": null,
+      "v1_alias": {
+        "primary": 0,
+        "secondary": 19
+      },
+      "enum": {
+        "count": 38,
+        "legal": "enabled_product_modes"
+      },
+      "description": "Selected render mode (v1 IDs 0 and 19). Only product-enabled modes are legal. Selected from a labelled list, never by a continuous fader.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/control/bridge_command_processor.cpp kModeSelect; core/visual/product_catalogue.cpp productModeEnabled"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for mode selection.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 293,
+      "key": "palette",
+      "label": "Palette",
+      "short_label": "Palette",
+      "semantic_version": 1,
+      "value_kind": "enum",
+      "scope": "channel",
+      "unit": "enum_index",
+      "formatter": "enum_label",
+      "legal_min": 0,
+      "legal_max": 43,
+      "default": 40,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "enum_u16",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": null,
+      "v1_alias": {
+        "primary": 1,
+        "secondary": 20
+      },
+      "enum": {
+        "count": 44,
+        "legal": null
+      },
+      "description": "Selected palette identity (v1 IDs 1 and 20). Selected from a labelled list, never by a continuous fader.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/control/bridge_command_processor.cpp kPaletteSelect; kProductPaletteCount 44"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for palette selection.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 385,
+      "key": "liveiness_on",
+      "label": "Liveiness on",
+      "short_label": "Live\u00adiness on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "liveiness",
+      "enable": null,
+      "dependency": null,
+      "context": "liveiness_modulation",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the liveiness feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "MOD",
+          "reason": "No Liveiness adapter is admitted.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 386,
+      "key": "persistence_on",
+      "label": "Persistence on",
+      "short_label": "Persis\u00adtence on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "persistence",
+      "enable": null,
+      "dependency": null,
+      "context": "decay_envelope",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the persistence feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No common history stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 387,
+      "key": "palette_travel_on",
+      "label": "Palette travel on",
+      "short_label": "Palette travel on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "palette_travel",
+      "enable": null,
+      "dependency": null,
+      "context": "palette_path",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the palette travel feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No palette-excursion stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 388,
+      "key": "base_coat_on",
+      "label": "Base coat on",
+      "short_label": "Base coat on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "base_coat",
+      "enable": null,
+      "dependency": null,
+      "context": "transfer_curve",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the base coat feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No foundation stage with this semantic exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 389,
+      "key": "colour_treatment_on",
+      "label": "Colour treatment on",
+      "short_label": "Colour treat. on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "colour_treatment",
+      "enable": null,
+      "dependency": null,
+      "context": "colour_change",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the colour treatment feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "VP",
+          "reason": "No common colour-treatment stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 390,
+      "key": "rhythm_layer_on",
+      "label": "Rhythm layer on",
+      "short_label": "Rhythm on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "rhythm_layer",
+      "enable": null,
+      "dependency": null,
+      "context": "rhythm_evidence",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the rhythm layer feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "MOD",
+          "reason": "No rhythmic-layer stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 391,
+      "key": "audio_focus_on",
+      "label": "Audio focus on",
+      "short_label": "Audio focus on",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "channel",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "enable"
+      ],
+      "feature": "audio_focus",
+      "enable": null,
+      "dependency": null,
+      "context": "rhythm_evidence",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Independent enable of the audio focus feature. Off is the feature's declared bypass; it never deletes the remembered amount. Default off so the incumbent output is unchanged until the feature is admitted.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "MOD",
+          "reason": "No audio-focus stage exists.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for this semantic.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 448,
+      "key": "global_master",
+      "label": "Master",
+      "short_label": "Master",
+      "semantic_version": 1,
+      "value_kind": "integer",
+      "scope": "global",
+      "unit": "q0_16",
+      "formatter": "q0_16_percent",
+      "legal_min": 0,
+      "legal_max": 65535,
+      "default": 65535,
+      "neutral": null,
+      "canonical_step": 1,
+      "numeric_encoding": "u16_q0_16",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias",
+        "output_authority",
+        "relative_admitted"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "output_power",
+      "v1_alias": {
+        "global": 39
+      },
+      "enum": null,
+      "description": "Persistent global master (v1 ID 39, Q0.16). Outside the nine channel faders; never a hidden tenth channel value. Immediate: never eased into a lingering glow.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "core/control/bridge_command_processor.cpp masterBrightnessQ0_16; firmware/rt1062/production_runtime.cpp:701"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for the global master.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 449,
+      "key": "blackout",
+      "label": "Blackout",
+      "short_label": "Blackout",
+      "semantic_version": 1,
+      "value_kind": "boolean",
+      "scope": "global",
+      "unit": "boolean",
+      "formatter": "on_off",
+      "legal_min": 0,
+      "legal_max": 1,
+      "default": 0,
+      "neutral": null,
+      "canonical_step": null,
+      "numeric_encoding": "boolean",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "default_for_new_field",
+      "flags": [
+        "output_authority"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "output_power",
+      "v1_alias": null,
+      "enum": null,
+      "description": "Authoritative immediate blackout. Overrides active leases and every response dynamic; never eased.",
+      "support": {
+        "rt1062": {
+          "status": "planned",
+          "owner": "INT",
+          "reason": "No blackout control exists in the v1 catalogue; output authority integration pending.",
+          "evidence": "no consumer in core/visual or firmware/rt1062 (grep)"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for blackout.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    },
+    {
+      "id": 450,
+      "key": "current_limit_ma",
+      "label": "Current limit",
+      "short_label": "Current limit",
+      "semantic_version": 1,
+      "value_kind": "integer",
+      "scope": "global",
+      "unit": "milliamps",
+      "formatter": "milliamps",
+      "legal_min": 100,
+      "legal_max": 5000,
+      "default": 5000,
+      "neutral": null,
+      "canonical_step": 1,
+      "numeric_encoding": "i32",
+      "response_owner": "immediate",
+      "lifecycle": "proposed",
+      "migration_policy": "legacy_preserved",
+      "flags": [
+        "legacy_alias",
+        "output_authority"
+      ],
+      "feature": null,
+      "enable": null,
+      "dependency": null,
+      "context": "output_power",
+      "v1_alias": {
+        "global": 38
+      },
+      "enum": null,
+      "description": "Electrical current limit in milliamps (v1 ID 38). An output-protection authority, never an artistic intensity.",
+      "support": {
+        "rt1062": {
+          "status": "implemented",
+          "owner": "INT",
+          "reason": "Consumer exists; v2 engine routing is INT's integration step.",
+          "evidence": "firmware/rt1062/production_runtime.cpp:614,706 policy.max_current_ma"
+        },
+        "titan": {
+          "status": "unsupported",
+          "owner": "TIT",
+          "reason": "Titan has no control catalogue or control path (USB-CDC fixture shell only).",
+          "evidence": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.parameters_addressable (measured-absent)"
+        },
+        "standalone_s3": {
+          "status": "planned",
+          "owner": "S3",
+          "reason": "Standalone engine source admission pending; no v2 adapter for the current limit.",
+          "evidence": "capacity-proposal.json standalone.parameters_addressable (measured-absent)"
+        },
+        "console": {
+          "status": "not_applicable",
+          "owner": "UI",
+          "reason": "The console presents and edits bindings; it is not an engine.",
+          "evidence": "R2 ownership law: the single active engine owns canonical values"
+        }
+      }
+    }
+  ],
+  "features": [
+    {
+      "id": 4097,
+      "key": "liveiness",
+      "label": "Liveiness",
+      "version": 1,
+      "enable": "liveiness_on",
+      "owner": "MOD",
+      "stage_order": 10,
+      "bypass": "identity",
+      "reenable": "resume_from_base",
+      "reset_causes": [
+        "mode_change",
+        "engine_epoch",
+        "explicit_reset"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "liveiness"
+      ],
+      "dependencies": [],
+      "description": "Versioned per-mode adapter modulating effective appearance from immutable bases. Neutral 0.5 is identity. State bytes are declared per admitted adapter by MOD."
+    },
+    {
+      "id": 4098,
+      "key": "persistence",
+      "label": "Persistence",
+      "version": 1,
+      "enable": "persistence_on",
+      "owner": "VP",
+      "stage_order": 40,
+      "bypass": "identity",
+      "reenable": "reinitialise",
+      "reset_causes": [
+        "mode_change",
+        "engine_epoch",
+        "blackout",
+        "explicit_reset"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "persistence"
+      ],
+      "dependencies": [],
+      "description": "History retention with a half-life semantic. Bypass passes the current frame; re-enable starts from an empty history. State bytes declared by VP."
+    },
+    {
+      "id": 4099,
+      "key": "palette_travel",
+      "label": "Palette travel",
+      "version": 1,
+      "enable": "palette_travel_on",
+      "owner": "VP",
+      "stage_order": 20,
+      "bypass": "identity",
+      "reenable": "resume_from_base",
+      "reset_causes": [
+        "palette_change",
+        "engine_epoch",
+        "explicit_reset"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "palette_travel"
+      ],
+      "dependencies": [],
+      "description": "Bounded automatic excursion around the palette position. Bypass holds the base position."
+    },
+    {
+      "id": 4100,
+      "key": "base_coat",
+      "label": "Base coat",
+      "version": 1,
+      "enable": "base_coat_on",
+      "owner": "VP",
+      "stage_order": 60,
+      "bypass": "identity",
+      "reenable": "resume_from_base",
+      "reset_causes": [
+        "engine_epoch"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "base_coat"
+      ],
+      "dependencies": [],
+      "description": "Bounded foundation beneath active material. Bypass adds nothing."
+    },
+    {
+      "id": 4101,
+      "key": "colour_treatment",
+      "label": "Colour treatment",
+      "version": 1,
+      "enable": "colour_treatment_on",
+      "owner": "VP",
+      "stage_order": 50,
+      "bypass": "identity",
+      "reenable": "resume_from_base",
+      "reset_causes": [
+        "engine_epoch"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "saturation",
+        "warmth",
+        "contrast"
+      ],
+      "dependencies": [],
+      "description": "Common colour treatment in a declared working domain (saturation, warmth, contrast). Bypass is identity."
+    },
+    {
+      "id": 4102,
+      "key": "rhythm_layer",
+      "label": "Rhythm layer",
+      "version": 1,
+      "enable": "rhythm_layer_on",
+      "owner": "MOD",
+      "stage_order": 30,
+      "bypass": "identity",
+      "reenable": "resume_from_base",
+      "reset_causes": [
+        "mode_change",
+        "engine_epoch"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "rhythm_mix"
+      ],
+      "dependencies": [],
+      "description": "Balance of eligible rhythmic layers. Bypass renders the mode's incumbent rhythm treatment."
+    },
+    {
+      "id": 4103,
+      "key": "audio_focus",
+      "label": "Audio focus",
+      "version": 1,
+      "enable": "audio_focus_on",
+      "owner": "MOD",
+      "stage_order": 5,
+      "bypass": "identity",
+      "reenable": "resume_from_base",
+      "reset_causes": [
+        "mode_change",
+        "engine_epoch"
+      ],
+      "state_bytes_per_channel": 0,
+      "max_instances_per_channel": 1,
+      "amounts": [
+        "audio_focus"
+      ],
+      "dependencies": [],
+      "description": "Mode-adapted body/transient evidence balance. Bypass uses the mode's incumbent evidence weighting."
+    }
+  ],
+  "contexts": [
+    {
+      "id": 8193,
+      "key": "palette_path",
+      "label": "Palette path",
+      "version": 1,
+      "visualiser": "palette_path",
+      "scope": "channel",
+      "unit": "fraction",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "palette_position",
+        "palette_span",
+        "palette_travel",
+        "palette_transition"
+      ],
+      "dependencies": [
+        "palette",
+        "palette_travel_on"
+      ],
+      "description": "Full palette path, selected window, current sample and excursion; only part of a palette may be reachable."
+    },
+    {
+      "id": 8194,
+      "key": "colour_change",
+      "label": "Colour change",
+      "version": 1,
+      "visualiser": "colour_change",
+      "scope": "channel",
+      "unit": "fraction",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "saturation",
+        "saturation_legacy",
+        "chroma_legacy"
+      ],
+      "dependencies": [
+        "palette",
+        "colour_treatment_on"
+      ],
+      "description": "Before and after swatches in a named illustrative colour model; not calibrated LED output."
+    },
+    {
+      "id": 8195,
+      "key": "transfer_curve",
+      "label": "Transfer curve",
+      "version": 1,
+      "visualiser": "transfer_curve",
+      "scope": "channel",
+      "unit": "fraction",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "channel_intensity",
+        "warmth",
+        "contrast",
+        "base_coat",
+        "photons_legacy"
+      ],
+      "dependencies": [
+        "base_coat_on",
+        "global_master",
+        "current_limit_ma"
+      ],
+      "description": "Transfer curve and affected tonal region; master and current limits may mask a requested gain."
+    },
+    {
+      "id": 8196,
+      "key": "trajectory",
+      "label": "Trajectory",
+      "version": 1,
+      "visualiser": "trajectory",
+      "scope": "channel",
+      "unit": "pixels_per_second",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "motion",
+        "width",
+        "mood_legacy"
+      ],
+      "dependencies": [
+        "liveiness"
+      ],
+      "description": "Centre-origin trajectory with speed arrow and occupied-width envelope."
+    },
+    {
+      "id": 8197,
+      "key": "decay_envelope",
+      "label": "Decay envelope",
+      "version": 1,
+      "visualiser": "decay_envelope",
+      "scope": "channel",
+      "unit": "seconds",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "persistence"
+      ],
+      "dependencies": [
+        "persistence_on",
+        "liveiness"
+      ],
+      "description": "Impulse and decay envelope with highlighted half-life."
+    },
+    {
+      "id": 8198,
+      "key": "rhythm_evidence",
+      "label": "Rhythm evidence",
+      "version": 1,
+      "visualiser": "rhythm_evidence",
+      "scope": "channel",
+      "unit": "fraction",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "rhythm_mix",
+        "audio_focus"
+      ],
+      "dependencies": [
+        "rhythm_layer_on",
+        "audio_focus_on",
+        "mode"
+      ],
+      "description": "Primary pulse and weaker secondary evidence with age and validity; authored mix is not detector confidence."
+    },
+    {
+      "id": 8200,
+      "key": "liveiness_modulation",
+      "label": "Liveiness modulation",
+      "version": 1,
+      "visualiser": "liveiness_modulation",
+      "scope": "channel",
+      "unit": "fraction",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "liveiness"
+      ],
+      "dependencies": [
+        "liveiness_on",
+        "mode",
+        "motion",
+        "width",
+        "persistence"
+      ],
+      "description": "Base versus effective values under the admitted adapter; unsupported modes say so."
+    },
+    {
+      "id": 8201,
+      "key": "output_power",
+      "label": "Output power",
+      "version": 1,
+      "visualiser": "output_power",
+      "scope": "global",
+      "unit": "q0_16",
+      "preview_basis": "illustrative",
+      "parameters": [
+        "global_master",
+        "blackout",
+        "current_limit_ma"
+      ],
+      "dependencies": [
+        "channel_intensity",
+        "photons_legacy"
+      ],
+      "description": "Master, blackout and current-limit authority; distinct from channel intensity and legacy Photons."
+    }
+  ],
+  "response_policies": [
+    {
+      "id": 0,
+      "key": "descriptor_default",
+      "kind": "descriptor_default",
+      "description": "Use the parameter descriptor's default policy (direct)."
+    },
+    {
+      "id": 1,
+      "key": "direct",
+      "kind": "direct",
+      "description": "Effective value equals the accepted base immediately."
+    },
+    {
+      "id": 2,
+      "key": "exp_15ms",
+      "kind": "exponential",
+      "tau_ms": 15,
+      "description": "Exponential approach, time constant 15 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 3,
+      "key": "exp_30ms",
+      "kind": "exponential",
+      "tau_ms": 30,
+      "description": "Exponential approach, time constant 30 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 4,
+      "key": "exp_60ms",
+      "kind": "exponential",
+      "tau_ms": 60,
+      "description": "Exponential approach, time constant 60 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 5,
+      "key": "exp_120ms",
+      "kind": "exponential",
+      "tau_ms": 120,
+      "description": "Exponential approach, time constant 120 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 6,
+      "key": "exp_250ms",
+      "kind": "exponential",
+      "tau_ms": 250,
+      "description": "Exponential approach, time constant 250 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 7,
+      "key": "exp_500ms",
+      "kind": "exponential",
+      "tau_ms": 500,
+      "description": "Exponential approach, time constant 500 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 8,
+      "key": "exp_1000ms",
+      "kind": "exponential",
+      "tau_ms": 1000,
+      "description": "Exponential approach, time constant 1000 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 9,
+      "key": "exp_2000ms",
+      "kind": "exponential",
+      "tau_ms": 2000,
+      "description": "Exponential approach, time constant 2000 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 10,
+      "key": "exp_5000ms",
+      "kind": "exponential",
+      "tau_ms": 5000,
+      "description": "Exponential approach, time constant 5000 ms: y += -expm1(-dt/tau) * (target - y)."
+    },
+    {
+      "id": 11,
+      "key": "slew_0p1_span_per_s",
+      "kind": "slew",
+      "span_per_second": 0.1,
+      "description": "Slew at 0.1 of the parameter's legal span per second, in canonical units; never overshoots."
+    },
+    {
+      "id": 12,
+      "key": "slew_0p25_span_per_s",
+      "kind": "slew",
+      "span_per_second": 0.25,
+      "description": "Slew at 0.25 of the parameter's legal span per second, in canonical units; never overshoots."
+    },
+    {
+      "id": 13,
+      "key": "slew_0p5_span_per_s",
+      "kind": "slew",
+      "span_per_second": 0.5,
+      "description": "Slew at 0.5 of the parameter's legal span per second, in canonical units; never overshoots."
+    },
+    {
+      "id": 14,
+      "key": "slew_1_span_per_s",
+      "kind": "slew",
+      "span_per_second": 1.0,
+      "description": "Slew at 1.0 of the parameter's legal span per second, in canonical units; never overshoots."
+    },
+    {
+      "id": 15,
+      "key": "slew_2_span_per_s",
+      "kind": "slew",
+      "span_per_second": 2.0,
+      "description": "Slew at 2.0 of the parameter's legal span per second, in canonical units; never overshoots."
+    },
+    {
+      "id": 16,
+      "key": "slew_4_span_per_s",
+      "kind": "slew",
+      "span_per_second": 4.0,
+      "description": "Slew at 4.0 of the parameter's legal span per second, in canonical units; never overshoots."
+    },
+    {
+      "id": 17,
+      "key": "slew_8_span_per_s",
+      "kind": "slew",
+      "span_per_second": 8.0,
+      "description": "Slew at 8.0 of the parameter's legal span per second, in canonical units; never overshoots."
+    }
+  ],
+  "liveiness_adapters": {
+    "semantic": "liveiness",
+    "semantic_version": 1,
+    "neutral": 0.5,
+    "owner": "MOD",
+    "applies_to": "enabled_product_modes",
+    "admitted": [],
+    "unadmitted_reason": "No per-mode adapter admitted; MOD registers adapters with version, neutral identity, bounds and fixtures."
+  },
+  "notes": [
+    "v1 remains interpretable and byte-identical: 71 controls, Photons floor 0.05 = Q0.16 3277, Mood IDs 5/25 and Chroma IDs 4/24 keep their compatibility decoding.",
+    "v2 semantic identifiers are 16-bit in [0x0100, 0x0FFF]; v1 identifiers are 8-bit 0..70, so no v2 identifier can alias a v1 identifier. Exact v1 meanings carry an explicit v1_alias.",
+    "Channel intensity, legacy Photons, artistic density, the global master and the electrical current limit are distinct semantics.",
+    "Every artistic feature has an enable parameter separate from its amounts; new feature enables default off so incumbent output is unchanged until admission.",
+    "Support states come from source evidence: implemented means a consumer exists on that platform; the v2 routing of an implemented legacy semantic is INT's integration step."
+  ]
+}

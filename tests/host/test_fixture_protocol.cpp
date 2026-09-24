@@ -165,5 +165,24 @@ int main() {
   separate.trace(encoded);
   assert(encoded.valid && compact.size()==32+encoded.size);
   assert(!std::memcmp(compact.data()+32,encoded.data,encoded.size));
-  std::puts("K1_FIXTURE_PROTOCOL=PASS chunks=7 reset=PASS crc=PASS sequence=PASS overflow=PASS timeout_wrap=PASS reconnect=PASS");
+  {
+    // CTL_CAPABILITY (opcode 21): read-only, truthful per the imported CTL
+    // v2 generated Titan platform profile. Every field asserted below comes
+    // from contract/control_v2/generated/control_registry_v2.generated.h's
+    // own PlatformProfile{Platform::kTitan, ...} row, not from this test.
+    auto reply=send(packet(21,0));
+    assert(get(reply.data()+4)==0);
+    const std::string body(reinterpret_cast<const char*>(reply.data()+32),reply.size()-32);
+    assert(body.find("\"platform\":\"titan\"")!=std::string::npos);
+    assert(body.find("\"channel_count\":2")!=std::string::npos);
+    assert(body.find("\"pages_supported\":false")!=std::string::npos);
+    assert(body.find("\"max_pages\":0")!=std::string::npos);
+    assert(body.find("\"persistence_supported\":false")!=std::string::npos);
+    assert(body.find("\"persistence_slot_bytes\":0")!=std::string::npos);
+    assert(body.find("\"ble_route_supported\":false")!=std::string::npos);
+    assert(body.find("\"fixture_route_supported\":true")!=std::string::npos);
+    // Bad size on the same opcode must be rejected, not silently answered.
+    assert(get(send(packet(21,1,silence)).data()+4)==3);
+  }
+  std::puts("K1_FIXTURE_PROTOCOL=PASS chunks=7 reset=PASS crc=PASS sequence=PASS overflow=PASS timeout_wrap=PASS reconnect=PASS ctl_capability=PASS");
 }

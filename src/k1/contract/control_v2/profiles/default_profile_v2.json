@@ -1,0 +1,1362 @@
+{
+  "schema": "k1.control-profile/2",
+  "profile_id": 1,
+  "profile_revision": 1,
+  "label": "Channel-first default",
+  "registry": {
+    "schema": "k1.control-registry/2",
+    "major": 2
+  },
+  "channels": [
+    {
+      "channel": "primary",
+      "pages": [
+        {
+          "page_id": 1,
+          "kind": "perform",
+          "label": "Perform",
+          "slots": [
+            {
+              "slot": 1,
+              "parameter": "channel_intensity",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 2,
+              "parameter": "liveiness",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 3,
+              "parameter": "motion",
+              "range": {
+                "min": 0,
+                "max": 240
+              },
+              "mapping": {
+                "kind": "exponent",
+                "exponent": 2
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 4,
+              "parameter": "width",
+              "range": {
+                "min": 0.5,
+                "max": 24
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 5,
+              "parameter": "persistence",
+              "range": {
+                "min": 0.02,
+                "max": 4
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 6,
+              "parameter": "rhythm_mix",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 7,
+              "parameter": "audio_focus",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 8,
+              "parameter": "palette_position",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 9,
+              "parameter": "palette_travel",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            }
+          ]
+        },
+        {
+          "page_id": 2,
+          "kind": "colour",
+          "label": "Colour",
+          "slots": [
+            {
+              "slot": 1,
+              "parameter": "palette_position",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 2,
+              "parameter": "palette_span",
+              "range": {
+                "min": 0.02,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 3,
+              "parameter": "palette_travel",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 4,
+              "parameter": "saturation",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 5,
+              "parameter": "warmth",
+              "range": {
+                "min": -1,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 6,
+              "parameter": "contrast",
+              "range": {
+                "min": 0.25,
+                "max": 3
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 7,
+              "parameter": "base_coat",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 8,
+              "parameter": "palette_transition",
+              "range": {
+                "min": 0.02,
+                "max": 5
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 9,
+              "parameter": "channel_intensity",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            }
+          ]
+        },
+        {
+          "page_id": 3,
+          "kind": "custom",
+          "label": "Custom 1",
+          "slots": [
+            {
+              "slot": 1,
+              "parameter": "motion",
+              "label": "Motion fine",
+              "range": {
+                "min": 20,
+                "max": 120
+              },
+              "mapping": {
+                "kind": "exponent",
+                "exponent": 1.5
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 2,
+              "parameter": "width",
+              "label": "Width trim",
+              "range": {
+                "min": 0.5,
+                "max": 24
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "relative",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "jump",
+                "tolerance": 0
+              },
+              "relative": {
+                "gain": 0.25,
+                "acceleration": {
+                  "exponent": 1.0,
+                  "reference_velocity": 2.0,
+                  "max_multiplier": 4
+                },
+                "max_rate": 12
+              }
+            },
+            {
+              "slot": 3,
+              "parameter": "palette_position",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": true,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 4,
+              "parameter": "persistence",
+              "range": {
+                "min": 0.02,
+                "max": 4
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "slew_0p5_span_per_s",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 5,
+              "parameter": "photons_legacy",
+              "range": {
+                "min": 3277,
+                "max": 65535
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 1
+              },
+              "response": "direct",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 6,
+              "parameter": "contrast",
+              "range": {
+                "min": 0.5,
+                "max": 2
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 7,
+              "parameter": "liveiness",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0.25
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 8,
+              "unused": true
+            },
+            {
+              "slot": 9,
+              "unused": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "channel": "secondary",
+      "pages": [
+        {
+          "page_id": 1,
+          "kind": "perform",
+          "label": "Perform",
+          "slots": [
+            {
+              "slot": 1,
+              "parameter": "channel_intensity",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 2,
+              "parameter": "liveiness",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 3,
+              "parameter": "motion",
+              "range": {
+                "min": 0,
+                "max": 240
+              },
+              "mapping": {
+                "kind": "exponent",
+                "exponent": 2
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 4,
+              "parameter": "width",
+              "range": {
+                "min": 0.5,
+                "max": 24
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 5,
+              "parameter": "persistence",
+              "range": {
+                "min": 0.02,
+                "max": 4
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 6,
+              "parameter": "rhythm_mix",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 7,
+              "parameter": "audio_focus",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 8,
+              "parameter": "palette_position",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 9,
+              "parameter": "palette_travel",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            }
+          ]
+        },
+        {
+          "page_id": 2,
+          "kind": "colour",
+          "label": "Colour",
+          "slots": [
+            {
+              "slot": 1,
+              "parameter": "palette_position",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 2,
+              "parameter": "palette_span",
+              "range": {
+                "min": 0.02,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 3,
+              "parameter": "palette_travel",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 4,
+              "parameter": "saturation",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 5,
+              "parameter": "warmth",
+              "range": {
+                "min": -1,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 6,
+              "parameter": "contrast",
+              "range": {
+                "min": 0.25,
+                "max": 3
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 7,
+              "parameter": "base_coat",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 8,
+              "parameter": "palette_transition",
+              "range": {
+                "min": 0.02,
+                "max": 5
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 9,
+              "parameter": "channel_intensity",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            }
+          ]
+        },
+        {
+          "page_id": 3,
+          "kind": "custom",
+          "label": "Custom 1",
+          "slots": [
+            {
+              "slot": 1,
+              "parameter": "motion",
+              "label": "Motion fine",
+              "range": {
+                "min": 20,
+                "max": 120
+              },
+              "mapping": {
+                "kind": "exponent",
+                "exponent": 1.5
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 2,
+              "parameter": "width",
+              "label": "Width trim",
+              "range": {
+                "min": 0.5,
+                "max": 24
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "relative",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "jump",
+                "tolerance": 0
+              },
+              "relative": {
+                "gain": 0.25,
+                "acceleration": {
+                  "exponent": 1.0,
+                  "reference_velocity": 2.0,
+                  "max_multiplier": 4
+                },
+                "max_rate": 12
+              }
+            },
+            {
+              "slot": 3,
+              "parameter": "palette_position",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": true,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 4,
+              "parameter": "persistence",
+              "range": {
+                "min": 0.02,
+                "max": 4
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "slew_0p5_span_per_s",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 5,
+              "parameter": "photons_legacy",
+              "range": {
+                "min": 3277,
+                "max": 65535
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 1
+              },
+              "response": "direct",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 6,
+              "parameter": "contrast",
+              "range": {
+                "min": 0.5,
+                "max": 2
+              },
+              "mapping": {
+                "kind": "log"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 7,
+              "parameter": "liveiness",
+              "range": {
+                "min": 0,
+                "max": 1
+              },
+              "mapping": {
+                "kind": "linear"
+              },
+              "inverted": false,
+              "modality": "absolute",
+              "input": {
+                "steps": 4096,
+                "hysteresis": 0.002
+              },
+              "quantisation": {
+                "step": 0.25
+              },
+              "response": "exp_60ms",
+              "takeover": {
+                "mode": "pickup",
+                "tolerance": 0.015
+              }
+            },
+            {
+              "slot": 8,
+              "unused": true
+            },
+            {
+              "slot": 9,
+              "unused": true
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "R2 default: all nine faders address the selected channel and page; page and channel changes write zero parameters.",
+    "Perform and Colour follow the R2 assignment table; legacy physical Chroma is not on Perform; Liveiness is on Perform; Saturation is on Colour.",
+    "Custom 1 is a user-created page example: narrowed exponent range, relative width trim, inverted palette position, slew response, the legacy Photons semantic, a log contrast range, stepped Liveiness and two explicit unused slots.",
+    "Channel intensity, legacy Photons, the global master and the current limit stay distinct; the master and blackout are touch controls outside the nine faders."
+  ]
+}

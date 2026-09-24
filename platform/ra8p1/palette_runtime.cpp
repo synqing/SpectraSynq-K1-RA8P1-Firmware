@@ -116,13 +116,18 @@ void diagnosticBounce(ChannelRenderState& channel, std::uint64_t now_us) noexcep
 }
 }
 bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us) noexcept {
+  // Version 4 (INT, round 4) is the version-3 field layout plus the wide
+  // switch mask the wire decoder maps to use_wide_route/use_wide_native16;
+  // its fields follow version 3's rules (MORPH) or version 1's (otherwise).
+  const std::uint32_t layout = config.version == 4U ? 3U : config.version;
 #ifdef K1_PALETTE_MORPH
-  const bool version_ok = ((config.version == 1U && config.transition_ms == 0U) ||
-      (config.version == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs))
+  const bool version_ok = ((layout == 1U && config.transition_ms == 0U) ||
+      (layout == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs))
       ? config.travel_ms == 4000U
-      : config.version == 3U && config.transition_ms <= PaletteTransition::kMaximumDurationMs &&
+      : layout == 3U && config.transition_ms <= PaletteTransition::kMaximumDurationMs &&
         config.travel_ms >= 500U && config.travel_ms <= 30000U;
-  if ((isCentreEffect(config.mode_a) || isCentreEffect(config.mode_b)) && config.version != 3U)
+  const std::uint32_t flag_mask = layout == 3U ? 31U : 7U;
+  if ((isCentreEffect(config.mode_a) || isCentreEffect(config.mode_b)) && layout != 3U)
     return false;
   if ((config.flags & 8U) &&
       ((config.mode_a && !isCentreEffect(config.mode_a)) ||
@@ -130,11 +135,14 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   if ((config.flags & 16U) &&
       (!isCentreEffect(config.mode_a) || !isCentreEffect(config.mode_b))) return false;
 #else
-  const bool version_ok = config.version == 1U && config.transition_ms == 0U && config.travel_ms == 4000U;
+  const bool version_ok = (config.version == 1U || config.version == 4U) &&
+      config.transition_ms == 0U && config.travel_ms == 4000U;
+  const std::uint32_t flag_mask = 7U;
+  (void)layout;
 #endif
   if (!version_ok || config.palette_a >= kProductPaletteCount ||
       config.palette_b >= kProductPaletteCount || !supportedMode(config.mode_a) ||
-      !supportedMode(config.mode_b) || (config.flags & ~(config.version == 3U ? 31U : 7U)) ||
+      !supportedMode(config.mode_b) || (config.flags & ~flag_mask) ||
       config.brightness > 255U || config.output_channel > 1U)
     return false;
   const bool cut = config.mode_a != config_.mode_a || config.mode_b != config_.mode_b;
@@ -263,7 +271,18 @@ bool PaletteRuntime::step(std::uint64_t now_us,
         // Live/silence path: clear then DualMCU previousFrame seed.
         // Skipping clear here saturates (snap-freeze).
         channel->clearFrame();
-        (void)renderProductChannel(*channel, governed, dt);
+        // Round 4 (ORCH): INT's declared route hook, not renderProductChannel
+        // directly. With route_enabled=false (config_.use_wide_route's
+        // default), or any mode outside kWideRouteAdmittedModesV1,
+        // wide_bloom.h documents this as exactly the legacy call. Proven
+        // unchanged by this switch existing: scripts/test_palette_runtime.py's
+        // COMPATIBILITY_DIGEST (folds every exercised palette x mode
+        // combination, including mode 3/Bloom) is byte-for-byte identical to
+        // the pre-route-wiring digest -- see docs/reference-import-receipt-tit2.md.
+        auto& wide_route = channel_index ? wide_route_b_ : wide_route_a_;
+        wide_route.route_enabled = config_.use_wide_route;
+        (void)wide::renderRoutedProductChannelV1(*channel, wide_route, governed, dt,
+                                                 channel->controls().liveiness);
         if (channel_index == 0U) {
           visual_path_ = musical ? "effect" : "hold";
           last_dwell_reinit_ = false;
@@ -275,9 +294,47 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       waiting_for_audio_ = true;
       if (channel_index == 0U) visual_path_ = "no_audio";
     }
+    ++channel_index;
+  }
+  // DUR-011 (Round 4, VP's core/visual/wide/wide_native_output.h): capture
+  // must happen BEFORE applyProductOutputTreatment mutates frame(), so this
+  // runs between the render loop above and the legacy treatment loop below.
+  // resolveNativeOutputV1() internally does capture -> FP32 output
+  // treatment -> resolveWideEndpointV1 (E1-E5) for both channels in one
+  // call, reading each channel's still-untreated Pixel8 frame and its
+  // WideRoutedChannelV1 (kWideRenderer provenance when this frame took the
+  // wide route and its Pixel8 frame still matches the wide display's
+  // rounded bytes; kLiftedPixel8 -- declared, not silently claimed wide --
+  // for preview/bounce/centre effects and any frame that did not route).
+  //
+  // "Only ONE treatment may advance a given ProductOutputTreatmentState per
+  // frame" (ORCH): resolveNativeOutputV1 advances the REAL
+  // outputTreatmentState() internally (it has no state parameter of its
+  // own to redirect). The legacy applyProductOutputTreatment below must
+  // still run unconditionally for packBenchGrb48Lane/status CRCs/the dwell
+  // path, and must see the phase it actually left off at, not a phase the
+  // wide treatment already advanced. So: snapshot each channel's state
+  // before resolving, let resolveNativeOutputV1 advance the real one, then
+  // restore the snapshot before the legacy call -- from the legacy
+  // treatment's perspective the wide treatment only ever touched a copy.
+  if (config_.use_wide_native16) {
+    const auto state_a = a_.outputTreatmentState();
+    const auto state_b = b_.outputTreatmentState();
+    wide::EndpointChannelIntentV1 intent_a{}, intent_b{};
+    intent_a.enabled = a_.controls().enabled;
+    intent_b.enabled = b_.controls().enabled;
+    const auto endpoint_config = endpointConfig(config_.brightness);
+    const auto result = wide::resolveNativeOutputV1(
+        a_, wide_route_a_, b_, wide_route_b_, intent_a, intent_b,
+        endpoint_config, wide_workspace_, wide_a_, wide_b_);
+    endpoint_report_ = result.endpoint;
+    provenance_ = result.provenance;
+    a_.outputTreatmentState() = state_a;
+    b_.outputTreatmentState() = state_b;
+  }
+  for (auto* channel : {&a_, &b_}) {
     applyProductOutputTreatment(channel->frame(), channel->controls(),
                                 channel->outputTreatmentState());
-    ++channel_index;
   }
   ++frames_;
   return true;
@@ -334,6 +391,29 @@ std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
   }
   return kPackedBytesPerLane;
 }
+std::size_t PaletteRuntime::packWideNative16Lane(
+    std::uint8_t* out, std::size_t capacity, unsigned lane,
+    const core::visual::wide::DeviceRgb16Frame& frame) const noexcept {
+  if (!out || capacity < kPackedBytesPerLane || lane > 1U) return 0U;
+  // No brightness rescaling here (Round 4): resolveWideEndpointV1 already
+  // applied EndpointConfigV1::master once, in the FP32 drive domain, before
+  // quantising these words. Packs unchanged, matching DualMCU's own
+  // packWs2816PixelV1 byte for byte.
+  for (unsigned i = 0; i < kPixelsPerHalf; ++i) {
+    const auto& pixel = frame[lane * kPixelsPerHalf + i];
+    packPixel(Pixel16{pixel.red, pixel.green, pixel.blue},
+              out + i * kPackedBytesPerPixel);
+  }
+  return kPackedBytesPerLane;
+}
+std::size_t PaletteRuntime::packNative16Lane(
+    std::uint8_t* out, std::size_t capacity, unsigned lane,
+    const core::visual::wide::DeviceRgb16Frame* wide_frame) const noexcept {
+  if (config_.use_wide_native16 && wide_frame != nullptr) {
+    return packWideNative16Lane(out, capacity, lane, *wide_frame);
+  }
+  return packBenchGrb48Lane(out, capacity, lane);
+}
 std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const noexcept {
   if (!out || capacity == 0U) return 0U;
   const int n = std::snprintf(out, capacity,
@@ -351,7 +431,8 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
 #else
       "\"bench_pixels\":128,\"wire_profile\":1,\"wire_bits_per_pixel\":24,"
 #endif
-      "\"host_pixel_stream_required\":false"
+      "\"host_pixel_stream_required\":false,\"config_version\":%lu,"
+      "\"wide_route\":%s,\"wide_native16\":%s"
 #ifdef K1_PALETTE_MORPH
       ",\"morph_supported\":true,\"transition_ms\":%lu,\"transition_a_q16\":%u,"
       "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u,"
@@ -371,7 +452,9 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long)kPalettePeriodUs, (unsigned long long)frames_, (unsigned long long)skipped_,
       (unsigned long long)emitted_, (unsigned long long)emit_errors_,
       (unsigned long)last_emit_cycles_, (unsigned long)maximum_emit_cycles_,
-      (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
+      (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame()),
+      (unsigned long)config_.version, config_.use_wide_route ? "true" : "false",
+      config_.use_wide_native16 ? "true" : "false"
 #ifdef K1_PALETTE_MORPH
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),
       transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors(),

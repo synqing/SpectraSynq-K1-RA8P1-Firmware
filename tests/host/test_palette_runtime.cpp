@@ -1,7 +1,35 @@
 #include "palette_runtime.h"
+#include <cstdlib>
+#include <new>
+// A5 allocation counter (INT, round 4): every global operator new form,
+// counted only while armed around step().
+static bool g_a5_armed = false;
+static std::size_t g_a5_new_calls = 0U;
+static void* a5Allocate(std::size_t size) {
+  if (g_a5_armed) ++g_a5_new_calls;
+  void* pointer = std::malloc(size == 0U ? 1U : size);
+  if (pointer == nullptr) throw std::bad_alloc{};
+  return pointer;
+}
+void* operator new(std::size_t size) { return a5Allocate(size); }
+void* operator new[](std::size_t size) { return a5Allocate(size); }
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
+  if (g_a5_armed) ++g_a5_new_calls;
+  return std::malloc(size == 0U ? 1U : size);
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
+  if (g_a5_armed) ++g_a5_new_calls;
+  return std::malloc(size == 0U ? 1U : size);
+}
+void operator delete(void* pointer) noexcept { std::free(pointer); }
+void operator delete[](void* pointer) noexcept { std::free(pointer); }
+void operator delete(void* pointer, std::size_t) noexcept { std::free(pointer); }
+void operator delete[](void* pointer, std::size_t) noexcept { std::free(pointer); }
 #include "core/visual/product_palette.h"
 #include "core/visual/product_effect_renderer.h"
 #include <cassert>
+#include <cmath>
+#include <ctime>
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
@@ -65,6 +93,188 @@ int main() {
         assert(!runtime.packBenchGrb48Lane(packed,sizeof(packed),2));
         assert(!runtime.packBenchGrb48Lane(nullptr,sizeof(packed),lane));
         for(auto byte:packed) assert(byte==0xa5);
+      }
+    }
+    // Round 4 (ORCH) acceptance A1-A4, through PaletteRuntime::step() (not
+    // the endpoint alone). A6 (test_hd_pixel16 from its runner) lives in
+    // scripts/test_hd_pixel16.py, unrelated to this file.
+    {
+      using core::visual::wide::WideCaptureProvenanceV1;
+      // A1: use_wide_native16=false gives packed bytes identical to
+      // packBenchGrb48Lane, whether or not use_wide_route is also on (mode 0
+      // here is outside kWideRouteAdmittedModesV1 regardless).
+      for (bool route : {false, true}) {
+        auto transport = c; transport.output_channel = 0U; transport.brightness = 200U;
+        transport.use_wide_native16 = false; transport.use_wide_route = route;
+        assert(runtime.configure(transport, 0U)); assert(runtime.step(0U, nullptr));
+        for (unsigned lane = 0; lane < 2; ++lane) {
+          std::uint8_t legacy[480], selected[480];
+          assert(runtime.packBenchGrb48Lane(legacy, sizeof(legacy), lane) == 480);
+          assert(runtime.packNative16Lane(selected, sizeof(selected), lane,
+                                          &runtime.wideFrame(0U)) == 480);
+          assert(!std::memcmp(legacy, selected, sizeof(legacy)));
+        }
+      }
+      std::printf("WIDE_ROUTE_A1_PASS default_off_identical=true routes_checked=2\n");
+
+      // A4: with use_wide_native16=false, route on and route off keep the
+      // legacy Pixel8 behaviour identically (mode 0/preview is outside
+      // kWideRouteAdmittedModesV1, so this is expected -- confirms A1's
+      // route=false/route=true cases agree with each other, not just each
+      // with the legacy pack).
+      {
+        auto route_off = c; route_off.output_channel = 0U;
+        route_off.use_wide_native16 = false; route_off.use_wide_route = false;
+        auto route_on = route_off; route_on.use_wide_route = true;
+        assert(runtime.configure(route_off, 0U)); assert(runtime.step(0U, nullptr));
+        Pixel8 frame_off[160];
+        std::memcpy(frame_off, runtime.channel(0).frame().data(), sizeof(frame_off));
+        assert(runtime.configure(route_on, 0U)); assert(runtime.step(0U, nullptr));
+        assert(!std::memcmp(frame_off, runtime.channel(0).frame().data(), sizeof(frame_off)));
+        std::printf("WIDE_ROUTE_A4_PASS native16_off_route_toggle_identical=true\n");
+      }
+
+      // A2/A3: route on, native16 on, mode 3 (Bloom), driven with real
+      // audio through step() (not a hand-built frame).
+      {
+        contract::AudioFeaturesV1 features{};
+        audio::TempoTrackerEvent tempo{};
+        VisualWaveformHistory waveform{};
+        auto live = c; live.output_channel = 0U; live.mode_a = 3U; live.mode_b = 3U;
+        live.flags = 1U; live.use_wide_route = true; live.use_wide_native16 = true;
+        live.brightness = 255U;
+        assert(runtime.configure(live, 0U));
+        // Force the chromatic injection path (byte-domain HSV, "a declared
+        // narrowing adapter, scaled afterwards in float" per wide_bloom.h) --
+        // the palette path instead ports paletteColour() operation for
+        // operation, which reproduces legacy byte output exactly and so never
+        // carries extra precision at injection.
+        runtime.channel(0U).controls().palette_mode_enabled = false;
+        runtime.channel(1U).controls().palette_mode_enabled = false;
+        const auto a5_start = std::clock();
+        const std::size_t a5_new_before = g_a5_new_calls;
+        g_a5_armed = true;
+        for (unsigned frame = 0; frame < 90; ++frame) {
+          // Continuously time-varying level (never a fixed-point repeat), so
+          // Bloom's exponential retention (alpha^frames) actually produces a
+          // spread of distinct floats across the strip instead of settling
+          // into one repeated 8-bit-exact injected value everywhere.
+          features.peak_scaled = 0.5F + 0.45F * std::sin(float(frame) * 0.37F);
+          features.vu_level = 0.5F + 0.45F * std::cos(float(frame) * 0.53F);
+          // Colour/injection amplitude comes from chroma_a_origin, NOT
+          // peak_scaled/vu_level (those only gate musical-presence/keep_live
+          // in k1MusicalPresence) -- see chromaticColour()/paletteColour()
+          // in product_effect_renderer.cpp. A left-zeroed chroma vector
+          // renders exactly black regardless of peak/vu, which is what an
+          // earlier version of this test discovered the hard way.
+          for (unsigned bin = 0; bin < contract::kChromaBinCount; ++bin) {
+            features.chroma_a_origin[bin] =
+                0.5F + 0.45F * std::sin(float(frame) * 0.29F + float(bin) * 0.8F);
+          }
+          const VisualAudioFrameView view{features, tempo, waveform, 0U};
+          assert(runtime.step(std::uint64_t(frame) * 20000U, &view));
+        }
+        g_a5_armed = false;
+        // A5 (INT, round 4): proven, not only by construction -- every
+        // operator new form is counted while the 90 step() calls above run
+        // with use_wide_route and use_wide_native16 both on.
+        const std::size_t a5_new_calls = g_a5_new_calls - a5_new_before;
+        assert(a5_new_calls == 0U);
+        std::printf("WIDE_ROUTE_A5_ALLOC_PASS operator_new_calls=%zu steps=90 route=on native16=on\n", a5_new_calls);
+        // A5: no allocation in step() (by construction -- wide_workspace_,
+        // wide_a_/wide_b_, wide_route_a_/wide_route_b_ are all
+        // PaletteRuntime members, not step()-local). Host cost figure
+        // (labelled host, not a target timing claim): both channels,
+        // use_wide_native16 on, per step() call including the legacy
+        // Pixel8 render/treatment this cycle still runs too.
+        const double a5_host_us_per_step =
+            1e6 * double(std::clock() - a5_start) / double(CLOCKS_PER_SEC) / 90.0;
+        std::printf("WIDE_ROUTE_A5_HOST_COST host_us_per_step=%.2f label=host\n", a5_host_us_per_step);
+        assert(runtime.provenance(0U) == WideCaptureProvenanceV1::kWideRenderer);
+        const auto pixels = runtime.channel(0).frame();
+        const auto& native = runtime.wideFrame(0U);
+        bool offlattice = false, samebyte_diffnative = false;
+        for (unsigned i = 0; i < 160 && !offlattice; ++i) {
+          const auto& n = native[i];
+          if (n.red % 257U || n.green % 257U || n.blue % 257U) offlattice = true;
+        }
+        for (unsigned i = 0; i < 160 && !samebyte_diffnative; ++i) {
+          for (unsigned j = i + 1; j < 160; ++j) {
+            if (pixels[i].red == pixels[j].red && pixels[i].green == pixels[j].green &&
+                pixels[i].blue == pixels[j].blue &&
+                (native[i].red != native[j].red || native[i].green != native[j].green ||
+                 native[i].blue != native[j].blue)) {
+              samebyte_diffnative = true;
+              break;
+            }
+          }
+        }
+        assert(offlattice);
+        assert(samebyte_diffnative);
+        // Titan's incumbent current limiting: none (see endpointConfig()'s
+        // comment in palette_runtime.h). Proof: even this near-saturated
+        // centre-injected render never trips the limiter.
+        assert(runtime.endpointReport().limiter_scale == 1.0F);
+        assert(runtime.endpointReport().channel[0].nonfinite == 0U);
+        assert(runtime.endpointReport().channel[1].nonfinite == 0U);
+        std::printf("WIDE_ROUTE_A2_PASS mode3_routed=true offlattice_words=true "
+                    "samebyte_diffnative_pair=true limiter_inert=true\n");
+
+        // A3 negative case: force capture to lift Pixel8 by re-rendering
+        // mode 0 (preview, outside kWideRouteAdmittedModesV1) so
+        // captureRenderedFrameV1 falls back to kLiftedPixel8 -- then the
+        // off-lattice claim must go red (a lifted Pixel8 word is always an
+        // exact multiple of 257), proving A2 is not vacuous. Revert after.
+        auto lifted = live; lifted.mode_a = 0U; lifted.mode_b = 0U;
+        assert(runtime.configure(lifted, 0U)); assert(runtime.step(0U, nullptr));
+        assert(runtime.provenance(0U) == WideCaptureProvenanceV1::kLiftedPixel8);
+        bool lifted_offlattice = false;
+        for (unsigned i = 0; i < 160; ++i) {
+          const auto& n = runtime.wideFrame(0U)[i];
+          if (n.red % 257U || n.green % 257U || n.blue % 257U) { lifted_offlattice = true; break; }
+        }
+        assert(!lifted_offlattice);  // A2's own claim, correctly, does not hold here
+        assert(runtime.configure(live, 0U));  // revert to the routed config
+        std::printf("WIDE_ROUTE_A3_MUTATION_PASS forced_lift_stays_on_lattice=true reverted=true\n");
+
+        // A6 (INT, round 4): capture happens BEFORE applyProductOutputTreatment
+        // even when that treatment is not the identity. A2 runs with every
+        // treatment control off, so a capture moved after the treatment would
+        // pass A2 unchanged (proven by INT's seam mutation M1). Here channel A
+        // carries a non-identity treatment (incandescent); a lockstep
+        // reference without it proves the treatment really changed Pixel8.
+        {
+          static k1::titan::PaletteRuntime reference;
+          auto treated_cfg = live;
+          assert(runtime.configure(treated_cfg, 0U));
+          assert(reference.configure(treated_cfg, 0U));
+          for (auto* r : {&runtime, &reference}) {
+            r->channel(0U).controls().palette_mode_enabled = false;
+            r->channel(1U).controls().palette_mode_enabled = false;
+          }
+          runtime.channel(0U).controls().incandescent_mode = true;
+          runtime.channel(0U).controls().incandescent_filter = 1.0F;
+          bool treatment_changed_pixel8 = false;
+          for (unsigned frame = 0; frame < 40; ++frame) {
+            features.peak_scaled = 0.5F + 0.45F * std::sin(float(frame) * 0.37F);
+            features.vu_level = 0.5F + 0.45F * std::cos(float(frame) * 0.53F);
+            for (unsigned bin = 0; bin < contract::kChromaBinCount; ++bin) {
+              features.chroma_a_origin[bin] =
+                  0.5F + 0.45F * std::sin(float(frame) * 0.29F + float(bin) * 0.8F);
+            }
+            const VisualAudioFrameView view{features, tempo, waveform, 0U};
+            assert(runtime.step(std::uint64_t(frame) * 20000U, &view));
+            assert(reference.step(std::uint64_t(frame) * 20000U, &view));
+            if (std::memcmp(runtime.channel(0U).frame().data(),
+                            reference.channel(0U).frame().data(), 160U * 3U) != 0) {
+              treatment_changed_pixel8 = true;
+            }
+          }
+          assert(treatment_changed_pixel8);
+          assert(runtime.provenance(0U) == WideCaptureProvenanceV1::kWideRenderer);
+          std::printf("WIDE_ROUTE_A6_PASS treatment=incandescent pixel8_changed=true "
+                      "capture_before_treatment=true\n");
+        }
       }
     }
     assert(runtime.configure(c,0U));

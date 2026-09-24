@@ -23,6 +23,7 @@
 #include "p4_runtime.h"
 #endif
 #include "core/visual/ws2816_pack.h"
+#include "ctl_capability.h"
 #include "ws2816_gpio_emit.h"
 #include "ws281x_diag.h"
 #ifdef K1_PALETTE_GPT_DMA
@@ -105,7 +106,12 @@ void palette_step(bool emit) {
     std::uint32_t cycles = 0;
     for (unsigned lane = 0; lane < 2; ++lane) {
       auto* wire = palette_wire_snapshot + 64U + 480U + lane*480U;
-      const auto size = palettes.packBenchGrb48Lane(wire, 480U, lane);
+      // packNative16Lane's own config_.use_wide_native16 gate (default
+      // false) makes this byte-identical to packBenchGrb48Lane unless the
+      // switch is on; wideFrame() is only ever produced by step() when that
+      // same flag is on, so this is never a stale-frame read either way.
+      const auto size = palettes.packNative16Lane(
+          wire, 480U, lane, &palettes.wideFrame(config.output_channel));
       k1_ws281x_diag_result_t result{};
       const int emitted = k1_ws281x_diag_emit(wire, size, 4U, lane, palette_clock_hz, &result);
       snapshot_word(12U+lane, static_cast<std::uint32_t>(emitted));
@@ -526,22 +532,42 @@ void execute() {
   }
 #endif
   if (command == 20) { status_command(size); fill=0; wanted=32; return; }
+  // CTL_CAPABILITY: read-only report of CTL v2's generated Titan platform
+  // profile. No control value is read or written; not gated behind
+  // K1_PALETTE_RUNTIME, since contract/control_v2 and core/control/v2 are
+  // always part of src/k1 (imported at PIN_TIT2), not a palette feature.
+  if (command == 21 && size == 0U) {
+    const auto n = k1::titan::ctlCapabilityJson(trace.data, sizeof(trace.data));
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    fill=0; wanted=32; return;
+  }
 #ifdef K1_PALETTE_RUNTIME
   if (command == k1::titan::kPaletteCatalogueOpcode && size == 0U) {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
-  } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U || size == 40U)) {
+  } else if (command == k1::titan::kPaletteConfigureOpcode &&
+             (size == 32U || size == 36U || size == 40U ||
+              size == k1::titan::kPaletteConfigV4Bytes)) {
 #ifdef K1_RESIDENT_SCHEDULE
     if (k1_fixture_schedule_active()) { error(10); return; }
 #endif
     const auto* p = rx + 32;
     if ((size == 32U && get32(p) != 1U) ||
         (size == 36U && get32(p) != 2U) ||
-        (size == 40U && get32(p) != 3U)) { error(3); return; }
-    const k1::titan::PaletteConfig config{
+        (size == 40U && get32(p) != 3U) ||
+        (size == k1::titan::kPaletteConfigV4Bytes && get32(p) != 4U)) { error(3); return; }
+    // Version 4 only: explicit wide switch mask (little-endian u32 at payload
+    // offset 40). Unknown bits are refused; older versions carry no mask, so
+    // both switches stay off (default behaviour unchanged).
+    const std::uint32_t switches = size == k1::titan::kPaletteConfigV4Bytes
+        ? get32(p + k1::titan::kPaletteConfigSwitchOffset) : 0U;
+    if (switches & ~k1::titan::kPaletteSwitchMask) { error(3); return; }
+    k1::titan::PaletteConfig config{
         get32(p), get32(p+4), get32(p+8), get32(p+12),
         get32(p+16), get32(p+20), get32(p+24), get32(p+28),
-        size >= 36U ? get32(p+32) : 0U, size == 40U ? get32(p+36) : 4000U};
+        size >= 36U ? get32(p+32) : 0U, size >= 40U ? get32(p+36) : 4000U};
+    config.use_wide_route = (switches & k1::titan::kPaletteSwitchWideRoute) != 0U;
+    config.use_wide_native16 = (switches & k1::titan::kPaletteSwitchWideNative16) != 0U;
     if (!palettes.configure(config, palette_time_us)) { error(3); return; }
     palette_step(false);
     const auto n = palettes.statusJson(trace.data, sizeof(trace.data));

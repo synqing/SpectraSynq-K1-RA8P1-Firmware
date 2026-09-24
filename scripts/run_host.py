@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 
-from verify_imports import ROOT, REFERENCE, PIN, verify
+from verify_imports import ROOT, REFERENCE, PIN, verify, commit_for
 
 
 def run(command, **kwargs):
@@ -46,7 +46,7 @@ def main():
             fixtures += ["test/fixtures/gdft_production_shell.golden.jsonl", "test/fixtures/tempo_v2_flywheel.golden.jsonl"]
         receipt["fixtures"] = {}
         for name in names + tests + fixtures:
-            data = subprocess.check_output(["git", "-C", str(REFERENCE), "show", f"{PIN}:{name}"])
+            data = subprocess.check_output(["git", "-C", str(REFERENCE), "show", f"{commit_for(name)}:{name}"])
             destination = (test_root if name in tests + fixtures else donor) / name
             destination.parent.mkdir(parents=True, exist_ok=True)
             destination.write_bytes(data)

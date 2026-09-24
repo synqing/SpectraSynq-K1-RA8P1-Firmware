@@ -1,0 +1,78 @@
+{
+  "schema": "k1.control-bundle-manifest/1",
+  "generator": "scripts/export_control_bundle.py",
+  "generator_version": "1.0.0",
+  "compiler_version": 1,
+  "registry_sha256": "da4f018034ce5cd83b43104e958afe9dfed764dc60ff2c97ccd8d344319bdffc",
+  "default_profile_sha256": "6a63278e8886d31830d624acb33ba4b40d9972b781db3c06441f6ae6193d087f",
+  "default_profile_bytes": 4304,
+  "inputs": [
+    {
+      "path": "contract/control_v2/registry/control_registry_v2.json",
+      "sha256": "29cde4e62b4220a6317a06a6f047c31d87428d95ca601b84e51207f5254eaf20",
+      "bytes": 81973
+    },
+    {
+      "path": "contract/control_v2/schema/control_registry_v2.schema.json",
+      "sha256": "c106626fc97795b8e181ff9e7575fa60b0d4e6d69b8564d4d7e9f2e75f7faf52",
+      "bytes": 22467
+    },
+    {
+      "path": "contract/control_v2/schema/control_profile_v2.schema.json",
+      "sha256": "c5aa6e3c557c16b43244bc763d9fdbf3562ef8cbd6d46b83ad3f827421eaaba0",
+      "bytes": 9768
+    },
+    {
+      "path": "contract/control_v2/platforms/capacity_profiles_v2.json",
+      "sha256": "0e0f940797cba66a3061a6b537878797f46599f0a5ffeb50c65388e54df4b738",
+      "bytes": 13517
+    },
+    {
+      "path": "contract/control_v2/profiles/default_profile_v2.json",
+      "sha256": "d7081e561231f027767a2e1e189a5319540e8ae65f85d1550971fef53198d913",
+      "bytes": 36678
+    },
+    {
+      "path": "contract/product/control_map_v1.json",
+      "sha256": "0b69f878a899bb68cc9a44bb208ed771e5f34d5b2b905ec5cec685ec78b0f9de",
+      "bytes": 21271
+    },
+    {
+      "path": "contract/product/mode_catalogue_v1.json",
+      "sha256": "dd9c3ca7e2257ceb70ac94972408db48faad987f930c463138ae1850ff7deea3",
+      "bytes": 4858
+    },
+    {
+      "path": "contract/product/palette_catalogue_v1.json",
+      "sha256": "a0c912414fc256b888ae2f52d01e55afe64738253544c7b3df6442e065d87700",
+      "bytes": 41624
+    },
+    {
+      "path": "scripts/export_control_bundle.py",
+      "sha256": "306c4750ed8cfd7e2b6a9c006a8ba586af4db4a49d230f41cd135a8742289f08",
+      "bytes": 41217
+    },
+    {
+      "path": "scripts/compile_control_profile.py",
+      "sha256": "17a8a0f3534eb21290069cd416a514d0bc978f852fed0d32eb485d3ae4c24c3b",
+      "bytes": 44311
+    }
+  ],
+  "outputs": [
+    {
+      "path": "capability_matrix_v2.json",
+      "sha256": "63d7ac4690816e07610a3b1bf852889a5abedcfdbd60a040e0ddbad14f3b889f",
+      "bytes": 62744
+    },
+    {
+      "path": "control_profile_default_v2.generated.h",
+      "sha256": "428e35e15377a14b41423340a6c837ea9a62d292d7d1ffb77c63b449a4dcf1a9",
+      "bytes": 42298
+    },
+    {
+      "path": "control_registry_v2.generated.h",
+      "sha256": "fbeed78afc08e8aa7f8478ef6c9c827536864439ddafabf63074089ca0034c58",
+      "bytes": 97523
+    }
+  ]
+}

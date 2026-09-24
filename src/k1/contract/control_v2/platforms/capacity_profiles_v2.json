@@ -1,0 +1,342 @@
+{
+  "schema": "k1.control-capacity/2",
+  "status": "proposed",
+  "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json (ORCH commit 28156d3) and ORCH rulings of 2026-09-24",
+  "classes": {
+    "measured": "an existing compiled constant or committed build log value, cited",
+    "derived": "arithmetic over measured values, cited",
+    "proposed": "no ceiling exists in source; a reasoned recommendation, never a fact",
+    "measured-absent": "a targeted search found no such capability; the value is zero and the capability is an explicit rejection"
+  },
+  "profile_record_header_bytes": 32,
+  "platforms": {
+    "rt1062": {
+      "platform": "rt1062",
+      "product_id": "0x4B31444D",
+      "engine": true,
+      "description": "DualMCU RT1062 real-time engine (AP+VP) behind the S3 radio bridge.",
+      "control_path": "BLE (console) -> S3 radio bridge -> K1BR SPI -> RT1062 engine",
+      "capacity_status": "proposed",
+      "channel_count": {
+        "value": 2,
+        "class": "measured",
+        "source": "core/visual/pixel_topology.h:13 kChannelCount"
+      },
+      "max_pages": {
+        "value": 10,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.pages (no page constant exists); anchored on standalone K1_PRESET_SLOT_COUNT=10, the only persisted slot precedent. The engine holds only ProfileIdentity, so this bounds the console-compiled profile the engine will accept identities for."
+      },
+      "max_targets": {
+        "value": 64,
+        "class": "proposed",
+        "source": "registry declares 61 targets (29 channel parameters x 2 + 3 global); codec capacity kMaxSnapshotEntries=64"
+      },
+      "max_snapshot_entries": {
+        "value": 64,
+        "class": "proposed",
+        "source": "= max_targets; StateSnapshot 92+20n+4 bytes fragments over TRN's reliable lane (<= 2 496 B per message)"
+      },
+      "max_transaction_ops": {
+        "value": 16,
+        "class": "proposed",
+        "source": "ControlTransaction 36+24*16 = 420 B fits TRN's 2 496 B fragmented message; covers one channel's preset recall"
+      },
+      "max_concurrent_leases": {
+        "value": 16,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.bindings_fader 9 + bindings_pad 7 (derived) = 16 simultaneous gesture owners"
+      },
+      "max_writers": {
+        "value": 4,
+        "class": "proposed",
+        "source": "console, companion editor, automation, external sync"
+      },
+      "duplicate_window": {
+        "value": 16,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.transaction_queue_depth_ble_ordered 8 (measured) x 2, so every retry inside the ordered window finds its original receipt"
+      },
+      "max_label_bytes": {
+        "value": 16,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.string_bytes_on_wire 0 (measured): labels are new bounded UTF-8 fields; binding/page label field width 16 B including NUL"
+      },
+      "persistence_slot_bytes": {
+        "value": 0,
+        "class": "measured-absent",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.persistence_bytes (measured-absent: no control/parameter store on RT1062)"
+      },
+      "lease_timeout_us": {
+        "value": 500000,
+        "class": "proposed",
+        "source": "console scan 5 000 us and BLE interval 7.5-15 ms (measured, capacity-proposal console.*); 500 ms >> worst inter-sample gap; freeze from HMI movement cadence before target tests"
+      },
+      "ram_budget_bytes": {
+        "value": 32768,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json dual.rt1062_t40_ram1_free_bytes_2026_09_20 = 243 328 B (measured); engine state budget is a proposal"
+      },
+      "response_policies": "all",
+      "numeric_encodings": "all",
+      "input_modalities": [
+        "absolute",
+        "relative"
+      ],
+      "telemetry": [
+        "effective"
+      ],
+      "services": [
+        "route_ble"
+      ],
+      "support_column": "rt1062"
+    },
+    "titan": {
+      "platform": "titan",
+      "product_id": "0x4B315449",
+      "engine": true,
+      "description": "RA8P1 Titan Mini: scalar functional-parity probe with a USB-CDC fixture shell.",
+      "control_path": "host USB-CDC fixture adapter (intermediate control path; no BLE route today)",
+      "capacity_status": "proposed",
+      "channel_count": {
+        "value": 2,
+        "class": "measured",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.ws2816_pixels_per_lane 80 x 2 lanes"
+      },
+      "max_pages": {
+        "value": 0,
+        "class": "measured-absent",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.bindings (measured-absent: no physical binding path or console link); profiles are explicitly rejected"
+      },
+      "max_targets": {
+        "value": 64,
+        "class": "proposed",
+        "source": "portable engine imported deliberately (Titan REFERENCE-MANIFEST); same registry target set"
+      },
+      "max_snapshot_entries": {
+        "value": 64,
+        "class": "proposed",
+        "source": "= max_targets"
+      },
+      "max_transaction_ops": {
+        "value": 10,
+        "class": "derived",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.fixture_protocol_payload_bytes_max 360 (measured): 36 + 24 n <= 360 gives n <= 13; 10 leaves room for the fixture envelope"
+      },
+      "max_concurrent_leases": {
+        "value": 0,
+        "class": "measured-absent",
+        "source": "no gesture source on Titan today: no leases"
+      },
+      "max_writers": {
+        "value": 1,
+        "class": "derived",
+        "source": "one host fixture client"
+      },
+      "duplicate_window": {
+        "value": 8,
+        "class": "proposed",
+        "source": "fixture client retries only; half the RT1062 window"
+      },
+      "max_label_bytes": {
+        "value": 0,
+        "class": "measured-absent",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.string_bytes_on_wire (measured-absent)"
+      },
+      "persistence_slot_bytes": {
+        "value": 0,
+        "class": "measured-absent",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json titan.persistence_bytes (measured-absent: no flash-backed config store)"
+      },
+      "lease_timeout_us": {
+        "value": 0,
+        "class": "measured-absent",
+        "source": "no leases without a gesture source"
+      },
+      "ram_budget_bytes": {
+        "value": 32768,
+        "class": "proposed",
+        "source": "RA8P1 SRAM is larger than RT1062's engine budget; proposal mirrors RT1062"
+      },
+      "response_policies": "all",
+      "numeric_encodings": "all",
+      "input_modalities": [
+        "absolute"
+      ],
+      "telemetry": [],
+      "services": [
+        "route_fixture"
+      ],
+      "support_column": "titan"
+    },
+    "standalone_s3": {
+      "platform": "standalone_s3",
+      "product_id": "0x4B315333",
+      "engine": true,
+      "description": "Standalone ESP32-S3 engine (separately admitted lane).",
+      "control_path": "in-process local control plus the standalone remote client (source admission pending)",
+      "capacity_status": "proposed",
+      "channel_count": {
+        "value": 2,
+        "class": "proposed",
+        "source": "K1 product geometry: two logical channels"
+      },
+      "max_pages": {
+        "value": 10,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json standalone.pages K1_PRESET_SLOT_COUNT=10 (measured precedent, not a binding constraint)"
+      },
+      "max_targets": {
+        "value": 64,
+        "class": "proposed",
+        "source": "same registry target set"
+      },
+      "max_snapshot_entries": {
+        "value": 64,
+        "class": "proposed",
+        "source": "= max_targets"
+      },
+      "max_transaction_ops": {
+        "value": 16,
+        "class": "proposed",
+        "source": "same as RT1062"
+      },
+      "max_concurrent_leases": {
+        "value": 12,
+        "class": "proposed",
+        "source": "remote client gestures plus local buttons"
+      },
+      "max_writers": {
+        "value": 2,
+        "class": "proposed",
+        "source": "remote client and local controls"
+      },
+      "duplicate_window": {
+        "value": 16,
+        "class": "proposed",
+        "source": "same as RT1062"
+      },
+      "max_label_bytes": {
+        "value": 16,
+        "class": "proposed",
+        "source": "same bounded UTF-8 label width"
+      },
+      "persistence_slot_bytes": {
+        "value": 8192,
+        "class": "derived",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json standalone.fs_min_internal_block_bytes 8192 (measured): one LittleFS block per A/B slot holds a 10-page profile (7120 B) plus its 32-byte record header"
+      },
+      "lease_timeout_us": {
+        "value": 500000,
+        "class": "proposed",
+        "source": "same as RT1062"
+      },
+      "ram_budget_bytes": {
+        "value": 32768,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json standalone.sram_total_bytes 524 288 (measured)"
+      },
+      "response_policies": "all",
+      "numeric_encodings": "all",
+      "input_modalities": [
+        "absolute",
+        "relative"
+      ],
+      "telemetry": [
+        "effective"
+      ],
+      "services": [
+        "persistence",
+        "route_local"
+      ],
+      "support_column": "standalone_s3"
+    },
+    "console": {
+      "platform": "console",
+      "product_id": "0x4B31C024",
+      "engine": false,
+      "description": "K1.Sliders 2.41-inch console: profile owner and compiler, not an engine.",
+      "control_path": "nine faders and touch UI -> BLE -> S3 radio bridge",
+      "capacity_status": "proposed",
+      "channel_count": {
+        "value": 2,
+        "class": "measured",
+        "source": "R2 channel-first model: Primary/Top and Secondary/Bottom"
+      },
+      "max_pages": {
+        "value": 6,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.persistence_bytes_nvs_partition 24 576 (measured, shared): A/B slots plus a pre-migration backup of a 6-page profile = 3 x 4352 B = 13056 B, leaving room for BLE bonds and the 84 B of settings. Two default pages plus one custom page per channel. More pages need a dedicated partition (open decision)."
+      },
+      "max_targets": {
+        "value": 64,
+        "class": "proposed",
+        "source": "the console mirrors engine targets for UI state"
+      },
+      "max_snapshot_entries": {
+        "value": 64,
+        "class": "proposed",
+        "source": "= max_targets"
+      },
+      "max_transaction_ops": {
+        "value": 16,
+        "class": "proposed",
+        "source": "same as RT1062 so editor transactions are never truncated"
+      },
+      "max_concurrent_leases": {
+        "value": 9,
+        "class": "derived",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.bindings_fader 9 (measured): one active gesture per fader"
+      },
+      "max_writers": {
+        "value": 1,
+        "class": "derived",
+        "source": "the console is one writer"
+      },
+      "duplicate_window": {
+        "value": 0,
+        "class": "derived",
+        "source": "not an engine: no receipt cache"
+      },
+      "max_label_bytes": {
+        "value": 16,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.string_bytes_on_wire 32 (measured, host-local); binding/page label width 16 B"
+      },
+      "persistence_slot_bytes": {
+        "value": 4352,
+        "class": "derived",
+        "source": "4304 B 6-page profile + 32 B record header, rounded up to 64 B"
+      },
+      "lease_timeout_us": {
+        "value": 0,
+        "class": "derived",
+        "source": "not an engine: leases are engine-side"
+      },
+      "ram_budget_bytes": {
+        "value": 24576,
+        "class": "proposed",
+        "source": "docs/evidence/k1-programme-2026-09-24/platform/capacity-proposal.json console.lvgl_mem_size_bytes 49 152 (measured) sets the scale; one CompiledProfile plus a draft"
+      },
+      "response_policies": "all",
+      "numeric_encodings": "all",
+      "input_modalities": [
+        "absolute",
+        "relative"
+      ],
+      "telemetry": [
+        "effective"
+      ],
+      "services": [
+        "persistence",
+        "route_ble"
+      ],
+      "support_column": "console"
+    }
+  },
+  "notes": [
+    "Compiled profiles stay console-side. Engines receive only ProfileIdentity; staged profile transfer to an engine is not advertised on any platform in this release (service profile_transfer absent everywhere).",
+    "Minimum product capability: two nine-fader default pages per channel plus one custom nine-fader page per channel wherever a platform advertises pages.",
+    "Every value marked proposed awaits measured budgets; admission on a target requires those measurements."
+  ]
+}
