@@ -128,45 +128,78 @@ All four items below are now IMPLEMENTED + HOST_PASS (commits `cfdaf6d`,
 adds beyond the host proof already in each commit message and
 `docs/reference-import-receipt-tit2.md`.
 
-- **Wide-native16 switch, off (default)**: `packNative16Lane` with
-  `use_wide_native16=false` byte-matches `packBenchGrb48Lane` for every
-  input tried host-side, including a produced-but-unused wide frame. On
-  target: confirm the real WS2816 emit path in `fixture_app.cpp` (now
-  calling `packNative16Lane` instead of `packBenchGrb48Lane` directly)
-  produces identical optical/electrical output to the pre-TIT-2 image at
-  the same `PaletteConfig` — no wire decoder sets `use_wide_native16` yet,
-  so every live `SET_CONFIG` should still land on the legacy path.
-- **Wide-native16 switch, on**: a producer now exists
-  (`PaletteRuntime::step()` fills `wide_a_`/`wide_b_` from each channel's
-  rendered Pixel8 frame via `core::visual::wide::quantiseUnorm16`), and is
-  reachable end-to-end through the fixture protocol. **Important, proven
-  host-side**: because the source is already Pixel8-quantised, this
-  producer's packed output is currently byte-identical to the legacy path
-  for any real render (65535/255 == 257 exactly, so no Pixel8 value is ever
-  near this exact law's rounding boundary) — turning the switch on today
-  changes nothing observable, on host or target. Genuine divergence needs
-  the renderer to expose a working-domain F32 frame upstream of Pixel8
-  quantisation (the wide endpoint's E1-E4 stages: finite/enabled check,
-  intensity*master gain, device transfer, shared current-limit scale) —
-  not attempted this session; that is the concrete next step for whichever
-  lane wants the wide route to actually change light output. On-target,
-  once that exists: bind FP32/working-domain reference to
-  `hd_pixel16`/packing at the final conversion point (lane brief step 6);
-  test after all brightness/treatment operations; verify independent A/B
-  and centre mapping are preserved.
-- **`quantiseHd16` vs `quantiseUnorm16`** (DUR-010, DualMCU `b21294a`):
-  `quantiseHd16Exact` + `quantiseHd16Selected(colour, use_exact_law)`
-  exist in `platform/ra8p1/hd_pixel16.h`, default off, host-proven
-  byte-identical to `quantiseHd16` for every input tried. No call site
-  passes `use_exact_law=true` yet — the switch exists but nothing reads it
-  on the live pixel path (it sits beside `quantiseHd16`, not yet spliced
-  into `packBenchGrb48Lane`/`packWideNative16Lane`). Confirmed divergence:
-  `+Inf` (`quantiseHd16` -> 0 via its `isfinite` guard; the exact law ->
-  65535). Both agree on NaN (-> 0). On-bench: drive both laws with the same
-  vector including `+Inf`/half-way-boundary values through whichever call
-  site eventually wires the switch in, and confirm the same host identity
-  holds on target hardware (it is a pure host-observable numeric law, not a
-  timing-dependent one, so no new bench-only failure mode is expected).
+- **DUR-010 disposition**: **no live caller; not implemented.**
+  `quantiseHd16Exact`/`quantiseHd16Selected` were removed (Captain ruling:
+  "a switch nothing reads is not a feature"). `quantiseHd16` itself is
+  unchanged in behaviour except a real fix: its finiteness guard is now
+  `isFiniteBits()` (bit-level), not `std::isfinite()`, because `-ffast-math`
+  licenses the compiler to fold `isfinite()` to `true`, silently flipping
+  the `+Inf` case from 0 to 65535. Host-proven both ways
+  (`scripts/test_hd_pixel16.py` runs normal flags and `-ffast-math` and
+  asserts identical output). Divergence vectors (`+Inf` diverges 0-vs-65535;
+  NaN agrees at 0) remain as evidence in `tests/host/test_hd_pixel16.cpp`
+  for if/when a caller appears. No on-target check needed: this is a pure
+  host-observable numeric law with no live call site.
+- **DUR-011 native-output path, off (`use_wide_native16=false`, default)**:
+  `PaletteRuntime::step()` calls `resolveNativeOutputV1` (VP's
+  `core/visual/wide/wide_native_output.h`, DualMCU pin `5b34f98`) only when
+  the flag is set; `packNative16Lane` with the flag off byte-matches
+  `packBenchGrb48Lane` for every case tried host-side (`WIDE_ROUTE_A1_PASS`,
+  `WIDE_ROUTE_A4_PASS` — the latter also covers `use_wide_route` on/off with
+  native16 off, per ORCH's A4 scope). On target: confirm the real WS2816
+  emit path in `fixture_app.cpp` produces identical optical/electrical
+  output to the pre-DUR-011 image at the same `PaletteConfig` — no wire
+  decoder sets either flag yet, so every live `SET_CONFIG` still lands on
+  the legacy path.
+- **DUR-011 native-output path, on**: genuinely wired end to end now (the
+  round-3 Pixel8-lift producer is deleted). Capture happens before
+  `applyProductOutputTreatment` mutates `frame()`; the legacy Pixel8
+  treatment still runs unconditionally (packBenchGrb48Lane/status
+  CRCs/dwell path need it), so `resolveNativeOutputV1`'s internal FP32
+  treatment is given a snapshot-and-restore of `ProductOutputTreatmentState`
+  rather than the real one, so only one treatment's dither-phase advance
+  persists per frame. Brightness maps to `EndpointConfigV1::master`
+  (`brightness/255`) once, in the FP32 drive domain — the 16-bit words are
+  **not** rescaled again in the pack (`packWideNative16Lane` no longer
+  multiplies by `config_.brightness`). **Host-proven on live render output**
+  (`WIDE_ROUTE_A2_PASS`, mode 3/Bloom, 90 `step()` calls with a genuinely
+  time-varying `chroma_a_origin` audio vector — a left-zeroed vector renders
+  exactly black regardless of `peak_scaled`/`vu_level`, which only gate
+  musical-presence/`keep_live`, not colour): native words are **not**
+  confined to the legacy lift's x257 lattice, and at least one pair of
+  distinct pixels whose Pixel8 (8-bit) codes are equal have distinct native
+  16-bit words — genuine sub-8-bit precision recovery, not a relabelled
+  lift. `WIDE_ROUTE_A3_MUTATION_PASS` proves this isn't vacuous: forcing
+  capture to fall back to `kLiftedPixel8` (mode 0/preview, outside
+  `kWideRouteAdmittedModesV1`) makes every native word land back on the
+  x257 lattice, exactly as the lifted case should. On target: WS2816
+  capture with mode 3 routed + native16 on, confirm the captured wire bytes
+  are off-lattice and that two same-Pixel8-code pixels carry distinct
+  native words (the A2/A3 host proof, now on real hardware); confirm
+  default-off (`use_wide_native16=false`) still matches the pre-DUR-011
+  image byte for byte at the wire.
+- **Current limiting**: Titan has **no incumbent current limiter**
+  (grep-confirmed: nothing under `platform/ra8p1/` mentions
+  `current_ma`/`max_current`/`current_limit`). `PaletteRuntime::endpointConfig()`
+  reproduces "no limiting" by setting `EndpointConfigV1::max_current_ma` to
+  `1e6` (the top of its declared valid range `[100, 1e6]`) — the largest
+  physically possible two-channel draw (160 px x 3 components x 20 mA x 2
+  channels = 19,200 mA) sits far below it, so `resolveWideEndpointV1`'s
+  limiter is mathematically inert. Host-proven: `WIDE_ROUTE_A2_PASS`'s
+  near-saturated centre-injected render still reports `limiter_scale == 1.0`
+  and zero `nonfinite` counts on both channels (`runtime.endpointReport()`).
+  On target: confirm the same at real full-white/full-brightness (the
+  genuine physical worst case, not just this host proxy).
+- **Edge policy**: Titan never calls `applyProductEdgePolicy` anywhere in
+  `platform/ra8p1/` (grep-confirmed), so there is no coverage gap on Titan
+  for this path — nothing to reconcile on target.
+- **A5 (no allocation in step())**: by construction — `wide_workspace_`,
+  `wide_a_`/`wide_b_`, `wide_route_a_`/`wide_route_b_` are all
+  `PaletteRuntime` members, never step()-local. Host cost figure (labelled
+  host, not a target timing claim): ~20 us/`step()` call on host g++ O2,
+  both channels, `use_wide_native16` on (`WIDE_ROUTE_A5_HOST_COST` in the
+  test output) — includes the legacy Pixel8 render/treatment this cycle
+  still runs too, not just the wide path in isolation.
 - **CTL_CAPABILITY (fixture opcode 21)**: implemented, read-only, host-proven
   through the real K1S1-framed wire protocol (not an in-process call) —
   `contract/control_v2/generated/control_registry_v2.generated.h`'s own

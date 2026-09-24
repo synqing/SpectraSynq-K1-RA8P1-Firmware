@@ -111,3 +111,28 @@ membership check in `verify_imports.py` -- `"product regression must retain
 every accepted timing import"` -- still holds; `timing` slice is untouched).
 No file outside the 61 listed above was written by
 `scripts/import_tit2_delta.py`.
+
+## Round 4 addendum: DUR-011 native-output interface (PIN_TIT2_ROUND4)
+
+A second, further-scoped pin sits beside `PIN_TIT2`:
+**`PIN_TIT2_ROUND4` = `5b34f98085e85cb6b58d8b61290a932d9e22e8fe`**, verified
+ancestor-forward of `PIN_TIT2` (`git merge-base --is-ancestor 16f70a9... 5b34f98...`
+exits 0). Scope: exactly `core/visual/wide/wide_native_output.{h,cpp}` (VP's
+DUR-011 capture/FP32-treatment/resolve interface) -- grepped their own
+`#include` lines to confirm they depend only on already-imported
+`wide_bloom.h`/`wide_endpoint.h`/`wide_types.h`/`channel_render_state.h`, so
+nothing else was pulled in. **Explicitly excluded**, though they changed in
+the same DualMCU commit range: `contract/bridge_protocol.{h,cpp}` and
+`core/control/bridge_command_processor.h` (a different lane's work, already
+dirty in this shared checkout before this session started), CTL's own
+`core/control/v2/control_engine.{h,cpp}` + the `control_v2` generated
+JSON/`control_v2_types.h` (not asked for here), and
+`core/visual/modes/mood_liveiness_migration_v1.h` +
+`core/audio/tempo_field.cpp` (also changed; `wide_native_output` includes
+neither). `docs/IMPORT-MANIFEST.tsv` rows for all of these stay on their
+prior pin, matching their `src/k1` content verbatim. DUR-010's earlier
+disposition ("no live caller; not implemented" -- see
+`platform/ra8p1/hd_pixel16.h`'s own comment, which is the current source of
+truth) is unaffected by this addendum: `quantiseHd16Exact`/
+`quantiseHd16Selected` were removed, not imported alongside this round's
+`wide_native_output` work.
