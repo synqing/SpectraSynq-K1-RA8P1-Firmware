@@ -18,10 +18,16 @@ concrete next command a bench/CI runner executes.
 `core/visual/modes/**`, `contract/tempo_field_v1.*`,
 `core/audio/{tempo_field,tempo_phase_tracks}.*`, `contract/control_v2/**`,
 `core/control/v2/**`, plus 4 updated `product`-slice files). `platform/ra8p1/palette_runtime.{h,cpp}`
-gained `packWideNative16Lane`/`packNative16Lane` and `PaletteConfig::use_wide_native16`
-(default `false`; no current wire decoder sets it, so this build is
-behaviourally identical to the pre-TIT-2 build at every existing opcode).
-Nothing else under `platform/ra8p1/` changed. `scripts/build_scalar.py`'s own
+gained `packWideNative16Lane`/`packNative16Lane`, a step()-driven
+`DeviceRgb16Frame` producer (`wideFrame()`), and `PaletteConfig::use_wide_native16`
+(default `false`; no current wire decoder sets it, and the producer is
+proven a no-op on packed bytes even when forced on host-side -- see
+`docs/reference-import-receipt-tit2.md` and commit `080b75b` -- so this
+build is behaviourally identical to the pre-TIT-2 build at every existing
+opcode). `platform/ra8p1/hd_pixel16.h` gained `quantiseHd16Exact`/
+`quantiseHd16Selected` (DUR-010, default off, unwired to any pixel path
+yet). `platform/ra8p1/ctl_capability.h` is new (fixture opcode 21,
+read-only, always compiled in). `scripts/build_scalar.py`'s own
 `SConscript` walk of `platform/ra8p1/k1/` (which it stages from `src/k1/`
 before SCons runs) picks up the new files automatically — no wrapper-argv
 change is needed for the new source.
@@ -117,47 +123,61 @@ specifies (rate identity, AP timing/loss, VP/output timing, GPT/DMA
 completion, native precision/black, memory, G3/G4 loaded runs, progress).
 Specific to this delta, add:
 
-- **Wide-native16 switch, off (default)**: identical optical/electrical
-  output to the pre-TIT-2 image at the same `PaletteConfig` (this session's
-  host proof: `packNative16Lane` with `use_wide_native16=false` byte-matches
-  `packBenchGrb48Lane` for every input tried, including a wide frame present
-  but unused — see `docs/reference-import-receipt-tit2.md`). On target:
-  confirm no new command/opcode is reachable through the existing
-  `k1_fixture_*` protocol that changes this default (none was added by this
-  delta — CTL v2 wire exposure through `k1_fixture_*` is a separate,
-  NOT_STARTED item; see below).
-- **Wide-native16 switch, on**: requires a *producer* for
-  `core::visual::wide::DeviceRgb16Frame` wired into the live render loop
-  (this delta imports the wide endpoint module and adds the *consumer* side
-  — `packWideNative16Lane`/`packNative16Lane` — but does not yet call
-  `wide_endpoint`'s `resolveChannelDrive`/`quantiseChannel` from
-  `palette_runtime.cpp`'s render step; that producer wiring, and therefore
-  any on-target measurement of the switch turned on, is the concrete next
-  step below). Once wired: bind FP32/working-domain reference to
+All four items below are now IMPLEMENTED + HOST_PASS (commits `cfdaf6d`,
+`98e1bb1`, `e89e7c6`, `080b75b`); this section says what an on-target run
+adds beyond the host proof already in each commit message and
+`docs/reference-import-receipt-tit2.md`.
+
+- **Wide-native16 switch, off (default)**: `packNative16Lane` with
+  `use_wide_native16=false` byte-matches `packBenchGrb48Lane` for every
+  input tried host-side, including a produced-but-unused wide frame. On
+  target: confirm the real WS2816 emit path in `fixture_app.cpp` (now
+  calling `packNative16Lane` instead of `packBenchGrb48Lane` directly)
+  produces identical optical/electrical output to the pre-TIT-2 image at
+  the same `PaletteConfig` — no wire decoder sets `use_wide_native16` yet,
+  so every live `SET_CONFIG` should still land on the legacy path.
+- **Wide-native16 switch, on**: a producer now exists
+  (`PaletteRuntime::step()` fills `wide_a_`/`wide_b_` from each channel's
+  rendered Pixel8 frame via `core::visual::wide::quantiseUnorm16`), and is
+  reachable end-to-end through the fixture protocol. **Important, proven
+  host-side**: because the source is already Pixel8-quantised, this
+  producer's packed output is currently byte-identical to the legacy path
+  for any real render (65535/255 == 257 exactly, so no Pixel8 value is ever
+  near this exact law's rounding boundary) — turning the switch on today
+  changes nothing observable, on host or target. Genuine divergence needs
+  the renderer to expose a working-domain F32 frame upstream of Pixel8
+  quantisation (the wide endpoint's E1-E4 stages: finite/enabled check,
+  intensity*master gain, device transfer, shared current-limit scale) —
+  not attempted this session; that is the concrete next step for whichever
+  lane wants the wide route to actually change light output. On-target,
+  once that exists: bind FP32/working-domain reference to
   `hd_pixel16`/packing at the final conversion point (lane brief step 6);
-  test after all brightness/treatment operations; verify independent A/B and
-  centre mapping are preserved.
-- **`quantiseHd16` vs `quantiseUnorm16`**: this session found the two laws
-  diverge on `+Inf` (`quantiseHd16` -> 0 via its `isfinite` guard;
-  `quantiseUnorm16`/`quantiseExact` -> full scale, since `!(value < 1.0F)`
-  is true for `+Inf`) and on float-rounding at half-way boundaries
-  (`quantiseHd16` rounds via `value*65535.0F+0.5F` in float32;
-  `quantiseUnorm16` rounds via exact integer bit manipulation on the
-  IEEE-754 mantissa/exponent). Neither law was changed by this delta
-  (`hd_pixel16.h`'s `quantiseHd16` is untouched); a default-off exact-law
-  switch and the accompanying deferred-upgrade entry proposal are
-  **NOT_STARTED** — see the open decision in the TIT-2 handback report.
-  On-bench, once that switch exists: drive both laws with the same input
-  vector including `+Inf`/`NaN`/values within one ULP of a `.5` boundary and
-  confirm the default (off) path is bit-identical to today's `quantiseHd16`
-  call sites, then confirm the on path matches `quantiseUnorm16` exactly.
-- **CTL v2 through `k1_fixture_*`**: NOT_STARTED this session (see open
-  decision). Once a command/opcode exists: exercise it over the real
-  USB-CDC transport (not just a host in-process call) and confirm the
-  capability response is truthful for Titan (no pages, no persistence, no
-  BLE — `core/control/v2/persistence.{h,cpp}` is imported into `src/k1` but
-  nothing in `platform/ra8p1/` calls it, and it must stay uncalled unless a
-  later lane genuinely adds durable storage on this board).
+  test after all brightness/treatment operations; verify independent A/B
+  and centre mapping are preserved.
+- **`quantiseHd16` vs `quantiseUnorm16`** (DUR-010, DualMCU `b21294a`):
+  `quantiseHd16Exact` + `quantiseHd16Selected(colour, use_exact_law)`
+  exist in `platform/ra8p1/hd_pixel16.h`, default off, host-proven
+  byte-identical to `quantiseHd16` for every input tried. No call site
+  passes `use_exact_law=true` yet — the switch exists but nothing reads it
+  on the live pixel path (it sits beside `quantiseHd16`, not yet spliced
+  into `packBenchGrb48Lane`/`packWideNative16Lane`). Confirmed divergence:
+  `+Inf` (`quantiseHd16` -> 0 via its `isfinite` guard; the exact law ->
+  65535). Both agree on NaN (-> 0). On-bench: drive both laws with the same
+  vector including `+Inf`/half-way-boundary values through whichever call
+  site eventually wires the switch in, and confirm the same host identity
+  holds on target hardware (it is a pure host-observable numeric law, not a
+  timing-dependent one, so no new bench-only failure mode is expected).
+- **CTL_CAPABILITY (fixture opcode 21)**: implemented, read-only, host-proven
+  through the real K1S1-framed wire protocol (not an in-process call) —
+  `contract/control_v2/generated/control_registry_v2.generated.h`'s own
+  `PlatformProfile{Platform::kTitan, ...}` row reports `max_pages=0` (no
+  pages), `persistence_slot_bytes=0` (no persistence),
+  `service_mask` carrying only `kServiceRouteFixture` (no BLE, no profile
+  transfer) — truthful by construction, not asserted by the response code.
+  On target: send the real opcode-21 packet over actual USB-CDC and confirm
+  the same JSON. Note the correction to the originally proposed opcode: 20
+  was already `status_command`; 21 is the first free slot (1-20 and 22 all
+  reserved; `K1_WS281X_GPT_DIAG_OPCODE`=22).
 
 ## 6. Recovery
 
