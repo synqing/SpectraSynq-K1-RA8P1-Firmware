@@ -1,4 +1,30 @@
 #include "palette_runtime.h"
+#include <cstdlib>
+#include <new>
+// A5 allocation counter (INT, round 4): every global operator new form,
+// counted only while armed around step().
+static bool g_a5_armed = false;
+static std::size_t g_a5_new_calls = 0U;
+static void* a5Allocate(std::size_t size) {
+  if (g_a5_armed) ++g_a5_new_calls;
+  void* pointer = std::malloc(size == 0U ? 1U : size);
+  if (pointer == nullptr) throw std::bad_alloc{};
+  return pointer;
+}
+void* operator new(std::size_t size) { return a5Allocate(size); }
+void* operator new[](std::size_t size) { return a5Allocate(size); }
+void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
+  if (g_a5_armed) ++g_a5_new_calls;
+  return std::malloc(size == 0U ? 1U : size);
+}
+void* operator new[](std::size_t size, const std::nothrow_t&) noexcept {
+  if (g_a5_armed) ++g_a5_new_calls;
+  return std::malloc(size == 0U ? 1U : size);
+}
+void operator delete(void* pointer) noexcept { std::free(pointer); }
+void operator delete[](void* pointer) noexcept { std::free(pointer); }
+void operator delete(void* pointer, std::size_t) noexcept { std::free(pointer); }
+void operator delete[](void* pointer, std::size_t) noexcept { std::free(pointer); }
 #include "core/visual/product_palette.h"
 #include "core/visual/product_effect_renderer.h"
 #include <cassert>
@@ -126,6 +152,8 @@ int main() {
         runtime.channel(0U).controls().palette_mode_enabled = false;
         runtime.channel(1U).controls().palette_mode_enabled = false;
         const auto a5_start = std::clock();
+        const std::size_t a5_new_before = g_a5_new_calls;
+        g_a5_armed = true;
         for (unsigned frame = 0; frame < 90; ++frame) {
           // Continuously time-varying level (never a fixed-point repeat), so
           // Bloom's exponential retention (alpha^frames) actually produces a
@@ -146,6 +174,13 @@ int main() {
           const VisualAudioFrameView view{features, tempo, waveform, 0U};
           assert(runtime.step(std::uint64_t(frame) * 20000U, &view));
         }
+        g_a5_armed = false;
+        // A5 (INT, round 4): proven, not only by construction -- every
+        // operator new form is counted while the 90 step() calls above run
+        // with use_wide_route and use_wide_native16 both on.
+        const std::size_t a5_new_calls = g_a5_new_calls - a5_new_before;
+        assert(a5_new_calls == 0U);
+        std::printf("WIDE_ROUTE_A5_ALLOC_PASS operator_new_calls=%zu steps=90 route=on native16=on\n", a5_new_calls);
         // A5: no allocation in step() (by construction -- wide_workspace_,
         // wide_a_/wide_b_, wide_route_a_/wide_route_b_ are all
         // PaletteRuntime members, not step()-local). Host cost figure
@@ -201,6 +236,45 @@ int main() {
         assert(!lifted_offlattice);  // A2's own claim, correctly, does not hold here
         assert(runtime.configure(live, 0U));  // revert to the routed config
         std::printf("WIDE_ROUTE_A3_MUTATION_PASS forced_lift_stays_on_lattice=true reverted=true\n");
+
+        // A6 (INT, round 4): capture happens BEFORE applyProductOutputTreatment
+        // even when that treatment is not the identity. A2 runs with every
+        // treatment control off, so a capture moved after the treatment would
+        // pass A2 unchanged (proven by INT's seam mutation M1). Here channel A
+        // carries a non-identity treatment (incandescent); a lockstep
+        // reference without it proves the treatment really changed Pixel8.
+        {
+          static k1::titan::PaletteRuntime reference;
+          auto treated_cfg = live;
+          assert(runtime.configure(treated_cfg, 0U));
+          assert(reference.configure(treated_cfg, 0U));
+          for (auto* r : {&runtime, &reference}) {
+            r->channel(0U).controls().palette_mode_enabled = false;
+            r->channel(1U).controls().palette_mode_enabled = false;
+          }
+          runtime.channel(0U).controls().incandescent_mode = true;
+          runtime.channel(0U).controls().incandescent_filter = 1.0F;
+          bool treatment_changed_pixel8 = false;
+          for (unsigned frame = 0; frame < 40; ++frame) {
+            features.peak_scaled = 0.5F + 0.45F * std::sin(float(frame) * 0.37F);
+            features.vu_level = 0.5F + 0.45F * std::cos(float(frame) * 0.53F);
+            for (unsigned bin = 0; bin < contract::kChromaBinCount; ++bin) {
+              features.chroma_a_origin[bin] =
+                  0.5F + 0.45F * std::sin(float(frame) * 0.29F + float(bin) * 0.8F);
+            }
+            const VisualAudioFrameView view{features, tempo, waveform, 0U};
+            assert(runtime.step(std::uint64_t(frame) * 20000U, &view));
+            assert(reference.step(std::uint64_t(frame) * 20000U, &view));
+            if (std::memcmp(runtime.channel(0U).frame().data(),
+                            reference.channel(0U).frame().data(), 160U * 3U) != 0) {
+              treatment_changed_pixel8 = true;
+            }
+          }
+          assert(treatment_changed_pixel8);
+          assert(runtime.provenance(0U) == WideCaptureProvenanceV1::kWideRenderer);
+          std::printf("WIDE_ROUTE_A6_PASS treatment=incandescent pixel8_changed=true "
+                      "capture_before_treatment=true\n");
+        }
       }
     }
     assert(runtime.configure(c,0U));
