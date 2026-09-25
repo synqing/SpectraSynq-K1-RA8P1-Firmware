@@ -1,0 +1,19 @@
+{
+  "utc": "2026-09-21T19:48:00Z",
+  "meter": "DC volts, soldered joints on the E2 Lite fine 20-pin",
+  "socket": "fine 20-pin, wires soldered on the E2 Lite",
+  "reading_A_pin1_to_pin3_V": 3.34,
+  "reading_A_meaning": "Target reference is present at the emulator end. Not a missing VTref.",
+  "reading_B_reset_released_V": "0.005 to -0.005",
+  "reading_B_reset_held_V": 0,
+  "reading_B_meaning": "RESET# is already at ground with the button released. Held button stays at ground. Expected released level was about 3.3 V via the 4.7 kohm pull-up.",
+  "pin9_pin10_solder_touching": false,
+  "pin9_pin10_checked_at": ["Titan", "E2 Lite"],
+  "pins_physically_separated": true,
+  "e2lite_pin10_with_usb_unplugged_V": 0.042,
+  "e2lite_usb_unplug_did_not_release_reset": true,
+  "not_done": "STOP. Multimeter fuse opened during the Titan pin-10 measurement. No further probing.",
+  "procedure_stopped": "meter fuse opened; last instruction named Titan pin 10 and pin 3 and did not restate voltage mode or the V jack",
+  "diagnosis_retracted_20260922": "The 'RESET# shorted to ground / harness miswired' conclusion below was WRONG. On 2026-09-22 the first e2-server-gdb attach over this exact harness (with Titan powered) succeeded: User Vcc 3.313 V read by the probe, DAP found, DLM state OEM AL2 read from silicon. The harness is correct and needs no rework. The low reset readings are attributable to the E2 Lite's own idle behaviour on its RES# line, not a solder fault. The 0x00040100 'no target power' error during attach-harness-01 was simply the Titan being unpowered at that moment. Authority: docs/evidence/K1-RA8P1-002/e2lite-harness-attach-20260922/",
+  "original_wrong_diagnosis": "RESET# held at ground; suspected hand-soldered reset wire landing on a ground pad; proposed rework or replacement cable. Preserved here only as a record of the reasoning error: it treated pre-harness DAP failures as evidence about a harness that had never been software-tested, and it did not consider the emulator's own idle drive on the reset line."
+}

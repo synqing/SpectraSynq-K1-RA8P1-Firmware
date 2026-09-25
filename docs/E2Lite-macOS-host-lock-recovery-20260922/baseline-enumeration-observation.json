@@ -1,0 +1,14 @@
+{
+  "provenance": "Transcribed from the actual Remote Desktop Commander COM_GetSerial diagnostic output, process 38944, before host-lock cleanup. That diagnostic did not record a timestamp.",
+  "COM_Load": 1,
+  "COM_GetSerial": 1,
+  "count": 1,
+  "devices": [
+    {
+      "serial": "E2L: 5AS079228B",
+      "renesas_in_use": true
+    }
+  ],
+  "COM_Open_called": false,
+  "target_commands_sent": false
+}

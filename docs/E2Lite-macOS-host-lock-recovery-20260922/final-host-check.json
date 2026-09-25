@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-09-21T16:51:57.801985+00:00",
+  "serial": "E2L: 5AS079228B",
+  "semaphore": "/CommuniDLL_SemE2L: 5AS079228B",
+  "library_sha256": "23fc04e562f716b83366d09c8c885758648c66654082523544daec924e9d963f",
+  "clear_requested": false,
+  "before_exists": false,
+  "consumers_before": {
+    "processes": [],
+    "library_consumers": ""
+  },
+  "removed": false,
+  "target_operations": [],
+  "usb_operations": [],
+  "after_exists": false,
+  "status": "HOST_LOCK_CLEAR"
+}

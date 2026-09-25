@@ -34,7 +34,7 @@ def parse_contract(text: str) -> dict | None:
     }
 
 
-def identity_ok(info: dict, expected_uid: str = EXPECTED_UID) -> tuple[bool, str]:
+def identity_identified(info: dict, expected_uid: str = EXPECTED_UID) -> tuple[bool, str]:
     if not isinstance(info, dict):
         return False, "INFO is not an object"
     if info.get("protocol") != 1:
@@ -46,25 +46,54 @@ def identity_ok(info: dict, expected_uid: str = EXPECTED_UID) -> tuple[bool, str
             return False, f"missing {key}"
     if parse_contract(info["contract"]) is None:
         return False, f"unparsed contract {info.get('contract')!r}"
+    return True, "identified"
+
+
+def identity_ok(
+    info: dict,
+    expected_uid: str = EXPECTED_UID,
+    checkpoint: dict | None = None,
+) -> tuple[bool, str]:
+    identified, reason = identity_identified(info, expected_uid)
+    if not identified:
+        return False, reason
+    if not isinstance(checkpoint, dict) or not str(checkpoint.get("build") or "").strip():
+        return False, "no accepted checkpoint bound"
+    if info["build"] != checkpoint["build"]:
+        return False, f"build not accepted {info['build']!r}"
+    if checkpoint.get("source") and info["source"] != checkpoint["source"]:
+        return False, f"source not accepted {info['source']!r}"
+    if checkpoint.get("contract") and info["contract"] != checkpoint["contract"]:
+        return False, f"contract not accepted {info['contract']!r}"
+    if checkpoint.get("uid") and info["uid"] != checkpoint["uid"]:
+        return False, f"UID not accepted {info['uid']!r}"
     return True, "ok"
 
 
-def bind_identity(info: dict, expected_uid: str = EXPECTED_UID) -> dict:
-    ok, reason = identity_ok(info, expected_uid)
-    contract = parse_contract(str(info.get("contract") or "")) if ok else None
+def bind_identity(
+    info: dict,
+    expected_uid: str = EXPECTED_UID,
+    checkpoint: dict | None = None,
+) -> dict:
+    identified, id_reason = identity_identified(info, expected_uid)
+    ok, reason = identity_ok(info, expected_uid, checkpoint)
+    visible = identified
+    contract = parse_contract(str(info.get("contract") or "")) if identified else None
     return {
         "ok": ok,
+        "identified": identified,
+        "accepted": ok,
         "reason": reason,
-        "uid": info.get("uid") if ok else None,
-        "build": info.get("build") if ok else None,
-        "source": info.get("source") if ok else None,
-        "contract": info.get("contract") if ok else None,
+        "uid": info.get("uid") if visible else None,
+        "build": info.get("build") if visible else None,
+        "source": info.get("source") if visible else None,
+        "contract": info.get("contract") if visible else None,
         "protocol": info.get("protocol"),
         "clock_hz": info.get("clock_hz"),
         "device_sequence": info.get("sequence"),
         "hop_samples": contract["hop_samples"] if contract else None,
         "admitted_rate_hz": contract["admitted_rate_hz"] if contract else None,
-        "unsupported": ok and False,
+        "unsupported": False,
     }
 
 
@@ -89,7 +118,12 @@ def snapshot(
     mode: int | None = None,
 ) -> dict:
     ok = bool(bound.get("ok"))
-    scope = identity_scope or (SCOPE_CURRENT if ok and origin == ORIGIN_LIVE else SCOPE_HISTORICAL)
+    identified = bool(bound.get("identified", ok))
+    scope = identity_scope or (
+        SCOPE_CURRENT if ok and origin == ORIGIN_LIVE
+        else SCOPE_HISTORICAL if identified
+        else SCOPE_UNIDENTIFIED
+    )
     if origin == ORIGIN_REPLAY:
         scope = SCOPE_HISTORICAL
         mode = 7
@@ -129,6 +163,7 @@ def snapshot(
         "protocol": 1,
         "mode": mode,
         "identity_ok": 1 if ok else 0,
+        "identity_identified": 1 if identified else 0,
         "mic_a_valid": 0,
         "mic_b_valid": 0,
         "timing_valid": 0,
@@ -140,7 +175,7 @@ def snapshot(
         "sequence": str(display_seq),
         "gate_result": gate_result,
     }
-    if ok:
+    if identified:
         row.update(
             uid=bound["uid"],
             build=bound["build"],
@@ -158,13 +193,12 @@ def snapshot(
     if led_valid:
         row["led_faults"] = led_faults
         row["latched_frames"] = latched
-        clock = bound.get("clock_hz") or 1000000000
+        # Emitter DWT, not AP hop_max_us. Schema-3 hop_max stays absent unless
+        # the AP metrics actually own hop_max_us.
         if palette.get("last_emit_cycles") is not None:
             try:
-                cycles = int(palette.get("last_emit_cycles"))
-                if clock and cycles > 0:
-                    row["hop_max_us"] = (cycles * 1000000) // int(clock)
-            except (TypeError, ValueError, ZeroDivisionError):
+                row["last_emit_cycles"] = int(palette.get("last_emit_cycles"))
+            except (TypeError, ValueError):
                 pass
         try:
             row["frame_a_crc"] = int(palette.get("frame_a_crc") or 0)

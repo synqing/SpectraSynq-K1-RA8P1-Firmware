@@ -25,9 +25,18 @@ HEADER = 32
 OBSERVE_OPS = {
     1: {"payload": b"", "name": "INFO"},
     6: {"payload": b"", "name": "platform_metrics"},
+    15: {"payload": None, "name": "palette_catalogue"},
     17: {"payload": b"", "name": "palette_status"},
+    18: {"payload": None, "name": "palette_frame"},
+    21: {"payload": b"", "name": "legacy_mir_json"},
+    23: {"payload": b"", "name": "live_snapshot"},
+    24: {"payload": None, "name": "live_events"},
+    25: {"payload": None, "name": "live_config"},
+    26: {"payload": None, "name": "live_timing"},
 }
-FORBIDDEN_OPS = {2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 22}
+FORBIDDEN_OPS = {2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 16, 19, 20, 22}
+CAMPAIGN_OPS = {1, 6, 15, 17, 18, 21, 23, 24, 25, 26}
+PAIR_FIXTURE_OP = 27
 
 
 class ObserveDenied(RuntimeError):
@@ -94,8 +103,10 @@ class FakeSerial:
 
 
 class Transport:
-    def __init__(self, backend, allowed: set[int] | None = None, log: Callable | None = None):
+    def __init__(self, backend, allowed: set[int] | None = None, log: Callable | None = None,
+                 campaign: bool = False):
         self.backend = backend
+        self.campaign = campaign
         self.allowed = set(allowed or {1})
         self.next_req = 0
         self.in_flight = None
@@ -104,6 +115,17 @@ class Transport:
         self.rx_buf = bytearray()
         self.timeouts = 0
         self.quarantine = False
+        self._pair_fixture = False
+
+    def admit_pair_fixture(self) -> None:
+        """Admit opcode 27 for this campaign session only.
+
+        The generic observe allowlist cannot add it. Emit-off readers must
+        not call this.
+        """
+        if not self.campaign:
+            raise ObserveDenied("pair fixture requires an admitted campaign session")
+        self._pair_fixture = True
 
     def _write(self, data: bytes) -> None:
         if self.backend.write(data) != len(data):
@@ -132,12 +154,19 @@ class Transport:
     def transact(self, op: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
         if self.quarantine:
             raise FramingError("transport quarantined until re-identify")
-        if op in FORBIDDEN_OPS:
-            raise ObserveDenied(f"opcode {op} is not observe-only")
-        if op not in OBSERVE_OPS or op not in self.allowed:
-            raise ObserveDenied(f"opcode {op} is not admitted")
-        if payload != OBSERVE_OPS[op]["payload"]:
-            raise ObserveDenied(f"opcode {op} payload not admitted")
+        if op == PAIR_FIXTURE_OP:
+            if not self._pair_fixture or not self.campaign:
+                raise ObserveDenied("opcode 27 is not admitted")
+        else:
+            if op in FORBIDDEN_OPS:
+                raise ObserveDenied(f"opcode {op} is not observe-only")
+            spec = OBSERVE_OPS.get(op)
+            if spec is None or op not in self.allowed:
+                raise ObserveDenied(f"opcode {op} is not admitted")
+            if spec["payload"] is not None and payload != spec["payload"]:
+                raise ObserveDenied(f"opcode {op} payload not admitted")
+            if spec["payload"] is None and not self.campaign:
+                raise ObserveDenied(f"opcode {op} requires campaign lease")
         if self.in_flight is not None:
             raise RuntimeError("one outstanding transaction only")
         self.next_req += 1
@@ -201,6 +230,8 @@ class Transport:
         extra = set(ops) - set(OBSERVE_OPS)
         if extra:
             raise ObserveDenied(f"cannot admit {extra}")
+        if (set(ops) & {15, 18, 21, 23, 24, 25, 26}) and not self.campaign:
+            raise ObserveDenied("campaign opcodes require campaign=True")
         self.allowed = set(ops)
 
 
@@ -238,7 +269,8 @@ def open_serial(device: str, lock_handle: dict) -> object:
     lock_handle["tiocexcl"] = cdc_lock.apply_tiocexcl(port.fd)
     lock_handle["hupcl"] = _clear_hupcl(port.fd)
     try:
-        port.dtr = True
+        port.dtr = False
+        port.rts = False
     except OSError as exc:
         lock_handle["dtr_error"] = str(exc)
     return port

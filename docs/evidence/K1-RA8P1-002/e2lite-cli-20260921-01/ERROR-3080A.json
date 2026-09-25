@@ -1,0 +1,9 @@
+{
+  "error": "0x0003080A emulator already used",
+  "classification": "gdb server cannot claim E2 Lite even with no e2-server-gdb process and after libusb reset",
+  "not": "0x00030815 DAP",
+  "j6": "unplugged as confirmed",
+  "e2studio": "terminated by agent to clear competing GUI debug",
+  "titan_cdc_045b_5310": "seen during libusb scan after reset",
+  "next": "Captain: unplug E2 Lite USB from Mac only, replug; Titan USB-C stays; J6 stays off"
+}

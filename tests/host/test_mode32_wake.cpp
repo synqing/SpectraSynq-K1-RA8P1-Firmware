@@ -581,6 +581,27 @@ static int isolation_zero_history() {
   return 0;
 }
 
+#ifdef K1_LIVE_RUNTIME
+static int isolation_titan_boot_not_black() {
+  PaletteRuntime rt;
+  configure_runtime(rt);
+  assert(rt.step(0U, nullptr));
+  if (max_pixel(rt) == 0U || !status_has(rt, "\"visual_path\":\"preview\"")) {
+    std::fprintf(stderr, "ISOLATION_FAIL live boot with no audio was black\n");
+    return 1;
+  }
+  const auto quiet = make_noise(0.01F);
+  const auto quiet_view = view_of(quiet);
+  assert(rt.step(kPalettePeriodUs, &quiet_view));
+  if (max_pixel(rt) == 0U || !status_has(rt, "\"visual_path\":\"preview\"")) {
+    std::fprintf(stderr, "ISOLATION_FAIL live quiet boot was black\n");
+    return 1;
+  }
+  std::printf("ISOLATION_TITAN_BOOT preview max=%u\n", max_pixel(rt));
+  return 0;
+}
+#endif
+
 int main() {
   const int feature = feature_replay();
   const int noise = noise_present_replay();
@@ -588,14 +609,23 @@ int main() {
   const int iso120 = isolation_zero_input(8333U, "120fps");
   const int iso60 = isolation_zero_input(16667U, "60fps");
   const int second = isolation_second_hit();
+#ifndef K1_LIVE_RUNTIME
   const int zero = isolation_zero_history();
+#else
+  const int zero = 0;
+#endif
   const int path = isolation_path_tap();
   const int hops = isolation_run26_hops_do_not_brighten();
   const int chroma = isolation_quiet_chroma_stays_dwell();
   const int loud = isolation_loud_peak_opens_effect();
   const int osc = isolation_oscillating_peak_no_reinit();
+#ifdef K1_LIVE_RUNTIME
+  const int titan_boot = isolation_titan_boot_not_black();
+#else
+  const int titan_boot = 0;
+#endif
   if (feature || noise || pcm || iso120 || iso60 || second || zero || path ||
-      hops || chroma || loud || osc)
+      hops || chroma || loud || osc || titan_boot)
     return 1;
   return 0;
 }

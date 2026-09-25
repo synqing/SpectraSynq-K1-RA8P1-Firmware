@@ -1,0 +1,13 @@
+{
+  "utc": "2026-09-21T21:31:00Z",
+  "run": "attach-harness-01",
+  "setup": "first-ever e2-server-gdb attempt over the hand-soldered six-wire harness (pins 1,2,3,4,9,10; pin 5 GND removed by user). Standard connection, SWD 10 kHz, probe power OFF, no download, no erase.",
+  "result_error": "0x00040100 The command cannot be executed since the power supply to the MCU on the user system is turned off.",
+  "meaning": "The E2 Lite senses target voltage on its own pin 1 (VTref). It reports no target power. Every earlier attempt (old physical setup, pre-harness) PASSED this power check and failed later at DAP (0x00030815). The new harness fails EARLIER, at the VTref sense.",
+  "hypotheses": [
+    "A: Titan simply unpowered right now (user did soldering work since the 3.34V reading; USB-C may be out).",
+    "B: Titan powered, so the VTref wire does not land on E2 Lite pin 1 -> placement fault at the E2L end. Row-swap (odd/even rows mirrored) fits ALL evidence: VTref wire on pin 2, reset wire on pin 9 (GND, explains steady ~0V reset), grounds/data likewise swapped within pairs.",
+    "End-flip (180 rotation) REFUTED: it would put VTref on pin 19 (GND), shorting Titan 3V3; the measured 3.34V wire-to-wire on this harness rules that out. Shift-by-one-pair likewise refuted (VTref would hit GND pin 3)."
+  ],
+  "next": "Confirm Titan board power by eye (LED / charger cable). If powered, hypothesis B is proven by instrument; fix = swap rows at one end. Re-run this script after any change; the attach IS the meter."
+}

@@ -5,12 +5,9 @@ from verify_imports import ROOT
 from palette_renderer_overlay import apply_palette_overlay
 
 NAMES = json.loads((ROOT / 'docs/import-slices.json').read_text())['product']
-RESIDENT = Path(
-    '/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/'
-    'k1-ra8p1-002/pdm-ap-gpt-build-20260914-10/stage')
 
 
-def compile_run(label, palette_runtime, k1_root, overlay):
+def compile_run(label, palette_runtime, k1_root, overlay, extra_defines=None):
     with tempfile.TemporaryDirectory(prefix='k1-wake-') as temp:
         out = Path(temp)
         sources = out / 'k1'
@@ -27,6 +24,7 @@ def compile_run(label, palette_runtime, k1_root, overlay):
         cmd = [
             'c++', '-std=c++17', '-O2', '-ffp-contract=off',
             '-DK1_PALETTE_MORPH=1',
+            *(extra_defines or []),
             *includes,
             '-I' + str(ROOT / 'tests/target'),
             '-I' + str(out),
@@ -44,20 +42,15 @@ def compile_run(label, palette_runtime, k1_root, overlay):
         return ran.returncode, ran.stdout, ran.stderr
 
 
+# Lane-work only: never compile against a foreign stage path (V-MODE32-WAKE-ISOLATION).
 current_code, current_out, current_err = compile_run(
     'CURRENT', ROOT / 'platform/ra8p1/palette_runtime.cpp',
     ROOT / 'src/k1', True)
-if os.environ.get('SKIP_RESIDENT') == '1':
-    resident_code, resident_out, resident_err = 1, '', 'skipped'
-else:
-    try:
-        resident_code, resident_out, resident_err = compile_run(
-            'RESIDENT_3526df5c', RESIDENT / 'src/palette_runtime.cpp',
-            RESIDENT / 'src/k1', False)
-    except subprocess.CalledProcessError as error:
-        print('RESIDENT_COMPILE_FAIL', error)
-        resident_code, resident_out, resident_err = 2, '', str(error)
+live_code, live_out, live_err = compile_run(
+    'LIVE_RUNTIME', ROOT / 'platform/ra8p1/palette_runtime.cpp',
+    ROOT / 'src/k1', True, extra_defines=['-DK1_LIVE_RUNTIME=1'])
 print('CURRENT_PASS', current_code == 0)
-print('RESIDENT_WAKE', 'FAIL' if resident_code else 'HOLD')
-if current_code != 0:
-    raise SystemExit(current_code)
+print('LIVE_RUNTIME_PASS', live_code == 0)
+print('RESIDENT_WAKE', 'SKIPPED_LANE_WORK_ONLY')
+if current_code != 0 or live_code != 0:
+    raise SystemExit(current_code or live_code)

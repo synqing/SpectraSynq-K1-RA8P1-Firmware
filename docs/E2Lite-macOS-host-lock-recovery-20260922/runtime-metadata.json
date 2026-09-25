@@ -1,0 +1,8 @@
+{
+  "host_os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.1\nBuildVersion:\t\t25B78\n",
+  "architecture": "arm64",
+  "runtime": "/Users/spectrasynq/Applications/Renesas/E2_Debug_Runtime_10.6.0",
+  "gdb_server_sha256": "fad714a742e5a113ff3c9da83653c5a3fd8ae45e6e8bb850dc5fc589b4ebaf32",
+  "communication_library_sha256": "23fc04e562f716b83366d09c8c885758648c66654082523544daec924e9d963f",
+  "scope": "Host-only diagnosis and exact stale semaphore removal. No GDB target attach, MCU command, firmware write, voltage setting, or USB reset."
+}

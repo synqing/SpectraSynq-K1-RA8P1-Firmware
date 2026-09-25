@@ -15,11 +15,18 @@
 
 #include <string.h>
 
+#ifndef K1_PALETTE_WS2816_GPT_PAIR
+
 #ifndef K1_RA8P1_TARGET
 #error "ws281x_gpt_dma_hw.c is the RA8P1 transmitter; do not compile it on host"
 #endif
 
-/* PDM owns DMAC0/DMAC1. Generated OSPI uses DMAC0. LED uses DMAC2. */
+#ifdef K1_PALETTE_WS2816
+#error "single-lane GPT DMA cannot share emit with the GPIO WS2816 emitter"
+#endif
+
+/* Default channel is DMAC2. led-first remaps LED to DMAC0; PDM fall still
+   occupies DMAC2, so this vector remains required on live-audio images. */
 #ifndef VECTOR_NUMBER_DMAC2_INT
 #error "DMAC2 vector is required; stage_led_gpt_vectors must add it"
 #endif
@@ -666,3 +673,5 @@ const char *k1_ws281x_gpt_dma_hw_backend(void)
     }
     return "gpt6_dma_fault";
 }
+
+#endif /* K1_PALETTE_WS2816_GPT_PAIR */

@@ -1,0 +1,19 @@
+{
+  "utc": "2026-09-21T19:48:00Z",
+  "gdb_server": "stopped",
+  "e2studio": "not running",
+  "host_lock": "HOST_LOCK_CLEAR",
+  "semaphore": "/CommuniDLL_SemE2L: 5AS079228B",
+  "serial": "E2L: 5AS079228B",
+  "probe_power": "off",
+  "titan_5v_usb_c": "constant_do_not_query",
+  "last_target_error": "0x00030815 DAP cannot be found",
+  "vtref_pin1_to_pin3_V": 3.34,
+  "reset_pin10_released_V": "0.005 to -0.005",
+  "reset_pin10_held_V": 0,
+  "socket": "fine 20-pin, wires soldered on E2 Lite",
+  "not_current_error": "0x0003080A",
+  "flash_operations": "none",
+  "diagnosis": "RESOLVED 2026-09-22. The reset-short diagnosis was wrong. First attach over the soldered harness with Titan powered SUCCEEDED: User Vcc 3.313 V, DAP found, DLM state OEM AL2 read from silicon. See e2lite-harness-attach-20260922/.",
+  "next": "Debug link is working. For real sessions run e2-server-gdb persistent (no timeout, drop -n 0) and connect GDB to port 61234. Probe power output stays OFF. Harness needs no rework."
+}

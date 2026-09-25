@@ -1,0 +1,18 @@
+{
+  "argv": [
+    "/Users/spectrasynq/.local/bin/agentctl",
+    "integration",
+    "bind",
+    "--project",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+    "--session",
+    "c87d1963c1e3d8161c27208d",
+    "--registry",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/k1-swarm-20260924/TASK_REGISTRY.json",
+    "--tasks",
+    "TIT-1"
+  ],
+  "exit": 0,
+  "stdout": "{\"active_obligations\": [], \"can_normal_stop\": false, \"completed_ids\": [], \"coverage\": \"bound assignment only; domain verification remains required\", \"external_blockers\": [], \"internal_unfinished\": [\"TIT-1: internally executable prerequisite(s): ORCH-0\"], \"invalid_evidence\": [], \"native_unfinished_count\": 0, \"registry_bound\": true, \"session_key\": \"c87d1963c1e3d8161c27208d\"}\n",
+  "stderr": ""
+}

@@ -1,0 +1,39 @@
+Selected native disassembly from the inspected library. No library bytes or patched binary are distributed.
+Library SHA256: 23fc04e562f716b83366d09c8c885758648c66654082523544daec924e9d963f
+
+000000000000316c	mov	x1, #0x80
+0000000000003170	adrp	x2, 17 ; 0x14000
+0000000000003174	add	x2, x2, #0x31c ; literal pool for: "/CommuniDLL_Sem%s"
+0000000000003178	bl	0x141e0 ; symbol stub for: _snprintf
+000000000000317c	ldr	x0, [sp, #0x10]
+
+000000000000317c	ldr	x0, [sp, #0x10]
+0000000000003180	mov	w1, #0x0
+0000000000003184	bl	0x141c8 ; symbol stub for: _sem_open
+0000000000003188	str	x0, [sp, #0x20]
+000000000000318c	ldr	x8, [sp, #0x20]
+
+00000000000031a8	add	x9, x8, x9
+00000000000031ac	mov	w8, #0x1
+00000000000031b0	strb	w8, [x9]
+00000000000031b4	b	0x31cc
+00000000000031b8	ldr	x8, [sp, #0xb0]
+
+000000000000374c	str	xzr, [x8, #0x8]
+0000000000003750	mov	w1, #0x200
+0000000000003754	bl	0x141c8 ; symbol stub for: _sem_open
+0000000000003758	ldr	x8, [sp, #0x18]
+000000000000375c	str	x0, [x8, #0x440]
+
+0000000000003914	str	x8, [sp, #0x8]
+0000000000003918	ldr	x0, [x8, #0x440]
+000000000000391c	bl	0x141bc ; symbol stub for: _sem_close
+0000000000003920	ldr	x8, [sp, #0x8]
+0000000000003924	stur	w0, [x29, #-0xc]
+
+0000000000003928	str	xzr, [x8, #0x440]
+000000000000392c	add	x0, x8, #0x448
+0000000000003930	bl	0x141d4 ; symbol stub for: _sem_unlink
+0000000000003934	ldr	x8, [sp, #0x8]
+0000000000003938	stur	w0, [x29, #-0xc]
+

@@ -24,6 +24,23 @@ Cited:
 
 F1's 320 Pixel8 values are the **effect renderer before** this chain. They are not packed-wire goldens.
 
+Local RA8P1 copies of `frame_blend.*` and `product_runtime_policy.*` are
+**named DualMCU derivatives** at pin `6b1e7bc5…`, not byte-identical imports.
+They are staged into palette images only (`--palette-runtime`). Frozen timing
+images do not compile them. DualMCU SHAs:
+
+| File | DualMCU sha256 |
+| --- | --- |
+| `frame_blend.h` | `610519b4942f88e5e8ddf0f171e554b20a4befc5715b2a7cb69a04ca4d74e497` |
+| `frame_blend.cpp` | `03b9f47d30d8410e93dd381650d495e5047f5a222fac6e1b533dc517abe9d8e6` |
+| `product_runtime_policy.h` | `ec1a5375d561673701310dc6437e11d1f3917a37c8d0c42e8ca4e12d70cff7a3` |
+| `product_runtime_policy.cpp` | `543fc91ab37aac87335b047807672ff930c2dd17cea68abd4c8b469a849d092f` |
+
+Host verifies `effects → blend → treatment → edge → gain → joint current limit → stage/show`
+on two 160-pixel logical channels, plus TRUE16 `0x12AB` through `packPixel` /
+`splitChannel160`. Pixel8 ×257 is not that path. Physical four-lane WS2816
+qualification and P004 GPT routing remain outstanding.
+
 ## Titan import today vs this job
 
 | Step | DualMCU | Titan import today | Opcode 11 first light |
@@ -45,7 +62,9 @@ CRC match + DWT emit/bit-period = **emission** of a packed TRUE16 fixture. Not p
 
 ## Next (not this flash)
 
-Import or re-implement edge / gain / current-limit against DualMCU bytes, then a wide 16-bit submit. Second 160-stick when wired.
+Physical four-lane WS2816 qualification, P004 GPT routing, and packing on
+silicon. The logical host chain is implemented. Combined live preflight and
+K1-L wait on transmitter admission.
 
 ---
 **Document Changelog**
@@ -53,3 +72,4 @@ Import or re-implement edge / gain / current-limit against DualMCU bytes, then a
 |------|--------|--------|
 | 2026-09-10 | agent:grok | Created from DualMCU production_runtime.cpp vs Titan visual import. |
 | 2026-09-13 | agent:grok | D3 HOST port of blend/edge/gain/joint-limit; physical admission still after D2. |
+| 2026-09-20 | agent:grok | Named DualMCU derivatives admitted to palette staging; host TRUE16 packing and full logical chain; physical lanes still outstanding. |

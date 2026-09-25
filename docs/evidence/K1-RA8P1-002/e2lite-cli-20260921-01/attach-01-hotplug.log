@@ -1,0 +1,9 @@
+
+GDB Server for Renesas targets.
+	Version 10.6.0.v20260707-035422 [acf4dadf] (Jul 17 2026 11:35:41)
+
+
+Starting server with the following options: 
+        Raw options                : ./e2-server-gdb -g E2LITE -t R7KA8P1KF -uConnectionTimeout= 30 -uInteface= SWD -uIfSpeed= auto -w 0 -uHotPlug= 1 -uConnectMode= HOTPLUGIN -uNoReset= 1 -uResetBeginConnection= 0 -uResetCon= 0 -uresetOnReload= 0 -ueraseRomOnDownload= 0 -ueraseDataRomOnDownload= 0 -ueraseSipFlashOnDownload= 0 -n 0 -uAuthLevel= 0 -uneedAuthentication= 0 -uLowPower= 1
+Reset request ignored on Hotplug connection.
+No matching device found : Device = <E2LITE>, CPU = <R7KA8P1KF>

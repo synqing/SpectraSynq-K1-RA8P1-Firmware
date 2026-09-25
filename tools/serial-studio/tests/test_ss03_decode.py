@@ -99,17 +99,37 @@ def test_replay_overrides_live_state():
 
 def test_identity_same_frame():
     info = {"protocol": 1, "uid": UID, "build": BUILD, "source": SOURCE, "contract": CONTRACT}
-    assert bind_identity(info)["ok"]
+    unbound = bind_identity(info)
+    assert unbound["identified"] is True
+    assert unbound["ok"] is False
+    matched = bind_identity(info, checkpoint={"build": BUILD, "uid": UID})
+    assert matched["ok"] is True
     bad = dict(info)
     bad["uid"] = UID[:-1] + "0"
-    assert bind_identity(bad)["ok"] is False
+    assert bind_identity(bad, checkpoint={"build": BUILD, "uid": UID})["identified"] is False
     bad = dict(info)
     bad["build"] = "nope"
-    # still ok structurally if strings present - bind does not require fixture build
-    assert bind_identity(bad)["ok"]
+    rebound = bind_identity(bad, checkpoint={"build": BUILD, "uid": UID})
+    assert rebound["identified"] is True
+    assert rebound["ok"] is False
     bad = dict(info)
     bad["protocol"] = 2
-    assert bind_identity(bad)["ok"] is False
+    assert bind_identity(bad, checkpoint={"build": BUILD})["ok"] is False
+
+
+def test_last_emit_cycles_is_not_hop_compute():
+    emit_only = base()
+    emit_only["last_emit_cycles"] = 3872400
+    assert "hop_max_us" not in emit_only
+    cells, _, _ = decode(emit_only, "", 0)
+    assert cells[13] == "UNAVAILABLE"
+
+    both = base()
+    both["hop_max_us"] = 5600
+    both["last_emit_cycles"] = 3872400
+    cells, _, _ = decode(both, "", 0)
+    assert cells[13] == 5600
+    assert cells[13] != 3872400
 
 
 def test_csv_rejects_comma():
@@ -124,4 +144,5 @@ if __name__ == "__main__":
     test_replay_overrides_live_state()
     test_identity_same_frame()
     test_csv_rejects_comma()
+    test_last_emit_cycles_is_not_hop_compute()
     print("ss03_decode_ok")

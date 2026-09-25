@@ -1,0 +1,34 @@
+{
+  "installed_image": true,
+  "flashed": false,
+  "target_idle_preview": "untested",
+  "lut_hue_5": 0.7783170675711419,
+  "lut_hue_33": 0.9272079256501715,
+  "palette_5": {
+    "visual_path": "effect",
+    "musical": true,
+    "lit": 148,
+    "mean_hue": 0.6667686278212765,
+    "hue_dist_to_5": 0.11154843974986539,
+    "hue_dist_to_33": 0.26043929782889497,
+    "closer_to_requested": true,
+    "applied_palette": 5,
+    "status_palette": 5,
+    "mean_rgb": null
+  },
+  "palette_33": {
+    "visual_path": "effect",
+    "musical": true,
+    "lit": 64,
+    "mean_hue": 0.6759242232233733,
+    "hue_dist_to_33": 0.2512837024267982,
+    "hue_dist_to_5": 0.10239284434776863,
+    "closer_to_requested": false,
+    "applied_palette": 33,
+    "status_palette": 33
+  },
+  "pixels_changed_between_dumps": 148,
+  "both_dumps_during_effect": true,
+  "pass": false,
+  "note": "Framebuffer dump scored by circular hue against palette LUTs, not CRC. Target idle-preview remains untested. A hold-path dump is not a music-effect proof."
+}

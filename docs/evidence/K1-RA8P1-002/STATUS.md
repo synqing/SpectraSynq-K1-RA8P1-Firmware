@@ -1,5 +1,36 @@
 # K1-RA8P1-002 current execution
 
+## What is true now — 22 September 2026
+
+The rate-lock image is on the board. The E2 Lite wrote it over SWD at 1 MHz and verified it. No boot button was held. Build `3a7ebd7c…`. Light output is off: mode 32, emit 0. The microphone rate is locked at 41575 Hz. Do not attach GDB. The second LED wire has not been moved.
+
+The September 20 paragraphs below are history. They are not the current residence.
+
+Receipt: [t1-baseline-bind-20260922/T1-ACCEPTANCE.md](t1-baseline-bind-20260922/T1-ACCEPTANCE.md).
+
+- Checkout still `lane/k1-ra8p1-002` at `431140853dd8b58af53240ef84d5fb1a08bd8b45`, 141 dirty entries preserved.
+- Candidate `fa54c781…` HEX `f4d40e9f…` ELF `459da26e…` MAP `f6aa3797…` recomputed and matched. All 115 recorded source files match the working tree.
+- Six host pair tests PASS on those sources, including `test_ws281x_gpt_dma_hw.py` and `test_ws281x_gpt_dma_hw_pair.py`.
+- Allocation in the candidate build log: LED A0 P601/GPT6/DMAC0, LED A1 P603/GPT7/DMAC3, microphone DMAC1 and DMAC2. Duty buffers sit in SRAM (`0x220580c0` and `0x2205bcc0`, 15360 bytes each).
+- E2 Lite `E2L: 5AS079228B` is on USB. Titan CDC `0x045B:0x5310` is `/dev/cu.usbmodem00000000000011`. A second read, after it was absent, got INFO: UID `545433931bd25436593630352d068363`, build `90e1b84f5665008fa262d22bd9882deb5f11981542b7b48fb30edba61f8578bd`, contract `sr24000.hop180.bins80.xover40`, runtime `live`. That build is `live-k1-runtime-build-20260921-01`. Broker was not running. No process was killed. Raw reply: `t1-baseline-bind-20260922/handoff-info.json`.
+- Candidate ELF has `.debug_frame` and `.debug_line_str` only. It stays the no-symbol record `fa54c781…` / HEX `f4d40e9f…`.
+- Programme `programme-ws2816-pair-symbols-20260922-02`: `WRITE_VERIFIED` for HEX `3d833373…`, board `54543393…0363`. The wrapper then failed only because the application port did not return within 45 seconds. A later INFO read got the same board id and build `e5d51385318c6ee75bf0d40ab835ee2d94551e7ac744bdc0cb8de22309f4ea1f`. Raw reply: `t1-baseline-bind-20260922/post-write-02/handoff-info.json`. The first attempt, directory `…-01`, never saw the bootloader and wrote nothing.
+- Operator report, 22 September 2026: USER/BOOT plus RESET does not enter the bootloader while the E2 Lite is powered. E2 Lite power was removed for that step. The debug wires were not moved. Probe power output stays off.
+- The programmer now rejects an application whose build id does not match the image just written. Host test `K1_PROGRAMME_LIVE_EVENTS_HOST=PASS`, including that mismatch.
+- P603 move is still unconfirmed. DIN-B is recorded on P004. The coupled pair is not to be run on one lane.
+- Live programme directory `programme-ws2816-pair-20260921-01` does not exist. The saved programme command is a dry run and was not executed.
+- SWD harness was not touched. Probe power stays off.
+
+## What is true now — live runtime acceptance, 20 September evening
+
+The board is still running the earlier live image (`fde39fec…`). That image cannot pass the development campaign because it lacks opcodes 23–26.
+
+A replacement ARM image `live-k1-runtime-build-20260920-04` is built and dry-run programmed. It is **not on silicon**. Flashing waits on Captain **Rearm**. Physical emit stays off. No commit.
+
+Host clock/resampler/runtime/protocol/lease/scorer gates passed. Silent-fixture replay and compare passed. Named music was not found, so the music-intelligence baseline is not claimed.
+
+Handback: [LIVE-RUNTIME-HANDBACK-2026-09-20.md](LIVE-RUNTIME-HANDBACK-2026-09-20.md). Prepared waiter: `live-k1-runtime-build-20260920-04/PREPARED-WAITER.json`. Failed compile dir `…-build-20260920-03` is unused forever.
+
 Captain authorised sequential end-to-end implementation after delegation was
 rejected. No new agent launches or guard changes were attempted. The two existing
 repositories remain on `lane/k1-ra8p1-002`; no worktree was created.
@@ -17,6 +48,109 @@ Do not put the only ack in a log. Speak each beat as it happens:
 A 180 s waiter with one line at the start and silence until timeout is a fail.
 
 ## What is true now
+
+- **Titan lane, 2026-09-20 afternoon checkpoint.** Receipt: [WP0-CHECKPOINT.md](WP0-CHECKPOINT.md). Checkout still `lane/k1-ra8p1-002` at `431140853dd8b58af53240ef84d5fb1a08bd8b45`. Dirty host/docs work was preserved, not reset. Live-runtime plan is **in-scope**; transmitter admission is required for combined physical-output acceptance, not for the development runtime. Hashed BLOCKED rows are a complete handoff, not a ship stamp.
+- **Recovery identity split.** Programmer safety fuse HEX `a167833b7f35f2efa8ba296c772ab59c477bda2f2621faabe5510500aab5929a` is not the Titan return image. Intended recovery is `live-audio-gpt-20260920-03` HEX `3aa0913950c5815c28c3ae06b37ee4462c5e2537adc738517cccd8b97b60eabd`, INFO build `c7f6034a902833e3f8a17f7c5792f90990f647bccfcf7f0cd211036ebaba824c`. Both files rehashed on disk.
+- **CDC this afternoon: BLOCKED for a new INFO bind.** Port enumerated. `lsof` on the CDC node timed out. Stale lock `ss03-info-once` pid 18445 is dead; lock not unlinked. Reused hashed `takeover-info-once-20260920-01` (`c3fb0fe0…`): identified-not-accepted. No serial open.
+- **Named g4-uncapped-raw-hops-build-20260919-02 is PRESENT** (DTCM HEX `9f12869a…`). Raw run directories remain ABSENT. Empty-TCM Q1–Q5 stays a separate Rearm.
+- **Host campaigns bound, not restarted.** Capture/identity/tempo/mode32/colour-integrity negatives are green on current files. See [HOST-NEGATIVES-REMAINING.md](HOST-NEGATIVES-REMAINING.md).
+- **WP7 SOP held.** Dry-run `wp7-dry-live-audio-20260920-01` consumed. Live output `live-audio-gpt-prog-20260920-04` does not exist. No Rearm.
+
+- **Titan lane, 2026-09-20 takeover execution.** Checkout `lane/k1-ra8p1-002`
+  at `431140853dd8b58af53240ef84d5fb1a08bd8b45` matches local `main` and
+  `origin/main`. The unpublished-week description is closed. Host repairs in
+  this tree are uncommitted. No `titan_broker.py` holds CDC after
+  `takeover-info-once-20260920-01`. Observe-path DTR/RTS are false.
+- **Live application identity, 2026-09-20.** Opcode-1 INFO on
+  `/dev/cu.usbmodem00000000000011` identified UID
+  `545433931bd25436593630352d068363`, build
+  `c7f6034a902833e3f8a17f7c5792f90990f647bccfcf7f0cd211036ebaba824c`, DualMCU
+  source pin `6b1e7bc5…`, contract `sr24000.hop180.bins80.xover40`. M33
+  `cpu1_actcsr=0`, U55 closed. That matches WRITE_VERIFIED HEX
+  `3aa0913950c5815c28c3ae06b37ee4462c5e2537adc738517cccd8b97b60eabd` from
+  `live-audio-gpt-prog-20260920-03` and the hashed HEX in
+  `live-audio-gpt-20260920-03`. SS-03 reports **identified, not accepted**:
+  no `accepted-checkpoint.json` is bound, because the transmitter is not
+  admitted.
+- **Five-second bound observation, not qualification.**
+  `live-audio-gpt-run-20260920-03` (`BOUND_LIVE_AUDIO_GAIN_HOLD`) recorded
+  +574 DMA IRQs / hardware stops / latched frames, +671 AP hops, both raw
+  rail signs, `measured_hz` 41393 `rate_locked` 1, `asrc_starved` 0,
+  `photons=NOT_CLAIMED`, `waveform=WAVEFORM_NOT_CAPTURED`. Palette JSON still
+  hard-codes `output_backend=gpio_diagnostic`; that string is not backend
+  proof. Acoustic identity remains `unproven`. Brightness 24, mode 32 both
+  channels, centre_out, no carousel.
+- **F-03 placement.** `g4-uncapped-raw-hops-build-20260919-02` overlays
+  `tempo_acf.cpp` into DTCM (`tempo_dtcm_sources` hashed, HEX `9f12869a…`).
+  That is the named historical DTCM variant. It cannot close empty-TCM Q1–Q5.
+  Empty-TCM profiler and observer images are built:
+  `g4-empty-tcm-raw-hops-build-20260920-01` HEX `22d405c1…` build `8a78961b…`,
+  and `g4-empty-tcm-observer-build-20260920-01` HEX `28eda0d1…`.
+  Q1–Q5 measurement needs Rearm of those images and fresh run directories.
+  Those five questions run over USB. They do not require the missing analyser.
+  There is still no `g4-uncapped-raw-hops-run-*` directory.
+  `g4-uncapped-raw-hops-prog-20260920-01` does not exist and is not adopted.
+- **Host gates repaired this session.** F-01: physical P601 scoring needs
+  hashed raw files; parser unit tests no longer require the Mac witness file.
+  F-04: `identity_ok()` requires an accepted checkpoint. F-06: real-audio
+  runner is observation-only and restores settings. Capture/identity
+  negatives exist and went red in host unittest. Palette `statusJson`
+  now reports configured backend, emit-gated output backend, and
+  `physical_admission=unproven` separately from DMA/emit counters.
+- **Still open.** No Saleae/DSLogic/PicoScope on USB. P601/DIN capture is
+  BLOCKED on an attached analyser and a fresh acquisition. Optical KEEP
+  remains separate. M33/U55 parked. D-cache off. Physical four-lane WS2816
+  and K1-L wait on transmitter admission plus suitable wiring.
+
+### Remaining-work classification (2026-09-20 continuation)
+
+| Work | Actual prerequisite |
+| --- | --- |
+| Empty-TCM profiler preparation | Complete: empty-TCM profile HEX `22d405c1…` and observer HEX `28eda0d1…` |
+| Q1–Q5 measurement | Rearm of those images, verified commands, fresh USB run directories |
+| P601/DIN waveform measurement | Attached analyser and fresh acquisition |
+| Product output composition and packing | Host complete; physical lanes outstanding |
+| Physical four-lane WS2816 qualification | Suitable wiring, output hardware and instrumentation |
+| Optical comparison and final ruling | Named, comparable physical results |
+
+### Takeover acceptance (2026-09-20)
+
+| Criterion | Result | Evidence |
+| --- | --- | --- |
+| Source/device identity | PASS identified; NOT TESTED accepted | `takeover-info-once-20260920-01/handoff-info.json` sha256 `c3fb0fe01fdd185073e9637165c6de0a4eec66641019d412d4f8dacb575d0dbb` |
+| Capture scorer | PASS host | `python3 -m unittest tests.host.test_score_p601_capture` and `--self-test` |
+| Fault correlation / P601 wire | BLOCKED | Missing Mac logic analyser on P601 and first-LED DIN |
+| Bench LED repair | NOT TESTED | Depends on WP4 capture; historic one-word remainder on `a3f37e8a…` retained |
+| PDM guardrails (this 5 s window) | OBSERVED, not qualified | `live-audio-gpt-run-20260920-03` sha256 `d141cce5038770377f37c9fe9358b4cabc2fc7832ae5dc099e65930559855695` |
+| Uncapped timing Q1–Q5 | BLOCKED on Rearm of empty-TCM images, not on the analyser | Empty-TCM profile HEX `22d405c1…` built; DTCM `9f12869a…` cannot close empty-TCM; no raw-hop run; resident is still live-audio `c7f6034a…` |
+| Historical scalar preservation | PASS scoped | HEX `619077a5…` unchanged; not inherited |
+| Current live behaviour | PARTIAL observation | INFO + 5 s GAIN_HOLD; no real-music F-06 run this session; no optical |
+| Combined runtime qualification | NOT TESTED | Transmitter not admitted; 45 s soak not rerun on `c7f6034a…` |
+| SS-03 identity/ownership | PASS host; live identified-not-accepted | `test_identity_checkpoint.py`, `test_ss03_broker.py`, `test_ss03_decode.py` |
+| Product output physical | BLOCKED on wiring/instrumentation | Host chain plus TRUE16 packing are implemented; P004 cannot serve the selected GPT backend; four-lane physical still outstanding |
+| K1-L latency | NOT TESTED | No generation-joined p50 this session |
+| Final RT1062 comparison | NOT TESTED | Ruling deferred |
+
+### Prepared Rearm (do not run unless Captain says Rearm)
+
+First image: empty-TCM profiler. Fresh programme directory. Do not adopt
+`g4-uncapped-raw-hops-prog-20260920-01` (unused) and do not programme DTCM
+HEX `9f12869a…` for Q1–Q5.
+
+```
+python3 scripts/programme_scalar.py \
+  --build /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/g4-empty-tcm-raw-hops-build-20260920-01 \
+  --output /Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/g4-empty-tcm-raw-hops-prog-20260920-01 \
+  --wait-seconds 180 --execute
+```
+
+Expected identity: UID `545433931bd25436593630352d068363`, build
+`8a78961b5ad0e821f7f20e13cc093b37e32b3be4643995ee12e4ccbb5a6878bd`,
+HEX `22d405c1d45871c45c0bfa5b88fc1868c79198de493efeef900a47f89cb81a8b`.
+Commands and the observer/mutation directories:
+[Q1-Q5-CAMPAIGN.md](Q1-Q5-CAMPAIGN.md). Recovery image remains
+`live-audio-gpt-20260920-03` (build `c7f6034a…`, HEX `3aa09139…`). Never
+reuse `…-prog-20260919-01` or `…-prog-20260920-03`.
 
 - **Titan lane, 2026-09-19.** DualMCU Lane F is a separate programme and is not
   executed from this tree. Colour-integrity image `a3f37e8a…` is **no longer
@@ -444,6 +578,7 @@ mutation occurred.
 **Document Changelog**
 | Date | Author | Change |
 |------|--------|--------|
+| 2026-09-20 | agent | Takeover brief execution: F-01/F-04/F-06 host gates; programme WRITE_VERIFIED is not app identity. |
 | 2026-09-16 | agent | Ban computer tones and white noise in the room. Scripts refuse. Gate test added. |
 | 2026-09-16 | agent | Motion dump: occupancy spreads/fills, not a travelling dot. Speaker still 0 rails. |
 | 2026-09-16 | agent | Scorer uses live_age. Headroom tones no new rails. Mode 32 dump is stationary. |

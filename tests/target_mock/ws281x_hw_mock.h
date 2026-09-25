@@ -7,12 +7,20 @@ typedef int fsp_err_t; typedef int bsp_io_port_pin_t;
 #define BSP_IRQ_DISABLED 255
 #define FSP_INVALID_VECTOR -1
 #define GPT0_COUNTER_OVERFLOW_IRQn 63
+#define GPT1_COUNTER_OVERFLOW_IRQn 47
+#define VECTOR_NUMBER_GPT1_COUNTER_OVERFLOW 47
+#define DMAC0_INT_IRQn 14
+#define VECTOR_NUMBER_DMAC0_INT 14
 #define DMAC2_INT_IRQn 74
 #define VECTOR_NUMBER_DMAC2_INT 74
+#define DMAC3_INT_IRQn 77
+#define VECTOR_NUMBER_DMAC3_INT 77
 #define GPT_PIN_LEVEL_LOW 0
 #define GPT_SOURCE_NONE 0
 #define GPT_SOURCE_GPT_A (1u<<16)
 #define GPT_SOURCE_GPT_B (1u<<17)
+#define GPT_SOURCE_GPT_C (1u<<18)
+#define GPT_SOURCE_GPT_D (1u<<19)
 #define GPT_CAPTURE_FILTER_NONE 0
 #define GPT_GTIOC_POLARITY_NORMAL 0
 #define TIMER_MODE_PWM 1
@@ -28,9 +36,14 @@ typedef int fsp_err_t; typedef int bsp_io_port_pin_t;
 #define TRANSFER_MODE_NORMAL 0
 #define ELC_EVENT_GPT6_COUNTER_OVERFLOW 0x1bd
 #define ELC_EVENT_GPT6_CAPTURE_COMPARE_A 0x1b7
+#define ELC_EVENT_GPT7_COUNTER_OVERFLOW 0x1c6
+#define ELC_EVENT_GPT7_CAPTURE_COMPARE_A 0x1c0
 #define ELC_EVENT_GPT0_COUNTER_OVERFLOW 0x187
+#define ELC_EVENT_GPT1_COUNTER_OVERFLOW 0x190
 #define ELC_PERIPHERAL_GPT_A 0
 #define ELC_PERIPHERAL_GPT_B 1
+#define ELC_PERIPHERAL_GPT_C 2
+#define ELC_PERIPHERAL_GPT_D 3
 #define FSP_IP_ELC 1
 #define IOPORT_CFG_PERIPHERAL_PIN (1u<<16)
 #define IOPORT_PERIPHERAL_GPT1 (3u<<24)
@@ -40,7 +53,7 @@ typedef int fsp_err_t; typedef int bsp_io_port_pin_t;
 #define R_PFS_PORT_PIN_PmnPFS_PMR_Msk (1u<<16)
 #define R_GPT0_GTCR_CST_Msk 1u
 #define SCB_CCR_DC_Msk (1u<<16)
-typedef struct {uint32_t GTCR,GTCNT,GTPR,GTCCR[6],GTBER,GTIOR,GTPSR,GTUPSR;} gpt_regs_t;
+typedef struct {uint32_t GTCR,GTCNT,GTPR,GTCCR[6],GTBER,GTIOR,GTPSR,GTUPSR,GTSTR;} gpt_regs_t;
 typedef struct {uint32_t DMCRA,DMSAR,DMDAR,DMCNT,DMTMD,DMINT,DMREQ,DMSTS;} dma_regs_t;
 static struct {uint32_t DMCTL;} dma_global;
 #define R_DMA (&dma_global)
@@ -79,7 +92,8 @@ static struct {uint32_t MSTPCRC;} mstp;
 static uint32_t SystemCoreClock=1000000000u,irq_mask;
 static int g_ioport_ctrl,elc_started,fail_start,fail_reset;
 static void *irq_contexts[128];
-static gpt_regs_t gpt_regs[7]; static dma_regs_t dma_regs;
+static gpt_regs_t gpt_regs[8]; static dma_regs_t dma_channel_regs[8];
+#define dma_regs dma_channel_regs[2]
 static void module_start(int ip,int channel) {(void)ip;(void)channel;elc_started=1;mstp.MSTPCRC=0;}
 #define R_BSP_MODULE_START module_start
 static void __DSB(void) {} static void __DMB(void) {} static void __ISB(void) {}
@@ -91,7 +105,10 @@ static void R_BSP_PinAccessEnable(void) {} static void R_BSP_PinAccessDisable(vo
 static void *R_FSP_IsrContextGet(int n) {return irq_contexts[n];}
 static uint32_t NVIC_GetPendingIRQ(int n) {(void)n;return 0;}
 static void R_BSP_IrqClearPending(int n) {(void)n;}
-static int R_IOPORT_PinCfg(void*c,bsp_io_port_pin_t p,uint32_t config) {(void)c;(void)p;mock_pfs.PORT[6].PIN[1].PmnPFS=config;return 0;}
+static int R_IOPORT_PinCfg(void*c,bsp_io_port_pin_t p,uint32_t config) {
+ (void)c; unsigned port=(unsigned)((p>>8)&0xff), pin=(unsigned)(p&0xff);
+ if(port<16u&&pin<16u) mock_pfs.PORT[port].PIN[pin].PmnPFS=config; return 0;
+}
 static int R_GPT_Open(gpt_instance_ctrl_t*c,const timer_cfg_t*q) {c->p_reg=&gpt_regs[q->channel];c->p_cfg=q;c->p_reg->GTPR=q->period_counts-1;c->p_reg->GTUPSR=q->p_extend->count_up_source;if(q->cycle_end_irq>=0)irq_contexts[q->cycle_end_irq]=c;return 0;}
 static int R_GPT_Close(gpt_instance_ctrl_t*c) {(void)c;return 0;}
 static int R_GPT_InfoGet(gpt_instance_ctrl_t*c,timer_info_t*i) {(void)c;i->clock_frequency=300000000;return 0;}
@@ -100,7 +117,10 @@ static int R_GPT_Reset(gpt_instance_ctrl_t*c) {c->p_reg->GTCNT=0;c->p_reg->GTCCR
 static int R_GPT_PeriodSet(gpt_instance_ctrl_t*c,uint32_t p) {c->p_reg->GTPR=p-1;return 0;}
 static int R_GPT_Enable(gpt_instance_ctrl_t*c) {c->p_reg->GTPSR=c->p_cfg->p_extend->stop_source;return 0;}
 static int R_GPT_Start(gpt_instance_ctrl_t*c) {if(fail_start)return 9;c->p_reg->GTCR=1;return 0;}
-static int R_DMAC_Open(dmac_instance_ctrl_t*c,const transfer_cfg_t*q) {c->p_reg=&dma_regs;irq_contexts[q->p_extend->irq]=c;icu.DELSR[q->p_extend->channel]=q->p_extend->activation_source;return 0;}
+static int R_DMAC_Open(dmac_instance_ctrl_t*c,const transfer_cfg_t*q) {
+ unsigned ch=(unsigned)q->p_extend->channel; c->p_reg=&dma_channel_regs[ch<8u?ch:2u];
+ irq_contexts[q->p_extend->irq]=c;icu.DELSR[q->p_extend->channel]=q->p_extend->activation_source;return 0;
+}
 static int R_DMAC_Close(dmac_instance_ctrl_t*c) {(void)c;return 0;}
 static int R_DMAC_Disable(dmac_instance_ctrl_t*c) {c->p_reg->DMCNT=0;return 0;}
 static int R_DMAC_Enable(dmac_instance_ctrl_t*c) {c->p_reg->DMCNT=1;return 0;}

@@ -1,0 +1,2160 @@
+02037eb0 T __adddf3
+02038878 T __addsf3
+020386dc T __aeabi_cdcmpeq
+020386dc T __aeabi_cdcmple
+020386cc T __aeabi_cdrcmple
+020387cc T __aeabi_d2f
+0203877c T __aeabi_d2iz
+02038b58 T __aeabi_d2ulz
+02037eb0 T __aeabi_dadd
+020386ec T __aeabi_dcmpeq
+02038728 T __aeabi_dcmpge
+0203873c T __aeabi_dcmpgt
+02038714 T __aeabi_dcmple
+02038700 T __aeabi_dcmplt
+02038750 T __aeabi_dcmpun
+02038470 T __aeabi_ddiv
+0203821c T __aeabi_dmul
+02037ea4 T __aeabi_drsub
+02037eac T __aeabi_dsub
+0203816c T __aeabi_f2d
+02038878 T __aeabi_fadd
+0203886c T __aeabi_frsub
+02038874 T __aeabi_fsub
+02038148 T __aeabi_i2d
+020389e0 T __aeabi_i2f
+02038e98 W __aeabi_idiv0
+020381c0 T __aeabi_l2d
+02038a0c T __aeabi_l2f
+02038e98 W __aeabi_ldiv0
+02038a88 T __aeabi_ldivmod
+02038128 T __aeabi_ui2d
+020389d8 T __aeabi_ui2f
+020381b0 T __aeabi_ul2d
+020389fc T __aeabi_ul2f
+02038b28 T __aeabi_uldivmod
+020363a4 T __ascii_mbtowc
+02036c1c T __ascii_wctomb
+020065ec W __assert_func
+2205b4c4 B __atexit
+22004a68 D __atexit_recursive_mutex
+00000000 a __atexit.c
+2205b4c8 B __atexit0
+00000000 a __call_atexit.c
+02038650 T __cmpdf2
+02036a9c T __d2b
+27000000 ? __data_flash_noinit$$Base
+27000000 ? __data_flash_noinit$$Limit
+27000000 ? __data_flash_readonly$$Base
+27000000 ? __data_flash_readonly$$Limit
+27000000 ? __ddsc_DATA_FLASH_END
+27000000 ? __ddsc_DATA_FLASH_START
+20000000 ? __ddsc_DTCM_END
+20000000 ? __ddsc_DTCM_START
+02048000 R __ddsc_FLASH_END
+02000000 ? __ddsc_FLASH_START
+00000000 ? __ddsc_ITCM_END
+00000000 ? __ddsc_ITCM_START
+12c9f600 R __ddsc_OPTION_SETTING_BPS_END
+02c9f200 R __ddsc_OPTION_SETTING_BPS_SEC_END
+02c9f200 R __ddsc_OPTION_SETTING_BPS_SEC_START
+12c9f600 R __ddsc_OPTION_SETTING_BPS_START
+02c9f044 R __ddsc_OPTION_SETTING_OFS0_END
+02c9f040 R __ddsc_OPTION_SETTING_OFS0_START
+12c9f4c0 R __ddsc_OPTION_SETTING_OFS1_END
+02c9f0c0 R __ddsc_OPTION_SETTING_OFS1_SEC_END
+02c9f0c0 R __ddsc_OPTION_SETTING_OFS1_SEC_START
+02c9f120 R __ddsc_OPTION_SETTING_OFS1_SEL_END
+02c9f120 R __ddsc_OPTION_SETTING_OFS1_SEL_START
+12c9f4c0 R __ddsc_OPTION_SETTING_OFS1_START
+02c9f044 R __ddsc_OPTION_SETTING_OFS2_END
+02c9f044 R __ddsc_OPTION_SETTING_OFS2_START
+12c9f4c4 R __ddsc_OPTION_SETTING_OFS3_END
+02c9f0c4 R __ddsc_OPTION_SETTING_OFS3_SEC_END
+02c9f0c4 R __ddsc_OPTION_SETTING_OFS3_SEC_START
+02c9f124 R __ddsc_OPTION_SETTING_OFS3_SEL_END
+02c9f124 R __ddsc_OPTION_SETTING_OFS3_SEL_START
+12c9f4c4 R __ddsc_OPTION_SETTING_OFS3_START
+12e07780 R __ddsc_OPTION_SETTING_OTP_PBPS_END
+02e07700 R __ddsc_OPTION_SETTING_OTP_PBPS_SEC_END
+02e07700 R __ddsc_OPTION_SETTING_OTP_PBPS_SEC_START
+12e07780 R __ddsc_OPTION_SETTING_OTP_PBPS_START
+02c9f074 R __ddsc_OPTION_SETTING_SAS_END
+02c9f074 R __ddsc_OPTION_SETTING_SAS_START
+80000000 ? __ddsc_OSPI0_CS0_END
+80000000 ? __ddsc_OSPI0_CS0_START
+90000000 ? __ddsc_OSPI0_CS1_END
+90000000 ? __ddsc_OSPI0_CS1_START
+70000000 ? __ddsc_OSPI1_CS0_END
+70000000 ? __ddsc_OSPI1_CS0_START
+78000000 ? __ddsc_OSPI1_CS1_END
+78000000 ? __ddsc_OSPI1_CS1_START
+2205c000 B __ddsc_RAM_END
+22000000 ? __ddsc_RAM_START
+68000000 ? __ddsc_SDRAM_END
+68000000 ? __ddsc_SDRAM_START
+02038470 T __divdf3
+02004e3c t __do_global_dtors_aux
+02040f2c r __do_global_dtors_aux_fini_array_entry
+20000000 ? __dtcm_from_data_flash$$
+20000000 ? __dtcm_from_data_flash$$Base
+20000000 ? __dtcm_from_data_flash$$Limit
+27000000 A __dtcm_from_data_flash$$Load
+20000000 ? __dtcm_from_flash$$
+20000000 ? __dtcm_from_flash$$Base
+20000000 ? __dtcm_from_flash$$Limit
+02000220 A __dtcm_from_flash$$Load
+20000000 ? __dtcm_from_ospi0_cs1$$
+20000000 ? __dtcm_from_ospi0_cs1$$Base
+20000000 ? __dtcm_from_ospi0_cs1$$Limit
+90000000 A __dtcm_from_ospi0_cs1$$Load
+20000000 ? __dtcm_from_ospi1_cs1$$
+20000000 ? __dtcm_from_ospi1_cs1$$Base
+20000000 ? __dtcm_from_ospi1_cs1$$Limit
+78000000 A __dtcm_from_ospi1_cs1$$Load
+20000000 ? __dtcm_noinit$$
+20000000 ? __dtcm_noinit$$Base
+20000000 ? __dtcm_noinit$$Limit
+20000000 ? __dtcm_zero$$
+20000000 ? __dtcm_zero$$Base
+20000000 ? __dtcm_zero$$Limit
+02038650 T __eqdf2
+0200ec3c T __errno
+02040f30 R __exidx_end
+02040f30 R __exidx_start
+02040890 T __exp2f_data
+0203816c T __extendsfdf2
+02040f30 R __fini_array_end
+02040f2c R __fini_array_start
+0203877c T __fixdfsi
+02038b58 T __fixunsdfdi
+02040f2c r __flash_fini_array$$
+02040f20 r __flash_init_array$$
+0200021c R __flash_noinit$$Base
+0200021c R __flash_noinit$$Limit
+02004df8 t __flash_readonly$$
+02004df8 T __flash_readonly$$Base
+02040f18 T __flash_readonly$$Limit
+02000000 r __flash_vectors$$
+02000000 R __flash_vectors$$Base
+02000174 R __flash_vectors$$Limit
+020381c0 T __floatdidf
+02038a0c T __floatdisf
+02038148 T __floatsidf
+020389e0 T __floatsisf
+020381b0 T __floatundidf
+020389fc T __floatundisf
+02038128 T __floatunsidf
+020389d8 T __floatunsisf
+02040f24 r __frame_dummy_init_array_entry
+020001f4 R __fsym_backtrace
+0203e48c T __fsym_backtrace_desc
+0203e4a8 T __fsym_backtrace_name
+020001b4 R __fsym_clear
+0203e1d0 T __fsym_clear_desc
+0203e1ec T __fsym_clear_name
+020001c4 R __fsym_free
+0203e270 T __fsym_free_desc
+0203e294 T __fsym_free_name
+020001e4 R __fsym_help
+0203e2bc T __fsym_help_desc
+0203e2d4 T __fsym_help_name
+02000194 R __fsym_list
+0203e18c T __fsym_list_desc
+0203e19c T __fsym_list_name
+02000184 R __fsym_pin
+0203e01c T __fsym_pin_desc
+0203e02c T __fsym_pin_name
+020001d4 R __fsym_ps
+0203e29c T __fsym_ps_desc
+0203e2b8 T __fsym_ps_name
+02000174 R __fsym_reboot
+0203d504 T __fsym_reboot_desc
+0203d514 T __fsym_reboot_name
+020001a4 R __fsym_version
+0203e1a4 T __fsym_version_desc
+0203e1c8 T __fsym_version_name
+02000204 R __fsymtab_end
+02000174 R __fsymtab_start
+0203e64c t __func__.0
+0203e450 t __func__.3
+0203e470 t __func__.4
+0203d538 t __FUNCTION__.0
+0203e584 t __FUNCTION__.0
+0203e754 t __FUNCTION__.0
+0203e6b0 t __FUNCTION__.0
+0203df8c t __FUNCTION__.0
+0203e33c t __FUNCTION__.0
+0203e428 t __FUNCTION__.0
+0203e610 t __FUNCTION__.0
+0203e52c t __FUNCTION__.0
+0203dfc0 t __FUNCTION__.0
+0203e328 t __FUNCTION__.0
+0203defc t __FUNCTION__.0
+0203dfcc t __FUNCTION__.1
+0203dea0 t __FUNCTION__.1
+0203e764 t __FUNCTION__.1
+0203e030 t __FUNCTION__.1
+0203e438 t __FUNCTION__.1
+0203e62c t __FUNCTION__.1
+0203df10 t __FUNCTION__.1
+0203e6c4 t __FUNCTION__.1
+0203e53c t __FUNCTION__.1
+0203e594 t __FUNCTION__.1
+0203e664 t __FUNCTION__.1
+0203d54c t __FUNCTION__.1
+0203df78 t __FUNCTION__.10
+0203e0f4 t __FUNCTION__.10
+0203e734 t __FUNCTION__.10
+0203e108 t __FUNCTION__.11
+0203e744 t __FUNCTION__.11
+0203e118 t __FUNCTION__.13
+0203e130 t __FUNCTION__.14
+0203e140 t __FUNCTION__.15
+0203e154 t __FUNCTION__.16
+0203e16c t __FUNCTION__.17
+0203e17c t __FUNCTION__.18
+0203e5a8 t __FUNCTION__.2
+0203e67c t __FUNCTION__.2
+0203e6e0 t __FUNCTION__.2
+0203dfd8 t __FUNCTION__.2
+0203e778 t __FUNCTION__.2
+0203e050 t __FUNCTION__.2
+0203d55c t __FUNCTION__.2
+0203df24 t __FUNCTION__.2
+0203e54c t __FUNCTION__.2
+0203e350 t __FUNCTION__.23
+0203e364 t __FUNCTION__.24
+0203e5c4 t __FUNCTION__.3
+0203debc t __FUNCTION__.3
+0203d570 t __FUNCTION__.3
+0203e694 t __FUNCTION__.3
+0203e2dc t __FUNCTION__.3
+0203e064 t __FUNCTION__.3
+0203e560 t __FUNCTION__.3
+0203dfe8 t __FUNCTION__.3
+0203e374 t __FUNCTION__.31
+0203e384 t __FUNCTION__.32
+0203e394 t __FUNCTION__.33
+0203e3a4 t __FUNCTION__.34
+0203e3b4 t __FUNCTION__.37
+0203e3c4 t __FUNCTION__.38
+0203e3d0 t __FUNCTION__.39
+0203d584 t __FUNCTION__.4
+0203decc t __FUNCTION__.4
+0203e074 t __FUNCTION__.4
+0203e5d8 t __FUNCTION__.4
+0203e2ec t __FUNCTION__.4
+0203e788 t __FUNCTION__.4
+0203e3e8 t __FUNCTION__.40
+0203e6fc t __FUNCTION__.5
+0203d598 t __FUNCTION__.5
+0203e094 t __FUNCTION__.5
+0203df38 t __FUNCTION__.5
+0203dedc t __FUNCTION__.5
+0203e574 t __FUNCTION__.5
+0203e5ec t __FUNCTION__.5
+0203e300 t __FUNCTION__.5
+0203deec t __FUNCTION__.6
+0203e600 t __FUNCTION__.6
+0203e310 t __FUNCTION__.6
+0203e798 t __FUNCTION__.7
+0203dff4 t __FUNCTION__.7
+0203e70c t __FUNCTION__.7
+0203e0b4 t __FUNCTION__.7
+0203df50 t __FUNCTION__.7
+0203e7a8 t __FUNCTION__.8
+0203e000 t __FUNCTION__.8
+0203e0d0 t __FUNCTION__.8
+0203dfa8 t __FUNCTION__.9
+0203e720 t __FUNCTION__.9
+0203e0e4 t __FUNCTION__.9
+0203e00c t __FUNCTION__.9
+0203df64 t __FUNCTION__.9
+02038640 T __gedf2
+22004a6c D __global_locale
+02038640 T __gtdf2
+020364d4 T __hi0bits
+0203657c T __i2b
+02037910 T __ieee754_atan2f
+02037a68 T __ieee754_sqrt
+02037a70 T __ieee754_sqrtf
+02040f2c R __init_array_end
+02040f20 R __init_array_start
+02040c18 T __inv_pio4
+00000000 ? __itcm_from_data_flash$$
+00000000 ? __itcm_from_data_flash$$Base
+00000000 ? __itcm_from_data_flash$$Limit
+27000000 A __itcm_from_data_flash$$Load
+00000000 ? __itcm_from_flash$$
+00000000 ? __itcm_from_flash$$Base
+00000000 ? __itcm_from_flash$$Limit
+02000220 A __itcm_from_flash$$Load
+00000000 ? __itcm_from_ospi0_cs1$$
+00000000 ? __itcm_from_ospi0_cs1$$Base
+00000000 ? __itcm_from_ospi0_cs1$$Limit
+90000000 A __itcm_from_ospi0_cs1$$Load
+00000000 ? __itcm_from_ospi1_cs1$$
+00000000 ? __itcm_from_ospi1_cs1$$Base
+00000000 ? __itcm_from_ospi1_cs1$$Limit
+78000000 A __itcm_from_ospi1_cs1$$Load
+00000000 ? __itcm_noinit$$
+00000000 ? __itcm_noinit$$Base
+00000000 ? __itcm_noinit$$Limit
+00000000 ? __itcm_zero$$
+00000000 ? __itcm_zero$$Base
+00000000 ? __itcm_zero$$Limit
+02038648 T __ledf2
+02035390 T __libc_fini_array
+0203651c T __lo0bits
+0203537c T __locale_mb_cur_max
+2205b4c0 B __lock___atexit_recursive_mutex
+02040af8 T __log2f_data
+020409d8 T __logf_data
+020367f0 T __lshift
+02038648 T __ltdf2
+02037744 T __math_divzerof
+02037768 T __math_invalidf
+0203772c T __math_may_uflowf
+02037738 T __math_oflowf
+02037720 T __math_uflowf
+020368d8 T __mcmp
+0203691c T __mdiff
+020407a0 T __mprec_bigtens
+020407c8 T __mprec_tens
+0203821c T __muldf3
+02036430 T __multadd
+020365d8 T __multiply
+02038650 T __nedf2
+12c9f600 R __option_setting_bps_reg$$Base
+12c9f600 R __option_setting_bps_reg$$Limit
+02c9f200 R __option_setting_bps_sec_reg$$Base
+02c9f200 R __option_setting_bps_sec_reg$$Limit
+02c9f040 r __option_setting_ofs0_reg$$
+02c9f040 R __option_setting_ofs0_reg$$Base
+02c9f044 R __option_setting_ofs0_reg$$Limit
+12c9f4c0 R __option_setting_ofs1_reg$$Base
+12c9f4c0 R __option_setting_ofs1_reg$$Limit
+02c9f0c0 R __option_setting_ofs1_sec_reg$$Base
+02c9f0c0 R __option_setting_ofs1_sec_reg$$Limit
+02c9f120 R __option_setting_ofs1_sel_reg$$Base
+02c9f120 R __option_setting_ofs1_sel_reg$$Limit
+02c9f044 R __option_setting_ofs2_reg$$Base
+02c9f044 R __option_setting_ofs2_reg$$Limit
+12c9f4c4 R __option_setting_ofs3_reg$$Base
+12c9f4c4 R __option_setting_ofs3_reg$$Limit
+02c9f0c4 R __option_setting_ofs3_sec_reg$$Base
+02c9f0c4 R __option_setting_ofs3_sec_reg$$Limit
+02c9f124 R __option_setting_ofs3_sel_reg$$Base
+02c9f124 R __option_setting_ofs3_sel_reg$$Limit
+12e07780 R __option_setting_otp_pbps_reg$$Base
+12e07780 R __option_setting_otp_pbps_reg$$Limit
+02e07700 R __option_setting_otp_pbps_sec_reg$$Base
+02e07700 R __option_setting_otp_pbps_sec_reg$$Limit
+02c9f074 R __option_setting_sas_reg$$Base
+02c9f074 R __option_setting_sas_reg$$Limit
+80000000 ? __ospi0_cs0_from_data_flash$$Base
+80000000 ? __ospi0_cs0_from_data_flash$$Limit
+27000000 A __ospi0_cs0_from_data_flash$$Load
+80000000 ? __ospi0_cs0_from_flash$$Base
+80000000 ? __ospi0_cs0_from_flash$$Limit
+0200021c A __ospi0_cs0_from_flash$$Load
+80000000 ? __ospi0_cs0_from_ospi0_cs1$$Base
+80000000 ? __ospi0_cs0_from_ospi0_cs1$$Limit
+90000000 A __ospi0_cs0_from_ospi0_cs1$$Load
+80000000 ? __ospi0_cs0_from_ospi1_cs1$$Base
+80000000 ? __ospi0_cs0_from_ospi1_cs1$$Limit
+78000000 A __ospi0_cs0_from_ospi1_cs1$$Load
+80000000 ? __ospi0_cs0_noinit_nocache$$Base
+80000000 ? __ospi0_cs0_noinit_nocache$$Limit
+80000000 ? __ospi0_cs0_noinit$$Base
+80000000 ? __ospi0_cs0_noinit$$Limit
+80000000 ? __ospi0_cs0_zero_nocache$$
+80000000 ? __ospi0_cs0_zero_nocache$$Base
+80000000 ? __ospi0_cs0_zero_nocache$$Limit
+80000000 ? __ospi0_cs0_zero$$Base
+80000000 ? __ospi0_cs0_zero$$Limit
+90000000 ? __ospi0_cs1_noinit$$Base
+90000000 ? __ospi0_cs1_noinit$$Limit
+90000000 ? __ospi0_cs1_readonly$$Base
+90000000 ? __ospi0_cs1_readonly$$Limit
+70000000 ? __ospi1_cs0_from_data_flash$$Base
+70000000 ? __ospi1_cs0_from_data_flash$$Limit
+27000000 A __ospi1_cs0_from_data_flash$$Load
+70000000 ? __ospi1_cs0_from_flash$$Base
+70000000 ? __ospi1_cs0_from_flash$$Limit
+0200021c A __ospi1_cs0_from_flash$$Load
+70000000 ? __ospi1_cs0_from_ospi0_cs1$$Base
+70000000 ? __ospi1_cs0_from_ospi0_cs1$$Limit
+90000000 A __ospi1_cs0_from_ospi0_cs1$$Load
+70000000 ? __ospi1_cs0_from_ospi1_cs1$$Base
+70000000 ? __ospi1_cs0_from_ospi1_cs1$$Limit
+78000000 A __ospi1_cs0_from_ospi1_cs1$$Load
+70000000 ? __ospi1_cs0_noinit_nocache$$Base
+70000000 ? __ospi1_cs0_noinit_nocache$$Limit
+70000000 ? __ospi1_cs0_noinit$$Base
+70000000 ? __ospi1_cs0_noinit$$Limit
+70000000 ? __ospi1_cs0_zero_nocache$$
+70000000 ? __ospi1_cs0_zero_nocache$$Base
+70000000 ? __ospi1_cs0_zero_nocache$$Limit
+70000000 ? __ospi1_cs0_zero$$Base
+70000000 ? __ospi1_cs0_zero$$Limit
+78000000 ? __ospi1_cs1_noinit$$Base
+78000000 ? __ospi1_cs1_noinit$$Limit
+78000000 ? __ospi1_cs1_readonly$$Base
+78000000 ? __ospi1_cs1_readonly$$Limit
+0203673c T __pow5mult
+02040d80 T __powf_log2_data
+02040f20 R __preinit_array_end
+02040f20 R __preinit_array_start
+22000000 ? __ram_dtc_vector$$Base
+22000000 ? __ram_dtc_vector$$Limit
+22000000 ? __ram_from_data_flash$$Base
+22000000 ? __ram_from_data_flash$$Limit
+27000000 A __ram_from_data_flash$$Load
+22000000 d __ram_from_flash$$
+22000000 D __ram_from_flash$$Base
+22004bd8 D __ram_from_flash$$Limit
+0200021c A __ram_from_flash$$Load
+22000000 ? __ram_from_ospi0_cs1$$Base
+22000000 ? __ram_from_ospi0_cs1$$Limit
+90000000 A __ram_from_ospi0_cs1$$Load
+22000000 ? __ram_from_ospi1_cs1$$Base
+22000000 ? __ram_from_ospi1_cs1$$Limit
+78000000 A __ram_from_ospi1_cs1$$Load
+22004be0 D __ram_noinit_nocache$$Base
+22004be0 D __ram_noinit_nocache$$Limit
+22004be0 b __ram_noinit$$
+22004be0 B __ram_noinit$$Base
+22024c0c B __ram_noinit$$Limit
+2205b658 A __RAM_segment_used_end__
+2205b658 B __ram_thread_stack$$Base
+2205b658 B __ram_thread_stack$$Limit
+22004bd8 b __ram_zero_nocache$$
+22004bd8 B __ram_zero_nocache$$Base
+22004be0 B __ram_zero_nocache$$Limit
+22024c20 b __ram_zero$$
+22024c20 B __ram_zero$$Base
+2205b658 B __ram_zero$$Limit
+020354b4 T __register_exitproc
+02033664 T __retarget_lock_acquire_recursive
+02033668 T __retarget_lock_release_recursive
+22025f64 b __rt_errno
+0200f194 T __rt_ffs
+0200021c R __rt_init_end
+02000214 R __rt_init_finsh_system_init
+02000210 R __rt_init_rt_work_sys_workqueue_init
+0200020c R __rt_init_rti_board_end
+02000208 R __rt_init_rti_board_start
+02000218 R __rt_init_rti_end
+02000204 R __rt_init_rti_start
+02000204 R __rt_init_start
+02040f30 R __sau_ddsc_FLASH_NSC
+2205b658 B __sau_ddsc_RAM_NSC
+68000000 ? __sdram_from_data_flash$$Base
+68000000 ? __sdram_from_data_flash$$Limit
+27000000 A __sdram_from_data_flash$$Load
+68000000 R __sdram_from_flash$$Base
+68000000 R __sdram_from_flash$$Limit
+0200021c A __sdram_from_flash$$Load
+68000000 ? __sdram_from_ospi0_cs1$$Base
+68000000 ? __sdram_from_ospi0_cs1$$Limit
+90000000 A __sdram_from_ospi0_cs1$$Load
+68000000 ? __sdram_from_ospi1_cs1$$Base
+68000000 ? __sdram_from_ospi1_cs1$$Limit
+78000000 A __sdram_from_ospi1_cs1$$Load
+68000000 R __sdram_noinit_nocache$$Base
+68000000 R __sdram_noinit_nocache$$Limit
+68000000 ? __sdram_noinit$$Base
+68000000 ? __sdram_noinit$$Limit
+68000000 ? __sdram_zero_nocache$$
+68000000 ? __sdram_zero_nocache$$Base
+68000000 ? __sdram_zero_nocache$$Limit
+68000000 ? __sdram_zero$$Base
+68000000 ? __sdram_zero$$Limit
+2205b388 B __sf
+02040c78 T __sincosf_table
+02035324 T __ssprint_r
+02036b5c T __ssputs_r
+02037eac T __subdf3
+02038874 T __subsf3
+22004bd8 D __TMC_END__
+020387cc T __truncdfsf2
+02038b98 T __udivmoddi4
+02038750 T __unorddf2
+02000000 R __Vectors
+02000204 R __vsymtab_end
+02000204 R __vsymtab_start
+00000000 a _aeabi_ldivmod.o
+00000000 a _aeabi_uldivmod.o
+00000000 a _arm_addsubdf3.o
+00000000 a _arm_addsubsf3.o
+00000000 a _arm_cmpdf2.o
+00000000 a _arm_fixdfsi.o
+00000000 a _arm_muldivdf3.o
+00000000 a _arm_truncdfsf2.o
+00000000 a _arm_unorddf2.o
+020363d0 T _Balloc
+0203641c T _Bfree
+0200ec1c T _calloc_r
+0200fca0 t _completion_done
+22025f60 b _console_device
+22025f7c b _critical_error_occurred
+0204066c T _ctype_
+020356e8 T _dtoa_r
+00000000 a _dvmd_tls.o
+02040f1c T _fini
+22025c40 b _finsh_thread_entry_hook
+0200ec34 T _free_r
+0200ed84 t _get_sp_done
+0201a6a8 t _GLOBAL__sub_I_k1_fixture_initialise
+22025b70 b _hw_pin
+22004928 D _impure_data
+22004920 D _impure_ptr
+02040f18 T _init
+02035388 T _localeconv_r
+22025f18 b _lock
+0200ebf0 T _malloc_r
+02014c68 T _memheap_alloc
+02014cc4 T _memheap_free
+02014cc8 T _memheap_realloc
+220002d0 d _object_container
+020102e4 t _pin_cmd
+0201024c t _pin_cmd_print_usage
+020101a4 t _pin_control
+02010210 t _pin_read
+020101d8 t _pin_write
+0203d51c t _ra_pin_ops
+0200ec04 T _realloc_r
+0200eca0 t _reswitch
+02014248 T _rt_errno
+02012de4 t _rt_mutex_take
+02012b88 t _rt_sem_take
+220002c8 d _rt_thread_defunct
+020107b0 t _serial_fifo_rx
+02010928 t _serial_fifo_tx_blocking_buf
+0201086c t _serial_fifo_tx_blocking_nbuf
+02010d80 t _serial_fifo_tx_nonblocking
+020105e0 T _serial_poll_rx
+02010640 T _serial_poll_tx
+2202637c b _soft_timer_list
+220262b0 b _soft_timer_sem
+02032de8 t _strtol_l.part.0
+02032f24 t _strtoul_l.isra.0
+020337d8 T _svfprintf_r
+22025c50 B _syscall_table_begin
+22025c4c B _syscall_table_end
+02015774 t _thread_exit
+020157bc t _thread_init.isra.0
+02015a88 t _thread_sleep
+020156fc t _thread_timeout
+22026384 b _timer_list
+02015c80 t _timer_start
+220262dc b _timer_thread
+02015d08 t _timer_thread_entry
+220260b0 b _timer_thread_stack
+0200eda0 t _update_done
+0200ed9c t _update_msp
+02000000 R _VECTORS
+02035450 T _wcrtomb_r
+02036c38 T _wcsnrtombs_l
+02036d34 T _wcsnrtombs_r
+0203549c T _wcsrtombs_r
+02010074 t _workqueue_thread_entry
+020190b0 W k1_time_probe()
+0203e934 t kTitanLiveSchemaJson
+0203e8f0 t kTitanLiveSchemaSha256
+0203e7b8 t kTitanLiveSchemaSha256
+020166c4 t (anonymous namespace)::live_hex32(char const*, unsigned char*) [clone .constprop.0]
+2204b498 b (anonymous namespace)::trajectory
+22026390 b (anonymous namespace)::initialised
+2202bf48 b (anonymous namespace)::live_runtime
+020165d8 t (anonymous namespace)::palette_step(bool)
+2202bb90 b (anonymous namespace)::palette_clock
+2202bbc4 b (anonymous namespace)::live_cfg_stage
+020162fc t (anonymous namespace)::live_copy_focus(k1::core::visual::AudioFocusProfile&, float const*)
+020163a0 t (anonymous namespace)::live_read_focus(float*, k1::core::visual::AudioFocusProfile const&)
+2202bba8 b (anonymous namespace)::palette_time_us
+2202bbb8 b (anonymous namespace)::live_cfg_staging
+2202bbb0 b (anonymous namespace)::palette_clock_hz
+0201658c t (anonymous namespace)::palette_gpt_poll()
+020164c4 t (anonymous namespace)::live_apply_config(k1::titan::LiveConfigBlob const&, unsigned long long)
+2202bbb4 b (anonymous namespace)::live_cfg_revision
+2202ba00 b (anonymous namespace)::palette_last_wire
+2204ad18 b (anonymous namespace)::led2_trace_entries
+2202bbc0 b (anonymous namespace)::live_cfg_stage_len
+2202bb84 b (anonymous namespace)::palette_gpt_errors
+2202bb88 b (anonymous namespace)::palette_gpt_frames
+2202bb80 b (anonymous namespace)::palette_gpt_pending
+2202b9fc b (anonymous namespace)::palette_last_wire_size
+2202bbbc b (anonymous namespace)::live_cfg_stage_expected
+02016444 t (anonymous namespace)::live_refresh_cfg_from_runtime()
+2202b1dc b (anonymous namespace)::rx
+220263bc b (anonymous namespace)::tx
+220263a8 b (anonymous namespace)::fill
+22000770 d (anonymous namespace)::trace
+220003f0 d (anonymous namespace)::wanted
+020192ec t (anonymous namespace)::execute()
+02016704 t (anonymous namespace)::respond(unsigned long, unsigned long, char const*, unsigned int) [clone .part.0]
+220263a0 b (anonymous namespace)::started
+220263a4 b (anonymous namespace)::tx_size
+2202639c b (anonymous namespace)::clock_hz
+22026398 b (anonymous namespace)::cpu_wait
+220003f4 d (anonymous namespace)::live_cfg
+220484d8 b (anonymous namespace)::palettes
+22026394 b (anonymous namespace)::rejected
+220263ac b (anonymous namespace)::board_uid
+2202638c b (anonymous namespace)::led_now
+02024ea0 T k1::core::audio::detectChord(std::array<float, 12u> const&)
+020286a4 t k1::core::audio::(anonymous namespace)::computeMagnitude(k1::core::audio::TempoTrackerState&, unsigned short)
+02026f24 t k1::core::audio::(anonymous namespace)::addBeats(k1::core::audio::MusicalTime const&, unsigned long long, k1::core::audio::FramePositionQ32&)
+0203f308 t k1::core::audio::(anonymous namespace)::kCombWeights
+0203f180 t k1::core::audio::(anonymous namespace)::kNotes
+02024868 T k1::core::audio::AudioPipeline::reset()
+020248e4 T k1::core::audio::AudioPipeline::process(k1::core::audio::AudioPipelineInput const&)
+0202476c T k1::core::audio::AudioPipeline::AudioPipeline()
+0202476c T k1::core::audio::AudioPipeline::AudioPipeline()
+020270b0 T k1::core::audio::nextBeatFrame(k1::core::audio::MusicalTime const&, unsigned long long, k1::core::audio::FramePositionQ32&, unsigned long long*)
+02025870 T k1::core::audio::analyseGdftRaw(std::array<short, 4096u> const&, std::array<k1::core::audio::GdftBinConfig, 80u> const&, k1::core::audio::AudioRateConfiguration, k1::core::audio::GdftRawFrame&)
+02025c74 T k1::core::audio::analyseGdftRaw(std::array<short, 4096u> const&, std::array<k1::core::audio::GdftBinConfig, 80u> const&, k1::core::audio::GdftRawFrame&)
+02027210 T k1::core::audio::bindTempoPhase(k1::core::audio::MusicalTime&, k1::core::audio::AudioTime const&, double, double, float, bool)
+020266d0 T k1::core::audio::MusicalSaliency::reset()
+02026740 T k1::core::audio::MusicalSaliency::update(k1::contract::AudioFeaturesV1 const&)
+02027078 T k1::core::audio::predictBeatFrame(k1::core::audio::MusicalTime const&, unsigned long long, k1::core::audio::FramePositionQ32&)
+02029914 T k1::core::audio::readTempoTracker(k1::core::audio::TempoTrackerState const&)
+0202881c T k1::core::audio::resetTempoTracker(k1::core::audio::TempoTrackerState&)
+02028b14 T k1::core::audio::updateTempoTracker(k1::core::audio::TempoTrackerState&, k1::core::audio::TempoTrackerInput const&)
+02025570 T k1::core::audio::AffineClockEstimator::addObservation(k1::core::audio::ClockObservation const&)
+02025090 T k1::core::audio::AffineClockEstimator::refit()
+0203f300 V k1::core::audio::kProductionAudioRate
+020283c4 T k1::core::audio::computeTempoAcfAtRate(std::array<float, 512u> const&, unsigned short, float, float, k1::core::audio::TempoAcfOutput&)
+020256e8 T k1::core::audio::makeGdftConfiguration(k1::core::audio::AudioRateConfiguration)
+02028b04 T k1::core::audio::initialiseTempoTracker(k1::core::audio::TempoTrackerState&)
+02028938 T k1::core::audio::initialiseTempoTracker(k1::core::audio::TempoTrackerState&, k1::core::audio::AudioRateConfiguration)
+02025c90 T k1::core::audio::processGdftPostprocess(k1::core::audio::GdftRawFrame const&, std::array<k1::core::audio::GdftBinConfig, 80u> const&, k1::core::audio::GdftPostprocessConfig const&, k1::core::audio::GdftPostprocessState&, k1::core::audio::GdftPostprocessFrame&)
+02027454 T k1::core::audio::invalidateForEpochChange(k1::core::audio::MusicalTime&, unsigned long long)
+02025854 T k1::core::audio::makeProductionGdftConfiguration()
+020275e8 T k1::core::audio::OnsetBeat::thresholdEnvelope(float)
+02027d9c T k1::core::audio::OnsetBeat::noteAcceptedInterval(unsigned long)
+02027524 T k1::core::audio::OnsetBeat::reset()
+020276f0 T k1::core::audio::OnsetBeat::runV2(k1::contract::AudioFeaturesV1 const&, k1::core::audio::OnsetBeatFrame&)
+02027e60 T k1::core::audio::OnsetBeat::update(k1::contract::AudioFeaturesV1 const&)
+02027670 T k1::core::audio::OnsetBeat::peakPick(float, bool)
+02032c40 T k1::core::visual::scalePixel(k1::core::Pixel8, float)
+0202b4e0 t k1::core::visual::(anonymous namespace)::updateTide(float&, float, float)
+0202baac t k1::core::visual::(anonymous namespace)::renderEmber(k1::core::visual::ChannelRenderState&, float)
+0202aed4 t k1::core::visual::(anonymous namespace)::dtCorrectAlpha(float, float)
+0202b244 t k1::core::visual::(anonymous namespace)::drawRightStreak(k1::core::visual::ChannelRenderState&, float, float, k1::core::Pixel8)
+0202bcc4 t k1::core::visual::(anonymous namespace)::injectionColour(k1::core::visual::ChannelRenderState&)
+0202b198 t k1::core::visual::(anonymous namespace)::selectedPalette(k1::core::visual::ChannelVisualControls const&, float, float) [clone .isra.0]
+0202d680 t k1::core::visual::(anonymous namespace)::renderDenseForge(k1::core::visual::ChannelRenderState&, bool, float)
+0202ce68 t k1::core::visual::(anonymous namespace)::renderWaveformK1(k1::core::visual::ChannelRenderState&, k1::core::visual::VisualAudioFrameView const&, float)
+0202b34c t k1::core::visual::(anonymous namespace)::transportOutward(k1::core::PixelSpan, k1::core::ConstPixelSpan, float, float, float) [clone .constprop.0]
+0202c61c t k1::core::visual::(anonymous namespace)::waveformLastColour(k1::core::visual::ChannelRenderState&, k1::core::visual::WaveformEffectState&, float, float, float)
+0202af70 t k1::core::visual::(anonymous namespace)::depositWaveformSeed(k1::core::visual::ChannelRenderState&, k1::core::visual::VisualWaveformHistory const&, k1::core::Pixel8, float, bool)
+0202c860 t k1::core::visual::(anonymous namespace)::renderSpectrumRiver(k1::core::visual::ChannelRenderState&, unsigned short, float)
+0202b244 t k1::core::visual::(anonymous namespace)::drawPercussionStreak(k1::core::visual::ChannelRenderState&, float, float, k1::core::Pixel8)
+0202b94c t k1::core::visual::(anonymous namespace)::chromagramCentroidHue(k1::core::visual::ChannelEffectState&, k1::contract::AudioFeaturesV1 const&)
+0202b5c4 t k1::core::visual::(anonymous namespace)::explicitPaletteColour(k1::core::visual::ChannelVisualControls const&, float, float)
+0202b670 t k1::core::visual::(anonymous namespace)::injectSpectrumRiverAtOffset(k1::core::visual::ChannelRenderState&, float)
+0202b7f0 t k1::core::visual::(anonymous namespace)::tempoVelocityPixelsPerSecond(k1::core::audio::TempoTrackerEvent const&, float, float, float, bool)
+0202b110 t k1::core::visual::(anonymous namespace)::tauAlpha(float, float)
+0203f584 t k1::core::visual::(anonymous namespace)::kBulbCover
+0203f594 t k1::core::visual::(anonymous namespace)::kCatalogue
+02040620 t k1::core::visual::(anonymous namespace)::kFastLed16_0
+020405dc t k1::core::visual::(anonymous namespace)::kFastLed16_1
+0204059c t k1::core::visual::(anonymous namespace)::kFastLed16_2
+02040548 t k1::core::visual::(anonymous namespace)::kFastLed16_3
+02040510 t k1::core::visual::(anonymous namespace)::kFastLed16_4
+020404cc t k1::core::visual::(anonymous namespace)::kFastLed16_5
+02040488 t k1::core::visual::(anonymous namespace)::kFastLed16_6
+02040440 t k1::core::visual::(anonymous namespace)::kFastLed16_7
+020403f8 t k1::core::visual::(anonymous namespace)::kFastLed16_8
+020403ac t k1::core::visual::(anonymous namespace)::kFastLed16_9
+0204035c t k1::core::visual::(anonymous namespace)::kFastLed16_10
+020402fc t k1::core::visual::(anonymous namespace)::kFastLed16_11
+020402a8 t k1::core::visual::(anonymous namespace)::kFastLed16_12
+02040260 t k1::core::visual::(anonymous namespace)::kFastLed16_13
+02040214 t k1::core::visual::(anonymous namespace)::kFastLed16_14
+020401cc t k1::core::visual::(anonymous namespace)::kFastLed16_15
+0204017c t k1::core::visual::(anonymous namespace)::kFastLed16_16
+02040130 t k1::core::visual::(anonymous namespace)::kFastLed16_17
+020400f0 t k1::core::visual::(anonymous namespace)::kFastLed16_18
+020400ac t k1::core::visual::(anonymous namespace)::kFastLed16_19
+02040064 t k1::core::visual::(anonymous namespace)::kFastLed16_20
+02040020 t k1::core::visual::(anonymous namespace)::kFastLed16_21
+0203ffe0 t k1::core::visual::(anonymous namespace)::kFastLed16_22
+0203ff7c t k1::core::visual::(anonymous namespace)::kFastLed16_23
+0203ff30 t k1::core::visual::(anonymous namespace)::kFastLed16_24
+0203fed4 t k1::core::visual::(anonymous namespace)::kFastLed16_25
+0203fe88 t k1::core::visual::(anonymous namespace)::kFastLed16_26
+0203fe2c t k1::core::visual::(anonymous namespace)::kFastLed16_27
+0203fdc8 t k1::core::visual::(anonymous namespace)::kFastLed16_28
+0203fd7c t k1::core::visual::(anonymous namespace)::kFastLed16_29
+0203fd38 t k1::core::visual::(anonymous namespace)::kFastLed16_30
+0203fcec t k1::core::visual::(anonymous namespace)::kFastLed16_31
+0203fca8 t k1::core::visual::(anonymous namespace)::kFastLed16_32
+0203fc54 t k1::core::visual::(anonymous namespace)::kFastLed16_33
+0203fbf8 t k1::core::visual::(anonymous namespace)::kFastLed16_34
+0203fba0 t k1::core::visual::(anonymous namespace)::kFastLed16_35
+0203fb4c t k1::core::visual::(anonymous namespace)::kFastLed16_36
+0203faf4 t k1::core::visual::(anonymous namespace)::kFastLed16_37
+0203fa9c t k1::core::visual::(anonymous namespace)::kFastLed16_38
+0203fa48 t k1::core::visual::(anonymous namespace)::kFastLed16_39
+0203f9f0 t k1::core::visual::(anonymous namespace)::kFastLed16_40
+0203f9a0 t k1::core::visual::(anonymous namespace)::kFastLed16_41
+0203f94c t k1::core::visual::(anonymous namespace)::kFastLed16_42
+0203f904 t k1::core::visual::(anonymous namespace)::kFastLed16_43
+0203f580 t k1::core::visual::(anonymous namespace)::kDitherThreshold
+0203f398 t k1::core::visual::(anonymous namespace)::kModes
+02040650 t k1::core::visual::(anonymous namespace)::kStops0
+0204060c t k1::core::visual::(anonymous namespace)::kStops1
+020405cc t k1::core::visual::(anonymous namespace)::kStops2
+02040578 t k1::core::visual::(anonymous namespace)::kStops3
+02040540 t k1::core::visual::(anonymous namespace)::kStops4
+020404fc t k1::core::visual::(anonymous namespace)::kStops5
+020404b8 t k1::core::visual::(anonymous namespace)::kStops6
+02040470 t k1::core::visual::(anonymous namespace)::kStops7
+02040428 t k1::core::visual::(anonymous namespace)::kStops8
+020403dc t k1::core::visual::(anonymous namespace)::kStops9
+0204038c t k1::core::visual::(anonymous namespace)::kStops10
+0204032c t k1::core::visual::(anonymous namespace)::kStops11
+020402d8 t k1::core::visual::(anonymous namespace)::kStops12
+02040290 t k1::core::visual::(anonymous namespace)::kStops13
+02040244 t k1::core::visual::(anonymous namespace)::kStops14
+020401fc t k1::core::visual::(anonymous namespace)::kStops15
+020401ac t k1::core::visual::(anonymous namespace)::kStops16
+02040160 t k1::core::visual::(anonymous namespace)::kStops17
+02040120 t k1::core::visual::(anonymous namespace)::kStops18
+020400dc t k1::core::visual::(anonymous namespace)::kStops19
+02040094 t k1::core::visual::(anonymous namespace)::kStops20
+02040050 t k1::core::visual::(anonymous namespace)::kStops21
+02040010 t k1::core::visual::(anonymous namespace)::kStops22
+0203ffac t k1::core::visual::(anonymous namespace)::kStops23
+0203ff60 t k1::core::visual::(anonymous namespace)::kStops24
+0203ff04 t k1::core::visual::(anonymous namespace)::kStops25
+0203feb8 t k1::core::visual::(anonymous namespace)::kStops26
+0203fe5c t k1::core::visual::(anonymous namespace)::kStops27
+0203fdf8 t k1::core::visual::(anonymous namespace)::kStops28
+0203fdac t k1::core::visual::(anonymous namespace)::kStops29
+0203fd68 t k1::core::visual::(anonymous namespace)::kStops30
+0203fd1c t k1::core::visual::(anonymous namespace)::kStops31
+0203fcd8 t k1::core::visual::(anonymous namespace)::kStops32
+0203fc84 t k1::core::visual::(anonymous namespace)::kStops33
+0203fc28 t k1::core::visual::(anonymous namespace)::kStops34
+0203fbd0 t k1::core::visual::(anonymous namespace)::kStops35
+0203fb7c t k1::core::visual::(anonymous namespace)::kStops36
+0203fb24 t k1::core::visual::(anonymous namespace)::kStops37
+0203facc t k1::core::visual::(anonymous namespace)::kStops38
+0203fa78 t k1::core::visual::(anonymous namespace)::kStops39
+0203fa20 t k1::core::visual::(anonymous namespace)::kStops40
+0203f9d0 t k1::core::visual::(anonymous namespace)::kStops41
+0203f97c t k1::core::visual::(anonymous namespace)::kStops42
+0203f934 t k1::core::visual::(anonymous namespace)::kStops43
+02032bec T k1::core::visual::addSaturating(k1::core::Pixel8, k1::core::Pixel8)
+02032ce8 T k1::core::visual::productPalette(unsigned short)
+020299b0 T k1::core::visual::applyAudioFocus(k1::contract::AudioFeaturesV1 const&, k1::core::visual::AudioFocusProfile const&, k1::contract::AudioFeaturesV1&)
+0202ae54 T k1::core::visual::forceFastLedHue(k1::core::Pixel8, unsigned char)
+02029938 T k1::core::visual::AudioFocusProfile::AudioFocusProfile()
+02029938 T k1::core::visual::AudioFocusProfile::AudioFocusProfile()
+0201e2a4 W k1::core::visual::PaletteTransition::select(unsigned short, unsigned long, unsigned long long)
+02032adc T k1::core::visual::quantiseLinearRgb(k1::core::visual::PaletteLinearRgb)
+0202aa80 T k1::core::visual::ChannelRenderState::clearFrame()
+0202aa70 T k1::core::visual::ChannelRenderState::prepareAudio(k1::contract::AudioFeaturesV1 const&)
+0202aa00 T k1::core::visual::ChannelRenderState::ChannelRenderState(k1::core::visual::PixelChannelId)
+0202aa00 T k1::core::visual::ChannelRenderState::ChannelRenderState(k1::core::visual::PixelChannelId)
+02032d00 T k1::core::visual::pushVisualWaveform(k1::core::visual::VisualWaveformHistory&, short const*, unsigned int, float, float, unsigned long)
+0202ae80 T k1::core::visual::sanitiseProductMode(unsigned short)
+0202e104 T k1::core::visual::renderProductChannel(k1::core::visual::ChannelRenderState&, k1::core::visual::VisualAudioFrameView const&, float)
+0202aaa4 T k1::core::visual::fastLedHsvToRgbRainbow(k1::core::visual::Hsv8)
+0202ae2c T k1::core::visual::forceFastLedSaturation(k1::core::Pixel8, unsigned char)
+020327dc T k1::core::visual::sampleProductPaletteHd(unsigned short, float, float)
+02032ce0 T k1::core::visual::productPaletteCatalogue()
+0202abe8 T k1::core::visual::rgbToFastLedHsvApproximate(k1::core::Pixel8)
+02032298 T k1::core::visual::applyProductOutputTreatment(k1::core::PixelSpan, k1::core::visual::ChannelVisualControls const&, k1::core::visual::ProductOutputTreatmentState&)
+02032a20 T k1::core::visual::sampleProductPaletteFastLed16(unsigned short, unsigned char, unsigned char)
+0201e050 t k1::titan::(anonymous namespace)::supportedMode(unsigned long)
+0201e0f4 t k1::titan::(anonymous namespace)::preview(k1::core::visual::ChannelRenderState&, unsigned long long, bool)
+0201e094 t k1::titan::(anonymous namespace)::frameCrc(k1::core::ConstPixelSpan) [clone .constprop.0]
+0201e59c W k1::titan::centreLayers(unsigned int, float)
+0201ff7c T k1::titan::PaletteRuntime::recordEmit(int, unsigned long)
+0201ee18 T k1::titan::PaletteRuntime::resetAudioState()
+0201ee6c T k1::titan::PaletteRuntime::step(unsigned long long, k1::core::visual::VisualAudioFrameView const*)
+0201eb68 T k1::titan::PaletteRuntime::configure(k1::titan::PaletteConfig const&, unsigned long long)
+0201b6e8 T k1::titan::liveEncodeEvent(unsigned char*, k1::titan::LiveEventRecord const&)
+0201c3e0 T k1::titan::LiveAudioRuntime::initialise(unsigned long)
+0201c65c T k1::titan::LiveAudioRuntime::setIdentity(unsigned char const*, unsigned char const*)
+0201c4c4 T k1::titan::LiveAudioRuntime::serviceOneHop()
+0201c720 T k1::titan::LiveAudioRuntime::noteStaleEntry(unsigned long long)
+0201c6d8 T k1::titan::LiveAudioRuntime::setCaptureMeta(unsigned long long, unsigned long long, unsigned long, unsigned long, unsigned long)
+0201c6b8 T k1::titan::LiveAudioRuntime::setControlMeta(unsigned short, unsigned short, unsigned char, unsigned long, unsigned short)
+0201be08 T k1::titan::LiveAudioRuntime::resetAudioOwned()
+0201c70c T k1::titan::LiveAudioRuntime::setStaleMarkers(unsigned long long, unsigned long long)
+0201c3b4 T k1::titan::LiveAudioRuntime::nowUs()
+0201c46c T k1::titan::LiveAudioRuntime::consume(k1_audio_hop const&)
+0201be98 t k1::titan::LiveAudioRuntime::consume(k1_audio_hop const&) [clone .part.0]
+0201bd1c T k1::titan::liveDecodeConfig(unsigned char const*, unsigned int, k1::titan::LiveConfigBlob*)
+0201bbb4 T k1::titan::liveEncodeConfig(unsigned char*, unsigned int, k1::titan::LiveConfigBlob const&)
+0201b91c T k1::titan::liveEncodeTiming(unsigned char*, k1::titan::LiveTimingRecord const&)
+0201add8 T k1::titan::liveEncodeSnapshot(unsigned char*, unsigned int, k1::titan::LiveSnapshotFields const&)
+0201e7ec W k1::titan::renderCentreEffect(k1::core::visual::ChannelRenderState&, k1::core::visual::PaletteTransition const&, unsigned long long, unsigned long, bool, unsigned int, float)
+0201bd9c T k1::titan::liveEncodeSchemaPage(unsigned char*, unsigned int, unsigned long, unsigned long)
+0201ba40 T k1::titan::liveEncodeHistoryHeader(unsigned char*, unsigned long, unsigned short, unsigned long long, unsigned long long, unsigned long long, unsigned short, unsigned short, unsigned short, unsigned short, unsigned long long, unsigned long long)
+0203e7fc V fixture::Trajectory::modes
+02018a54 W fixture::Trajectory::trace(fixture::Trace&)
+020186bc W fixture::Trajectory::process(short const*)
+020167dc W fixture::Trace::add(char const*, double)
+020168b8 W fixture::Trace::integer(char const*, unsigned long long)
+020169b4 W fixture::serialise(fixture::Trace&, k1::core::audio::AudioPipelineOutput const&)
+02025640 T k1::core::audio::AffineClockEstimator::localToPeer(unsigned long long, double, unsigned long long, double&) const
+020256a4 T k1::core::audio::AffineClockEstimator::stale(unsigned long long, unsigned long long) const
+0202747c t k1::core::audio::OnsetBeat::median(float const*, unsigned char) const [clone .part.0]
+02027578 T k1::core::audio::OnsetBeat::bandFlux(float const*, float const*, unsigned char, unsigned char) const
+0201fc34 T k1::titan::PaletteRuntime::statusJson(char*, unsigned int) const
+0201fac4 T k1::titan::PaletteRuntime::packBenchGrb(unsigned char*, unsigned int, unsigned int) const
+0201fb84 T k1::titan::PaletteRuntime::catalogueJson(char*, unsigned int) const
+0201cce4 T k1::titan::LiveAudioRuntime::encodeEvents(unsigned char*, unsigned int, unsigned long long) const
+0201cedc T k1::titan::LiveAudioRuntime::encodeTiming(unsigned char*, unsigned int, unsigned long long) const
+0201cc9c T k1::titan::LiveAudioRuntime::encodeSnapshot(unsigned char*, unsigned int, unsigned long long) const
+0201c57c T k1::titan::LiveAudioRuntime::publicationFresh(unsigned long long) const
+0201c73c T k1::titan::LiveAudioRuntime::fillSnapshotFields(k1::titan::LiveSnapshotFields*, unsigned long long) const
+0201c564 T k1::titan::LiveAudioRuntime::latest() const
+0201d0c4 T k1::titan::LiveAudioRuntime::mirJson(char*, unsigned int) const
+0201c5c0 T k1::titan::LiveAudioRuntime::snapshot() const
+00000000 n .ARM.attributes
+00000000 n .comment
+00000000 N .debug_frame
+00000000 N .debug_line_str
+02040f1c t .fini
+02040f18 t .init
+02006c60 T adc_b_adi0_isr
+02006ca0 T adc_b_adi1_isr
+02006ce0 T adc_b_adi2_isr
+02006d20 T adc_b_adi3_isr
+02006d60 T adc_b_adi4_isr
+02006990 T adc_b_calend0_isr
+02006a38 T adc_b_calend1_isr
+02006b40 T adc_b_err0_isr
+02006b7c T adc_b_err1_isr
+02006da0 T adc_b_fifoovf_isr
+02006df0 T adc_b_fiforeq0_isr
+02006e24 T adc_b_fiforeq1_isr
+02006e58 T adc_b_fiforeq2_isr
+02006e8c T adc_b_fiforeq3_isr
+02006ec0 T adc_b_fiforeq4_isr
+020068fc t adc_b_isr_handler
+02006ae8 T adc_b_limclpi_isr
+02006bb8 T adc_b_resovf0_isr
+02006c0c T adc_b_resovf1_isr
+02006874 t adc_b_update_calibrate_state
+22057114 b applied_g
+2205710c b applied_valid
+220570e8 b applied_version
+22057110 b applied_y
+02036e3c T atan2f
+02037cf0 T atanf
+02040eb8 t atanhi
+02040ea8 t atanlo
+020337c8 T atexit
+00000000 a atexit.c
+02032de0 T atoi
+00000000 a atoi.c
+00000000 a atomic_arm.c
+22025b2a b attached
+220576b4 b attempts
+00000000 a audio_focus.cpp
+00000000 a audio_pipeline.cpp
+220576d4 b bits
+02040780 t blanks.1
+02006084 T bsp_clock_init
+00000000 a bsp_clocks.c
+00000000 a bsp_common.c
+00000000 a bsp_delay.c
+00000000 a bsp_group_irq.c
+020065e8 W bsp_init
+020065e8 T bsp_init_internal
+020066c8 T bsp_irq_cfg
+00000000 a bsp_irq.c
+00000000 a bsp_linker.c
+020065f0 T bsp_prv_software_delay_loop
+00000000 a bsp_register_protection.c
+00000000 a bsp_sdram.c
+02008b04 t bsp_vbatt_init
+02005af8 W BusFault_Handler
+0200715c T canfd_channel_tx_isr
+02007234 T canfd_common_fifo_rx_isr
+02006fe0 T canfd_error_isr
+020070ac T canfd_rx_fifo_isr
+22057140 b capable
+22054948 b capture_ap_hops
+22054d00 b capture_asrc
+22054944 b capture_asrc_push_drop
+2205494c b capture_asrc_starved
+22055680 b capture_buffer
+22004820 d capture_context
+22054750 b capture_cycle_high
+22054778 b capture_discard_next_pair
+22054964 b capture_discontinuity_pending
+22054960 b capture_discontinuity_reason
+220548c8 b capture_fall_dmac_ctrl
+0203f130 t capture_fall_dmac_extend
+22054880 b capture_fall_pdm_cfg
+220548f8 b capture_fall_pdm_ctrl
+22054798 b capture_fall_pdm_extend
+0203f108 t capture_fall_transfer
+0203f120 t capture_fall_transfer_cfg
+22004780 d capture_fall_transfer_info
+22054768 b capture_first_start_us
+2205492c b capture_gain_clip_neg
+22054930 b capture_gain_clip_pos
+22054970 b capture_hop_sequence
+22054794 b capture_initialised
+22054978 b capture_injection_end_us
+22054980 b capture_injection_start_us
+22054758 b capture_last_cycle
+22054760 b capture_last_end_us
+22054788 b capture_last_fsp_error
+2205493c b capture_last_hop_dt_us
+22054934 b capture_last_hop_gain_q8
+22054938 b capture_last_hop_peak
+22054940 b capture_last_hop_us
+22054770 b capture_max_pair_skew_us
+22054924 b capture_measured_hz
+220549c0 b capture_meta
+220549b8 b capture_meta_count
+220549bc b capture_meta_head
+220047a0 d capture_metrics
+22055538 b capture_owner
+2205495c b capture_pair_epoch_drops
+22054780 b capture_pair_skew_drops
+22054784 b capture_paired_slots
+22054ab0 b capture_pcm
+22054928 b capture_rate_locked
+22054958 b capture_rate_samples
+22054968 b capture_rate_segment
+22054950 b capture_rate_t0_us
+22054748 b capture_rearm_denied
+2205478c b capture_restart_requested
+220548e0 b capture_rise_dmac_ctrl
+0203f148 t capture_rise_dmac_extend
+220548a4 b capture_rise_pdm_cfg
+2205480c b capture_rise_pdm_extend
+0203f114 t capture_rise_transfer
+0203f128 t capture_rise_transfer_cfg
+22004790 d capture_rise_transfer_info
+22054790 b capture_running
+220549a8 b capture_source_base
+220549b0 b capture_source_write_index
+22054998 b capture_stale_active
+22054988 b capture_stale_discards
+22054990 b capture_stale_until_us
+2205477c b capture_startup_discard_pairs
+22055588 b capture_stream
+220549a0 b capture_stream_epoch
+00000000 a channel_render_state.cpp
+00000000 a chord_detect.cpp
+020110d0 t clear
+00000000 a clock_affine.cpp
+220576dc b clock_hz
+22057148 b clock_hz
+00000000 a clock.c
+020143f8 t cmd_backtrace
+02011cf0 t cmd_free
+02011c1c t cmd_list
+22000244 d cmd_list_msh_options
+02011ce4 t cmd_ps
+00000000 a cmd.c
+00000000 a common_data.c
+22024c20 b completed.1
+00000000 a completion.c
+220576e8 b completions
+00000000 a components.c
+020226bc t configure_loopback
+02023818 t configure_pin
+22057138 b configured
+00000000 a context_gcc.o
+0203d614 t copy_list
+02037510 T cosf
+00000000 a cosf.c
+220576d8 b cpu_hz
+00000000 a cpuport.c
+00000000 a crti.o
+00000000 a crtstuff.c
+02009108 t csi_call_callback
+0203f09c t CSWTCH.110
+0203f050 t CSWTCH.45
+02040d70 t CSWTCH.8
+02040d64 t CSWTCH.9
+00000000 a ctype_.c
+00000000 A DATA_FLASH_LENGTH
+27000000 A DATA_FLASH_START
+02005af8 W DebugMon_Handler
+02005af8 T Default_Handler
+220570e0 b deferred_count
+02004df8 t deregister_tm_clones
+2205711c b desired_g
+220570ec b desired_version
+22057118 b desired_y
+0203e1f4 t device_type_str
+00000000 a device.c
+0203d80c t dlc_to_bytes
+220576f8 b dma_complete
+220576b0 b dma_irqs
+0203f160 t dmac_cfg
+2205b330 b dmac_ctrl
+02023b94 t dmac_done
+0203f168 t dmac_extend
+2205b320 b dmac_info
+02007678 T dmac_int_isr
+00000000 a drv_common.c
+00000000 a drv_gpio.c
+00000000 a drv_usart_v2.c
+020076c0 T drw_int_isr
+00020000 A DTCM_LENGTH
+20000000 A DTCM_START
+00000000 a dtoa.c
+22057720 b duty
+220570b8 b dwt_clock_hz
+220570bc b dwt_delta
+22057124 b dwt_ok
+00000000 a e_sqrt.c
+00000000 a ef_atan2.c
+00000000 a ef_sqrt.c
+220576c8 b emit_started
+02012a68 T entry
+220576e4 b errors
+0200eb6c T ethosu_dev_handle_interrupt
+00000000 a ethosu_device_u55_u65.c
+00000000 a ethosu_driver.c
+0200ebbc W ethosu_irq_handler
+0200ebb0 W ethosu_semaphore_give
+22057120 b expected_io_error
+22057086 b expected_ta_z
+22057085 b expected_ta_zero
+22057108 b experiment_step
+02036d58 T expf
+02037a80 T expm1f
+02037e94 T fabsf
+00000000 a fastled_colour_compat.cpp
+220576ec b fault
+22057158 b fault_witness
+00000000 a findfp.c
+00000000 a fini.c
+0201235c T finsh_get_prompt
+02012224 t finsh_get_prompt.part.0
+02012384 T finsh_getchar
+22025c44 b finsh_prompt_custom
+22025bbc b finsh_prompt.8
+020121f4 t finsh_rx_ind
+020123f4 T finsh_set_device
+02012270 T finsh_system_init
+02012488 t finsh_thread_entry
+220576a8 b first_fault
+00000000 a fixture_app.cpp
+00100000 A FLASH_LENGTH
+02000000 A FLASH_START
+02037a78 T floor
+02023a04 t force_idle_low
+02004e64 t frame_dummy
+02035538 T frexp
+22054688 b g
+22000118 D g_apl_configuration
+22000168 D g_apl_device
+220000d4 D g_apl_hs_configuration
+2200015c D g_apl_qualifier_descriptor
+22000000 D g_apl_string_table
+0203d89c T g_basic0_cfg
+22025a74 B g_basic0_ctrl
+02c9f040 r g_bsp_cfg_option_setting_ofs0
+22025020 B g_bsp_group_irq_sources
+0203d998 T g_bsp_pin_cfg
+0203d9a4 T g_bsp_pin_cfg_data
+220000d0 D g_cdc_string_descriptor0
+220000c0 D g_cdc_string_descriptor1
+22000094 D g_cdc_string_descriptor2
+22000064 D g_cdc_string_descriptor3
+2200004c D g_cdc_string_descriptor4
+22000038 D g_cdc_string_descriptor5
+2200001c D g_cdc_string_descriptor6
+22024be0 b g_clock_freq
+22000194 d g_clut_data_latched
+220251d0 b g_ctrl_blk
+220251c0 b g_dlist_done
+0203d850 T g_external_irq4_cfg
+22025a30 B g_external_irq4_ctrl
+0203d864 T g_external_irq4_ext_cfg
+220251c8 b g_fade_pending
+220251c4 b g_frame_ctr
+02040f14 t g_fsp_version
+02040ec8 t g_fsp_version_build_string
+02040f0c t g_fsp_version_string
+0203d5dc T g_init_info
+0203de04 T g_interrupt_event_link_select
+22025a28 B g_ioport_ctrl
+22004be0 B g_main_stack
+22025694 B g_p_usb_pstd_pipe
+0203d900 T g_pdm0_cfg
+0203d924 T g_pdm0_cfg_extend
+22025acc B g_pdm0_ctrl
+0203d5d0 t g_prcr_masks
+220251ac B g_protect_counters
+22025074 B g_protect_pfswe_counter
+0203d81c T g_transfer_on_dmac
+22000240 D g_uart1_baud_setting
+0203d8cc T g_uart1_cfg
+0203d8ec T g_uart1_cfg_extend
+22025a98 B g_uart1_ctrl
+2200023c D g_uart2_baud_setting
+0203d868 T g_uart2_cfg
+0203d888 T g_uart2_cfg_extend
+22025a40 B g_uart2_ctrl
+22025424 B g_usb_apl_callback
+2202541c B g_usb_apl_callback_memory
+2202571e B g_usb_bc_detect
+220001a4 D g_usb_callback
+2202542c B g_usb_change_device_state
+220255a4 B g_usb_cstd_bemp_skip
+22025430 B g_usb_cstd_event
+22025a26 B g_usb_cstd_suspend_mode
+02038e9c T g_usb_descriptor
+220251e0 B g_usb_open_class
+22025a18 B g_usb_pcdc_bulk_in_pipe
+22025a14 B g_usb_pcdc_bulk_out_pipe
+22025a10 B g_usb_pcdc_int_in_pipe
+22000198 D g_usb_pcdc_serialstate_table
+220251ec B g_usb_pdata
+2202575c B g_usb_peri_connected
+2202570c B g_usb_pipe_peri
+220255cc B g_usb_pipe_table
+220257cc B g_usb_pstd_alt_num
+220259ca B g_usb_pstd_config_num
+220256e4 B g_usb_pstd_data_cnt
+22025728 B g_usb_pstd_driver
+2202576c B g_usb_pstd_eptbl_index
+22025760 B g_usb_pstd_pipe0_request
+220257b0 B g_usb_pstd_remote_wakeup
+22025764 B g_usb_pstd_req_index
+22025762 B g_usb_pstd_req_length
+22025720 B g_usb_pstd_req_reg
+22025768 B g_usb_pstd_req_type
+22025766 B g_usb_pstd_req_value
+220257c8 B g_usb_pstd_stall_cb
+220257b4 B g_usb_pstd_stall_pipe
+2202575e B g_usb_pstd_std_request
+220257ac B g_usb_pstd_test_mode_flag
+220257ae B g_usb_pstd_test_mode_select
+220259cc B g_usb_pstd_usb_int
+220251e8 B g_usb_usbmode
+0203d848 t g_vbatt_pins_input
+02000040 R g_vector_table
+00000000 a gdft_goertzel.cpp
+00000000 a gdft_postprocess.cpp
+02007728 T glcdc_line_detect_isr
+220251b8 b gp_ctrl
+22025078 B gp_renesas_isr_context
+220256bc B gp_usb_pstd_data
+02007868 t gpt_calculate_duty_cycle.isra.0
+02007fe8 T gpt_counter_overflow_isr
+22004830 d gpt0_cfg
+2205b348 b gpt0_ctrl
+22004850 d gpt0_extend
+02023c1c t gpt0_overflow
+220048a8 d gpt6_cfg
+2205b368 b gpt6_ctrl
+220048c8 d gpt6_extend
+00000000 a hal_data.c
+0200f634 T hal_entry
+00000000 a hal_entry.c
+0200ed76 T HardFault_Handler
+0201d184 t healthy_idle
+0200dd00 T hw_usb_clear_aclrm
+0200d1cc T hw_usb_clear_bcctrl
+0200d7e4 T hw_usb_clear_bempenb
+0200d6d0 T hw_usb_clear_brdyenb
+0200d140 T hw_usb_clear_cnen
+0200d74c T hw_usb_clear_nrdyenb
+0200de08 T hw_usb_clear_pid
+0200d8b8 T hw_usb_clear_status_bemp
+0200d87c T hw_usb_clear_status_nrdy
+0200d840 T hw_usb_clear_sts_brdy
+0200df88 T hw_usb_clear_suspm
+0200de94 T hw_usb_clear_trenb
+0200e79c T hw_usb_pclear_dprpu
+0200e7e4 T hw_usb_pclear_enb_rsme
+0200e804 T hw_usb_pclear_sts_resm
+0200e824 T hw_usb_pclear_sts_valid
+0200e944 T hw_usb_pcontrol_dcpctr_pid
+0200e874 T hw_usb_pmodule_init
+0200e844 T hw_usb_pset_ccpl
+0200e774 T hw_usb_pset_dprpu
+0200e7bc T hw_usb_pset_enb_rsme
+0200df40 T hw_usb_read_bcctrl
+0200d9ac T hw_usb_read_dcpcfg
+0200da7c T hw_usb_read_dcpctr
+0200da14 T hw_usb_read_dcpmaxp
+0200d230 T hw_usb_read_dvstctr
+0200d2dc T hw_usb_read_fifo16
+0200d288 T hw_usb_read_fifo32
+0200d53c T hw_usb_read_fifoctr
+0200d3c8 T hw_usb_read_fifosel
+0200d8f4 T hw_usb_read_frmnum
+0200d820 T hw_usb_read_intsts
+0200db58 T hw_usb_read_pipebuf
+0200dacc T hw_usb_read_pipecfg
+0200dc1c T hw_usb_read_pipectr
+0200db84 T hw_usb_read_pipemaxp
+0200d0f4 T hw_usb_read_syscfg
+0200d1fc T hw_usb_read_syssts
+0200d96c T hw_usb_read_usbindx
+0200d98c T hw_usb_read_usbleng
+0200d92c T hw_usb_read_usbreq
+0200d94c T hw_usb_read_usbval
+0200d434 T hw_usb_rmw_fifosel
+0200dcbc T hw_usb_set_aclrm
+0200d19c T hw_usb_set_bcctrl
+0200d61c T hw_usb_set_bclr
+0200d788 T hw_usb_set_bempenb
+0200d690 T hw_usb_set_brdyenb
+0200d5a8 T hw_usb_set_bval
+0200d128 T hw_usb_set_cnen
+0200dc84 T hw_usb_set_csclr
+0200d170 T hw_usb_set_hse
+0200d4b0 T hw_usb_set_mbw
+0200d70c T hw_usb_set_nrdyenb
+0200ddb0 T hw_usb_set_pid
+0200dd3c T hw_usb_set_sqclr
+0200df6c T hw_usb_set_suspendm
+0200ded0 T hw_usb_set_trclr
+0200de58 T hw_usb_set_trenb
+0200d264 T hw_usb_set_utst
+0200d9e4 T hw_usb_write_dcpcfg
+0200da4c T hw_usb_write_dcpmxps
+0200d310 T hw_usb_write_fifo16
+0200d2b4 T hw_usb_write_fifo32
+0200d36c T hw_usb_write_fifo8
+0200db34 T hw_usb_write_pipebuf
+0200db04 T hw_usb_write_pipecfg
+0200dbbc T hw_usb_write_pipemaxp
+0200dbec T hw_usb_write_pipeperi
+0200da9c T hw_usb_write_pipesel
+0200df0c T hw_usb_write_pipetrn
+02022350 t identify_phy
+22025c5c b idle_hook_list
+22025d70 b idle_thread
+02012a94 t idle_thread_entry
+22025c70 b idle_thread_stack
+00000000 a idle.c
+02008960 T iic_master_eri_isr
+020083b4 t iic_master_notify
+020083f0 t iic_master_open_hw_master
+020085fc T iic_master_rxi_isr
+02008888 T iic_master_tei_isr
+0200877c T iic_master_txi_isr
+00000000 a impure.c
+220576bc b initialised
+02008dc0 T ipc_isr
+00000000 a ipc.c
+02005860 T irq_callback
+00000000 a irq.c
+220251dc b is_init
+00020000 A ITCM_LENGTH
+00000000 A ITCM_START
+00000000 a k1_asrc_24k.c
+0201a9bc T k1_asrc24_phase_increment_q16
+0201ab54 T k1_asrc24_pull180
+0201aaa4 T k1_asrc24_push
+0201a9f0 T k1_asrc24_required_for_pull180
+0201a98c T k1_asrc24_reset
+0201a9d0 T k1_asrc24_set_rate
+02026620 T k1_audio_hop_accept
+02026594 T k1_audio_hop_init_interval
+02026610 T k1_audio_hop_media_end_48k
+00000000 a k1_audio_hop.c
+0200f1ac T k1_cycle_count
+0201a34c T k1_fixture_consume
+0201a64c T k1_fixture_disconnect
+0201a1cc T k1_fixture_initialise
+0201a474 T k1_fixture_poll
+0201a698 T k1_fixture_release_remaining_cycles
+0201a670 T k1_fixture_reply
+0201a690 T k1_fixture_schedule_active
+0201a694 T k1_fixture_schedule_step
+0201a684 T k1_fixture_sent
+0201acec T k1_live_clock_init
+0201ad1c T k1_live_clock_sample
+00000000 a k1_live_clock.c
+00000000 a k1_live_protocol.cpp
+00000000 a k1_live_runtime.cpp
+0201a6a0 T k1_note_usb_event
+020201c8 T k1_pdm_stream_context_acquire
+0201ffc8 T k1_pdm_stream_context_configure
+02020368 T k1_pdm_stream_context_filling_slot
+020200d8 T k1_pdm_stream_context_on_data
+020202c8 T k1_pdm_stream_context_recover
+02020238 T k1_pdm_stream_context_release
+02020050 T k1_pdm_stream_context_start
+02020290 T k1_pdm_stream_context_stop
+020214ac T k1_pdm_target_ap_hops
+020214a0 T k1_pdm_target_asrc_starved
+02020dec T k1_pdm_target_begin_stale_test
+020212c8 T k1_pdm_target_data_callbacks
+020205ec t k1_pdm_target_dmac_isr
+020213c4 T k1_pdm_target_drop_events
+020212dc T k1_pdm_target_error_callbacks
+020212f0 T k1_pdm_target_error_flags
+020213fc T k1_pdm_target_first_capture_start_us
+0202148c T k1_pdm_target_first_sat_raw
+020214e8 T k1_pdm_target_gain_clip_neg
+020214dc T k1_pdm_target_gain_clip_pos
+02020b14 T k1_pdm_target_initialise
+020212a4 T k1_pdm_target_initialised
+02020e50 T k1_pdm_target_injection_end_us
+02020e44 T k1_pdm_target_injection_start_us
+0202053c t k1_pdm_target_invalidate_slot
+02021408 T k1_pdm_target_last_capture_end_us
+020212bc T k1_pdm_target_last_fsp_error
+020214b8 T k1_pdm_target_last_hop_dt_us
+020214d0 T k1_pdm_target_last_hop_gain_q8
+020214c4 T k1_pdm_target_last_hop_peak
+02021438 T k1_pdm_target_max_pair_skew_us
+020214f4 T k1_pdm_target_measured_hz
+0202039c t k1_pdm_target_meta_for
+020213a8 T k1_pdm_target_overflow_events
+02021478 T k1_pdm_target_packing_mismatch
+02021420 T k1_pdm_target_pair_skew_drops
+02021414 T k1_pdm_target_paired_slots
+02020e5c T k1_pdm_target_poll
+02020768 t k1_pdm_target_process_lane
+02021318 T k1_pdm_target_processed_samples
+02021304 T k1_pdm_target_processed_slots
+02021500 T k1_pdm_target_rate_locked
+02021444 T k1_pdm_target_rearm_denied
+020213e0 T k1_pdm_target_recovery_count
+02020450 t k1_pdm_target_reset_logical_stream
+020212b0 T k1_pdm_target_running
+0202132c T k1_pdm_target_sample_hash
+0202135c T k1_pdm_target_sample_max
+02021340 T k1_pdm_target_sample_min
+02021378 T k1_pdm_target_sample_peak
+0202138c T k1_pdm_target_sample_square_sum
+02021450 T k1_pdm_target_sat_neg
+02021464 T k1_pdm_target_sat_pos
+02021a30 T k1_pdm_target_spare_slots
+02020590 t k1_pdm_target_start_drivers
+0202142c T k1_pdm_target_startup_discard_pairs
+0202150c T k1_pdm_target_try_read_ap_hop
+0200f1b8 T k1_platform_metrics
+0201d804 T k1_status_led_ack
+0201d85c T k1_status_led_ack_recovery
+0201dd18 T k1_status_led_add_service_cycles
+0201d5bc T k1_status_led_boot_ok
+0201d958 T k1_status_led_fault
+0201d924 T k1_status_led_identify
+0201d544 T k1_status_led_init
+0201d2dc T k1_status_led_pattern_mask
+0201d9f4 T k1_status_led_poll
+0201d9e8 T k1_status_led_set_led2_budget
+0201dd28 T k1_status_led_snapshot
+0201d618 T k1_status_led_test_begin
+0201d9d0 T k1_status_led_usb
+0201d6b0 T k1_status_led_verdict
+0201d87c T k1_status_led_wait
+0201d904 T k1_status_led_wait_clear
+00000000 a k1_status_led.c
+0202380c T k1_ws2816_set_clock
+020246a4 T k1_ws281x_build_gpt_duty
+020245c8 T k1_ws281x_gpt_dma_hw_completions
+020245d4 T k1_ws281x_gpt_dma_hw_errors
+02023cbc T k1_ws281x_gpt_dma_hw_init
+02023e80 T k1_ws281x_gpt_dma_hw_poll
+02024428 T k1_ws281x_gpt_dma_hw_ready
+02024440 T k1_ws281x_gpt_dma_hw_snapshot
+020244d4 T k1_ws281x_gpt_dma_hw_snapshot_v2
+02023f50 T k1_ws281x_gpt_dma_hw_submit
+020245e0 T k1_ws281x_gpt_quantise
+00000000 a kservice.c
+00000000 a kstdio.c
+00000000 a kstring.c
+0203e414 t large_digits.1
+22057087 b last_addr
+220570d0 b last_cost
+220570d8 b last_error
+22057144 b last_error
+2205708a b last_id1
+22057088 b last_id2
+2200482c d last_physical
+22057150 b last_prepare_cycles
+02009054 T layer3_switch_eaei_isr
+02008ef4 T layer3_switch_gwdi_isr
+02021bac t led2_apply_needed
+2200477c d led2_budget_cycles
+02021a74 t led2_txn_begin
+00000000 a libc_a-memcpy.o
+00000000 a libc_a-strcmp.o
+00000000 a libgcc2.c
+00000000 a libgcc2.c
+22025b08 b line_coding.0
+02011b34 T list_device
+020113f0 T list_event
+020110ec t list_get_next
+0201161c T list_mailbox
+02011838 T list_memheap
+02011908 T list_mempool
+02011730 T list_msgqueue
+020114f4 T list_mutex
+020112e8 T list_sem
+02011150 T list_thread
+02011a24 T list_timer
+00000000 a locale.c
+00000000 a localeconv.c
+00000000 a lock.c
+02036f14 T log2f
+02036e40 T logf
+0200ebe4 T main
+020129c8 t main_thread_entry
+00000000 a main.c
+00000000 a math_errf.c
+22025b14 b max_gpt_gap_cyc
+22025b18 b max_pdm_gap_cyc
+22025b10 b max_usb_gap_cyc
+2205714c b maximum_prepare_cycles
+00000000 a mbtowc_r.c
+220570b0 b mdc_pfs
+02021cf0 t mdio_bit_in
+02021c70 t mdio_bits_out
+22056900 b mdio_io_error
+220570b4 b mdio_pfs
+02021f8c t mdio_read
+02021d74 t mdio_write
+020353b8 T memchr
+00000000 a memchr-stub.c
+020330f4 T memcmp
+00000000 a memcmp.c
+0203366c T memcpy
+00000000 a memheap.c
+02005af8 W MemManage_Handler
+02033150 T memmove
+00000000 a memmove.c
+02033250 T memset
+02005e30 t memset_64_loop_end_426
+02005e50 t memset_64_loop_end_432
+02005e28 t memset_64_loop_start_426
+02005e48 t memset_64_loop_start_432
+00000000 a memset.c
+22057704 b meta
+0200919c T mipi_csi_dl_isr
+020092e0 T mipi_csi_gst_isr
+02009288 T mipi_csi_pm_isr
+02009144 T mipi_csi_rx_isr
+02009230 T mipi_csi_vc_isr
+2205713c b mode_ok
+00000000 a mprec.c
+02011f28 T msh_auto_complete
+02012168 T msh_cmd_opt_id_get
+02011d50 T msh_exec
+02011cfc t msh_get_cmd_opt
+02011c9c t msh_help
+020121c0 T msh_isint
+02012018 T msh_opt_auto_complete
+02012198 T msh_opt_list_dump
+00000000 a msh_parse.c
+00000000 a msh.c
+00000000 a musical_saliency.cpp
+00000000 a musical_time.cpp
+0203f068 t names.1
+0203f068 t names.2
+02006684 T NMI_Handler
+0203d5f4 t nocache_list
+02021c10 t note_pin_level
+e000ed04 a NVIC_INT_CTRL
+ffff0000 a NVIC_PENDSV_PRI
+10000000 a NVIC_PENDSVSET
+e000ed20 a NVIC_SYSPRI2
+22024c24 b object.0
+00000000 a object.c
+220570c8 b observe_deadline
+02040d60 t one
+00000000 a onset_beat.cpp
+220576b8 b opened
+00000080 A OPTION_SETTING_BPS_LENGTH
+00000080 A OPTION_SETTING_BPS_SEC_LENGTH
+02c9f200 A OPTION_SETTING_BPS_SEC_START
+12c9f600 A OPTION_SETTING_BPS_START
+00000004 A OPTION_SETTING_OFS0_LENGTH
+02c9f040 A OPTION_SETTING_OFS0_START
+00000004 A OPTION_SETTING_OFS1_LENGTH
+00000004 A OPTION_SETTING_OFS1_SEC_LENGTH
+02c9f0c0 A OPTION_SETTING_OFS1_SEC_START
+00000004 A OPTION_SETTING_OFS1_SEL_LENGTH
+02c9f120 A OPTION_SETTING_OFS1_SEL_START
+12c9f4c0 A OPTION_SETTING_OFS1_START
+00000004 A OPTION_SETTING_OFS2_LENGTH
+02c9f044 A OPTION_SETTING_OFS2_START
+00000004 A OPTION_SETTING_OFS3_LENGTH
+00000004 A OPTION_SETTING_OFS3_SEC_LENGTH
+02c9f0c4 A OPTION_SETTING_OFS3_SEC_START
+00000004 A OPTION_SETTING_OFS3_SEL_LENGTH
+02c9f124 A OPTION_SETTING_OFS3_SEL_START
+12c9f4c4 A OPTION_SETTING_OFS3_START
+00000080 A OPTION_SETTING_OTP_PBPS_LENGTH
+00000080 A OPTION_SETTING_OTP_PBPS_SEC_LENGTH
+02e07700 A OPTION_SETTING_OTP_PBPS_SEC_START
+12e07780 A OPTION_SETTING_OTP_PBPS_START
+00000004 A OPTION_SETTING_SAS_LENGTH
+02c9f074 A OPTION_SETTING_SAS_START
+10000000 A OSPI0_CS0_LENGTH
+80000000 A OSPI0_CS0_START
+10000000 A OSPI0_CS1_LENGTH
+90000000 A OSPI0_CS1_START
+08000000 A OSPI1_CS0_LENGTH
+70000000 A OSPI1_CS0_START
+08000000 A OSPI1_CS1_LENGTH
+78000000 A OSPI1_CS1_START
+0203f054 t outcomes.0
+220576fc b owned
+220576e0 b ownership_violations
+02040790 t p05.0
+22057130 b page_unknown
+020225fc t paged_op
+00000000 a palette_runtime.cpp
+02020408 T pdm_callback
+00000000 a pdm_capture.c
+02009810 T pdm_dat_isr
+020098b4 T pdm_err_isr
+020097bc T pdm_sdet_isr
+00000000 a pdm_target.c
+0200ed1a t pendsv_exit
+0200ecae T PendSV_Handler
+220576c0 b pfs_after
+22004828 d phy_addr
+220570dc b phy_id
+00000000 a pin_data.c
+22024d3c b pin_irq_hdr_tab
+22024c3c B pin_irq_map
+22057084 b pin_readback
+00000000 a pin.c
+02036fe8 T powf
+02013850 t print_number
+220570a0 b probe_attempt
+00000000 a product_catalogue.cpp
+00000000 a product_effect_renderer.cpp
+00000000 a product_output_treatment.cpp
+00000000 a product_palette_data.cpp
+00000000 a product_palette.cpp
+020355b0 t quorem
+00000000 a r_adc_b.c
+020065c0 T R_BSP_Init_RTC
+02005f0c T R_BSP_OctaclkUpdate
+02006754 T R_BSP_RegisterProtectDisable
+020066f4 T R_BSP_RegisterProtectEnable
+020067a8 T R_BSP_SdramInit
+020065fc T R_BSP_SoftwareDelay
+020065b4 T R_BSP_SourceClockHzGet
+02005f08 W R_BSP_SubClockStabilizeWaitAfterReset
+02004f2c T R_BSP_WarmStart
+02006fa4 t r_canfd_call_callback
+02006ef4 t r_canfd_mb_read
+00000000 a r_canfd.c
+02007318 T R_DMAC_CallbackSet
+02007324 T R_DMAC_Close
+02007384 t r_dmac_config_transfer_info
+020075f4 T R_DMAC_Disable
+020072d8 T R_DMAC_Enable
+020072e4 T R_DMAC_InfoGet
+02007578 T R_DMAC_Open
+02007564 T R_DMAC_Reconfigure
+02007314 T R_DMAC_Reload
+02007624 T R_DMAC_Reset
+020072b8 T R_DMAC_SoftwareStart
+020072cc T R_DMAC_SoftwareStop
+00000000 a r_dmac.c
+00000000 a r_drw_irq.c
+00000000 a r_glcdc.c
+0200782c t r_gpt_call_callback
+02007940 T R_GPT_Close
+020077cc T R_GPT_Enable
+020078cc T R_GPT_InfoGet
+02007a88 T R_GPT_Open
+020077fc T R_GPT_PeriodSet
+020077c0 T R_GPT_Reset
+020077b4 T R_GPT_Start
+020077a8 T R_GPT_Stop
+00000000 a r_gpt.c
+020082e8 T R_ICU_ExternalIrqClose
+020082b8 T R_ICU_ExternalIrqDisable
+02008274 T R_ICU_ExternalIrqEnable
+020081e8 T R_ICU_ExternalIrqOpen
+02008334 T r_icu_isr
+00000000 a r_icu.c
+00000000 a r_iic_master.c
+02008cb8 T R_IOPORT_Open
+02008ccc T R_IOPORT_PinCfg
+02008aa0 T R_IOPORT_PinRead
+02008c04 t r_ioport_pins_config
+02008adc T R_IOPORT_PinWrite
+02008ac0 T R_IOPORT_PortWrite
+00000000 a r_ioport.c
+02008d74 t r_ipc_call_callback
+00000000 a r_ipc.c
+02008ea0 t r_layer3_switch_call_callback
+02008e18 t r_layer3_switch_is_descriptor_queue_active
+00000000 a r_layer3_switch.c
+00000000 a r_mipi_csi.c
+0200933c t r_pdm_call_callback
+020094a8 T R_PDM_Close
+02009378 T R_PDM_Open
+020095ac T R_PDM_Start
+02009758 T R_PDM_Stop
+00000000 a r_pdm.c
+00000000 a r_rtc.c
+020099a4 t r_sci_b_irq_cfg
+02009a14 t r_sci_b_uart_call_callback
+02009ad4 T R_SCI_B_UART_Open
+02009a58 t r_sci_b_uart_synchronization_delay_cfg.constprop.0
+00000000 a r_sci_b_uart.c
+0200a014 t r_sdhi_call_callback
+00000000 a r_sdhi.c
+0200a274 t r_spi_b_call_callback
+0200a208 t r_spi_b_transmit
+00000000 a r_spi_b.c
+0200a6e4 t r_ssi_call_callback
+0200a614 t r_ssi_fifo_read
+0200a5c4 t r_ssi_stop_sub
+00000000 a r_ssi.c
+00000000 a r_usb_basic.c
+00000000 a r_usb_cdataio.c
+00000000 a r_usb_clibusbip.c
+00000000 a r_usb_creg_abs.c
+00000000 a r_usb_creg_access.c
+0200a874 T R_USB_EventGet
+0200a9d8 T R_USB_InfoGet
+00000000 a r_usb_mcu.c
+0200a8cc T R_USB_Open
+00000000 a r_usb_pbc.c
+00000000 a r_usb_pcdc_descriptor.c
+00000000 a r_usb_pcdc_driver.c
+00000000 a r_usb_pcontrolrw.c
+00000000 a r_usb_pdriver.c
+0200ab48 T R_USB_PeriControlDataGet
+0200ab8c T R_USB_PeriControlDataSet
+0200abd0 T R_USB_PeriControlStatusSet
+00000000 a r_usb_pintfifo.c
+00000000 a r_usb_pinthandler_usbip0.c
+00000000 a r_usb_plibusbip.c
+00000000 a r_usb_preg_abs.c
+00000000 a r_usb_preg_access.c
+00000000 a r_usb_psignal.c
+00000000 a r_usb_pstdfunction.c
+00000000 a r_usb_pstdrequest.c
+0200aa90 T R_USB_Read
+0200aaec T R_USB_Write
+00000000 a r_vin.c
+020056dc t ra_pin_attach_irq
+0200569c t ra_pin_dettach_irq
+02005578 t ra_pin_get
+02004f50 t ra_pin_get_irqx
+020055dc t ra_pin_irq_enable
+0200574c t ra_pin_mode
+02005550 t ra_pin_read
+020054c8 t ra_pin_write
+0200592c t ra_uart_configure
+0200588c t ra_uart_control
+02005890 t ra_uart_getc
+0203d5ac t ra_uart_ops
+020058f0 t ra_uart_putc
+02005894 t ra_uart_transmit
+00174000 A RAM_LENGTH
+22000000 A RAM_START
+220260a0 b random_nr.3
+22025b29 b read_armed
+02004e88 t reboot
+020337b4 t register_fini
+22057134 b register_readback_ok
+02004e14 t register_tm_clones
+220576d0 b reset_cycles
+02005afc T Reset_Handler
+220570ac b reset_pfs
+220576f0 b reset_ready
+220570a4 b reset_release_ms
+220576c4 b reset_started
+0201d1b4 t resolve
+220570c4 b retry_ms
+00000000 a ringbuffer.c
+0200eb10 T rm_ethosu_isr
+00000000 a rm_ethosu.c
+02012a18 T rt_application_init
+0201448c T rt_assert_handler
+22025e9c B rt_assert_hook
+020143d0 W rt_backtrace
+02014390 T rt_backtrace_frame
+0201465c W rt_calloc
+0200fe48 T rt_completion_done
+0200fcf4 T rt_completion_init
+0200fd18 T rt_completion_wait
+020129f8 T rt_components_board_init
+02014264 T rt_console_get_device
+02014270 T rt_console_set_device
+020156f0 T rt_critical_level
+22025f88 B rt_current_priority
+22025f8c B rt_current_thread
+0200fb08 T rt_device_close
+0200fa1c T rt_device_find
+0200fa24 T rt_device_open
+0201059c T rt_device_pin_register
+0200fb70 T rt_device_read
+0200f9e4 T rt_device_register
+0200fc60 T rt_device_set_rx_indicate
+0200fbe8 T rt_device_write
+02015650 T rt_enter_critical
+0203e4b4 t rt_errno_strs
+22025af8 b rt_exception_hook
+0201566c T rt_exit_critical
+020156a8 T rt_exit_critical_safe
+0201451c W rt_free
+22025f50 b rt_free_hook
+0200ec50 T rt_hw_atomic_add
+0200ec40 T rt_hw_atomic_load
+0200ec68 T rt_hw_atomic_sub
+020142f0 W rt_hw_backtrace_frame_get
+0201431c W rt_hw_backtrace_frame_unwind
+02004ec0 W rt_hw_board_init
+020142a0 W rt_hw_console_output
+0200ec8e T rt_hw_context_switch
+0200ec8e T rt_hw_context_switch_interrupt
+0200ed24 T rt_hw_context_switch_to
+0200ee18 T rt_hw_hard_fault_exception
+0200ec80 T rt_hw_interrupt_disable
+0200ec88 T rt_hw_interrupt_enable
+0200ed72 T rt_hw_interrupt_thread_switch
+020057dc T rt_hw_pin_init
+02010e90 T rt_hw_serial_isr
+02010e30 T rt_hw_serial_register
+0200edcc T rt_hw_stack_init
+02005a30 T rt_hw_usart_init
+020137f0 W rt_interrupt_enter
+22025e18 b rt_interrupt_enter_hook
+22025b04 B rt_interrupt_from_thread
+02013830 W rt_interrupt_get_nest
+02013810 W rt_interrupt_leave
+22025e14 b rt_interrupt_leave_hook
+22025e10 B rt_interrupt_nest
+22025b00 B rt_interrupt_to_thread
+020142a4 W rt_kprintf
+22025e1c b rt_log_buf.2
+020145ec W rt_malloc
+22025f5c b rt_malloc_hook
+020140d8 W rt_memcpy
+020147a0 T rt_memheap_alloc
+020148dc T rt_memheap_free
+02014c1c T rt_memheap_info
+020146fc T rt_memheap_init
+02014a30 T rt_memheap_realloc
+0201419c T rt_memmove
+02014580 W rt_memory_info
+02014048 W rt_memset
+02013598 T rt_mutex_init
+020135ec T rt_mutex_release
+020135e4 T rt_mutex_take
+02014eb8 T rt_object_allocate
+22025f78 b rt_object_attach_hook
+02014f8c T rt_object_delete
+02014e44 T rt_object_detach
+22025f74 b rt_object_detach_hook
+02015078 T rt_object_find
+02014d24 T rt_object_get_information
+0201504c T rt_object_get_type
+02014d60 T rt_object_init
+02015020 T rt_object_is_systemobject
+22025f68 B rt_object_put_hook
+22025f6c B rt_object_take_hook
+22025f70 B rt_object_trytake_hook
+02014678 W rt_realloc
+22025f58 b rt_realloc_entry_hook
+22025f54 b rt_realloc_exit_hook
+0200ff14 T rt_ringbuffer_data_len
+0200ffe4 T rt_ringbuffer_get
+0200fe4c T rt_ringbuffer_init
+0200ff4c T rt_ringbuffer_put
+0200fe90 T rt_ringbuffer_putchar
+020153b0 T rt_sched_insert_thread
+02015308 T rt_sched_lock
+02015450 T rt_sched_remove_thread
+02015234 T rt_sched_thread_change_priority
+02015188 T rt_sched_thread_close
+0201516c T rt_sched_thread_get_curr_prio
+02015174 T rt_sched_thread_get_init_prio
+02015160 T rt_sched_thread_get_stat
+02015118 T rt_sched_thread_init_ctx
+02015374 T rt_sched_thread_init_priv
+0201517c T rt_sched_thread_is_suspended
+020151ac T rt_sched_thread_ready
+02015360 T rt_sched_thread_startup
+02015124 T rt_sched_thread_timer_start
+02015138 T rt_sched_thread_timer_stop
+02015194 T rt_sched_thread_yield
+020151f4 T rt_sched_tick_increase
+02015320 T rt_sched_unlock
+02015638 T rt_sched_unlock_n_resched
+020154f4 T rt_schedule
+22025f84 b rt_scheduler_hook
+22025f90 b rt_scheduler_lock_nest
+0201528c T rt_scheduler_stack_check
+22025f80 b rt_scheduler_switch_hook
+020134d0 T rt_sem_control
+0201339c T rt_sem_detach
+0201332c T rt_sem_init
+0201342c T rt_sem_release
+0201341c T rt_sem_take
+02013424 T rt_sem_trytake
+02010a00 t rt_serial_close
+020106f4 t rt_serial_control
+020106a4 t rt_serial_init
+02010b00 t rt_serial_open
+02014228 T rt_set_errno
+02014348 T rt_show_version
+0201402c T rt_snprintf
+020141e4 T rt_strerror
+02012d0c T rt_susp_list_dequeue
+02012d64 T rt_susp_list_enqueue
+020132e4 T rt_susp_list_print
+020144cc W rt_system_heap_init
+0201532c T rt_system_scheduler_init
+020154b8 T rt_system_scheduler_start
+0201628c T rt_system_timer_init
+02016298 T rt_system_timer_thread_init
+020158d4 T rt_thread_create
+02012b18 T rt_thread_defunct_enqueue
+02012b3c T rt_thread_idle_init
+02015840 T rt_thread_init
+02015b98 T rt_thread_mdelay
+22025f98 B rt_thread_priority_table
+22025f94 B rt_thread_ready_priority_group
+02015bb4 T rt_thread_resume
+22026098 b rt_thread_resume_hook
+020158c8 T rt_thread_self
+02015c20 T rt_thread_startup
+2202609c b rt_thread_suspend_hook
+02015964 T rt_thread_suspend_to_list
+02015ba8 T rt_thread_suspend_with_flag
+22025afc B rt_thread_switch_interrupt_flag
+02015940 T rt_thread_yield
+22025c58 b rt_tick
+02012988 T rt_tick_from_millisecond
+0201293c T rt_tick_get
+22025c54 b rt_tick_hook
+02012948 T rt_tick_increase
+0201617c T rt_timer_check
+020160a4 T rt_timer_control
+02015ec0 T rt_timer_detach
+220260a8 b rt_timer_enter_hook
+220260a4 b rt_timer_exit_hook
+02015e3c T rt_timer_init
+02015f3c T rt_timer_start
+02016028 T rt_timer_stop
+02013b10 W rt_vsnprintf
+02010168 t rt_work_sys_workqueue_init
+020100f8 T rt_workqueue_create
+02009900 T rtc_alarm_periodic_isr
+02009970 T rtc_carry_isr
+020129f4 t rti_board_end
+020129f0 t rti_board_start
+020129ec t rti_end
+020129c4 t rti_start
+00000000 a s_floor.c
+00000000 a s_frexp.c
+22057090 b saved_bmcr
+2205708c b saved_eeelcr
+2205708e b saved_lcr
+22057092 b saved_page
+e000ed08 a SCB_VTOR
+00000000 a scheduler_comm.c
+00000000 a scheduler_up.c
+02009f90 T sci_b_uart_eri_isr
+02009e94 T sci_b_uart_rxi_isr
+02009f44 T sci_b_uart_tei_isr
+02009d80 T sci_b_uart_txi_isr
+0200a060 T sdhimmc_accs_isr
+0200a194 T sdhimmc_card_isr
+08000000 A SDRAM_LENGTH
+68000000 A SDRAM_START
+02005af8 W SecureFault_Handler
+00000000 a serial_v2.c
+02023a7c t set_fault
+00000000 a sf_atan.c
+00000000 a sf_exp.c
+00000000 a sf_exp2_data.c
+00000000 a sf_expm1.c
+00000000 a sf_fabs.c
+00000000 a sf_log_data.c
+00000000 a sf_log.c
+00000000 a sf_log2_data.c
+00000000 a sf_log2.c
+00000000 a sf_pow_log2_data.c
+00000000 a sf_pow.c
+00000000 a sf_tanh.c
+22025c48 B shell
+02012318 t shell_handle_history.isra.0
+00000000 a shell.c
+00000000 a sincosf_data.c
+02037328 T sinf
+00000000 a sinf.c
+0203e400 t small_digits.0
+020238ac t snapshot.part.0
+22057400 b snapshots
+02033064 T snprintf
+00000000 a snprintf.c
+0200a4d8 T spi_b_eri_isr
+0200a2b4 T spi_b_rxi_isr
+0200a3f4 T spi_b_tei_isr
+0200a350 T spi_b_txi_isr
+020377d0 T sqrt
+02037788 T sqrtf
+0200a81c T ssi_int_isr
+0200a71c T ssi_txi_isr
+00000000 a ssprint_r.c
+00000000 a ssputs_r.c
+00000000 a startup.c
+22057700 b state
+220570cc b step_ms
+220576ac b stop_irqs
+020332f4 T strchr
+00000000 a strchr.c
+020334a8 T strcmp
+02033758 T strlen
+00000000 a strlen-stub.c
+020333c4 T strncmp
+00000000 a strncmp.c
+02033444 T strncpy
+00000000 a strncpy.c
+02032ef4 T strtol
+00000000 a strtol.c
+0203304c T strtoul
+00000000 a strtoul.c
+22025b20 b svc_gpt_cyc
+02005af8 W SVC_Handler
+22025b24 b svc_pdm_cyc
+22025b1c b svc_usb_cyc
+00000000 a svfprintf.c
+020065f0 t sw_delay_loop
+0200ecec t switch_to_thread
+22025b6c b sys_workq
+00000000 a syscalls.c
+22025ea0 b system_heap
+00000000 a system.c
+2202501c B SystemCoreClock
+02005e80 T SystemCoreClockUpdate
+02005b70 T SystemInit
+02005b08 t SystemRuntimeInit
+02004eac T SysTick_Handler
+220570c0 b ta_zero_bitmap
+02037818 T tanhf
+0200f17c T TaskSwitch_StackCheck
+22025a1c b tbl.0
+22025a20 b tbl.1
+22025a24 b tbl.2
+00000000 a tempo_acf.cpp
+00000000 a tempo_tracker.cpp
+00000000 a thread.c
+220576cc b timeout_cycles
+00000000 a timer.c
+02040d58 t tiny
+020234ac T titan_led2_phy_applied_green
+020234c4 T titan_led2_phy_applied_valid
+020234b8 T titan_led2_phy_applied_yellow
+020235c0 T titan_led2_phy_attempt
+0202347c T titan_led2_phy_capable
+02023584 T titan_led2_phy_dwt_clock_hz
+02023578 T titan_led2_phy_dwt_delta
+0202356c T titan_led2_phy_dwt_ok
+020234a0 T titan_led2_phy_error
+0202353c T titan_led2_phy_expected_io_error
+02023524 T titan_led2_phy_expected_ta_z
+02023530 T titan_led2_phy_expected_ta_zero
+020234e8 T titan_led2_phy_experiment_step
+02023494 T titan_led2_phy_id
+0202298c T titan_led2_phy_init
+02023518 T titan_led2_phy_last_addr
+02023500 T titan_led2_phy_last_id1
+0202350c T titan_led2_phy_last_id2
+0202359c T titan_led2_phy_mdc_pfs
+02023590 T titan_led2_phy_mdio_pfs
+02023488 T titan_led2_phy_mode_ok
+020234f4 T titan_led2_phy_page_unknown
+02023548 T titan_led2_phy_pin_readback
+02023560 T titan_led2_phy_register_readback_ok
+02022dd0 T titan_led2_phy_request
+020235a8 T titan_led2_phy_reset_pfs
+02022e8c T titan_led2_phy_service
+02022e18 T titan_led2_phy_start_experiment
+02023554 T titan_led2_phy_ta_zero_bitmap
+02023658 T titan_led2_phy_trace_latest
+020235cc T titan_led2_phy_trace_snapshot
+020234d0 T titan_led2_phy_txc_enabled
+020235b4 T titan_led2_phy_txc_pfs
+020234dc T titan_led2_phy_txc_requested
+00000000 a titan_led2_phy.c
+020236a4 T titan_status_gpio_init
+02023800 T titan_status_gpio_last_error
+02023758 T titan_status_gpio_write
+00000000 a titan_status_gpio.c
+22057098 b trace_count
+22057094 b trace_next
+02021b08 t trace_record
+22056904 b trace_ring
+2205709c b trace_sequence
+02040d5c t two
+2205712c b txc_enabled
+220570a8 b txc_pfs
+22057128 b txc_requested
+22057100 b txn_g
+220570f2 b txn_lcr
+220570f8 b txn_op_error
+220570f0 b txn_readback
+220570f4 b txn_saved_page
+22057104 b txn_step
+220570e4 b txn_version
+220570fc b txn_y
+2200017c d uart_config
+22024f3c b uart_obj
+02005af8 W UsageFault_Handler
+0200e134 T usb_cpu_delay_1us
+0200e13c T usb_cpu_delay_xms
+0200dff4 T usb_cpu_usbint_init
+0200d08c T usb_cstd_chg_curpipe
+0200cf2c T usb_cstd_clr_pipe_cnfg
+0200ae68 T usb_cstd_clr_stall
+0200d0dc T usb_cstd_clr_transaction_counter
+0200ae40 T usb_cstd_do_aclrm
+0200cd80 T usb_cstd_get_buf_size
+0200ade0 T usb_cstd_get_maxpacket_size
+0200adcc T usb_cstd_get_pid
+0200ae08 T usb_cstd_get_pipe_dir
+0200ae24 T usb_cstd_get_pipe_type
+0200d030 T usb_cstd_is_set_frdy
+0200adc0 T usb_cstd_nrdy_enable
+0200cdcc T usb_cstd_pipe_init
+0200ae88 T usb_cstd_port_speed
+0200ae5c T usb_cstd_set_buf
+0200d004 T usb_cstd_set_nak
+0200d0b8 T usb_cstd_set_transaction_counter
+0200af58 T usb_cstd_usb_task
+0200ac00 T usb_ctrl_read
+0200ac50 T usb_ctrl_write
+0200acdc T usb_data_read
+0200ad30 T usb_data_write
+0200dfa4 T usb_module_start
+0200e980 T usb_pcdc_read_complete
+0200e9e0 T usb_pcdc_write_complete
+00000000 a usb_pcdc.c
+0200c368 T usb_pdriver_init
+0200cc90 T usb_peri_class_request
+0200cbec T usb_peri_class_request_rss
+0200cc38 T usb_peri_class_request_wss
+0200b194 T usb_peri_configured
+0200b1fc T usb_peri_detach
+0200b7ec T usb_peri_devdefault
+0200b1f8 T usb_peri_interface
+0200b780 T usb_peri_pipe_info
+0200b710 T usb_peri_registration
+0200b1dc T usb_peri_resume
+0200b1c0 T usb_peri_suspended
+0200c214 T usb_pstd_attach_process
+0200af5c T usb_pstd_bc_data_contact_detect
+0200afc0 T usb_pstd_bc_detect_process
+0200b904 T usb_pstd_bemp_pipe
+0200be1c T usb_pstd_bemp_pipe_process
+0200b898 T usb_pstd_brdy_pipe
+0200bd60 T usb_pstd_brdy_pipe_process
+0200b660 T usb_pstd_buf_to_fifo
+0200c1d4 T usb_pstd_bus_reset
+0200c360 T usb_pstd_busreset_function
+0200e4bc T usb_pstd_chk_configured
+0200b5c4 T usb_pstd_chk_remote
+0200c320 T usb_pstd_chk_vbsts
+0200b4a8 T usb_pstd_clr_eptbl_index
+0200b464 T usb_pstd_clr_mem
+0200c198 T usb_pstd_clr_pipe_reg
+0200c09c T usb_pstd_clr_pipe_table
+0200b11c T usb_pstd_ctrl_end
+0200b040 T usb_pstd_ctrl_read
+0200b0c8 T usb_pstd_ctrl_write
+0200bd54 T usb_pstd_data_end
+0200b990 t usb_pstd_data_end.part.0
+0200c230 T usb_pstd_detach_process
+0200ba04 T usb_pstd_epadr2pipe
+0200b5f0 T usb_pstd_fifo_to_buf
+0200e6a4 T usb_pstd_forced_termination
+0200b4d4 T usb_pstd_get_alternate_num
+0200b5e0 T usb_pstd_get_current_power
+0200b4c8 T usb_pstd_get_interface_num
+0200ba5c T usb_pstd_hi_speed_enable
+0200e744 T usb_pstd_interrupt_clock
+0200e278 T usb_pstd_interrupt_handler
+0200b8f8 T usb_pstd_nrdy_pipe
+0200bdc4 T usb_pstd_nrdy_pipe_process
+0200b228 T usb_pstd_pcd_task
+0200ba58 T usb_pstd_pipe2fport
+0200bc58 T usb_pstd_read_data
+0200e610 T usb_pstd_read_fifo
+0200bbd0 T usb_pstd_receive_start
+0200e51c T usb_pstd_resume_process
+0200e474 T usb_pstd_save_request
+0200ba68 T usb_pstd_send_start
+0200b48c T usb_pstd_set_config_num
+0200b51c T usb_pstd_set_eptbl_index
+0200c31c T usb_pstd_set_feature_function
+0200c0f8 T usb_pstd_set_pipe_reg
+0200befc T usb_pstd_set_pipe_table
+0200e534 T usb_pstd_set_stall
+0200e540 T usb_pstd_set_stall_pipe0
+0200b420 T usb_pstd_set_submitutr
+0200c45c T usb_pstd_stand_req0
+0200c4dc T usb_pstd_stand_req1
+0200c770 T usb_pstd_stand_req2
+0200c774 T usb_pstd_stand_req3
+0200caa0 T usb_pstd_stand_req4
+0200cb54 T usb_pstd_stand_req5
+0200e764 T usb_pstd_stop_clock
+0200c364 T usb_pstd_suspend_function
+0200c2b4 T usb_pstd_suspend_process
+0200e4d8 T usb_pstd_test_mode
+0200b6d0 T usb_pstd_transfer_start
+0200b94c T usb_pstd_usb_handler
+0200bac4 T usb_pstd_write_data
+0200e548 T usb_pstd_write_fifo
+22025b2c b usb_read
+0200aea4 T usb_set_event
+0200e1b0 T usbfs_d0fifo_handler
+0200e1d4 T usbfs_d1fifo_handler
+0200e144 T usbfs_interrupt_handler
+0200e17c T usbfs_resume_handler
+0200e230 T usbhs_d0fifo_handler
+0200e254 T usbhs_d1fifo_handler
+0200e1f8 T usbhs_interrupt_handler
+0200598c T user_uart1_callback
+020059dc T user_uart2_callback
+00000000 a vector_data.c
+020110e0 t version
+0200ea3c t vin_common_isr
+0200eb08 T vin_error_isr
+0200eb00 T vin_status_isr
+00000000 a visual_audio_frame.cpp
+00000000 a w_sqrt.c
+220576f4 b waveform_complete
+00000000 a wcrtomb.c
+00000000 a wcsnrtombs.c
+00000000 a wcsrtombs.c
+00000000 a wctomb_r.c
+00000000 a wf_atan2.c
+00000000 a wf_sqrt.c
+020376e4 t with_errnof
+22057154 b witness_prepared
+00000000 a workqueue.c
+220570d4 b write_count
+22025b28 b write_pending
+00000000 a ws2816_gpio_emit.c
+00000000 a ws281x_gpt_dma_hw.c
+00000000 a ws281x_waveform.c
+02037700 t xflowf
+0203d794 t zero_list
+02040770 t zeroes.0

@@ -1,12 +1,23 @@
 # P601 / first-LED DIN capture contract
 
-Resident image is no longer `a3f37e8a…`. Captain Rearm 2026-09-19 wrote
-uncapped profiler `32dd1f5f…` over it before this capture existed. That is a
-Captain waiver of the preserve-resident hold, not a waveform receipt.
+Q1–Q5 hop timing is a USB CDC campaign on a corrected empty-TCM image. It
+does not wait for this analyser capture. This protocol is only for P601 and
+first-LED DIN once those probes and a common ground are attached.
 
-The predicted 3072-bit reference is still the retained all-zero colour-integrity
-frame from `a3f37e8a…`. Do not stamp `WAVEFORM_CAPTURED` from that JSON, from
-the profiler image, or from any host/compile-only result.
+The historic colour-integrity fault on `a3f37e8a…` frame 2030 remains an
+immutable witness. Captain Rearm 2026-09-19 wrote uncapped profiler
+`32dd1f5f…` over that image before a P601/DIN capture existed. A later
+WRITE_VERIFIED of `live-audio-gpt-20260920-03` is programme evidence only;
+application identity is a separate bind.
+
+Do not stamp `WAVEFORM_CAPTURED` from predicted JSON, from a synthetic
+`source=physical` object, from a hash string with no raw file, or from any
+host/compile-only result. A hashed capture of illegal pulses is retained as
+failing evidence. It is not waveform qualification.
+
+New reproductions need a new verified witness/run pair, a new acquisition
+identity, and the instrument armed before the fault. Reusing payload bytes or
+seeing frame number 2030 after another boot does not prove the same event.
 
 ## Predicted reference (firmware accounting)
 
@@ -56,7 +67,9 @@ Capture both ends of the **same** frame.
 - Same capture at P601 and DIN, hashed into a new EdgeAI receipt directory.
   Do not reuse an existing programme/run folder.
 
-Label the receipt `WAVEFORM_CAPTURED` only when those fields exist.
+Label the receipt `WAVEFORM_CAPTURED` only when hashed raw files, same-acquisition
+correlation, instrument resolution, and pulse conformance all pass. Field presence
+and a 64-character hash string are not enough.
 
 ## First-divergence tree
 
@@ -76,3 +89,18 @@ Optical KEEP is later. Captain is not the plate validator.
 Hashed P601 + DIN capture of the retained `a3f37e8a` frame, filed under
 `/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/`
 with SHA-256 in `external-receipts.json`.
+
+## Missing acquisition capability (WP4)
+
+No Saleae, DSLogic, PicoScope or sigrok analyser was enumerated on this Mac
+at the 2026-09-20 checkpoint. Do not invent wire traces.
+
+When an analyser is attached, the next capture is:
+
+1. Arm both probes **before** reproducing the fault: P601/GTIOC6A before the
+   74HCT2G34GW, and first-LED DIN after it, common ground.
+2. Bind INFO (`c7f6034a…` if still resident, or the diagnostic candidate).
+3. File hashed raw files plus a new capture JSON in a **fresh** EdgeAI
+   directory. Score with `python3 scripts/score_p601_capture.py --capture`.
+4. Do not reuse `p601-predicted-a3f37e8a-20260919-01` or any programme/run
+   folder.

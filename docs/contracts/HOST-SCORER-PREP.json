@@ -1,0 +1,38 @@
+{
+  "task": "HOST_SCORER_PREP",
+  "title": "Host portions of combined deadline, release, and latency contracts",
+  "written_at_utc": "2026-09-22T18:00:00Z",
+  "SWARM_BASE_ID": "cb33aab6c8fe327d782f8ad31c3966d00e8a7c1cd71e140dd03381e28eb8729a",
+  "board_touched": false,
+  "p5_on_chip": false,
+  "reconciled_from": [
+    "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/incoming/P/P1-scorer-inventory.json",
+    "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/incoming/P/P3-hop136-5ms-negative.json",
+    "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/incoming/P/P4-generation-join-contract.json",
+    "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/incoming/P/P5-k1l-contract.json",
+    "docs/evidence/K1-RA8P1-002/combined-runtime-contract.json"
+  ],
+  "live_tree_bindings": {
+    "hop136_scorer": "tools/serial-studio/host_scorers/score_hop136_timing_mutation.py",
+    "hop136_tests": "tools/serial-studio/tests/test_score_hop136_timing_mutation.py",
+    "deadline_release_contract": "docs/contracts/HOST-DEADLINE-RELEASE-LATENCY.json",
+    "k1l_contract_mirror": "docs/contracts/HOST-K1L-CONTRACT.json"
+  },
+  "host_runnable_now": [
+    "P3 hop-136 5 ms negative detector and host unit tests",
+    "Combined hop_us=7500 / release_guard_us=100 contract document reconciled for host scorers",
+    "Generation-join field names retained as host contract only (instrumentation ABSENT on resident)"
+  ],
+  "explicitly_not_run": [
+    "P5 K1-L on-chip campaign",
+    "Q1-Q5 live empty-TCM / DTCM packets",
+    "Any CDC / flash / profiler image execution"
+  ],
+  "deadlines_retained": {
+    "ap_hop_us": 7500,
+    "release_guard_us": 100,
+    "k1l_p50_traced_us_max": 12000,
+    "k1l_n_complete_min": 1000,
+    "universal_frame_deadline": "NOT_INVENTED"
+  }
+}

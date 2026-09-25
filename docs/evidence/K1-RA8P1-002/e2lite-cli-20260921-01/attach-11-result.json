@@ -1,0 +1,9 @@
+{
+  "utc": "2026-09-21T18:00:40Z",
+  "attach": 11,
+  "pid": 74252,
+  "result": "ABORT",
+  "error": "ShowGUI=1 printed hot-plug prompt to log but CGWindowList found zero windows for the gdb pid, including off-screen. Process waited 6+ min with no on-screen dialog; SIGTERM then abandoned host lock (cleared).",
+  "not": "0x00030815 DAP; 0x0003080A was leftover lock after SIGTERM",
+  "log": "attach-11-hotplug-delayed.log"
+}

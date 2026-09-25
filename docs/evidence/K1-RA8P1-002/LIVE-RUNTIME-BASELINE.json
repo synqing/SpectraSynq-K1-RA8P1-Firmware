@@ -1,0 +1,17 @@
+{
+  "date": "2026-09-20",
+  "branch": "lane/k1-ra8p1-002",
+  "head": "431140853dd8b58af53240ef84d5fb1a08bd8b45",
+  "checkpoint": "docs/evidence/K1-RA8P1-002/WP0-CHECKPOINT.md",
+  "programmer_safety_restore_sha256": "a167833b7f35f2efa8ba296c772ab59c477bda2f2621faabe5510500aab5929a",
+  "intended_recovery_hex_sha256": "3aa0913950c5815c28c3ae06b37ee4462c5e2537adc738517cccd8b97b60eabd",
+  "intended_recovery_build_id": "c7f6034a902833e3f8a17f7c5792f90990f647bccfcf7f0cd211036ebaba824c",
+  "intended_recovery_name": "live-audio-gpt-20260920-03",
+  "info_bind": "BLOCKED_THIS_SESSION_REUSED_HASHED_HANDOFF",
+  "info_handoff_sha256": "c3fb0fe01fdd185073e9637165c6de0a4eec66641019d412d4f8dacb575d0dbb",
+  "identity": "identified-not-accepted",
+  "q1_q5": "PREPARED_SEPARATE_EXPERIMENT",
+  "p601_din": "BLOCKED_SEPARATE",
+  "live_runtime": "IN_SCOPE",
+  "hold_rearm": true
+}

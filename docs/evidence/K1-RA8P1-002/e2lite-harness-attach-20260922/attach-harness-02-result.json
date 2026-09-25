@@ -1,0 +1,21 @@
+{
+  "utc": "2026-09-21T21:42:00Z",
+  "run": "attach-harness-02",
+  "setup": "Same command as attach-harness-01; only change: user powered the Titan board (it had been unpowered during run 01 and during the final failed multimeter step).",
+  "result": "SUCCESS. Full target connection over the hand-soldered six-wire harness (pins 1,2,3,4,9,10; pin 5 GND removed).",
+  "proof_read_from_silicon": {
+    "dlm_state": "Original Equipment Manufacturer (OEM)",
+    "authentication_level": "AL2 (full debug access, no TrustZone lockout)",
+    "mram_code_secure_kb": 16352,
+    "user_vcc_V": 3.31289,
+    "usb_bus_power_V": 5.22393
+  },
+  "closes": [
+    "0x00030815 DAP-not-found: belonged to the pre-solder physical setup only. The soldered harness never exhibited it.",
+    "0x0003080A host lock: fixed earlier via stale POSIX semaphore removal (see E2Lite-macOS-host-lock-recovery-20260922).",
+    "0x00040100 power-off: Titan was genuinely unpowered at that moment. Not a wiring fault."
+  ],
+  "retraction": "The 'RESET# shorted to ground / harness miswired' diagnosis recorded 2026-09-21 in readings-20260922.json and LEAVE-STATE.json is WRONG as a root cause. VTref wire is proven on pin 1 (probe reads 3.313 V), data wires are proven correct (DAP found, device identified), and the connection succeeded with the reset wire in place. The low reset readings are attributable to the E2 Lite's own behaviour on its RES# line while idle, not to a solder fault. No rework is needed. No wires should be moved or cut.",
+  "harness_status": "GOOD. Six wires, verified end-to-end by instrument on silicon.",
+  "how_to_use": "Persistent debug session: run the same e2-server-gdb command without the 75 s timeout wrapper, then connect a GDB client to port 61234. Connecting halts/attaches to the live application; probe power output stays OFF."
+}

@@ -23,7 +23,9 @@ enum {
   k1_asrc24_err_arg = 1,
   k1_asrc24_err_rate = 2,
   k1_asrc24_err_starved = 3,
-  k1_asrc24_err_epoch = 4
+  k1_asrc24_err_epoch = 4,
+  k1_asrc24_err_not_ready = 5,
+  k1_asrc24_err_fault = 6
 };
 
 typedef struct {
@@ -37,11 +39,15 @@ typedef struct {
   uint32_t filled;
   uint32_t produced;
   uint32_t starved;
+  uint32_t push_rejected;
+  uint32_t consumed_samples;
+  uint32_t discarded_samples;
 } k1_asrc24_t;
 
 void k1_asrc24_reset(k1_asrc24_t *st, uint32_t epoch, uint32_t source_hz);
 int k1_asrc24_set_rate(k1_asrc24_t *st, uint32_t source_hz);
 uint32_t k1_asrc24_phase_increment_q16(uint32_t source_hz);
+uint32_t k1_asrc24_required_for_pull180(const k1_asrc24_t *st);
 int k1_asrc24_push(k1_asrc24_t *st, const int16_t *src, uint32_t count);
 int k1_asrc24_pull180(k1_asrc24_t *st, int16_t out180[K1_ASRC24_OUT_FRAMES]);
 

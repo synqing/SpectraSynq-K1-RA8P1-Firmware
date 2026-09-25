@@ -255,6 +255,7 @@ def build_project(client: SerialStudioClient) -> None:
             (12, "Lane B live", "lane_b_valid", ""),
         ]),
         ("Capture clock", 4, [(13, "Measured capture rate", "capture_rate_hz", "Hz")]),
+        # hop_max_us is AP hop compute. Palette last_emit_cycles must not fill it.
         ("Hop timing", 4, [(14, "Worst hop compute", "hop_max_us", "us")]),
         ("Fault counts", 4, [
             (15, "Late starts", "late_starts", ""),

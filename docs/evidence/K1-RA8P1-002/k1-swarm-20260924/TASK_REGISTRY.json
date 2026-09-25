@@ -1,0 +1,2696 @@
+{
+  "schema": "spectrasynq.governance.plan_tasks/1",
+  "plan_id": "K1-SWARM-20260924",
+  "authoritative_plan": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/K1-Codex-Orchestrator-Execution-Brief.md",
+  "packet_manifest": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/execution-manifest.json",
+  "packet_manifest_sha256": "2431720d2a229c700e98a17639c9e309d4700d2608eb6c741290d91c04d21c5b",
+  "import_rule": "All 56 packet definitions preserved verbatim as packet_task and source_text; full briefs and acceptance catalogue sealed in packet. Existing registries remain separate and unchanged. No acceptance claimed.",
+  "existing_obligation_registries": [
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/.claude/harness/feature_list.json",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-real-firmware-migration-2026-09-20/hmi-closeout-20260923T1346/TASK_REGISTRY.json",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-real-firmware-migration-2026-09-20/hmi-closeout-20260923T1346/TASK_REGISTRY_CONTROL_PATH.json"
+  ],
+  "tasks": [
+    {
+      "id": "ORCH-0",
+      "owner": "ORCH",
+      "title": "Bind current scope, source instructions and exact file/resource owners",
+      "depends_on": [],
+      "wave": 0,
+      "deliverable": "Baseline and ownership record; real registry bindings",
+      "required_for": [
+        "dual",
+        "titan",
+        "console",
+        "standalone"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [],
+      "source_text": "{\n  \"id\": \"ORCH-0\",\n  \"owner\": \"ORCH\",\n  \"title\": \"Bind current scope, source instructions and exact file/resource owners\",\n  \"depends_on\": [],\n  \"wave\": 0,\n  \"deliverable\": \"Baseline and ownership record; real registry bindings\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\",\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "ORCH-0",
+        "owner": "ORCH",
+        "title": "Bind current scope, source instructions and exact file/resource owners",
+        "depends_on": [],
+        "wave": 0,
+        "deliverable": "Baseline and ownership record; real registry bindings",
+        "required_for": [
+          "dual",
+          "titan",
+          "console",
+          "standalone"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Swarm-Execution-Master.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "CTL-1",
+      "owner": "CTL",
+      "title": "Draft catalogue, control/profile and migration contracts",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Typed interface proposal and staged-generator plan",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"CTL-1\",\n  \"owner\": \"CTL\",\n  \"title\": \"Draft catalogue, control/profile and migration contracts\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Typed interface proposal and staged-generator plan\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "CTL-1",
+        "owner": "CTL",
+        "title": "Draft catalogue, control/profile and migration contracts",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Typed interface proposal and staged-generator plan",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/01-contracts-and-control.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TRN-0",
+      "owner": "TRN",
+      "title": "Propose wire negotiation, payload budgets and recovery boundaries",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Transport contract proposal and v1 compatibility constraints",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"TRN-0\",\n  \"owner\": \"TRN\",\n  \"title\": \"Propose wire negotiation, payload budgets and recovery boundaries\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Transport contract proposal and v1 compatibility constraints\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TRN-0",
+        "owner": "TRN",
+        "title": "Propose wire negotiation, payload budgets and recovery boundaries",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Transport contract proposal and v1 compatibility constraints",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/05-transport.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-0",
+      "owner": "INT",
+      "title": "Resolve console capacity and integration ownership inputs",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Console build/source inventory, bounded table/display resource proposal",
+      "required_for": [
+        "console"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"INT-0\",\n  \"owner\": \"INT\",\n  \"title\": \"Resolve console capacity and integration ownership inputs\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Console build/source inventory, bounded table/display resource proposal\",\n  \"required_for\": [\n    \"console\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-0",
+        "owner": "INT",
+        "title": "Resolve console capacity and integration ownership inputs",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Console build/source inventory, bounded table/display resource proposal",
+        "required_for": [
+          "console"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "AP-1",
+      "owner": "AP",
+      "title": "Specify clock/evidence/phase sidecar and incumbent fixtures",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "TempoField contract and independently frozen fixture definitions",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"AP-1\",\n  \"owner\": \"AP\",\n  \"title\": \"Specify clock/evidence/phase sidecar and incumbent fixtures\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"TempoField contract and independently frozen fixture definitions\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "AP-1",
+        "owner": "AP",
+        "title": "Specify clock/evidence/phase sidecar and incumbent fixtures",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "TempoField contract and independently frozen fixture definitions",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/02-audio-tempo.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "VP-1",
+      "owner": "VP",
+      "title": "Specify domains, stages, state lifecycles and numeric fixtures",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Visual module contract and scalar reference fixtures",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"VP-1\",\n  \"owner\": \"VP\",\n  \"title\": \"Specify domains, stages, state lifecycles and numeric fixtures\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Visual module contract and scalar reference fixtures\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "VP-1",
+        "owner": "VP",
+        "title": "Specify domains, stages, state lifecycles and numeric fixtures",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Visual module contract and scalar reference fixtures",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/03-visual-core.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INP-1",
+      "owner": "INP",
+      "title": "Characterize input and specify movement/pickup lifecycle",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Read-only input characterization plan and gesture contract",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"INP-1\",\n  \"owner\": \"INP\",\n  \"title\": \"Characterize input and specify movement/pickup lifecycle\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Read-only input characterization plan and gesture contract\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INP-1",
+        "owner": "INP",
+        "title": "Characterize input and specify movement/pickup lifecycle",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Read-only input characterization plan and gesture contract",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/06-hmi-input.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "UI-1",
+      "owner": "UI",
+      "title": "Specify hierarchy, metadata and physical layout constraints",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Native display plan and visual context contract",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"UI-1\",\n  \"owner\": \"UI\",\n  \"title\": \"Specify hierarchy, metadata and physical layout constraints\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Native display plan and visual context contract\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "UI-1",
+        "owner": "UI",
+        "title": "Specify hierarchy, metadata and physical layout constraints",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Native display plan and visual context contract",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/07-hmi-ui.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "IVV-1",
+      "owner": "IVV",
+      "title": "Freeze evidence, independent fixture expectations and proposed thresholds",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Acceptance applicability matrix; numeric/physical endpoint definitions",
+      "required_for": [
+        "dual",
+        "titan",
+        "console",
+        "standalone"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"IVV-1\",\n  \"owner\": \"IVV\",\n  \"title\": \"Freeze evidence, independent fixture expectations and proposed thresholds\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Acceptance applicability matrix; numeric/physical endpoint definitions\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\",\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "IVV-1",
+        "owner": "IVV",
+        "title": "Freeze evidence, independent fixture expectations and proposed thresholds",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Acceptance applicability matrix; numeric/physical endpoint definitions",
+        "required_for": [
+          "dual",
+          "titan",
+          "console",
+          "standalone"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/11-independent-verification.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "DUAL-1",
+      "owner": "DUAL",
+      "title": "Resolve current source and contract capacity inputs",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"DUAL-1\",\n  \"owner\": \"DUAL\",\n  \"title\": \"Resolve current source and contract capacity inputs\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "DUAL-1",
+        "owner": "DUAL",
+        "title": "Resolve current source and contract capacity inputs",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/08-dualmcu-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TIT-1",
+      "owner": "TIT",
+      "title": "Resolve current source and contract capacity inputs",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"TIT-1\",\n  \"owner\": \"TIT\",\n  \"title\": \"Resolve current source and contract capacity inputs\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TIT-1",
+        "owner": "TIT",
+        "title": "Resolve current source and contract capacity inputs",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/09-titan-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "S3-1",
+      "owner": "S3",
+      "title": "Resolve current source and contract capacity inputs",
+      "depends_on": [
+        "ORCH-0"
+      ],
+      "wave": 0,
+      "deliverable": "Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "ORCH-0"
+      ],
+      "source_text": "{\n  \"id\": \"S3-1\",\n  \"owner\": \"S3\",\n  \"title\": \"Resolve current source and contract capacity inputs\",\n  \"depends_on\": [\n    \"ORCH-0\"\n  ],\n  \"wave\": 0,\n  \"deliverable\": \"Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "S3-1",
+        "owner": "S3",
+        "title": "Resolve current source and contract capacity inputs",
+        "depends_on": [
+          "ORCH-0"
+        ],
+        "wave": 0,
+        "deliverable": "Source/reference identity, build inventory, contract capacities and existing gates; programming rows may remain unresolved",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/10-s3-standalone.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "CTL-2",
+      "owner": "CTL",
+      "title": "Freeze reviewed interface bundle and staged generated exports",
+      "depends_on": [
+        "CTL-1",
+        "TRN-0",
+        "AP-1",
+        "VP-1",
+        "INP-1",
+        "UI-1",
+        "INT-0",
+        "DUAL-1",
+        "TIT-1",
+        "IVV-1"
+      ],
+      "wave": 1,
+      "deliverable": "Versioned schema/capability/profile bundle and consumer review receipts",
+      "required_for": [
+        "dual",
+        "titan",
+        "console",
+        "standalone"
+      ],
+      "exit_gate": "G1",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-1",
+        "TRN-0",
+        "AP-1",
+        "VP-1",
+        "INP-1",
+        "UI-1",
+        "INT-0",
+        "DUAL-1",
+        "TIT-1",
+        "IVV-1"
+      ],
+      "source_text": "{\n  \"id\": \"CTL-2\",\n  \"owner\": \"CTL\",\n  \"title\": \"Freeze reviewed interface bundle and staged generated exports\",\n  \"depends_on\": [\n    \"CTL-1\",\n    \"TRN-0\",\n    \"AP-1\",\n    \"VP-1\",\n    \"INP-1\",\n    \"UI-1\",\n    \"INT-0\",\n    \"DUAL-1\",\n    \"TIT-1\",\n    \"IVV-1\"\n  ],\n  \"wave\": 1,\n  \"deliverable\": \"Versioned schema/capability/profile bundle and consumer review receipts\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\",\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G1\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "CTL-2",
+        "owner": "CTL",
+        "title": "Freeze reviewed interface bundle and staged generated exports",
+        "depends_on": [
+          "CTL-1",
+          "TRN-0",
+          "AP-1",
+          "VP-1",
+          "INP-1",
+          "UI-1",
+          "INT-0",
+          "DUAL-1",
+          "TIT-1",
+          "IVV-1"
+        ],
+        "wave": 1,
+        "deliverable": "Versioned schema/capability/profile bundle and consumer review receipts",
+        "required_for": [
+          "dual",
+          "titan",
+          "console",
+          "standalone"
+        ],
+        "exit_gate": "G1",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/01-contracts-and-control.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "CTL-3",
+      "owner": "CTL",
+      "title": "Implement bounded compiler, atomic base transactions and migration",
+      "depends_on": [
+        "CTL-2"
+      ],
+      "wave": 2,
+      "deliverable": "Portable control implementation and complete custom-profile compilation",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2"
+      ],
+      "source_text": "{\n  \"id\": \"CTL-3\",\n  \"owner\": \"CTL\",\n  \"title\": \"Implement bounded compiler, atomic base transactions and migration\",\n  \"depends_on\": [\n    \"CTL-2\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Portable control implementation and complete custom-profile compilation\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "CTL-3",
+        "owner": "CTL",
+        "title": "Implement bounded compiler, atomic base transactions and migration",
+        "depends_on": [
+          "CTL-2"
+        ],
+        "wave": 2,
+        "deliverable": "Portable control implementation and complete custom-profile compilation",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/01-contracts-and-control.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "AP-2",
+      "owner": "AP",
+      "title": "Implement truthful candidate salience and evidence ages",
+      "depends_on": [
+        "CTL-2",
+        "AP-1"
+      ],
+      "wave": 2,
+      "deliverable": "AP-A sidecar with incumbent winner/flywheel unchanged",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2",
+        "AP-1"
+      ],
+      "source_text": "{\n  \"id\": \"AP-2\",\n  \"owner\": \"AP\",\n  \"title\": \"Implement truthful candidate salience and evidence ages\",\n  \"depends_on\": [\n    \"CTL-2\",\n    \"AP-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"AP-A sidecar with incumbent winner/flywheel unchanged\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "AP-2",
+        "owner": "AP",
+        "title": "Implement truthful candidate salience and evidence ages",
+        "depends_on": [
+          "CTL-2",
+          "AP-1"
+        ],
+        "wave": 2,
+        "deliverable": "AP-A sidecar with incumbent winner/flywheel unchanged",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/02-audio-tempo.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "AP-3",
+      "owner": "AP",
+      "title": "Implement bounded expressive phase tracks and lifecycle",
+      "depends_on": [
+        "AP-2"
+      ],
+      "wave": 2,
+      "deliverable": "AP-B phase projection and derived-family policy",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "AP-2"
+      ],
+      "source_text": "{\n  \"id\": \"AP-3\",\n  \"owner\": \"AP\",\n  \"title\": \"Implement bounded expressive phase tracks and lifecycle\",\n  \"depends_on\": [\n    \"AP-2\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"AP-B phase projection and derived-family policy\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "AP-3",
+        "owner": "AP",
+        "title": "Implement bounded expressive phase tracks and lifecycle",
+        "depends_on": [
+          "AP-2"
+        ],
+        "wave": 2,
+        "deliverable": "AP-B phase projection and derived-family policy",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/02-audio-tempo.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "AP-4",
+      "owner": "AP",
+      "title": "Verify canonical parity and audio/phase fixtures",
+      "depends_on": [
+        "AP-3",
+        "IVV-1"
+      ],
+      "wave": 2,
+      "deliverable": "Host AP evidence and target instrumentation package",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "AP-3",
+        "IVV-1"
+      ],
+      "source_text": "{\n  \"id\": \"AP-4\",\n  \"owner\": \"AP\",\n  \"title\": \"Verify canonical parity and audio/phase fixtures\",\n  \"depends_on\": [\n    \"AP-3\",\n    \"IVV-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Host AP evidence and target instrumentation package\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "AP-4",
+        "owner": "AP",
+        "title": "Verify canonical parity and audio/phase fixtures",
+        "depends_on": [
+          "AP-3",
+          "IVV-1"
+        ],
+        "wave": 2,
+        "deliverable": "Host AP evidence and target instrumentation package",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/02-audio-tempo.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "VP-2",
+      "owner": "VP",
+      "title": "Implement genuine wide profile and owned history/material stages",
+      "depends_on": [
+        "CTL-2",
+        "VP-1"
+      ],
+      "wave": 2,
+      "deliverable": "Wide scalar renderer, feature bypass and final native conversion",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2",
+        "VP-1"
+      ],
+      "source_text": "{\n  \"id\": \"VP-2\",\n  \"owner\": \"VP\",\n  \"title\": \"Implement genuine wide profile and owned history/material stages\",\n  \"depends_on\": [\n    \"CTL-2\",\n    \"VP-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Wide scalar renderer, feature bypass and final native conversion\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "VP-2",
+        "owner": "VP",
+        "title": "Implement genuine wide profile and owned history/material stages",
+        "depends_on": [
+          "CTL-2",
+          "VP-1"
+        ],
+        "wave": 2,
+        "deliverable": "Wide scalar renderer, feature bypass and final native conversion",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/03-visual-core.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "VP-3",
+      "owner": "VP",
+      "title": "Verify numeric continuity, full-chain words and noninterference",
+      "depends_on": [
+        "VP-2",
+        "IVV-1"
+      ],
+      "wave": 2,
+      "deliverable": "Portable VP fixture results and cost instrumentation",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "VP-2",
+        "IVV-1"
+      ],
+      "source_text": "{\n  \"id\": \"VP-3\",\n  \"owner\": \"VP\",\n  \"title\": \"Verify numeric continuity, full-chain words and noninterference\",\n  \"depends_on\": [\n    \"VP-2\",\n    \"IVV-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Portable VP fixture results and cost instrumentation\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "VP-3",
+        "owner": "VP",
+        "title": "Verify numeric continuity, full-chain words and noninterference",
+        "depends_on": [
+          "VP-2",
+          "IVV-1"
+        ],
+        "wave": 2,
+        "deliverable": "Portable VP fixture results and cost instrumentation",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/03-visual-core.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "MOD-1",
+      "owner": "MOD",
+      "title": "Freeze mode merit and Liveiness adapter meanings",
+      "depends_on": [
+        "CTL-2",
+        "VP-1"
+      ],
+      "wave": 2,
+      "deliverable": "Versioned current-mode matrix and authored acceptance thresholds",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2",
+        "VP-1"
+      ],
+      "source_text": "{\n  \"id\": \"MOD-1\",\n  \"owner\": \"MOD\",\n  \"title\": \"Freeze mode merit and Liveiness adapter meanings\",\n  \"depends_on\": [\n    \"CTL-2\",\n    \"VP-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Versioned current-mode matrix and authored acceptance thresholds\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "MOD-1",
+        "owner": "MOD",
+        "title": "Freeze mode merit and Liveiness adapter meanings",
+        "depends_on": [
+          "CTL-2",
+          "VP-1"
+        ],
+        "wave": 2,
+        "deliverable": "Versioned current-mode matrix and authored acceptance thresholds",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/04-mode-semantics.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "MOD-2",
+      "owner": "MOD",
+      "title": "Implement all advertised mode adapters and metadata",
+      "depends_on": [
+        "MOD-1",
+        "VP-2"
+      ],
+      "wave": 2,
+      "deliverable": "Family-owned adapters with neutral and range fixtures",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "MOD-1",
+        "VP-2"
+      ],
+      "source_text": "{\n  \"id\": \"MOD-2\",\n  \"owner\": \"MOD\",\n  \"title\": \"Implement all advertised mode adapters and metadata\",\n  \"depends_on\": [\n    \"MOD-1\",\n    \"VP-2\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Family-owned adapters with neutral and range fixtures\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "MOD-2",
+        "owner": "MOD",
+        "title": "Implement all advertised mode adapters and metadata",
+        "depends_on": [
+          "MOD-1",
+          "VP-2"
+        ],
+        "wave": 2,
+        "deliverable": "Family-owned adapters with neutral and range fixtures",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/04-mode-semantics.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "CTL-4",
+      "owner": "CTL",
+      "title": "Verify compiler/control atomicity and schema compatibility",
+      "depends_on": [
+        "CTL-3",
+        "IVV-1"
+      ],
+      "wave": 2,
+      "deliverable": "Negative/property fixtures and sealed generated bundle",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-3",
+        "IVV-1"
+      ],
+      "source_text": "{\n  \"id\": \"CTL-4\",\n  \"owner\": \"CTL\",\n  \"title\": \"Verify compiler/control atomicity and schema compatibility\",\n  \"depends_on\": [\n    \"CTL-3\",\n    \"IVV-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Negative/property fixtures and sealed generated bundle\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "CTL-4",
+        "owner": "CTL",
+        "title": "Verify compiler/control atomicity and schema compatibility",
+        "depends_on": [
+          "CTL-3",
+          "IVV-1"
+        ],
+        "wave": 2,
+        "deliverable": "Negative/property fixtures and sealed generated bundle",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/01-contracts-and-control.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TRN-1",
+      "owner": "TRN",
+      "title": "Implement versioned codecs, negotiation and async delivery",
+      "depends_on": [
+        "CTL-2"
+      ],
+      "wave": 2,
+      "deliverable": "Bounded transport implementation with apply receipts/snapshot recovery",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2"
+      ],
+      "source_text": "{\n  \"id\": \"TRN-1\",\n  \"owner\": \"TRN\",\n  \"title\": \"Implement versioned codecs, negotiation and async delivery\",\n  \"depends_on\": [\n    \"CTL-2\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Bounded transport implementation with apply receipts/snapshot recovery\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TRN-1",
+        "owner": "TRN",
+        "title": "Implement versioned codecs, negotiation and async delivery",
+        "depends_on": [
+          "CTL-2"
+        ],
+        "wave": 2,
+        "deliverable": "Bounded transport implementation with apply receipts/snapshot recovery",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/05-transport.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TRN-2",
+      "owner": "TRN",
+      "title": "Verify retries, stale work, mixed versions and recovery",
+      "depends_on": [
+        "TRN-1",
+        "CTL-4"
+      ],
+      "wave": 2,
+      "deliverable": "Independent encoding and transport fault evidence",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "TRN-1",
+        "CTL-4"
+      ],
+      "source_text": "{\n  \"id\": \"TRN-2\",\n  \"owner\": \"TRN\",\n  \"title\": \"Verify retries, stale work, mixed versions and recovery\",\n  \"depends_on\": [\n    \"TRN-1\",\n    \"CTL-4\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Independent encoding and transport fault evidence\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TRN-2",
+        "owner": "TRN",
+        "title": "Verify retries, stale work, mixed versions and recovery",
+        "depends_on": [
+          "TRN-1",
+          "CTL-4"
+        ],
+        "wave": 2,
+        "deliverable": "Independent encoding and transport fault evidence",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/05-transport.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INP-2",
+      "owner": "INP",
+      "title": "Implement physical gestures, takeover and profile application",
+      "depends_on": [
+        "CTL-2",
+        "INP-1"
+      ],
+      "wave": 2,
+      "deliverable": "Bounded input state machine and mapping/filter ownership",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2",
+        "INP-1"
+      ],
+      "source_text": "{\n  \"id\": \"INP-2\",\n  \"owner\": \"INP\",\n  \"title\": \"Implement physical gestures, takeover and profile application\",\n  \"depends_on\": [\n    \"CTL-2\",\n    \"INP-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Bounded input state machine and mapping/filter ownership\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INP-2",
+        "owner": "INP",
+        "title": "Implement physical gestures, takeover and profile application",
+        "depends_on": [
+          "CTL-2",
+          "INP-1"
+        ],
+        "wave": 2,
+        "deliverable": "Bounded input state machine and mapping/filter ownership",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/06-hmi-input.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INP-3",
+      "owner": "INP",
+      "title": "Verify remap races, final targets, endpoint and quiet-rearm behavior",
+      "depends_on": [
+        "INP-2",
+        "IVV-1"
+      ],
+      "wave": 2,
+      "deliverable": "Host control/input fixture package; physical scenarios awaiting G3",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INP-2",
+        "IVV-1"
+      ],
+      "source_text": "{\n  \"id\": \"INP-3\",\n  \"owner\": \"INP\",\n  \"title\": \"Verify remap races, final targets, endpoint and quiet-rearm behavior\",\n  \"depends_on\": [\n    \"INP-2\",\n    \"IVV-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Host control/input fixture package; physical scenarios awaiting G3\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INP-3",
+        "owner": "INP",
+        "title": "Verify remap races, final targets, endpoint and quiet-rearm behavior",
+        "depends_on": [
+          "INP-2",
+          "IVV-1"
+        ],
+        "wave": 2,
+        "deliverable": "Host control/input fixture package; physical scenarios awaiting G3",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/06-hmi-input.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "UI-2",
+      "owner": "UI",
+      "title": "Implement channel pages, contexts and full supported editor",
+      "depends_on": [
+        "CTL-2",
+        "UI-1"
+      ],
+      "wave": 2,
+      "deliverable": "LVGL modules, metadata consumer and standalone UI fixtures",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-2",
+        "UI-1"
+      ],
+      "source_text": "{\n  \"id\": \"UI-2\",\n  \"owner\": \"UI\",\n  \"title\": \"Implement channel pages, contexts and full supported editor\",\n  \"depends_on\": [\n    \"CTL-2\",\n    \"UI-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"LVGL modules, metadata consumer and standalone UI fixtures\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "UI-2",
+        "owner": "UI",
+        "title": "Implement channel pages, contexts and full supported editor",
+        "depends_on": [
+          "CTL-2",
+          "UI-1"
+        ],
+        "wave": 2,
+        "deliverable": "LVGL modules, metadata consumer and standalone UI fixtures",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/07-hmi-ui.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "AP-BASE",
+      "owner": "AP",
+      "title": "Verify initial salience sidecar and incumbent parity",
+      "depends_on": [
+        "AP-2",
+        "IVV-1"
+      ],
+      "wave": 2,
+      "deliverable": "AP-A deterministic evidence; expressive phase work can continue",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "AP-2",
+        "IVV-1"
+      ],
+      "source_text": "{\n  \"id\": \"AP-BASE\",\n  \"owner\": \"AP\",\n  \"title\": \"Verify initial salience sidecar and incumbent parity\",\n  \"depends_on\": [\n    \"AP-2\",\n    \"IVV-1\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"AP-A deterministic evidence; expressive phase work can continue\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "AP-BASE",
+        "owner": "AP",
+        "title": "Verify initial salience sidecar and incumbent parity",
+        "depends_on": [
+          "AP-2",
+          "IVV-1"
+        ],
+        "wave": 2,
+        "deliverable": "AP-A deterministic evidence; expressive phase work can continue",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/02-audio-tempo.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "MOD-SLICE",
+      "owner": "MOD",
+      "title": "Implement and verify first authored wide mode adapter",
+      "depends_on": [
+        "MOD-1",
+        "VP-2"
+      ],
+      "wave": 2,
+      "deliverable": "One useful Liveiness adapter with neutral/continuity proof; not full mode admission",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "MOD-1",
+        "VP-2"
+      ],
+      "source_text": "{\n  \"id\": \"MOD-SLICE\",\n  \"owner\": \"MOD\",\n  \"title\": \"Implement and verify first authored wide mode adapter\",\n  \"depends_on\": [\n    \"MOD-1\",\n    \"VP-2\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"One useful Liveiness adapter with neutral/continuity proof; not full mode admission\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "MOD-SLICE",
+        "owner": "MOD",
+        "title": "Implement and verify first authored wide mode adapter",
+        "depends_on": [
+          "MOD-1",
+          "VP-2"
+        ],
+        "wave": 2,
+        "deliverable": "One useful Liveiness adapter with neutral/continuity proof; not full mode admission",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/04-mode-semantics.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-SLICE",
+      "owner": "INT",
+      "title": "Integrate early complete control/audio/wide-output path",
+      "depends_on": [
+        "AP-BASE",
+        "VP-3",
+        "CTL-4",
+        "TRN-2",
+        "MOD-SLICE"
+      ],
+      "wave": 2,
+      "deliverable": "Source-bound vertical slice; all unsupported capabilities explicitly unavailable",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "AP-BASE",
+        "VP-3",
+        "CTL-4",
+        "TRN-2",
+        "MOD-SLICE"
+      ],
+      "source_text": "{\n  \"id\": \"INT-SLICE\",\n  \"owner\": \"INT\",\n  \"title\": \"Integrate early complete control/audio/wide-output path\",\n  \"depends_on\": [\n    \"AP-BASE\",\n    \"VP-3\",\n    \"CTL-4\",\n    \"TRN-2\",\n    \"MOD-SLICE\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Source-bound vertical slice; all unsupported capabilities explicitly unavailable\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-SLICE",
+        "owner": "INT",
+        "title": "Integrate early complete control/audio/wide-output path",
+        "depends_on": [
+          "AP-BASE",
+          "VP-3",
+          "CTL-4",
+          "TRN-2",
+          "MOD-SLICE"
+        ],
+        "wave": 2,
+        "deliverable": "Source-bound vertical slice; all unsupported capabilities explicitly unavailable",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "IVV-SLICE",
+      "owner": "IVV",
+      "title": "Independently verify early portable integration fixtures",
+      "depends_on": [
+        "INT-SLICE"
+      ],
+      "wave": 2,
+      "deliverable": "Source-bound early host acceptance; no full capability promotion",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-SLICE"
+      ],
+      "source_text": "{\n  \"id\": \"IVV-SLICE\",\n  \"owner\": \"IVV\",\n  \"title\": \"Independently verify early portable integration fixtures\",\n  \"depends_on\": [\n    \"INT-SLICE\"\n  ],\n  \"wave\": 2,\n  \"deliverable\": \"Source-bound early host acceptance; no full capability promotion\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "IVV-SLICE",
+        "owner": "IVV",
+        "title": "Independently verify early portable integration fixtures",
+        "depends_on": [
+          "INT-SLICE"
+        ],
+        "wave": 2,
+        "deliverable": "Source-bound early host acceptance; no full capability promotion",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/11-independent-verification.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "DUAL-DEPLOY0",
+      "owner": "DUAL",
+      "title": "Resolve approved programming/readback route and actual bench identity",
+      "depends_on": [
+        "DUAL-1"
+      ],
+      "wave": 3,
+      "deliverable": "Executable command manifest, recovery tuple and resource ownership",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "DUAL-1"
+      ],
+      "source_text": "{\n  \"id\": \"DUAL-DEPLOY0\",\n  \"owner\": \"DUAL\",\n  \"title\": \"Resolve approved programming/readback route and actual bench identity\",\n  \"depends_on\": [\n    \"DUAL-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Executable command manifest, recovery tuple and resource ownership\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "DUAL-DEPLOY0",
+        "owner": "DUAL",
+        "title": "Resolve approved programming/readback route and actual bench identity",
+        "depends_on": [
+          "DUAL-1"
+        ],
+        "wave": 3,
+        "deliverable": "Executable command manifest, recovery tuple and resource ownership",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/08-dualmcu-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TIT-DEPLOY0",
+      "owner": "TIT",
+      "title": "Resolve approved programming/readback route and actual bench identity",
+      "depends_on": [
+        "TIT-1"
+      ],
+      "wave": 3,
+      "deliverable": "Executable command manifest, recovery tuple and resource ownership",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "TIT-1"
+      ],
+      "source_text": "{\n  \"id\": \"TIT-DEPLOY0\",\n  \"owner\": \"TIT\",\n  \"title\": \"Resolve approved programming/readback route and actual bench identity\",\n  \"depends_on\": [\n    \"TIT-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Executable command manifest, recovery tuple and resource ownership\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TIT-DEPLOY0",
+        "owner": "TIT",
+        "title": "Resolve approved programming/readback route and actual bench identity",
+        "depends_on": [
+          "TIT-1"
+        ],
+        "wave": 3,
+        "deliverable": "Executable command manifest, recovery tuple and resource ownership",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/09-titan-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "S3-DEPLOY0",
+      "owner": "S3",
+      "title": "Resolve approved programming/readback route and actual bench identity",
+      "depends_on": [
+        "S3-1"
+      ],
+      "wave": 3,
+      "deliverable": "Executable command manifest, recovery tuple and resource ownership",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G0",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "S3-1"
+      ],
+      "source_text": "{\n  \"id\": \"S3-DEPLOY0\",\n  \"owner\": \"S3\",\n  \"title\": \"Resolve approved programming/readback route and actual bench identity\",\n  \"depends_on\": [\n    \"S3-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Executable command manifest, recovery tuple and resource ownership\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "S3-DEPLOY0",
+        "owner": "S3",
+        "title": "Resolve approved programming/readback route and actual bench identity",
+        "depends_on": [
+          "S3-1"
+        ],
+        "wave": 3,
+        "deliverable": "Executable command manifest, recovery tuple and resource ownership",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G0",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/10-s3-standalone.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "DUAL-SMOKE",
+      "owner": "DUAL",
+      "title": "Build and inspect early integrated path on target",
+      "depends_on": [
+        "DUAL-DEPLOY0",
+        "INT-SLICE",
+        "IVV-SLICE"
+      ],
+      "wave": 3,
+      "deliverable": "Early target integration feedback; no G3/G4 promotion",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "DUAL-DEPLOY0",
+        "INT-SLICE",
+        "IVV-SLICE"
+      ],
+      "source_text": "{\n  \"id\": \"DUAL-SMOKE\",\n  \"owner\": \"DUAL\",\n  \"title\": \"Build and inspect early integrated path on target\",\n  \"depends_on\": [\n    \"DUAL-DEPLOY0\",\n    \"INT-SLICE\",\n    \"IVV-SLICE\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Early target integration feedback; no G3/G4 promotion\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "DUAL-SMOKE",
+        "owner": "DUAL",
+        "title": "Build and inspect early integrated path on target",
+        "depends_on": [
+          "DUAL-DEPLOY0",
+          "INT-SLICE",
+          "IVV-SLICE"
+        ],
+        "wave": 3,
+        "deliverable": "Early target integration feedback; no G3/G4 promotion",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/08-dualmcu-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TIT-SMOKE",
+      "owner": "TIT",
+      "title": "Build and inspect early integrated path on target",
+      "depends_on": [
+        "TIT-DEPLOY0",
+        "INT-SLICE",
+        "IVV-SLICE"
+      ],
+      "wave": 3,
+      "deliverable": "Early target integration feedback; no G3/G4 promotion",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "TIT-DEPLOY0",
+        "INT-SLICE",
+        "IVV-SLICE"
+      ],
+      "source_text": "{\n  \"id\": \"TIT-SMOKE\",\n  \"owner\": \"TIT\",\n  \"title\": \"Build and inspect early integrated path on target\",\n  \"depends_on\": [\n    \"TIT-DEPLOY0\",\n    \"INT-SLICE\",\n    \"IVV-SLICE\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Early target integration feedback; no G3/G4 promotion\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TIT-SMOKE",
+        "owner": "TIT",
+        "title": "Build and inspect early integrated path on target",
+        "depends_on": [
+          "TIT-DEPLOY0",
+          "INT-SLICE",
+          "IVV-SLICE"
+        ],
+        "wave": 3,
+        "deliverable": "Early target integration feedback; no G3/G4 promotion",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/09-titan-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-1",
+      "owner": "INT",
+      "title": "Integrate shared portable call sites and sealed component bundle",
+      "depends_on": [
+        "AP-4",
+        "VP-3",
+        "MOD-2",
+        "CTL-4",
+        "TRN-2"
+      ],
+      "wave": 3,
+      "deliverable": "Coherent portable source candidate and compatibility integration results",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "AP-4",
+        "VP-3",
+        "MOD-2",
+        "CTL-4",
+        "TRN-2"
+      ],
+      "source_text": "{\n  \"id\": \"INT-1\",\n  \"owner\": \"INT\",\n  \"title\": \"Integrate shared portable call sites and sealed component bundle\",\n  \"depends_on\": [\n    \"AP-4\",\n    \"VP-3\",\n    \"MOD-2\",\n    \"CTL-4\",\n    \"TRN-2\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Coherent portable source candidate and compatibility integration results\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-1",
+        "owner": "INT",
+        "title": "Integrate shared portable call sites and sealed component bundle",
+        "depends_on": [
+          "AP-4",
+          "VP-3",
+          "MOD-2",
+          "CTL-4",
+          "TRN-2"
+        ],
+        "wave": 3,
+        "deliverable": "Coherent portable source candidate and compatibility integration results",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-2",
+      "owner": "INT",
+      "title": "Assemble active console entry/display/session/build",
+      "depends_on": [
+        "CTL-4",
+        "TRN-2",
+        "INP-3",
+        "UI-2",
+        "INT-0"
+      ],
+      "wave": 3,
+      "deliverable": "Console candidate image and exact approved deployment route",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "CTL-4",
+        "TRN-2",
+        "INP-3",
+        "UI-2",
+        "INT-0"
+      ],
+      "source_text": "{\n  \"id\": \"INT-2\",\n  \"owner\": \"INT\",\n  \"title\": \"Assemble active console entry/display/session/build\",\n  \"depends_on\": [\n    \"CTL-4\",\n    \"TRN-2\",\n    \"INP-3\",\n    \"UI-2\",\n    \"INT-0\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Console candidate image and exact approved deployment route\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-2",
+        "owner": "INT",
+        "title": "Assemble active console entry/display/session/build",
+        "depends_on": [
+          "CTL-4",
+          "TRN-2",
+          "INP-3",
+          "UI-2",
+          "INT-0"
+        ],
+        "wave": 3,
+        "deliverable": "Console candidate image and exact approved deployment route",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "IVV-2",
+      "owner": "IVV",
+      "title": "Independently verify integrated host contracts and numeric fixtures",
+      "depends_on": [
+        "INT-1"
+      ],
+      "wave": 3,
+      "deliverable": "Independent host review; no target qualification inferred",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-1"
+      ],
+      "source_text": "{\n  \"id\": \"IVV-2\",\n  \"owner\": \"IVV\",\n  \"title\": \"Independently verify integrated host contracts and numeric fixtures\",\n  \"depends_on\": [\n    \"INT-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Independent host review; no target qualification inferred\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "IVV-2",
+        "owner": "IVV",
+        "title": "Independently verify integrated host contracts and numeric fixtures",
+        "depends_on": [
+          "INT-1"
+        ],
+        "wave": 3,
+        "deliverable": "Independent host review; no target qualification inferred",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/11-independent-verification.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "DUAL-2",
+      "owner": "DUAL",
+      "title": "Integrate platform adapter and build exact candidate",
+      "depends_on": [
+        "INT-1",
+        "DUAL-1"
+      ],
+      "wave": 3,
+      "deliverable": "Target build, map, route and candidate image",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-1",
+        "DUAL-1"
+      ],
+      "source_text": "{\n  \"id\": \"DUAL-2\",\n  \"owner\": \"DUAL\",\n  \"title\": \"Integrate platform adapter and build exact candidate\",\n  \"depends_on\": [\n    \"INT-1\",\n    \"DUAL-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Target build, map, route and candidate image\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "DUAL-2",
+        "owner": "DUAL",
+        "title": "Integrate platform adapter and build exact candidate",
+        "depends_on": [
+          "INT-1",
+          "DUAL-1"
+        ],
+        "wave": 3,
+        "deliverable": "Target build, map, route and candidate image",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/08-dualmcu-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "DUAL-3",
+      "owner": "DUAL",
+      "title": "Deploy and qualify platform under actual combined load",
+      "depends_on": [
+        "DUAL-2",
+        "DUAL-DEPLOY0",
+        "IVV-2"
+      ],
+      "wave": 4,
+      "deliverable": "Source/image/target-bound G3 receipts, recovery and leave-state",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G3",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "DUAL-2",
+        "DUAL-DEPLOY0",
+        "IVV-2"
+      ],
+      "source_text": "{\n  \"id\": \"DUAL-3\",\n  \"owner\": \"DUAL\",\n  \"title\": \"Deploy and qualify platform under actual combined load\",\n  \"depends_on\": [\n    \"DUAL-2\",\n    \"DUAL-DEPLOY0\",\n    \"IVV-2\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"Source/image/target-bound G3 receipts, recovery and leave-state\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G3\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "DUAL-3",
+        "owner": "DUAL",
+        "title": "Deploy and qualify platform under actual combined load",
+        "depends_on": [
+          "DUAL-2",
+          "DUAL-DEPLOY0",
+          "IVV-2"
+        ],
+        "wave": 4,
+        "deliverable": "Source/image/target-bound G3 receipts, recovery and leave-state",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G3",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/08-dualmcu-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TIT-2",
+      "owner": "TIT",
+      "title": "Integrate platform adapter and build exact candidate",
+      "depends_on": [
+        "INT-1",
+        "TIT-1"
+      ],
+      "wave": 3,
+      "deliverable": "Target build, map, route and candidate image",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-1",
+        "TIT-1"
+      ],
+      "source_text": "{\n  \"id\": \"TIT-2\",\n  \"owner\": \"TIT\",\n  \"title\": \"Integrate platform adapter and build exact candidate\",\n  \"depends_on\": [\n    \"INT-1\",\n    \"TIT-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Target build, map, route and candidate image\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TIT-2",
+        "owner": "TIT",
+        "title": "Integrate platform adapter and build exact candidate",
+        "depends_on": [
+          "INT-1",
+          "TIT-1"
+        ],
+        "wave": 3,
+        "deliverable": "Target build, map, route and candidate image",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/09-titan-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "TIT-3",
+      "owner": "TIT",
+      "title": "Deploy and qualify platform under actual combined load",
+      "depends_on": [
+        "TIT-2",
+        "TIT-DEPLOY0",
+        "IVV-2"
+      ],
+      "wave": 4,
+      "deliverable": "Source/image/target-bound G3 receipts, recovery and leave-state",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G3",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "TIT-2",
+        "TIT-DEPLOY0",
+        "IVV-2"
+      ],
+      "source_text": "{\n  \"id\": \"TIT-3\",\n  \"owner\": \"TIT\",\n  \"title\": \"Deploy and qualify platform under actual combined load\",\n  \"depends_on\": [\n    \"TIT-2\",\n    \"TIT-DEPLOY0\",\n    \"IVV-2\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"Source/image/target-bound G3 receipts, recovery and leave-state\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G3\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "TIT-3",
+        "owner": "TIT",
+        "title": "Deploy and qualify platform under actual combined load",
+        "depends_on": [
+          "TIT-2",
+          "TIT-DEPLOY0",
+          "IVV-2"
+        ],
+        "wave": 4,
+        "deliverable": "Source/image/target-bound G3 receipts, recovery and leave-state",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G3",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/09-titan-platform.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "S3-2",
+      "owner": "S3",
+      "title": "Integrate platform adapter and build exact candidate",
+      "depends_on": [
+        "INT-1",
+        "S3-1"
+      ],
+      "wave": 3,
+      "deliverable": "Target build, map, route and candidate image",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G2",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-1",
+        "S3-1"
+      ],
+      "source_text": "{\n  \"id\": \"S3-2\",\n  \"owner\": \"S3\",\n  \"title\": \"Integrate platform adapter and build exact candidate\",\n  \"depends_on\": [\n    \"INT-1\",\n    \"S3-1\"\n  ],\n  \"wave\": 3,\n  \"deliverable\": \"Target build, map, route and candidate image\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G2\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "S3-2",
+        "owner": "S3",
+        "title": "Integrate platform adapter and build exact candidate",
+        "depends_on": [
+          "INT-1",
+          "S3-1"
+        ],
+        "wave": 3,
+        "deliverable": "Target build, map, route and candidate image",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G2",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/10-s3-standalone.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "S3-3",
+      "owner": "S3",
+      "title": "Deploy and qualify platform under actual combined load",
+      "depends_on": [
+        "S3-2",
+        "S3-DEPLOY0",
+        "IVV-2"
+      ],
+      "wave": 4,
+      "deliverable": "Source/image/target-bound G3 receipts, recovery and leave-state",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G3",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "S3-2",
+        "S3-DEPLOY0",
+        "IVV-2"
+      ],
+      "source_text": "{\n  \"id\": \"S3-3\",\n  \"owner\": \"S3\",\n  \"title\": \"Deploy and qualify platform under actual combined load\",\n  \"depends_on\": [\n    \"S3-2\",\n    \"S3-DEPLOY0\",\n    \"IVV-2\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"Source/image/target-bound G3 receipts, recovery and leave-state\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G3\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "S3-3",
+        "owner": "S3",
+        "title": "Deploy and qualify platform under actual combined load",
+        "depends_on": [
+          "S3-2",
+          "S3-DEPLOY0",
+          "IVV-2"
+        ],
+        "wave": 4,
+        "deliverable": "Source/image/target-bound G3 receipts, recovery and leave-state",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G3",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/10-s3-standalone.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "UI-3",
+      "owner": "UI",
+      "title": "Qualify real display, input sessions and contextual interaction",
+      "depends_on": [
+        "INT-2",
+        "INP-3",
+        "IVV-2"
+      ],
+      "wave": 4,
+      "deliverable": "Native screenshots/touch and physical fader evidence",
+      "required_for": [
+        "console",
+        "dual",
+        "titan"
+      ],
+      "exit_gate": "G3",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-2",
+        "INP-3",
+        "IVV-2"
+      ],
+      "source_text": "{\n  \"id\": \"UI-3\",\n  \"owner\": \"UI\",\n  \"title\": \"Qualify real display, input sessions and contextual interaction\",\n  \"depends_on\": [\n    \"INT-2\",\n    \"INP-3\",\n    \"IVV-2\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"Native screenshots/touch and physical fader evidence\",\n  \"required_for\": [\n    \"console\",\n    \"dual\",\n    \"titan\"\n  ],\n  \"exit_gate\": \"G3\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "UI-3",
+        "owner": "UI",
+        "title": "Qualify real display, input sessions and contextual interaction",
+        "depends_on": [
+          "INT-2",
+          "INP-3",
+          "IVV-2"
+        ],
+        "wave": 4,
+        "deliverable": "Native screenshots/touch and physical fader evidence",
+        "required_for": [
+          "console",
+          "dual",
+          "titan"
+        ],
+        "exit_gate": "G3",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/07-hmi-ui.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-D",
+      "owner": "INT",
+      "title": "Qualify dual console-to-engine system and rollback",
+      "depends_on": [
+        "DUAL-3",
+        "UI-3"
+      ],
+      "wave": 4,
+      "deliverable": "End-to-end applied-state/load/recovery tuple",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G4",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "DUAL-3",
+        "UI-3"
+      ],
+      "source_text": "{\n  \"id\": \"INT-D\",\n  \"owner\": \"INT\",\n  \"title\": \"Qualify dual console-to-engine system and rollback\",\n  \"depends_on\": [\n    \"DUAL-3\",\n    \"UI-3\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"End-to-end applied-state/load/recovery tuple\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G4\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-D",
+        "owner": "INT",
+        "title": "Qualify dual console-to-engine system and rollback",
+        "depends_on": [
+          "DUAL-3",
+          "UI-3"
+        ],
+        "wave": 4,
+        "deliverable": "End-to-end applied-state/load/recovery tuple",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G4",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "MOD-D",
+      "owner": "MOD",
+      "title": "Complete dual physical mode/control appearance acceptance",
+      "depends_on": [
+        "INT-D",
+        "MOD-2"
+      ],
+      "wave": 5,
+      "deliverable": "Every advertised adapter/function evaluated on the identified optics",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-D",
+        "MOD-2"
+      ],
+      "source_text": "{\n  \"id\": \"MOD-D\",\n  \"owner\": \"MOD\",\n  \"title\": \"Complete dual physical mode/control appearance acceptance\",\n  \"depends_on\": [\n    \"INT-D\",\n    \"MOD-2\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"Every advertised adapter/function evaluated on the identified optics\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "MOD-D",
+        "owner": "MOD",
+        "title": "Complete dual physical mode/control appearance acceptance",
+        "depends_on": [
+          "INT-D",
+          "MOD-2"
+        ],
+        "wave": 5,
+        "deliverable": "Every advertised adapter/function evaluated on the identified optics",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/04-mode-semantics.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "IVV-D",
+      "owner": "IVV",
+      "title": "Assess dual complete claim set and adoption evidence",
+      "depends_on": [
+        "MOD-D",
+        "INT-D"
+      ],
+      "wave": 5,
+      "deliverable": "Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation",
+      "required_for": [
+        "dual"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "MOD-D",
+        "INT-D"
+      ],
+      "source_text": "{\n  \"id\": \"IVV-D\",\n  \"owner\": \"IVV\",\n  \"title\": \"Assess dual complete claim set and adoption evidence\",\n  \"depends_on\": [\n    \"MOD-D\",\n    \"INT-D\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation\",\n  \"required_for\": [\n    \"dual\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "IVV-D",
+        "owner": "IVV",
+        "title": "Assess dual complete claim set and adoption evidence",
+        "depends_on": [
+          "MOD-D",
+          "INT-D"
+        ],
+        "wave": 5,
+        "deliverable": "Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation",
+        "required_for": [
+          "dual"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/11-independent-verification.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-T",
+      "owner": "INT",
+      "title": "Qualify titan console-to-engine system and rollback",
+      "depends_on": [
+        "TIT-3",
+        "UI-3"
+      ],
+      "wave": 4,
+      "deliverable": "End-to-end applied-state/load/recovery tuple",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G4",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "TIT-3",
+        "UI-3"
+      ],
+      "source_text": "{\n  \"id\": \"INT-T\",\n  \"owner\": \"INT\",\n  \"title\": \"Qualify titan console-to-engine system and rollback\",\n  \"depends_on\": [\n    \"TIT-3\",\n    \"UI-3\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"End-to-end applied-state/load/recovery tuple\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G4\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-T",
+        "owner": "INT",
+        "title": "Qualify titan console-to-engine system and rollback",
+        "depends_on": [
+          "TIT-3",
+          "UI-3"
+        ],
+        "wave": 4,
+        "deliverable": "End-to-end applied-state/load/recovery tuple",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G4",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "MOD-T",
+      "owner": "MOD",
+      "title": "Complete titan physical mode/control appearance acceptance",
+      "depends_on": [
+        "INT-T",
+        "MOD-2"
+      ],
+      "wave": 5,
+      "deliverable": "Every advertised adapter/function evaluated on the identified optics",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-T",
+        "MOD-2"
+      ],
+      "source_text": "{\n  \"id\": \"MOD-T\",\n  \"owner\": \"MOD\",\n  \"title\": \"Complete titan physical mode/control appearance acceptance\",\n  \"depends_on\": [\n    \"INT-T\",\n    \"MOD-2\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"Every advertised adapter/function evaluated on the identified optics\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "MOD-T",
+        "owner": "MOD",
+        "title": "Complete titan physical mode/control appearance acceptance",
+        "depends_on": [
+          "INT-T",
+          "MOD-2"
+        ],
+        "wave": 5,
+        "deliverable": "Every advertised adapter/function evaluated on the identified optics",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/04-mode-semantics.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "IVV-T",
+      "owner": "IVV",
+      "title": "Assess titan complete claim set and adoption evidence",
+      "depends_on": [
+        "MOD-T",
+        "INT-T"
+      ],
+      "wave": 5,
+      "deliverable": "Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation",
+      "required_for": [
+        "titan"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "MOD-T",
+        "INT-T"
+      ],
+      "source_text": "{\n  \"id\": \"IVV-T\",\n  \"owner\": \"IVV\",\n  \"title\": \"Assess titan complete claim set and adoption evidence\",\n  \"depends_on\": [\n    \"MOD-T\",\n    \"INT-T\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation\",\n  \"required_for\": [\n    \"titan\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "IVV-T",
+        "owner": "IVV",
+        "title": "Assess titan complete claim set and adoption evidence",
+        "depends_on": [
+          "MOD-T",
+          "INT-T"
+        ],
+        "wave": 5,
+        "deliverable": "Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation",
+        "required_for": [
+          "titan"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/11-independent-verification.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "INT-S",
+      "owner": "INT",
+      "title": "Qualify standalone console-to-engine system and rollback",
+      "depends_on": [
+        "S3-3",
+        "UI-3"
+      ],
+      "wave": 4,
+      "deliverable": "End-to-end applied-state/load/recovery tuple",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G4",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "S3-3",
+        "UI-3"
+      ],
+      "source_text": "{\n  \"id\": \"INT-S\",\n  \"owner\": \"INT\",\n  \"title\": \"Qualify standalone console-to-engine system and rollback\",\n  \"depends_on\": [\n    \"S3-3\",\n    \"UI-3\"\n  ],\n  \"wave\": 4,\n  \"deliverable\": \"End-to-end applied-state/load/recovery tuple\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G4\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "INT-S",
+        "owner": "INT",
+        "title": "Qualify standalone console-to-engine system and rollback",
+        "depends_on": [
+          "S3-3",
+          "UI-3"
+        ],
+        "wave": 4,
+        "deliverable": "End-to-end applied-state/load/recovery tuple",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G4",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Integration-and-Deployment-Runbook.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "MOD-S",
+      "owner": "MOD",
+      "title": "Complete standalone physical mode/control appearance acceptance",
+      "depends_on": [
+        "INT-S",
+        "MOD-2"
+      ],
+      "wave": 5,
+      "deliverable": "Every advertised adapter/function evaluated on the identified optics",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "INT-S",
+        "MOD-2"
+      ],
+      "source_text": "{\n  \"id\": \"MOD-S\",\n  \"owner\": \"MOD\",\n  \"title\": \"Complete standalone physical mode/control appearance acceptance\",\n  \"depends_on\": [\n    \"INT-S\",\n    \"MOD-2\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"Every advertised adapter/function evaluated on the identified optics\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "MOD-S",
+        "owner": "MOD",
+        "title": "Complete standalone physical mode/control appearance acceptance",
+        "depends_on": [
+          "INT-S",
+          "MOD-2"
+        ],
+        "wave": 5,
+        "deliverable": "Every advertised adapter/function evaluated on the identified optics",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/04-mode-semantics.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "IVV-S",
+      "owner": "IVV",
+      "title": "Assess standalone complete claim set and adoption evidence",
+      "depends_on": [
+        "MOD-S",
+        "INT-S"
+      ],
+      "wave": 5,
+      "deliverable": "Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation",
+      "required_for": [
+        "standalone"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "MOD-S",
+        "INT-S"
+      ],
+      "source_text": "{\n  \"id\": \"IVV-S\",\n  \"owner\": \"IVV\",\n  \"title\": \"Assess standalone complete claim set and adoption evidence\",\n  \"depends_on\": [\n    \"MOD-S\",\n    \"INT-S\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation\",\n  \"required_for\": [\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "IVV-S",
+        "owner": "IVV",
+        "title": "Assess standalone complete claim set and adoption evidence",
+        "depends_on": [
+          "MOD-S",
+          "INT-S"
+        ],
+        "wave": 5,
+        "deliverable": "Per-target PASS/FAIL/BLOCKED/NOT_TESTED and bounded adoption recommendation",
+        "required_for": [
+          "standalone"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/lanes/11-independent-verification.md",
+      "evidence_refs": []
+    },
+    {
+      "id": "ORCH-CLOSE",
+      "owner": "ORCH",
+      "title": "Close principal programme with exact limitations and next owners",
+      "depends_on": [
+        "IVV-D",
+        "IVV-T",
+        "UI-3"
+      ],
+      "wave": 5,
+      "deliverable": "DualMCU/Titan/console final handoff and separate standalone status",
+      "required_for": [
+        "dual",
+        "titan",
+        "console"
+      ],
+      "exit_gate": "G5",
+      "status": "NOT_STARTED",
+      "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+      "kind": "TASK",
+      "state": "PENDING",
+      "dependencies": [
+        "IVV-D",
+        "IVV-T",
+        "UI-3"
+      ],
+      "source_text": "{\n  \"id\": \"ORCH-CLOSE\",\n  \"owner\": \"ORCH\",\n  \"title\": \"Close principal programme with exact limitations and next owners\",\n  \"depends_on\": [\n    \"IVV-D\",\n    \"IVV-T\",\n    \"UI-3\"\n  ],\n  \"wave\": 5,\n  \"deliverable\": \"DualMCU/Titan/console final handoff and separate standalone status\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\"\n  ],\n  \"exit_gate\": \"G5\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+      "packet_task": {
+        "id": "ORCH-CLOSE",
+        "owner": "ORCH",
+        "title": "Close principal programme with exact limitations and next owners",
+        "depends_on": [
+          "IVV-D",
+          "IVV-T",
+          "UI-3"
+        ],
+        "wave": 5,
+        "deliverable": "DualMCU/Titan/console final handoff and separate standalone status",
+        "required_for": [
+          "dual",
+          "titan",
+          "console"
+        ],
+        "exit_gate": "G5",
+        "status": "NOT_STARTED",
+        "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+      },
+      "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Swarm-Execution-Master.md",
+      "evidence_refs": []
+    }
+  ],
+  "project_import": {
+    "schema": "k1-programme-project-registry-import.v1",
+    "project": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+    "native_task_scope": [
+      "TIT-1"
+    ],
+    "canonical_coordination_registry": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/TASK_REGISTRY.json",
+    "canonical_coordination_registry_sha256": "4f5e140389ddda14add4417f0d6c8d41a9d9e726b3dab42ed7f09c06f0acb2fd",
+    "imported_utc": "2026-09-24T12:34:09.860229+00:00",
+    "authority": "Parent explicitly authorised exact Titan programme evidence subdirectory and unchanged all-56 task import; no firmware or existing registry edits",
+    "definition_rule": "packet_task, source_text, task IDs and both dependency representations preserved exactly; absolute authority and lane-brief references retain complete original plans",
+    "packet_authority": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet",
+    "native_acceptance_scope": "TIT-1 only if separately verified; imported other rows remain dependencies and not accepted by this import"
+  },
+  "existing_project_obligation_documents": [
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/ROADMAP.md",
+      "sha256": "a3c3a82279d96a718808a4edc3c58c31c07c7e4c3a912f35920e06cf856a8732"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/STATE.md",
+      "sha256": "128481d93a9980859ed077c6dec0f26b4ae5bf30f978f2b18ab2cdba6361482b"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/REQUIREMENTS.md",
+      "sha256": "4ae87d9f46047afaf39011c9b7aa9417daf7900bc151cc591ff4f6b87fa82948"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/REFERENCE-MANIFEST.md",
+      "sha256": "ac3973548a4b967bf2d53fcde427e295601d2b552c67ae4d0fd2c008090dd545"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/AGENTS.md",
+      "sha256": "e48d929a4a58775ddf53c8d0691fa22e5a434daa28ff843a05d8cf1692409f5a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/TITAN-MIC-LED2-SESSION-CANON.md",
+      "sha256": "24c7bd8c13385b4c1439dbd4c21a26fe425a86a7ef6c8e397a3e00d5826287c8"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/CURRENT-LIMIT-OPEN.json",
+      "sha256": "de0631ccfbc4145ed32968901afeef1dcec12e38b8b6cf96af833dbd32dc1d01"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/05-wp4-led-fault/05-02-PLAN.md",
+      "sha256": "0e6b5d3332a1fd1485257afb7d28460c0c4843f9b59efa152a2972795a90c832"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/05-wp4-led-fault/05-03-PLAN.md",
+      "sha256": "f5275bfcd709be5bc65f24c1764445fb17bcb0bfb90fd8dfb6e183af20fe7750"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/05-wp4-led-fault/05-01-PLAN.md",
+      "sha256": "60a9b5dd831ad9fce0d6446a3c1eadd14809167d9fd6dec203e6a0b3635fe5b2"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/09-docs-handoff/09-01-PLAN.md",
+      "sha256": "afdbf8fefbfe160d1f1dc0acbb7c6b212138610c0817051da1d8c4ebdecc1b76"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/03-wp2-host-hygiene/03-01-PLAN.md",
+      "sha256": "f0350873971d0af91b9b813b084a218222844ed9218621892055916d5695074a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/03-wp2-host-hygiene/03-02-PLAN.md",
+      "sha256": "f2cac851d79c46bd2f6591d05ba5e05cfc4d4b96fcda1a8b28a0e6e8f3eab041"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/03-wp2-host-hygiene/03-03-PLAN.md",
+      "sha256": "933bfc689a6e01cfb9300f72e15006ab23dbd8623f4e2a87e565ef51f664de78"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/10-live-k1-runtime/10-02-PLAN.md",
+      "sha256": "5adc153ccfab8ffb3c04b2d2e3796ed5a230e9f282d3ee11002003c0736c41d0"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/10-live-k1-runtime/10-01-PLAN.md",
+      "sha256": "b18f34e330ef42eeaa1f10dda295b27d055d754e4d75add304a54b0b59d1462d"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/02-wp1-capture-gate/02-01-PLAN.md",
+      "sha256": "54993e49361a752e8f570fe0d010778acd3be64f7f685961699147aab2e3a7dc"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/02-wp1-capture-gate/02-02-PLAN.md",
+      "sha256": "30621223b61eb4de74a9a3bd3ff121ea0779cc1da9b622c76bc9bce6c99d3344"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/08-latency-ruling/08-02-PLAN.md",
+      "sha256": "45d0f746c1b701fabc245d0197722ae4f9e621a00442937d9873d34cc04e032e"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/08-latency-ruling/08-01-PLAN.md",
+      "sha256": "053dce3af30571bd2759b55e255473ad1fd56b102d7dd7621969614e5d40949a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/06-wp5-live-admission/06-01-PLAN.md",
+      "sha256": "bf904e8238fb005b05a8ef5b349c11771b84ee89fbe11c20d48edadec6c6fcfe"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/06-wp5-live-admission/06-03-PLAN.md",
+      "sha256": "305538236b12a832a1685ec4460fdefb6cebfe5c627bb123f7e911e57beb9126"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/06-wp5-live-admission/06-02-PLAN.md",
+      "sha256": "b8bca88baf1235ee4dfb06bb5d4534db10d85c12630f3d0ad48127da2fc67ef9"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/01-wp0-live-checkpoint/01-02-PLAN.md",
+      "sha256": "f15384b5bdacbb012885ed38fc1fffaa5777df86a2a9215d3407969d88ce4789"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/01-wp0-live-checkpoint/01-01-PLAN.md",
+      "sha256": "070221c7c277969dc53baa6c7768950a5978a929daa574c74fe1fa8b7442c693"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/07-wp6-product-output/07-01-PLAN.md",
+      "sha256": "e746d07718d31032ab776b51a48725b49d4f2b270d26e19c28ffbba226d5743f"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/07-wp6-product-output/07-02-PLAN.md",
+      "sha256": "6ea40f83161bf4496f27c232409c6e2b3d59e21c575cc03316f96a1a8b08a7d8"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/04-wp3-uncapped-timing/04-02-PLAN.md",
+      "sha256": "63c0650c3071528a381048cd131ce35dd46791e97f683b81f5cf977d5827ef5e"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/04-wp3-uncapped-timing/04-01-PLAN.md",
+      "sha256": "426860dfbdcc69d6f95a0a5c18d6be408c443ecce4efe8306fdb488183445e1a"
+    }
+  ],
+  "existing_project_registry_discovery": "No preexisting TASK_REGISTRY.json, PLAN_TASKS.json or feature_list.json found in bounded project search; existing .planning plans and active canon retained by reference, never superseded."
+}

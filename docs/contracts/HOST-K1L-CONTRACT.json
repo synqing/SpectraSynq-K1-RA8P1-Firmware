@@ -1,0 +1,16 @@
+{
+  "task": "P5",
+  "title": "K1-L contract (host mirror)",
+  "status": "NOT TESTED",
+  "p5_on_chip": false,
+  "contract": {
+    "n_complete_min": 1000,
+    "input": "real music through microphone",
+    "observer": "off",
+    "p50_traced_us_max": 12000,
+    "p99": "informational unless captain-k1l-p99-stamp.txt exists",
+    "method": "newest_sample_estimate_us -> emit_complete_us of first frame carrying that AP generation"
+  },
+  "blocker": "generation-join instrumentation ABSENT on resident image; WP5 transmitter admission not closed; host prep only",
+  "source_incoming": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/incoming/P/P5-k1l-contract.json"
+}

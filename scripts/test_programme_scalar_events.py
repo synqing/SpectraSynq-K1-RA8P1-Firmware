@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run the real programming wrapper with a fake ROM transport. Never opens USB."""
-import contextlib,hashlib,importlib.util,io,json,sys,tempfile,types
+import contextlib,hashlib,importlib.util,io,json,os,sys,tempfile,types
 from pathlib import Path
 from unittest.mock import patch
 calls=[]
+os.environ['K1_ALLOW_RETIRED_SERIAL_ROM']='1'
 boot=types.ModuleType('titan_ra8p1_boot');boot.__file__=__file__
 boot.parse_ihex=lambda p:types.SimpleNamespace(sha256='candidate',start=0x02000000,end=0x020000ff)
 boot._select_port=lambda p,t:('/dev/cu.fake',{'vid':0x045b,'pid':0x0261})
@@ -13,6 +14,13 @@ boot._identify=lambda d,u:(types.SimpleNamespace(device_id='545433931bd254365936
 def programme(*a):calls.append('write')
 boot._programme=programme
 sys.modules['titan_ra8p1_boot']=boot
+handoff=types.ModuleType('programme_handoff')
+handoff.claim=lambda owner: calls.append('claim')
+handoff.quiesce_server=lambda: {'ok': True, 'server': 'mock'}
+handoff.wait_cdc_idle=lambda seconds: None
+handoff.resume_server=lambda: calls.append('resume') or {'ok': True}
+handoff.release=lambda: calls.append('release')
+sys.modules['programme_handoff']=handoff
 spec=importlib.util.spec_from_file_location('programmer',Path(__file__).with_name('programme_scalar.py'))
 m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 read=Path.read_bytes;sha=hashlib.sha256
@@ -36,13 +44,32 @@ with tempfile.TemporaryDirectory() as tmp:
         boot.parse_ihex=lambda p:types.SimpleNamespace(sha256=image_sha,start=0x02000000,end=0x020000ff)
         (build/'receipt.json').write_text(json.dumps({'pass':True,'build_id':'new','artifacts':{'rtthread.hex':image_sha}}))
         text=io.StringIO()
-        with patch.object(sys,'argv',['programme_scalar.py','--build',str(build),'--output',str(out),'--execute']),patch.object(Path,'read_bytes',fake_read),patch.object(m.hashlib,'sha256',fake_sha),patch.object(m.subprocess,'run',return_value=types.SimpleNamespace(returncode=1,stdout='',stderr='')),contextlib.redirect_stdout(text):
+        with patch.object(sys,'argv',['programme_scalar.py','--build',str(build),'--output',str(out),'--execute','--wait-app-seconds','0']),patch.object(Path,'read_bytes',fake_read),patch.object(m.hashlib,'sha256',fake_sha),patch.object(m.subprocess,'run',return_value=types.SimpleNamespace(returncode=1,stdout='',stderr='')),contextlib.redirect_stdout(text):
             try:m.main()
             except RuntimeError:
                 assert mode!='ok'
         events=[json.loads(line)['event'] for line in (out/'events.jsonl').read_text().splitlines()]
-        if mode=='ok':assert events==['WAITING_FOR_IDENTIFIED_ROM','ROM_SEEN','ROM_IDENTIFIED_WRITING','WRITE_VERIFIED']
+        if mode=='ok':assert events==['CDC_EXCLUSIVE','WAITING_FOR_IDENTIFIED_ROM','ROM_SEEN','ROM_IDENTIFIED_WRITING','WRITE_VERIFIED','SERVER_RESUMED']
         else:assert events[-1]=='PROGRAMME_FAILED' and 'WRITE_VERIFIED' not in events
         if mode in ['wrong-uid','retired']:assert 'write' not in calls and 'ROM_IDENTIFIED_WRITING' not in events
+        if mode=='ok':assert 'resume' in calls and 'release' in calls
         assert 'Release USER' not in text.getvalue() and 'then RESET' not in text.getvalue()
-print('K1_PROGRAMME_LIVE_EVENTS_HOST=PASS (success, wrong UID, verify failure, retired image)')
+m.require_identity({'uid': m.UID, 'build': 'new'}, 'new')
+try:
+    m.require_identity({'uid': m.UID, 'build': 'other'}, 'new')
+    raise SystemExit('build mismatch was accepted')
+except RuntimeError as exc:
+    assert 'build mismatch' in str(exc)
+# Retired execute gate (D2): without the mock env, --execute must refuse.
+os.environ.pop('K1_ALLOW_RETIRED_SERIAL_ROM', None)
+with tempfile.TemporaryDirectory() as tmp2:
+    root2=Path(tmp2); build2=root2/'build'; build2.mkdir()
+    (build2/'receipt.json').write_text(json.dumps({'pass':True,'build_id':'new','artifacts':{'rtthread.hex':'candidate'}}))
+    (build2/'rtthread.hex').write_bytes(b':00000001FF\n')
+    try:
+        with patch.object(sys,'argv',['programme_scalar.py','--build',str(build2),'--output',str(root2/'denied'),'--execute']):
+            m.main()
+        raise SystemExit('retired execute was accepted without K1_ALLOW_RETIRED_SERIAL_ROM')
+    except RuntimeError as exc:
+        assert 'retired' in str(exc).lower() or 'programme_rfp_swd' in str(exc)
+print('K1_PROGRAMME_LIVE_EVENTS_HOST=PASS (success, wrong UID, verify failure, retired image, build mismatch, retired-execute refuse)')

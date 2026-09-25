@@ -1,0 +1,15 @@
+
+GDB Server for Renesas targets.
+	Version 10.6.0.v20260707-035422 [acf4dadf] (Jul 17 2026 11:35:41)
+
+
+Starting server with the following options: 
+        Raw options                : ./e2-server-gdb -g E2LITE -t R7KA8P1KF -p 61234 -w 0 -uInteface= SWD -uIfSpeed= 1000 -uSyncMode= async -uCore= CPU0|enabled|1|61234 -uCore= CPU1|disabled|0|61235 -uHotPlug= 1 -uShowGUI= 0 -uAuthLevel= 0 -uEnableSciBoot= 0 -uResetCon= 0 -uResetBeginConnection= 0 -uNoReset= 1 -uDisconnectionMode= 0 -uConnectionTimeout= 120 -ueraseRomOnDownload= 0 -n 0
+Reset request ignored on Hotplug connection.
+
+Connecting to E2LITE, ARM target
+        GDBServer endian           : little
+        Target power from emulator : Off 
+Starting target connection
+GDB action 'connect to target', has failed with error report, Error 0x0003080A: The specified emulator has already been used.
+

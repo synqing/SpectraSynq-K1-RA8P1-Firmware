@@ -12,7 +12,7 @@ def score_snapshot(payload: bytes) -> dict:
         raise ValueError('snapshot must contain 64 metadata, 480 RGB8 and 960 GRB48 bytes')
     state = dict(zip(WORDS, struct.unpack('<16I', payload[:64])))
     if (state['version'], state['lanes'], state['pixels_per_lane'],
-            state['bits_per_pixel'], state['wire_profile']) != (1, 2, 80, 48, 4):
+            state['bits_per_pixel'], state['wire_profile']) not in ((1, 2, 80, 48, 4), (1, 2, 80, 48, 3)):
         raise ValueError('unsupported wire snapshot layout')
     if (state['output_channel'] > 1 or state['brightness'] > 255 or
             state['palette'] >= 44 or not state['sequence']):

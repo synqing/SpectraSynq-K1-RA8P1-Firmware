@@ -1,0 +1,128 @@
+{
+  "areas": [
+    {
+      "crc_unit": 32768,
+      "end": 34603007,
+      "erase_unit": 0,
+      "kind": 0,
+      "number": 0,
+      "read_unit": 1,
+      "start": 33554432,
+      "write_unit": 32
+    },
+    {
+      "crc_unit": 32768,
+      "end": 303038463,
+      "erase_unit": 0,
+      "kind": 1,
+      "number": 1,
+      "read_unit": 1,
+      "start": 301989888,
+      "write_unit": 32
+    },
+    {
+      "crc_unit": 16,
+      "end": 46788783,
+      "erase_unit": 0,
+      "kind": 32,
+      "number": 2,
+      "read_unit": 1,
+      "start": 46788640,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 16,
+      "end": 46789631,
+      "erase_unit": 0,
+      "kind": 33,
+      "number": 3,
+      "read_unit": 1,
+      "start": 46788800,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 16,
+      "end": 315226111,
+      "erase_unit": 0,
+      "kind": 34,
+      "number": 4,
+      "read_unit": 1,
+      "start": 315225088,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 16,
+      "end": 48264959,
+      "erase_unit": 0,
+      "kind": 48,
+      "number": 5,
+      "read_unit": 1,
+      "start": 48264704,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 16,
+      "end": 48330623,
+      "erase_unit": 0,
+      "kind": 49,
+      "number": 6,
+      "read_unit": 1,
+      "start": 48330496,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 16,
+      "end": 316766207,
+      "erase_unit": 0,
+      "kind": 50,
+      "number": 7,
+      "read_unit": 1,
+      "start": 316766080,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 16,
+      "end": 48331055,
+      "erase_unit": 0,
+      "kind": 51,
+      "number": 8,
+      "read_unit": 1,
+      "start": 48331008,
+      "write_unit": 16
+    },
+    {
+      "crc_unit": 1024,
+      "end": 2684354559,
+      "erase_unit": 1,
+      "kind": 64,
+      "number": 9,
+      "read_unit": 1,
+      "start": 1879048192,
+      "write_unit": 1
+    }
+  ],
+  "security": {
+    "authentication_level": 2,
+    "code_boundary_field_kib": 16352,
+    "lifecycle": 4,
+    "protection_level": 2,
+    "sip_boundary_field_kib": 0
+  },
+  "signature": {
+    "area_count": 10,
+    "boot_firmware": "6.8.20",
+    "device_id": "545433931bd25436593630352d068363",
+    "maximum_baud": 6000000,
+    "product": "R7KA8P1KFLCAC",
+    "type_code": 7
+  },
+  "usb": {
+    "description": "RA USB Boot",
+    "device": "/dev/cu.usbmodem1401",
+    "location": "0-1.4",
+    "pid": 609,
+    "serial_number": null,
+    "vid": 1115
+  }
+}
+{"erase_end": null, "erase_start": null, "image_end": "0x02040f77", "image_sha256": "cbcadb41de10cb7f884edb38118d8ad58967f2edfe7c5afcd1eda5e62828dd37", "image_start": "0x02000000", "operation": "programme", "write_end": "0x02040f7f", "write_start": "0x02000000"}

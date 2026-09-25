@@ -1,0 +1,21 @@
+{
+  "programmer_safety_restore_sha256": "a167833b7f35f2efa8ba296c772ab59c477bda2f2621faabe5510500aab5929a",
+  "programmer_safety_restore_path": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/p3-2026-09-09/build-staged-v2/rtthread.hex",
+  "programmer_safety_restore_role": "programme_scalar.py refuse-if-changed fuse; not Titan return image",
+  "intended_recovery_name": "live-audio-gpt-20260920-03",
+  "intended_recovery_hex_sha256": "3aa0913950c5815c28c3ae06b37ee4462c5e2537adc738517cccd8b97b60eabd",
+  "intended_recovery_build_id": "c7f6034a902833e3f8a17f7c5792f90990f647bccfcf7f0cd211036ebaba824c",
+  "intended_recovery_elf_sha256": "355626f10ee96bf8db4feee2642e7d62b50ff9a71f8c12fd47c78595f21ae374",
+  "intended_recovery_receipt_sha256": "f2808973dab087b2664385fcfcb7167cacf025307c59bd3f88ace69449a7f546",
+  "intended_recovery_role": "return-to-live after experimental flashes; current identified live-audio candidate",
+  "uid": "545433931bd25436593630352d068363",
+  "retired_hex_sha256": "42bd1d6d8f2ece9882ec3cfbd64778535cdd1e33aa10b04c024549f3bc2ee75e",
+  "programmer_script_sha256": "4463bdc4deeb7228c746f34493203520c449c2124516ef8eb43c7bfee8c7b6c3",
+  "dry_run_dir": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/wp7-dry-live-audio-20260920-01",
+  "dry_run": true,
+  "dry_run_pass": true,
+  "live_output_path": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/live-audio-gpt-prog-20260920-04",
+  "live_output_exists": false,
+  "hold": true,
+  "note": "Do not announce Rearm from this file. Dry-run directory is consumed."
+}

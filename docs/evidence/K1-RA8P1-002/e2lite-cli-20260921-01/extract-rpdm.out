@@ -1,0 +1,88 @@
+=== rpdm tar listing ===
+count 3
+DevicePartitionManager/RenesasDevicePartitionManagerCmd
+DevicePartitionManager/libusb-1.0.0.dylib
+DevicePartitionManager/libusb-1.0.dylib
+=== extract rpdm tar ===
+extracted to /tmp/renesas-rpdm-extract
+=== search extracted + packs for R7KA8 / DeviceList ===
+HIT /tmp/renesas-rpdm-extract/DevicePartitionManager/RenesasDevicePartitionManagerCmd 5970160 ['E2LITE']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.E2RFW.2.8.1.pack 4545298 ['E2LITE']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.E2RFW_RA8P1.2.8.1.pack 21302 ['R7KA8', 'R7KA8P1KF', 'RA8P1']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.RA_mcu_ra8t2.6.6.0.pack 4539585 ['R7KA8']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.E2RFW_RA8D2.2.8.1.pack 20834 ['R7KA8', 'RA8P1']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.E2RFW_RA8M2.2.8.1.pack 18384 ['R7KA8', 'RA8P1']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.RA_mcu_ra8d2.6.6.0.pack 4233765 ['R7KA8']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.RA_mcu_ra8m2.6.6.0.pack 3024728 ['R7KA8']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.E2RFW_RA8T2.2.8.1.pack 15941 ['R7KA8', 'RA8P1']
+HIT /Applications/Renesas e2 studio with RA FSP v6.6.0/fsp/internal/projectgen/ra/packs/Renesas.RA_mcu_ra8p1.6.6.0.pack 4264473 ['R7KA8', 'R7KA8P1KF']
+=== E2RFW pack listing ===
+PACK Renesas.E2RFW_RA8P1.2.8.1.pack 21302
+  .mcu/
+  Renesas.E2RFW_RA8P1.pdsc
+  toolingSupport.xml
+  .mcu/.devices/
+  .mcu/.devices/ARM/
+  .mcu/.devices/ARM/E2_v2.8.1/
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/E2Lite_RA8P1.env
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/E2OB_RA8P1.env
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/E2_RA8P1.env
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/EK-RA8P1.hex
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1JR.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1JS.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1KR.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1KS.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1.dbg
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1AD.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1AF.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1BD.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1BF.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1JF.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1KF.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1ZF.mcu
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1_CPU_dual.dbg
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/RA8_CM85_dual.grp
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/R7JA8P1xR_CPU_dual.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/R7JA8P1xS_CPU_dual.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/R7KA8P1xD.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/R7KA8P1xF.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/R7KA8P1xF_CPU_dual.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/RA8P1_Extra.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/RA8_CODE_MRAM_1M.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/RA8_CODE_MRAM_512k.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/RA8_CODE_SIP_FLASH_4M.mbl
+  .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/MemoryMap/RA8_CODE_SIP_FLASH_8M.mbl
+  HIT Renesas.E2RFW_RA8P1.pdsc 392 ['RA8P1']
+  HIT toolingSupport.xml 4384 ['R7KA8', 'R7KA8P1KF', 'RA8P1']
+   ctx b'MCUFiles/RA8P1/">.mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1.dbg</file>\r\n  <file supportType="ARM" version="2.8.1" destpath="E2_v2.8.'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/E2Lite_RA8P1.env 1252 ['R7KA8', 'R7KA8P1KF', 'E2LITE']
+   ctx b'NUM]\r\nInfoNum=11\r\n\r\n[0001_ENV]\r\nEmuBoardRev=0xFFFF\r\nMcuFile=R7KA8P1AD.mcu\r\nInterface=0x02\r\nBfwEmlFile=BFWE2LARM.s\r\n\r\n[0002_ENV]\r\nEmuBoardRev'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/E2OB_RA8P1.env 1327 ['R7KA8', 'R7KA8P1KF']
+   ctx b'NUM]\r\nInfoNum=11\r\n\r\n[0001_ENV]\r\nEmuBoardRev=0xFFFF\r\nMcuFile=R7KA8P1AD.mcu\r\nInterface=0x02\r\nBfwEmlFile=BFWE2OB_RX231ARM.s\r\n\r\n[0002_ENV]\r\nEmuB'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/E2_RA8P1.env 1468 ['R7KA8', 'R7KA8P1KF']
+   ctx b'NUM]\r\nInfoNum=11\r\n\r\n[0001_ENV]\r\nEmuBoardRev=0xFFFF\r\nMcuFile=R7KA8P1AD.mcu\r\nInterface=0x03\r\nBfwEmlFile=BFWE2ARM.s\r\nFpgaFile=E2_ARM.bit\r\n\r\n[00'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1JR.mcu 497 ['R7KA8', 'RA8P1']
+   ctx b'Settings=RA8\r\nDeviceSettings=RA8_CM85_dual.grp\r\nDebugModule=R7KA8P1_CPU_dual.dbg\r\nTrustZoneTypeSettings=2\r\n\r\n[WTRLOAD]\r\nDeviceProcessType=0x'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1JS.mcu 497 ['R7KA8', 'RA8P1']
+   ctx b'Settings=RA8\r\nDeviceSettings=RA8_CM85_dual.grp\r\nDebugModule=R7KA8P1_CPU_dual.dbg\r\nTrustZoneTypeSettings=2\r\n\r\n[WTRLOAD]\r\nDeviceProcessType=0x'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1KR.mcu 497 ['R7KA8', 'RA8P1']
+   ctx b'Settings=RA8\r\nDeviceSettings=RA8_CM85_dual.grp\r\nDebugModule=R7KA8P1_CPU_dual.dbg\r\nTrustZoneTypeSettings=2\r\n\r\n[WTRLOAD]\r\nDeviceProcessType=0x'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7JA8P1KS.mcu 497 ['R7KA8', 'RA8P1']
+   ctx b'Settings=RA8\r\nDeviceSettings=RA8_CM85_dual.grp\r\nDebugModule=R7KA8P1_CPU_dual.dbg\r\nTrustZoneTypeSettings=2\r\n\r\n[WTRLOAD]\r\nDeviceProcessType=0x'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1AD.mcu 446 ['R7KA8', 'RA8P1']
+   ctx b'CODE=RA8_CODE_MRAM_512k.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xD.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFirmwareSett'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1AF.mcu 444 ['R7KA8', 'RA8P1']
+   ctx b'M_CODE=RA8_CODE_MRAM_1M.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xF.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFirmwareSett'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1BD.mcu 446 ['R7KA8', 'RA8P1']
+   ctx b'CODE=RA8_CODE_MRAM_512k.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xD.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFirmwareSett'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1BF.mcu 444 ['R7KA8', 'RA8P1']
+   ctx b'M_CODE=RA8_CODE_MRAM_1M.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xF.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFirmwareSett'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1JF.mcu 462 ['R7KA8', 'RA8P1']
+   ctx b'M_CODE=RA8_CODE_MRAM_1M.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xF_CPU_dual.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFir'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1KF.mcu 462 ['R7KA8', 'RA8P1']
+   ctx b'M_CODE=RA8_CODE_MRAM_1M.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xF_CPU_dual.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFir'
+  HIT .mcu/.devices/ARM/E2_v2.8.1/MCUFiles/RA8P1/R7KA8P1ZF.mcu 462 ['R7KA8', 'RA8P1']
+   ctx b'M_CODE=RA8_CODE_MRAM_1M.mbl\r\nROM_EXTRA=RA8P1_Extra.mbl\r\nMAP=R7KA8P1xF_CPU_dual.mbl\r\n\r\n[ENVIRONMENT]\r\nE2FirmwareSettings=E2_RA8P1.env\r\nE2LFir'

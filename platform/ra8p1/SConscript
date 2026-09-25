@@ -2,13 +2,13 @@ import os
 from building import *
 cwd = GetCurrentDir()
 ws281x_diagnostic = Glob('ws281x_diag.c')
-src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('pdm_target.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c') + Glob('coexist_probe.c') + Glob('ws2816_gpio_emit.c') + Glob('titan_ram_diag.c') + Glob('k1_exact_stream.c') + Glob('ws281x_waveform.c') + Glob('k1_shared_snapshot.c') + Glob('ws281x_gpt_dma.c') + Glob('ws281x_gpt_dma_hw.c') + Glob('k1_rate_adapt.c') + Glob('k1_asrc_24k.c') + Glob('k1_status_led.c') + Glob('titan_status_gpio.c') + Glob('titan_led2_phy.c')
+src = Glob('*.cpp') + Glob('npu_load.c') + Glob('pdm_capture.c') + Glob('pdm_target.c') + Glob('arm_numeric_probe.c') + Glob('useful_npu_probe.c') + Glob('coexist_probe.c') + Glob('ws2816_gpio_emit.c') + Glob('titan_ram_diag.c') + Glob('k1_exact_stream.c') + Glob('ws281x_waveform.c') + Glob('k1_shared_snapshot.c') + Glob('ws281x_gpt_dma.c') + Glob('ws281x_gpt_dma_hw.c') + Glob('ws281x_gpt_dma_pair.c') + Glob('ws281x_gpt_dma_hw_pair.c') + Glob('pair_fixture_admit.c') + Glob('k1_rate_adapt.c') + Glob('k1_asrc_24k.c') + Glob('k1_status_led.c') + Glob('titan_status_gpio.c') + Glob('titan_led2_phy.c') + Glob('k1_live_clock.c')
 src += ws281x_diagnostic
 k1_root = os.path.join(cwd, 'k1')
 k1_cpp = []
 if os.path.isdir(k1_root):
     for directory, _, files in os.walk(k1_root):
-        k1_cpp += [os.path.join(directory, f) for f in files if f.endswith('.cpp')]
+        k1_cpp += [os.path.join(directory, f) for f in files if f.endswith('.cpp') or f.endswith('.c')]
 if not k1_cpp:
     print('K1Scalar: in-tree k1/ walk is empty. Live images are built by '
           'scripts/build_scalar.py, which stages src/k1 here first.')

@@ -1,0 +1,51 @@
+{
+  "checked_at": "2026-09-21T14:59:40.007877+00:00",
+  "cpu": "R7KA8P1KF",
+  "probe": "E2LITE",
+  "usb_serial": "E2L: 5AS079228B",
+  "device_definition": "ARM/ra8p1.6.6.0.xml",
+  "device_definition_resolved": true,
+  "last_error": "0x00030815 DAP cannot be found",
+  "target_connection_verified": false,
+  "power_output": "Off",
+  "hotplug": true,
+  "authentication": "None",
+  "flash_erase_or_program_requested": false,
+  "after_user_power_cycle": true,
+  "automatic_probe_selection_same_failure": true,
+  "usb_open_result": "0xe00002d8 kIOReturnNotReady",
+  "libusb_open_result": -99,
+  "usb_active_configuration": 0,
+  "isolated_probe_usb_test": {
+    "at": "2026-09-21T13:32:41.147016+00:00",
+    "results": [
+      {
+        "open_code": 0,
+        "open_status": "LIBUSB_SUCCESS / LIBUSB_TRANSFER_COMPLETED",
+        "configuration_read_code": 0,
+        "active_configuration": 1
+      }
+    ]
+  },
+  "usb_access_with_titan_powered": "RFP enumerated 5AS079228B",
+  "argument_format_fix": "Pass -uOption= and value as separate argv entries",
+  "running_state_preserved": false,
+  "next_step": "Physical Vref/reset/continuity check; software has not established target communication. Security/boot state are not ruled out.",
+  "stopped_after_reported_reset": true,
+  "hotplug_failure_cause": "Target cable attached before launch; vendor requires cable attachment after prompt. Prior power-cycle advice did not address this.",
+  "normal_connection_test_khz": [
+    1000,
+    100
+  ],
+  "normal_connection_reset_requested": true,
+  "normal_connection_authentication_level": 0,
+  "normal_connection_disconnect_mode": 2,
+  "usb_probe_enumeration": "PASS 5AS079228B",
+  "diagnostic_process_active": false,
+  "gui_automation": "Denied by macOS: osascript is not allowed assistive access (-25211)",
+  "connect_under_reset_100khz": "FAIL 0x00030815 DAP cannot be found",
+  "independent_rfp_swd_signature_100khz": "FAIL E3000105 Device is not responding (BFW: 3053)",
+  "rfp_probe_firmware_version": "V3.05.00.000",
+  "rfp_probe_serial": "5AS079228B",
+  "rfp_target_power_output": "OFF"
+}

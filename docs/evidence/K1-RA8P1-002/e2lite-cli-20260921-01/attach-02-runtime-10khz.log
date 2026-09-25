@@ -1,0 +1,14 @@
+
+GDB Server for Renesas targets.
+	Version 10.6.0.v20260707-035422 [acf4dadf] (Jul 17 2026 11:35:41)
+
+
+Starting server with the following options: 
+        Raw options                : ./e2-server-gdb -g E2LITE -t R7KA8P1KF -p 61234 -w 0 -uInteface= SWD -uIfSpeed= 10 -uSyncMode= async -uCore= CPU0|enabled|1|61234 -uCore= CPU1|disabled|0|61235 -uHotPlug= 0 -uAuthLevel= 0 -uEnableSciBoot= 0 -uResetCon= 0 -uResetBeginConnection= 1 -uNoReset= 1 -uDisconnectionMode= 2 -uConnectionTimeout= 20 -ueraseRomOnDownload= 0 -n 0
+
+Connecting to E2LITE, ARM target
+        GDBServer endian           : little
+        Target power from emulator : Off 
+Starting target connection
+GDB action 'connect to target', has failed with error report, Error 0x00030815: First communications connection with the target MCU cannot be made normally.DAP cannot be found in the connection target.Check the connection target or lower the JTAG/SWD clock frequency.If your E2 Lite uses a 14-pin connector cable to connect, try a 20-pin connector cable.
+

@@ -1,0 +1,19 @@
+{
+  "bound": {
+    "name": "live-k1-runtime-build-20260920-06",
+    "build_id": "e3dd5891947e6a175eaedea2cf562f8e64160b51522e2d379f38bdef5da60dd9",
+    "hex_sha256": "3213838f3c9a1b7a356acb4e2318d2509413a28d945ef0a8ea9a3b343032e1ff",
+    "elf_sha256": "c8bb5b96b9b4748c657a2ce4c0fcc86468ab6fe6242c4e2e0e78974a43933594",
+    "receipt_sha256": "3e11388fa29883438f28db4a541036557076e09650df1a1fd225e6092dda0b3b",
+    "live_runtime": {
+      "owner": "LiveAudioRuntime",
+      "mailbox": "removed",
+      "emit_default": "on",
+      "phase_8_recording": "scheduled_after_dev_ready"
+    },
+    "live_emit": true
+  },
+  "programme": "docs/evidence/K1-RA8P1-002/live-k1-runtime-prog-20260920-07",
+  "execute": true,
+  "physical_admission": "unproven"
+}

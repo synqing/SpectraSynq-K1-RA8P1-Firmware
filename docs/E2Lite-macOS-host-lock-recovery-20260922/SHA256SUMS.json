@@ -1,0 +1,12 @@
+{
+  "README.md": "4ff7895dc7fc74f9cf550c5b03e2652d448de9dae36830c9d9f495ab530b394f",
+  "baseline-enumeration-observation.json": "225f4fb140a6abd1837d731cea8c96daa1f21ebff18db046b662c24aeac252a0",
+  "e2lite_lock_guard.py": "08728b209ddb958f0ec302f34bda9759c9aff757faba375e5ad10f5c252ab4e6",
+  "final-host-check.json": "ab717b41ba915d15aae08e4880ab5c229983b36d353fd06287191b38973c19df",
+  "host-lock-removal.json": "6926263fb1855e072ec36b055688fb180efda5c497ad5367822f26d187210569",
+  "post-cleanup-enumeration.json": "bea062385cc1db49d1864b147b9375c341531f1b528331e937bec397e6468302",
+  "runtime-metadata.json": "c11c5bf65da8c74f6fbabb9f1e604ea652060cbfd4dcd06a260be4ae45d893d5",
+  "sources.json": "936c43daeb071202d4ceddd215f462229ce74681e05bf061e8355344670e95f6",
+  "static-lock-evidence.txt": "04cd6375822772e40e384f14f7ce1c97205878873180d9e56acdda6295a16d49",
+  "usb-open-close-validation.json": "6e1c68c35d3aa496deba00a7b97d4d95e4c7d7b762785ecaa5e1b1c83469a458"
+}

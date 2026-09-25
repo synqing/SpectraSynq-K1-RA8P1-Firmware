@@ -1,0 +1,42 @@
+{
+  "timestamp": "2026-09-21T16:48:48.040894+00:00",
+  "operation": "Renesas_USB_DESCRIPTOR_ENUMERATION_ONLY",
+  "runs": [
+    {
+      "cycle": 1,
+      "COM_GetSerial": 1,
+      "count": 1,
+      "devices": [
+        {
+          "serial": "E2L: 5AS079228B",
+          "renesas_in_use": false
+        }
+      ]
+    },
+    {
+      "cycle": 2,
+      "COM_GetSerial": 1,
+      "count": 1,
+      "devices": [
+        {
+          "serial": "E2L: 5AS079228B",
+          "renesas_in_use": false
+        }
+      ]
+    },
+    {
+      "cycle": 3,
+      "COM_GetSerial": 1,
+      "count": 1,
+      "devices": [
+        {
+          "serial": "E2L: 5AS079228B",
+          "renesas_in_use": false
+        }
+      ]
+    }
+  ],
+  "COM_Open_called": false,
+  "target_commands_sent": false,
+  "result": "RENESAS_NO_LONGER_REPORTS_PROBE_IN_USE_3_OF_3"
+}

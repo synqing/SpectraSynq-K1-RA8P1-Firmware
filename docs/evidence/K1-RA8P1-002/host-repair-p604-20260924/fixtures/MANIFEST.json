@@ -1,0 +1,51 @@
+{
+  "colour_order": "GRB48 big-endian G,R,B",
+  "pack_vector": {
+    "rgb": [
+      4779,
+      13517,
+      22255
+    ],
+    "bytes": "34cd12ab56ef"
+  },
+  "pixels": {
+    "0": {
+      "lane": "A0",
+      "index": 0,
+      "file": "edge-in-lane0.bin"
+    },
+    "79": {
+      "lane": "A0",
+      "index": 79,
+      "file": "centre-out-lane0.bin"
+    },
+    "80": {
+      "lane": "A1",
+      "index": 0,
+      "file": "centre-out-lane1.bin"
+    },
+    "159": {
+      "lane": "A1",
+      "index": 79,
+      "file": "edge-in-lane1.bin"
+    }
+  },
+  "files": {
+    "centre-out-lane0.bin": {
+      "sha256": "d92a1db0fe5aad4adaa4c2bb2faa30f15363d1226348fee36a9a8d925f15ed5e",
+      "bytes": 480
+    },
+    "centre-out-lane1.bin": {
+      "sha256": "f15167aea006943c58c3a4449f91decad7cf9ac60bdb7a656ac4cc95a9139eec",
+      "bytes": 480
+    },
+    "edge-in-lane0.bin": {
+      "sha256": "2fa8235ba086fb89833c6a2e593c04a92797bfb75a6cd10f74a9f8e770fa3e3b",
+      "bytes": 480
+    },
+    "edge-in-lane1.bin": {
+      "sha256": "f5cd8c8b068f91225fee869f5ae6e0550367e2ea708585fa53f22f73a6fa5f74",
+      "bytes": 480
+    }
+  }
+}

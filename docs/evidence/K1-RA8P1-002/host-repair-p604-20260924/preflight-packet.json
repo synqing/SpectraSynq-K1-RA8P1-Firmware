@@ -1,0 +1,31 @@
+{
+  "command": "emit-off",
+  "image": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "980eb3a9962e570437d7e1b6d7bae733b3a742284e4d45765742675409c90abe",
+    "schema_sha256": "a77dbf9298dbfb4385623dcb66d4c41037a60c6b65dc734bb7a521449f9d0e09",
+    "protocol": 1,
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40"
+  },
+  "expected_profile": {
+    "wire_profile": 3,
+    "configured_backend": "ws2816_gpt_pair",
+    "din_a": "P601",
+    "din_b": "P604",
+    "emit_enabled": true,
+    "brightness": 24,
+    "mode_a": 32,
+    "mode_b": 32
+  },
+  "stages": {
+    "emit_off_observe": {
+      "host_runnable": true,
+      "max_duration_s": 8,
+      "samples": 2,
+      "interval_s": 0.2
+    }
+  },
+  "max_record_bytes": 2000000,
+  "purpose": "H exclusive-owner read-only preflight: identity, CFG_GET revision, pins, profile, brightness, fault fields, generation/completion, CDC timing. Does not hold or map."
+}

@@ -15,7 +15,10 @@ if '#error "SINCRNG 5 is Table 50.7 M=125; M=50 cannot keep that window"' not in
     raise SystemExit('missing compile guard against leftover BSP SINCRNG 5')
 with tempfile.TemporaryDirectory(prefix='k1-pdm-sincrng-') as temp:
     out = Path(temp) / 'test'
-    run(['cc', '-std=c11', '-O2', '-I' + str(ROOT / 'platform/ra8p1'),
+    # pdm_target.h includes k1/core/audio/k1_audio_hop.h → need -I src
+    run(['cc', '-std=c11', '-O2',
+         '-I' + str(ROOT / 'platform/ra8p1'),
+         '-I' + str(ROOT / 'src'),
          str(ROOT / 'tests/host/test_pdm_sincrng.c'), '-o', str(out)])
     print(run([str(out)]), end='')
     broken = Path(temp) / 'broken.h'
