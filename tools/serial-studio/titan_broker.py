@@ -29,6 +29,13 @@ from titan_snapshot import (  # noqa: E402
     identity_ok,
     snapshot,
 )
+import live_protocol as proto  # noqa: E402
+from titan_control_server import (  # noqa: E402
+    ControlServer,
+    RestrictedControlError,
+    RestrictedControlPlane,
+    hardware_writes_admitted,
+)
 from titan_transport import (  # noqa: E402
     EXPECTED_UID,
     FORBIDDEN_OPS,
@@ -49,6 +56,36 @@ REC_MAX = 20000
 REC_MAX_BYTES = 32 * 1024 * 1024
 PID_PATH = HERE / ".locks" / "titan-broker.pid"
 OWNER = "ss03-broker"
+
+
+def identity_tuple_changed(previous: dict, rebound: dict) -> bool:
+    keys = (
+        "uid",
+        "build",
+        "schema",
+        "schema_sha256",
+        "source",
+        "runtime_kind",
+        "contract",
+        "accepted",
+        "identified",
+    )
+    for key in keys:
+        if rebound.get(key) != previous.get(key):
+            return True
+    prev_seq = previous.get("device_sequence")
+    new_seq = rebound.get("device_sequence")
+    try:
+        if prev_seq is not None and new_seq is not None:
+            prev_i = int(prev_seq)
+            new_i = int(new_seq)
+            if new_i < prev_i:
+                return True
+            if new_i == 1 and prev_i > 1:
+                return True
+    except (TypeError, ValueError):
+        return True
+    return False
 
 
 def load_checkpoint(evidence: Path) -> dict | None:
@@ -319,11 +356,26 @@ class Publisher:
             pass
 
 
+def identity_key(bound: dict | None) -> tuple:
+    bound = bound or {}
+    return (
+        bound.get("uid"),
+        bound.get("build"),
+        bound.get("schema_sha256") or bound.get("schema"),
+        bound.get("source"),
+        bound.get("contract"),
+        bool(bound.get("accepted")),
+        bool(bound.get("identified")),
+    )
+
+
 class Broker:
-    def __init__(self, evidence: Path, replay_only: bool = False, backend=None):
+    def __init__(self, evidence: Path, replay_only: bool = False, backend=None,
+                 control_enabled: bool = False):
         self.evidence = evidence
         self.replay_only = replay_only
         self.backend = backend
+        self.control_enabled = bool(control_enabled)
         self.recorder = Recorder(evidence / "broker.jsonl")
         self.publisher = Publisher(self.recorder)
         self.lock_handle = None
@@ -339,12 +391,16 @@ class Broker:
         self.last_metrics = None
         self.last_palette = None
         self.poll_i = 0
+        self.last_info_sequence = None
         self.stop = False
         self.serial_opens = 0
         self.hw_writes = 0
         self.rtt = []
         self.errors = []
         self.poll_ops = []
+        self._sched = threading.Lock()
+        self.control_plane = None
+        self.control_server = None
         evidence.mkdir(parents=True, exist_ok=True)
 
     def log_tx(self, **kwargs) -> None:
@@ -366,12 +422,15 @@ class Broker:
         else:
             backend = self.backend
             self.serial_opens += 1
-        self.transport = Transport(backend, allowed={1}, log=self.log_tx)
+        self.transport = Transport(
+            backend, allowed={1}, log=self.log_tx, campaign=bool(self.control_enabled)
+        )
         info = self.transport.info(timeout=2.0)
         raw_path = self.evidence / f"info-epoch-{self.epoch + 1}.json"
         checkpoint = load_checkpoint(self.evidence)
         raw_path.write_text(json.dumps({"usb": usb, "info": info["info"], "header_sequence": info["sequence"], "checkpoint": checkpoint}, indent=2) + "\n")
         bound = bind_identity(info["info"], checkpoint=checkpoint)
+        self.last_info_sequence = info["info"].get("sequence")
         if not bound["identified"]:
             self.release_hardware()
             raise RuntimeError(f"identity rejected: {bound['reason']}")
@@ -384,7 +443,7 @@ class Broker:
         for op in (6, 17):
             self.transport.allow(admitted | {op})
             try:
-                got = self.transport.transact(op, b"", timeout=2.0)
+                got = self.transact(op, b"", timeout=2.0)
             except (ObserveDenied, json.JSONDecodeError, RuntimeError) as exc:
                 self.errors.append(f"opcode {op} probe: {exc}")
                 continue
@@ -396,7 +455,23 @@ class Broker:
                 else:
                     self.last_palette = body
                 self.poll_ops.append(op)
-        self.transport.allow(admitted)
+        if self.control_enabled:
+            admitted |= {23, 25}
+            self.transport.allow(admitted)
+            self._bind_control_plane(bound)
+        else:
+            self.transport.allow(admitted)
+        if 1 in admitted:
+            try:
+                refreshed = self.transport.info(timeout=2.0)
+                seq = refreshed["info"].get("sequence")
+                if seq is not None:
+                    self.last_info_sequence = seq
+                rebound = bind_identity(refreshed["info"], checkpoint=checkpoint)
+                if rebound.get("identified"):
+                    self.bound = rebound
+            except Exception as exc:  # noqa: BLE001
+                self.errors.append(f"opcode 1 watermark: {exc}")
         (self.evidence / "bind.json").write_text(
             json.dumps({
                 "epoch": self.epoch,
@@ -416,6 +491,48 @@ class Broker:
             "reason": bound["reason"],
         })
         return bound
+
+    def transact(self, op: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
+        if self.transport is None:
+            raise RuntimeError("no transport")
+        with self._sched:
+            if op == 25 and payload and len(payload) >= 4:
+                if proto._u32(payload, 0) == proto.CFG_PATCH:
+                    if self.quiesced():
+                        raise RestrictedControlError("paused", "quiesce.flag")
+                    if not self.control_enabled:
+                        raise RestrictedControlError("observe_only", "control service off")
+                    admitted, reason = hardware_writes_admitted(
+                        self.evidence, self._control_bound(self.bound)
+                    )
+                    if not admitted:
+                        raise RestrictedControlError("ADMISSION_HOLD", reason)
+            return self.transport.transact(op, payload, timeout=timeout)
+
+    def _control_bound(self, bound: dict | None) -> dict:
+        bound = bound or {}
+        return {
+            "uid": bound.get("uid"),
+            "build": bound.get("build"),
+            "schema": bound.get("schema") or bound.get("schema_sha256"),
+            "schema_sha256": bound.get("schema_sha256") or bound.get("schema"),
+            "runtime_kind": bound.get("runtime_kind"),
+            "contract": bound.get("contract"),
+        }
+
+    def _bind_control_plane(self, bound: dict) -> None:
+        if self.control_server is not None:
+            self.control_server.close()
+            self.control_server = None
+        identity = self._control_bound(bound)
+        self.control_plane = RestrictedControlPlane(
+            transact=self.transact,
+            evidence=self.evidence,
+            bound=identity,
+        )
+        sock_path = self.evidence / "titan-control.sock"
+        self.control_server = ControlServer(self.control_plane, sock_path)
+        self.control_server.start()
 
     def release_hardware(self) -> None:
         if self.transport and self.port is not None:
@@ -458,7 +575,7 @@ class Broker:
         self.poll_i += 1
         started = time.monotonic()
         try:
-            got = self.transport.transact(op, b"", timeout=2.0)
+            got = self.transact(op, b"", timeout=2.0)
         except Exception as exc:
             self.errors.append(str(exc))
             self.recorder.put({"kind": "poll_error", "op": op, "error": str(exc)})
@@ -467,22 +584,35 @@ class Broker:
         if not got["ok"]:
             self.errors.append(f"op {op} status {got['status']}")
             return
-        body = json.loads(got["body"])
+        try:
+            body = json.loads(got["body"])
+        except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError) as exc:
+            self.errors.append(f"op {op} malformed: {exc}")
+            self.recorder.put({"kind": "poll_error", "op": op, "error": "malformed_body"})
+            if op == 1 and self.control_plane is not None:
+                self.control_plane.on_reconnect(self._control_bound(self.bound or {}))
+            return
         self.sample_mono = time.monotonic()
         if op == 1:
             checkpoint = load_checkpoint(self.evidence)
             rebound = bind_identity(body, checkpoint=checkpoint)
             previous = self.bound or {}
-            changed = (
-                rebound.get("build") != previous.get("build")
-                or rebound.get("accepted") != previous.get("accepted")
-                or rebound.get("identified") != previous.get("identified")
-            )
+            changed = identity_tuple_changed(previous, rebound)
+            try:
+                new_seq = int(body.get("sequence"))
+                prev_seq = int(self.last_info_sequence) if self.last_info_sequence is not None else None
+                if prev_seq is not None and (new_seq < prev_seq or (new_seq == 1 and prev_seq > 1)):
+                    changed = True
+                self.last_info_sequence = new_seq
+            except (TypeError, ValueError):
+                changed = True
             self.bound = rebound
             if changed:
                 self.epoch += 1
                 self.last_metrics = None
                 self.last_palette = None
+                if self.control_plane is not None:
+                    self.control_plane.on_reconnect(self._control_bound(rebound))
                 self.recorder.put({
                     "kind": "identity_change",
                     "epoch": self.epoch,
@@ -550,6 +680,10 @@ class Broker:
 
     def shutdown(self) -> None:
         self.stop = True
+        if self.control_server is not None:
+            self.control_server.close()
+            self.control_server = None
+        self.control_plane = None
         self.release_hardware()
         self.publisher.close()
         self.recorder.close()
@@ -571,7 +705,11 @@ def cmd_run(args) -> int:
     evidence = Path(args.evidence)
     evidence.mkdir(parents=True, exist_ok=True)
     write_pid()
-    broker = Broker(evidence, replay_only=args.replay_only)
+    broker = Broker(
+        evidence,
+        replay_only=args.replay_only,
+        control_enabled=bool(getattr(args, "live_control", False)),
+    )
     signal.signal(signal.SIGTERM, lambda *_: setattr(broker, "stop", True))
     signal.signal(signal.SIGINT, lambda *_: setattr(broker, "stop", True))
     try:
@@ -675,6 +813,8 @@ def main() -> int:
     run = sub.add_parser("run")
     run.add_argument("--evidence", required=True)
     run.add_argument("--replay-only", action="store_true")
+    run.add_argument("--live-control", action="store_true",
+                     help="explicitly enable opcode 23/25 control service; default is observe-only")
     sub.add_parser("status")
     sub.add_parser("stop")
     info = sub.add_parser("info-once")

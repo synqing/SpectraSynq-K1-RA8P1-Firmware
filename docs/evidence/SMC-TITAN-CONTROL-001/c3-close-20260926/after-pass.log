@@ -1,0 +1,9 @@
+C3_CLOSE_PASS
+python3 tools/serial-studio/tests/test_c3_close.py  exit=0
+python3 host/titan_control/run_tests.py            exit=0  (36 tests OK)
+python3 tools/serial-studio/tests/test_titan_control_server.py  exit=0  TITAN_CONTROL_SERVER_PASS
+python3 tools/serial-studio/tests/test_live_control_path.py     exit=0  LIVE_CONTROL_PATH_PASS
+python3 scripts/test_live_protocol.py              exit=0  LIVE_PROTOCOL_HOST_PASS / LIVE_PROTOCOL_PY_PASS
+schema_now=e3dca88cecbba56e562a01c18d8c02c0240f813dfbd438c7d185a739515c0b57
+This log is HOST_TEST evidence. It is not TARGET_RUNTIME or OPTICAL evidence.
+No CDC attach, programming, reset, emit-arm or optical run was performed.

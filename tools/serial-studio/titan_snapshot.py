@@ -67,6 +67,17 @@ def identity_ok(
         return False, f"contract not accepted {info['contract']!r}"
     if checkpoint.get("uid") and info["uid"] != checkpoint["uid"]:
         return False, f"UID not accepted {info['uid']!r}"
+    ck_schema = checkpoint.get("schema_sha256") or checkpoint.get("schema")
+    if ck_schema:
+        if not isinstance(ck_schema, str) or not ck_schema.strip():
+            return False, "schema not accepted"
+        info_schema = info.get("schema_sha256") or info.get("schema")
+        if info_schema != ck_schema:
+            return False, f"schema not accepted {info_schema!r}"
+    ck_runtime = checkpoint.get("runtime_kind")
+    if ck_runtime:
+        if info.get("runtime_kind") != ck_runtime:
+            return False, f"runtime_kind not accepted {info.get('runtime_kind')!r}"
     return True, "ok"
 
 
@@ -88,9 +99,12 @@ def bind_identity(
         "build": info.get("build") if visible else None,
         "source": info.get("source") if visible else None,
         "contract": info.get("contract") if visible else None,
+        "schema": info.get("schema") if visible else None,
+        "schema_sha256": (info.get("schema_sha256") or info.get("schema")) if visible else None,
         "protocol": info.get("protocol"),
         "clock_hz": info.get("clock_hz"),
         "device_sequence": info.get("sequence"),
+        "runtime_kind": info.get("runtime_kind"),
         "hop_samples": contract["hop_samples"] if contract else None,
         "admitted_rate_hz": contract["admitted_rate_hz"] if contract else None,
         "unsupported": False,
