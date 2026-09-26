@@ -1,0 +1,42 @@
+{
+  "kind": "smc-titan-control-001-c4-candidate-identity",
+  "status": "PRE-SILICON_ASSESS",
+  "admitted": false,
+  "programmed": false,
+  "uid": "545433931bd25436593630352d068363",
+  "build_id": "addc00a22b67d3db2e010c96e66db81cdb8a209c9c9d193dcdaadb98d5d5e3a3",
+  "schema_sha256": "e3dca88cecbba56e562a01c18d8c02c0240f813dfbd438c7d185a739515c0b57",
+  "defaults_sha256": "d1998017c3fb8263483f4b57191f293189dddfa08b11dabea3796d8b21641581",
+  "elf_sha256": "62859ec129e9367309df0a7decf4c57844c4b4b0017234a5d788cf145953758d",
+  "hex_sha256": "ca3c671e9b7a647b425d99715e23e85bf67b0b32e8ffab22f44415a232ba3b93",
+  "receipt": "docs/evidence/SMC-TITAN-CONTROL-001/offline-arm-build-20260926-r3/receipt.json",
+  "identity_md": "docs/evidence/SMC-TITAN-CONTROL-001/offline-arm-build-20260926-r3/IDENTITY.md",
+  "declared_sources": 120,
+  "mode_a": 8,
+  "emit_on": 0,
+  "ops": ["patch", "get_config", "snapshot"],
+  "fields": ["visual_a.vp_waveform_shift_rate"],
+  "input": "SINCO SMC-Mixer-Master",
+  "first_control": {
+    "fader": 7,
+    "pitchwheel_channel_zero_based": 6,
+    "name": "visual_a.vp_waveform_shift_rate",
+    "range": [0.0, 240.0],
+    "requested": "240 * coarse / 127",
+    "nearby_40": 39.68503937007874,
+    "nearby_200": 200.31496062992125
+  },
+  "pins": {"din_a": "P601", "din_b": "P604"},
+  "pair": {
+    "lane_a0": {"pin": "P601", "gpt_pwm": 6, "dma": 2},
+    "lane_a1": {"pin": "P604", "gpt_pwm": 8, "dma": 3},
+    "gtstr_mask": "GPT6|GPT8"
+  },
+  "compiler": "arm-none-eabi-g++ (Arm GNU Toolchain 13.3.Rel1 (Build arm-13.24)) 13.3.1 20240614",
+  "source_pin": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+  "bsp_pin": "6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7",
+  "do_not_install": [
+    "1afde371457324f6349226b9b0d71082a10da340e18e7a6817a1fbd1b115f421",
+    "72ee7bc44716d73cea7ba6040f59a8a15263990ba472c2e6fecb6a7e6488e2e0"
+  ]
+}

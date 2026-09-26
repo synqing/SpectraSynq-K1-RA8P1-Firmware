@@ -1,0 +1,20 @@
+{
+  "kind": "smc-titan-control-001-c4-recovery-identity",
+  "role": "saved_p604_resident_archive",
+  "automatic_in_emit_off_session": false,
+  "admitted_for_this_session": false,
+  "build_id": "980eb3a9962e570437d7e1b6d7bae733b3a742284e4d45765742675409c90abe",
+  "uid": "545433931bd25436593630352d068363",
+  "schema_sha256": "a77dbf9298dbfb4385623dcb66d4c41037a60c6b65dc734bb7a521449f9d0e09",
+  "elf_sha256": "3141cfd0f4503b405ee0f2de98d63a36512d93883695e37ba3013a5b0ea6774b",
+  "hex_sha256": "029c582bad9adb78abb1c486ca9d02b080183d8420cd5c930ad5dea866f9c62f",
+  "archive": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/integration/PIN12-P604-20260923/image",
+  "programme_receipt": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/integration/PIN12-P604-20260923/programme-rearm-20260923T1207/receipt.json",
+  "binding": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/BINDING.json",
+  "preflight": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/preflight-live/PREFLIGHT.json",
+  "pins": {"din_a": "P601", "din_b": "P604"},
+  "preflight_mode_a": 32,
+  "preflight_emit_on": 1,
+  "image_live_emit": true,
+  "note": "Restoring this HEX restores an emitting mode-32 show. That requires a separate Captain admission. Do not Rearm it as recovery from an emit-off-only addc00a2 session."
+}
