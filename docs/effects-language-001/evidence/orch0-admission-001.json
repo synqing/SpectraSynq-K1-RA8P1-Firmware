@@ -1,0 +1,9 @@
+{
+  "execution": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/c578f71fb6a595b28ec0042fbc0746b0fa2acd336143e053e239adc211fa45cf.json",
+  "observed_cases": 4,
+  "execution_exit": 0,
+  "admission_response": "Incomplete candidate identity",
+  "source_coverage_complete": false,
+  "admitted": false,
+  "repair_scope": "Governance must support complete identity coverage for the real bound root and effects worktree; no session reset, ignore changes or unrelated root cleanup performed."
+}

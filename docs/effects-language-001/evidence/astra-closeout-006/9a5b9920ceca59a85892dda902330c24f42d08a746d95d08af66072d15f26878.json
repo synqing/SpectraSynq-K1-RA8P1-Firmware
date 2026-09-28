@@ -1,0 +1,71 @@
+{
+  "argv_redacted": [
+    "python3",
+    "-m",
+    "pytest",
+    "--rootdir",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+    "-q",
+    "-s",
+    ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py"
+  ],
+  "case_verification": {
+    "artifact": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/results/db928ce3b5264d44a0c00eafafb18a6c.json",
+    "artifact_sha256": "d6d10f846f59014df03a082334e50f766247f61cfef06a4ea4b61ada5e18850b",
+    "cases": [
+      {
+        "case_id": "ORCH-0",
+        "outcome": "PASS",
+        "tests": [
+          ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_retained_inputs_and_protected_base_ORCH0",
+          ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_full_assignments_and_explicit_owners_ORCH0",
+          ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_actual_native_binding_ORCH0",
+          ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_wrong_source_and_session_rejected_ORCH0"
+        ]
+      }
+    ],
+    "contract": {
+      "path": ".worktrees/titan-effects-language-001/docs/effects-language-001/evidence/orch0-case-contract.json",
+      "sha256": "a8de7cb9d549f971930e6a775c192fdbd1924e3c1b703adca7ceb60aac0dc3e4"
+    },
+    "errors": [],
+    "requirements": {
+      "ORCH-0": "be6d782e6de96e7ab8c0e9511d306731beefc96c26cc6cda31bb43b5bcb686a2"
+    },
+    "schema": "case-verifier.v1",
+    "verifier_sha256": "2f022af58ccb52e1f9df6151b72559cfa8f38866e8faea88048dac27c2335096"
+  },
+  "claim": "This command executed with the recorded outcome; domain acceptance is not inferred from exit alone",
+  "ended": "2026-09-28T03:38:38.704449+00:00",
+  "exit_code": 0,
+  "label": "ORCH-0 documentary observer preserving immutable assignments and mutable execution state",
+  "project": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+  "schema": "executed-verification.v1",
+  "session_key": "31b71435bd49aaa2805452dc",
+  "source_after": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "source_before": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "started": "2026-09-28T03:38:38.259384+00:00",
+  "stderr": "",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "..{\"observed_session\": \"31b71435bd49aaa2805452dc\", \"observed_tasks\": [\"ORCH-0\", \"VP-1\", \"VP-2\", \"VP-3\", \"MOD-1\", \"MOD-SLICE\", \"IVV-SLICE\"], \"read_only\": true}\n..\n4 passed in 0.10s\n",
+  "stdout_sha256": "4ddbef8e61a5022de1fe339663f37a30e85e7e087167db72ccfb3e5cb2629a18",
+  "timed_out": false
+}

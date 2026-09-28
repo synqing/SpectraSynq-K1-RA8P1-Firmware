@@ -1,0 +1,42 @@
+{
+  "clear120": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "sparse_reentry": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "fractional12743": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "song-0": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "half_time": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "syncopation": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "dense": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "synthetic": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "silence": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  },
+  "tempo_step": {
+    "single_lanes_unchanged": true,
+    "reference_and_ribbon_unchanged": true
+  }
+}

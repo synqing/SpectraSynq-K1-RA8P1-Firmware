@@ -1,0 +1,39 @@
+{
+  "argv_redacted": [
+    "python3",
+    "/tmp/check_paired_capacity_006.py"
+  ],
+  "claim": "This command executed with the recorded outcome; domain acceptance is not inferred from exit alone",
+  "ended": "2026-09-28T17:07:01.146988+00:00",
+  "exit_code": 0,
+  "label": "FX final live song0 dense and offline audiovisual packaging checks",
+  "project": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+  "schema": "executed-verification.v1",
+  "session_key": "31b71435bd49aaa2805452dc",
+  "source_after": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "source_before": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "started": "2026-09-28T17:06:54.492087+00:00",
+  "stderr": "",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "{\n  \"live\": {\n    \"status\": \"Paired C++ frames ready \\u00b7 6bdc6ac406a0fd36ab4f\",\n    \"variant_canvas_sha256\": {\n      \"current\": \"a34d4756a9d8a3a0d0ec26b787d980e895853fe577547f78f7ee8cc0f5297757\",\n      \"previous\": \"f55b630d95e767a875f9606208e0a2aeee1ce8d9dbec6fceccd5a3cdce338df1\",\n      \"rejected\": \"18970007d8025d1f98ba25e4a4151dbd290484d29a773428cca57db6545d613e\"\n    },\n    \"played_to_s\": 23.351534,\n    \"errors\": [],\n    \"http_request_count\": 17,\n    \"metrics\": \"1  pair energy 809.169 channel-sum\\u00b7s   occupancy 99.5%   peak 5654/6168\\n2  pair energy 86.912 channel-sum\\u00b7s   occupancy 47.8%   peak 4799/6168\\n3  pair energy 89.532 channel-sum\\u00b7s   occupancy 45.9%   peak 3990/6168\\nCandidate limiter active: 0/4321 frames. Descriptors do not establish visual success.\"\n  },\n  \"offline\": {\n    \"status\": \"Paired C++ frames ready \\u00b7 64e46c9dd5a58896767d\",\n    \"variant_canvas_sha256\": {\n      \"current\": \"a34d4756a9d8a3a0d0ec26b787d980e895853fe577547f78f7ee8cc0f5297757\",\n      \"previous\": \"f55b630d95e767a875f9606208e0a2aeee1ce8d9dbec6fceccd5a3cdce338df1\",\n      \"rejected\": \"18970007d8025d1f98ba25e4a4151dbd290484d29a773428cca57db6545d613e\"\n    },\n    \"played_to_s\": 23.358976,\n    \"errors\": [],\n    \"http_request_count\": 0,\n    \"metrics\": \"1  pair energy 674.337 channel-sum\\u00b7s   occupancy 99.5%   peak 5654/6168\\n2  pair energy 109.909 channel-sum\\u00b7s   occupancy 59.0%   peak 4176/6168\\n3  pair energy 94.512 channel-sum\\u00b7s   occupancy 53.9%   peak 4111/6168\\nCandidate limiter active: 0/3601 frames. Descriptors do not establish visual success.\"\n  }\n}\n",
+  "stdout_sha256": "32685c97c5a180820292b8ddfcc6201433940e4b66e7ff151879bc17a53baa26",
+  "timed_out": false
+}

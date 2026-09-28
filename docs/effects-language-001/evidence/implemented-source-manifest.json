@@ -1,0 +1,14 @@
+{
+  "src/k1/core/visual/ribbon_material.cpp": "a93b166dbcf53a2b671281f99efc5db514ec24a814a498246e284762d3b6c8be",
+  "src/k1/core/visual/ribbon_material.h": "98791ff14223c924aee5a5136b218f666af884f8223d2589ed95e3c856978c2c",
+  "tests/host/ribbon_replay.cpp": "cb33cc1235e9f29808cc0f4db2698fb2771eeebd49be31c3c3718853da4dd3e2",
+  "tests/host/test_ribbon_material.cpp": "ee3b5815cbc2dc9dd0a45c028b60372b46c5eb0a1dcc03ba3d6bf196da27a634",
+  "tests/reference/bloom_donors.h": "848568f1292b796f9391496ca937b83ce7755ecf462dca11c8734c9a7ecbf35a",
+  "tests/reference/test_bloom_donors.cpp": "f747c326218b2c9e982a1e4f4b43a152f6f653a545627feefd0f54730a7c2916",
+  "tools/audio/build_ribbon_replay.py": "d2941a68aeb133750e4629f2e7b6c7cbcc9f6bc0426b4220dabc0648f39e6cf6",
+  "tools/audio/ribbon_audition.html": "bae74c1e5576281ba1652b3895034fd5c19306c821dfea3924ae7d361853ea2a",
+  "tools/audio/serve_ribbon_audition.py": "32958817d87f797fb56686abeed9207c7ddee255a57b1de292d72853d857d0a4",
+  "tools/audio/verify_ribbon.py": "daa95bc7d94269e10633561713527660a38af36b841f9bc8694a3317fae37cf9",
+  "tools/audio/verify_ribbon_arm.py": "6e2962e767569bd323ed57aeda3be181223115872405daed7f7827637a241753",
+  "tools/audio/verify_bloom_sources.py": "bd2e7cab464076a599d209d22cd254ea83260421592409ae13fff583cd18fc65"
+}

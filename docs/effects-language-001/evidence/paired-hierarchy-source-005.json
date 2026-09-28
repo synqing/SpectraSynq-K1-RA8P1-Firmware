@@ -1,0 +1,8 @@
+{
+  "src/k1/core/visual/paired_wave_scene.cpp": "f024cc8284b5de34b34499403e952dc129ef70b80128b50c4768900b3f3a1e1f",
+  "src/k1/core/visual/paired_wave_scene.h": "07cf83515c2a7d20c68b9511ed0697518a6f8a30bc675b29f3b7d9ba20706263",
+  "tests/host/test_paired_wave_scene.cpp": "e93fe9c8575be213dbd367fe767f021d41eebdbe4006df6b95dffaa18e41b84c",
+  "tools/audio/paired_audition.html": "0e112d2bb3c1fad1f609fba26caaccd7451fce78e1df9931ed1e2f5d137d0f1b",
+  "tools/audio/package_paired_audition.py": "838bc30d1fad7f5ca16c49a5a4e01cd7e7345360b25298392b4350a82f2f1cf3",
+  "tools/audio/serve_ribbon_audition.py": "69855266d5ed618b06ff77ef8e4bedc26f4ecc14d10b47406b506fcdce5f4066"
+}

@@ -1,0 +1,167 @@
+{
+  "syncopation": {
+    "key": "1c89275ee43c67ff8c67",
+    "admission": {
+      "attempted": 143,
+      "admitted": 64,
+      "omitted": 0,
+      "refractory": 79,
+      "bodies_admitted": 11,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 69.4731352204,
+      "occupancy_at_1pct_ceiling": 0.38405462,
+      "peak_code": 4547
+    }
+  },
+  "sparse_reentry": {
+    "key": "6f4f6bfd6d9fe695daa1",
+    "admission": {
+      "attempted": 107,
+      "admitted": 44,
+      "omitted": 0,
+      "refractory": 63,
+      "bodies_admitted": 8,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 48.0080008138,
+      "occupancy_at_1pct_ceiling": 0.27439829,
+      "peak_code": 4205
+    }
+  },
+  "song-0": {
+    "key": "64e46c9dd5a58896767d",
+    "admission": {
+      "attempted": 573,
+      "admitted": 160,
+      "omitted": 0,
+      "refractory": 413,
+      "bodies_admitted": 12,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 94.511934081,
+      "occupancy_at_1pct_ceiling": 0.53887288,
+      "peak_code": 4111
+    }
+  },
+  "clear120": {
+    "key": "66b86a1408ab2f178e62",
+    "admission": {
+      "attempted": 155,
+      "admitted": 64,
+      "omitted": 0,
+      "refractory": 91,
+      "bodies_admitted": 11,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 70.2916886651,
+      "occupancy_at_1pct_ceiling": 0.39331463,
+      "peak_code": 4252
+    }
+  },
+  "dense": {
+    "key": "6bdc6ac406a0fd36ab4f",
+    "admission": {
+      "attempted": 356,
+      "admitted": 135,
+      "omitted": 0,
+      "refractory": 221,
+      "bodies_admitted": 12,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 89.5318399837,
+      "occupancy_at_1pct_ceiling": 0.45852956,
+      "peak_code": 3990
+    }
+  },
+  "fractional12743": {
+    "key": "d17255ff397c8a6dc634",
+    "admission": {
+      "attempted": 158,
+      "admitted": 68,
+      "omitted": 0,
+      "refractory": 90,
+      "bodies_admitted": 11,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 68.7803435823,
+      "occupancy_at_1pct_ceiling": 0.38780809,
+      "peak_code": 4157
+    }
+  },
+  "tempo_step": {
+    "key": "f107219cb03b1983c157",
+    "admission": {
+      "attempted": 135,
+      "admitted": 60,
+      "omitted": 0,
+      "refractory": 75,
+      "bodies_admitted": 11,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 65.7189677272,
+      "occupancy_at_1pct_ceiling": 0.37502025,
+      "peak_code": 4337
+    }
+  },
+  "half_time": {
+    "key": "0a8ecf618f96ad529f0f",
+    "admission": {
+      "attempted": 203,
+      "admitted": 96,
+      "omitted": 0,
+      "refractory": 107,
+      "bodies_admitted": 12,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 76.1907537957,
+      "occupancy_at_1pct_ceiling": 0.41815697,
+      "peak_code": 4497
+    }
+  },
+  "synthetic": {
+    "key": "b837011502ba49685a9a",
+    "admission": {
+      "attempted": 2,
+      "admitted": 1,
+      "omitted": 0,
+      "refractory": 1,
+      "bodies_admitted": 1,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 41.4769242898,
+      "occupancy_at_1pct_ceiling": 0.1516621,
+      "peak_code": 6168
+    }
+  },
+  "silence": {
+    "key": "9b65c2c7d5b01bc1874a",
+    "admission": {
+      "attempted": 0,
+      "admitted": 0,
+      "omitted": 0,
+      "refractory": 0,
+      "bodies_admitted": 0,
+      "bodies_omitted": 0
+    },
+    "metrics": {
+      "channel_sum_seconds": 0,
+      "occupancy_at_1pct_ceiling": 0,
+      "peak_code": 0
+    }
+  },
+  "identity": {
+    "executable_sha256": "e3cb666c3ea64c264b8d27b848f21bf3b10651de4d5d80deea2c8e754756fb80",
+    "source_sha256": "c20b359f6717b95f1db0f8d40bbb6d8be561b91d052fafb98c4b0fc565cd1bcb",
+    "html_sha256": "0261aaf12467ab258cee3a6384051990261a230c90a989e2375b3b370a829ac8"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "argv_redacted": [
+    "python3",
+    ".worktrees/titan-effects-language-001/tools/audio/verify_ribbon.py",
+    "--output",
+    ".worktrees/titan-effects-language-001/out/paired-capacity-verification-006-final"
+  ],
+  "claim": "This command executed with the recorded outcome; domain acceptance is not inferred from exit alone",
+  "ended": "2026-09-28T17:01:22.401554+00:00",
+  "exit_code": 0,
+  "label": "FX capacity repair with visible formed body final full regression",
+  "project": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+  "schema": "executed-verification.v1",
+  "session_key": "31b71435bd49aaa2805452dc",
+  "source_after": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "source_before": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "started": "2026-09-28T17:00:35.236784+00:00",
+  "stderr": "",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "{\n  \"source_sha256\": {\n    \"docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/led_utilities.h\": \"ce17aced87bdc4df119055b51f65f2d0e3fc6566bd7690af590d135693ff7cb9\",\n    \"docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/lightshow_modes.h\": \"39b93c9f99a1d7c8c1719feaa17025e211cd6a96f9e610ea98e2693a2e0c6267\",\n    \"docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/leds.h\": \"312708a94b085aa362cbac9f6e31a25ed6b6cfee52766cce3fc2de1f61353b89\",\n    \"docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/bloom.h\": \"50eb5c380e95573adee25b793cd53c33b9be7ddc9745663846314b5048ba3d99\"\n  },\n  \"command\": [\n    \"/opt/homebrew/bin/g++-15\",\n    \"-std=c++17\",\n    \"-O2\",\n    \"-ffp-contract=off\",\n    \"-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1\",\n    \"-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/reference\",\n    \"/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/paired-capacity-verification-006-final/original-statements/official_statement_probe.cpp\",\n    \"-o\",\n    \"/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/paired-capacity-verification-006-final/original-statements/probe\"\n  ],\n  \"compile_exit\": 0,\n  \"compile_log\": \"\",\n  \"run_exit\": 0,\n  \"run_log\": \"1800 frames: original retained statements and both adapters match exactly at declared boundaries\\n\",\n  \"boundary\": \"Original draw_sprite and retained-history statements; supplied post-colour bytes for SB, red HSV mapping for Emotiscope. Not full donor AP/output parity.\"\n}\nsynthetic 7201 frames verified\nsong-0 3601 frames verified\nsparse_reentry 4321 frames verified\nclear120 4321 frames verified\ndense 4321 frames verified\nfractional12743 4321 frames verified\nhalf_time 4321 frames verified\nsilence 4321 frames verified\nsyncopation 4321 frames verified\ntempo_step 4321 frames verified\nHost source, material, causal PCM, native packing and negative witness checks passed\n",
+  "stdout_sha256": "a5893701f78c3789e9000f6b3ab754ea677b6993c4fc3842299409e51cabd737",
+  "timed_out": false
+}

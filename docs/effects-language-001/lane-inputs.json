@@ -1,0 +1,404 @@
+{
+  "schema": "k1.effects-lane-inputs.v1",
+  "created_utc": "2026-09-28T00:54:47.368042+00:00",
+  "base_commit": "a96278c3cb1ab5346a0010412438cb7ecb29be03",
+  "branch": "feat/titan-effects-language-001",
+  "records": [
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/history/Connor-Light-Engines-Teardown.md",
+      "path": "docs/effects-language-001/reference/Connor-Light-Engines-Teardown.md",
+      "sha256": "291b9a72ed82716bdc57d144635cffe14eec1ce5fb5243780b6cf8711446bc4f",
+      "bytes": 194155,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/K1-Modular-Pipeline-Architecture.md",
+      "path": "docs/effects-language-001/reference/K1-Modular-Pipeline-Architecture.md",
+      "sha256": "77668aabe6bdedf61bfc7828c9d2f54fb23151756469ba1d6b33b87a4f13d9df",
+      "bytes": 166203,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/visual-modularity.md",
+      "path": "docs/effects-language-001/reference/visual-modularity.md",
+      "sha256": "ccb95295b411d532f77c339a2e0987d23e0815d4ba66759c295ce0464cf48969",
+      "bytes": 30839,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/precision-audit.md",
+      "path": "docs/effects-language-001/reference/precision-audit.md",
+      "sha256": "6f28f3d870eba4bc02badee9bfbb9410c51eb3d467e51f8c290486af9a27c308",
+      "bytes": 21945,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/architecture-decision.md",
+      "path": "docs/effects-language-001/reference/architecture-decision.md",
+      "sha256": "b1964a8c4def37f869c4b2b427d9d710eb1a121caf93a1856e965fbe2165b351",
+      "bytes": 30710,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/GDFT.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/GDFT.h",
+      "sha256": "0f5449e73b7388bf561eae5dae4cc5c4bccd687bb979b8cf2142af0206c457a6",
+      "bytes": 9048,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/SENSORY_BRIDGE_FIRMWARE.ino",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/SENSORY_BRIDGE_FIRMWARE.ino",
+      "sha256": "f2b0dad4d408ef2184dd461eabca2ec07df09addc279b32943146ea324edab5a",
+      "bytes": 10537,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/audio_transfer.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/audio_transfer.h",
+      "sha256": "47e119889e41893730033c2e34f76584a1a366b654f678127bd99e319ed3863b",
+      "bytes": 21398,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/bridge_fs.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/bridge_fs.h",
+      "sha256": "c1e658fc880039b12a7fd5c1aff0162a8cd8ce5c10a5fabf54584c4752055ed3",
+      "bytes": 4662,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/buttons.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/buttons.h",
+      "sha256": "a83eb528827c67f1ed035a7a96be8cfa31219a246687581cb54af790096ef4a8",
+      "bytes": 3391,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/constants.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/constants.h",
+      "sha256": "2376434d471d74dc3d4724896148d57efc161b8d0d79421a2c3f06973cc0c324",
+      "bytes": 4969,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/globals.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/globals.h",
+      "sha256": "24fe1733190ea1f4329576c4cfc8cb7527da469197e986f85836d213940e1817",
+      "bytes": 10166,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/i2s_audio.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/i2s_audio.h",
+      "sha256": "d143e9535ec752afe974639c026192ce4854632b57b2c72e75f80e3675af9cb1",
+      "bytes": 8333,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/knobs.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/knobs.h",
+      "sha256": "45c07a9ffa7c45a3940d60dbcb73793200e556a2e1e60fb28ddaa00a8bd453df",
+      "bytes": 6003,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/led_utilities.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/led_utilities.h",
+      "sha256": "ce17aced87bdc4df119055b51f65f2d0e3fc6566bd7690af590d135693ff7cb9",
+      "bytes": 43522,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/lightshow_modes.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/lightshow_modes.h",
+      "sha256": "39b93c9f99a1d7c8c1719feaa17025e211cd6a96f9e610ea98e2693a2e0c6267",
+      "bytes": 14444,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/noise_cal.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/noise_cal.h",
+      "sha256": "6044cc81e712985cba1bc0d7857c703b294b23ec3ec2fcb6b8b7348d4528b167",
+      "bytes": 695,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/p2p.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/p2p.h",
+      "sha256": "5e64635bb3bded095c554d2707031e7de89c7a409b061ffc93d1be425ab72d10",
+      "bytes": 5828,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/presets.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/presets.h",
+      "sha256": "2ab50089630cbc42c22e0d8e746fc938523b02719595505e868d85ae1b5a4c16",
+      "bytes": 1345,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/serial_menu.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/serial_menu.h",
+      "sha256": "dfbf2b212515d0818e37d0d2d306e405066cbe9ad1341b6da1cfb5042ff9d997",
+      "bytes": 42307,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/strings.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/strings.h",
+      "sha256": "e3e2f625604e6e706f1d32e3511fb4843f8d98cdca26582dcf70ba632c51f5ed",
+      "bytes": 223,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/system.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/system.h",
+      "sha256": "6a7eeb4f96f383e9ee4cf78859d357d0bfa25ed4e0d2d015867151dfdd32e34d",
+      "bytes": 10748,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/user_config.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/user_config.h",
+      "sha256": "e3a2cc17a6e73193187cbb5af7e596c06d19e579d7edbce69c6f61031604117d",
+      "bytes": 626,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/SENSORY_BRIDGE_FIRMWARE/utilities.h",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/utilities.h",
+      "sha256": "91d2421ed24c7715d82c7dd03b9017a607fbbaa23c122c9b4eec21f9dec55461",
+      "bytes": 3718,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/LICENSE",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/LICENSE",
+      "sha256": "8b1ba204bb69a0ade2bfcf65ef294a920f6bb361b317dba43c7ef29d96332b9b",
+      "bytes": 35148,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/global_defines.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/global_defines.h",
+      "sha256": "e2ef10f8814076f7c9c2f80bcce3a576e1416af662cef4656e53f6e0ef98dbc3",
+      "bytes": 1997,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/gpu_core.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/gpu_core.h",
+      "sha256": "7ca3594bc7a2ff327de3a026da24f97334e6810cfbe5aab1427c671414c3b7ba",
+      "bytes": 3434,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/leds.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/leds.h",
+      "sha256": "312708a94b085aa362cbac9f6e31a25ed6b6cfee52766cce3fc2de1f61353b89",
+      "bytes": 25694,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/analog.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/analog.h",
+      "sha256": "a29e5ac537f8d54b3ca5f6d4dee14d9b1f2c44f73b28c7064b732933e32e5b72",
+      "bytes": 693,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/bloom.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/bloom.h",
+      "sha256": "50eb5c380e95573adee25b793cd53c33b9be7ddc9745663846314b5048ba3d99",
+      "bytes": 1094,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/hype.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/hype.h",
+      "sha256": "e9d39c524be6cde3e190f58cc4ac00da1e8f729d98db67b4854679e452d8a5f9",
+      "bytes": 1546,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/metronome.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/metronome.h",
+      "sha256": "d05e1bd34df20b1de93365125bb36f06b7521f90b8374ad575384457ab3f19c6",
+      "bytes": 1490,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/octave.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/octave.h",
+      "sha256": "8d97ba8ad6618460c35183a7678d35ee73cd89006e8ca406850ae4906d2d7f2f",
+      "bytes": 738,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/spectronome.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/spectronome.h",
+      "sha256": "3ccbd9f053234b1c5bb95a76e93da8896e81f4a7991066708ed0daa3309f13f5",
+      "bytes": 256,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/active/spectrum.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/spectrum.h",
+      "sha256": "799cfa91c82cd6fccd16a19b256a785a9ed2091187d5d4031cedddf9bb406618",
+      "bytes": 730,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/beta/debug.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/beta/debug.h",
+      "sha256": "765945ccf413f401f90dd9b59190f3265b2ce9068818fcb1949bd3519bfdc5c5",
+      "bytes": 627,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/beta/neurons.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/beta/neurons.h",
+      "sha256": "abfe59bc9558873db1b3bf5d0351ce6f7fed16db12303c293232e9dde6f2e7d5",
+      "bytes": 648,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/beta/plot.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/beta/plot.h",
+      "sha256": "28582bc77c61cbd2423a51499ae9f2e1b2e8f654c884d152390188cbe0f7d931",
+      "bytes": 2279,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/beta/waveform.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/beta/waveform.h",
+      "sha256": "1976a734c029f006a9334afcca261148e8ddc1c9e01febd896ca32c00fe6b5c3",
+      "bytes": 1196,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/inactive/neutral.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/inactive/neutral.h",
+      "sha256": "e817f3c4735e1a3190fc8ae4d0c19aec3a9c752067b4e5bca07c388115e7f9db",
+      "bytes": 612,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/system/presets.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/system/presets.h",
+      "sha256": "e6c8fb6a17aedebc6a3d85e28b254bfa6442090922ecaa22c225aca8deb37ab4",
+      "bytes": 204,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes/system/self_test.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/system/self_test.h",
+      "sha256": "f5137298e1ad16303590438a3776d8eaee661a6dd778ff35f2711028a5ccdc1e",
+      "bytes": 1065,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/light_modes.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes.h",
+      "sha256": "e19491cbd24bfe6e3e5722cca419dded3cde0dc2e7d4b88c8f00d72b58ee1729",
+      "bytes": 4535,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/K1-Swarm-Handoff/source-inputs/k1-pipeline-integration/donor-1.1/src/utilities.h",
+      "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/utilities.h",
+      "sha256": "490aea6f36b3e01a736be9064110d0fe6f4bd90f2f25dc526d9d85d78dfed98b",
+      "bytes": 7504,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Downloads/Sensorybridge.sourcecode/SensoryBridge-4.1.1/LICENSE",
+      "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/LICENSE",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "bytes": 35149,
+      "frozen_pcm_match": false
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+      "sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+      "sha256": "27306f97be9312ed6f93878fa6563d19ac1f3916da485a24b01cd263543c7576",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+      "sha256": "19a35e34ae7125fecf64900adbee5fdf9c944a90400dbf1e4773b665228cd974",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+      "sha256": "8290c278b35f9fac71552d4d04835530aec6b0c7a9581fb6a8fb33c37a6ea78e",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+      "sha256": "20006c160b8bafe64f46a7302ffb6275e98127d02a516d1d141a8e1d06aaeed5",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+      "sha256": "4e7a5b39b0ff47147abf79d6e67ccea58a2b1bde0e1e833ab83b3379893b18c3",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+      "sha256": "75c4124e7b4e22b53b59f9208d359b0cc16157ae1e4beba52159c5a6b801dd2b",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+      "sha256": "7feb082bb40f4094d3a93d785cedbddfb74472a89dc2bc987250454b09979141",
+      "bytes": 1728000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+      "sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be",
+      "bytes": 1440000,
+      "frozen_pcm_match": true
+    },
+    {
+      "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+      "path": "tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+      "sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a",
+      "bytes": 1440000,
+      "frozen_pcm_match": true
+    }
+  ],
+  "pcm_fixture_count": 10,
+  "donor_correspondence": "Execution-day local hashes only; verify upstream correspondence before donor-parity claims.",
+  "render_code_changed": false,
+  "device_mutated": false,
+  "appearance_implementation": "NOT STARTED",
+  "source_platform_edits_excluded": [
+    "platform/ra8p1/fixture_app.cpp",
+    "platform/ra8p1/stage_probe.h",
+    "scripts/run_scalar_schedule.py",
+    "scripts/stage_profile.py"
+  ]
+}

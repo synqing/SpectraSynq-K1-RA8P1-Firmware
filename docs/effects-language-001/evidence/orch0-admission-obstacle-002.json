@@ -1,0 +1,13 @@
+{
+  "schema": "effects-admission-obstacle.v1",
+  "task": "ORCH-0",
+  "execution_receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/9a5b9920ceca59a85892dda902330c24f42d08a746d95d08af66072d15f26878.json",
+  "execution_receipt_sha256": "352158b942d32f18d4a13a4983ef9080576c5d202151e07a30885dacc62d61dd",
+  "observed_cases": 4,
+  "execution_exit": 0,
+  "workflow_accept_response": "Incomplete candidate identity",
+  "source_before_coverage_complete": false,
+  "source_after_coverage_complete": false,
+  "scope": "Formal admission only; does not invalidate passed host cases or prevent independent implementation.",
+  "release_condition": "Governance owner restores complete candidate source identity for this actual root/project/worktree binding, then the unchanged-scope documentary observer is rerun and admitted. No reduced coverage or trust bypass."
+}

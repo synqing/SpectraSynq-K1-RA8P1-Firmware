@@ -1,0 +1,40 @@
+{
+  "folder": "/tmp/k1-005-independent-capacity-ekww8p8t",
+  "command": [
+    "c++",
+    "-std=c++17",
+    "-O1",
+    "-g",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Isrc/k1",
+    "src/k1/core/visual/ribbon_material.cpp",
+    "src/k1/core/visual/paired_wave_scene.cpp",
+    "src/k1/core/visual/product_palette_data.cpp",
+    "/tmp/k1-005-independent-capacity-ekww8p8t/capacity_probe.cpp",
+    "-o",
+    "/tmp/k1-005-independent-capacity-ekww8p8t/capacity_probe"
+  ],
+  "source_sha256": {
+    "src/k1/core/visual/ribbon_material.cpp": "a93b166dbcf53a2b671281f99efc5db514ec24a814a498246e284762d3b6c8be",
+    "src/k1/core/visual/paired_wave_scene.cpp": "f024cc8284b5de34b34499403e952dc129ef70b80128b50c4768900b3f3a1e1f",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060"
+  },
+  "build_exit": 0,
+  "build_stdout": "",
+  "build_stderr": "",
+  "run_exit": 0,
+  "stdout": "{\"witness\":true,\"velocity_px_s\":40.0,\"time_us\":4800000,\"hop_us\":25000,\"onset_period_us\":150000,\"vu_level\":1,\"before_attacks\":32,\"before_omitted\":2,\"attack_branch_attacks\":33,\"control_branch_attacks\":32,\"attack_branch_omitted\":3,\"control_branch_omitted\":2,\"different_rgb_components\":0,\"attack_channel_sum\":1402174,\"control_channel_sum\":1402174}\n",
+  "stderr": "",
+  "attack.rgb16le": {
+    "bytes": 1920,
+    "sha256": "49c97ff0f95ba4171c44689f6ad0f7d880421008ea50d2ba9b63e01d8b6d293f"
+  },
+  "no_attack.rgb16le": {
+    "bytes": 1920,
+    "sha256": "49c97ff0f95ba4171c44689f6ad0f7d880421008ea50d2ba9b63e01d8b6d293f"
+  }
+}

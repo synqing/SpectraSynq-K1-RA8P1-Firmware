@@ -1,0 +1,24 @@
+{
+  "source_sha256": {
+    "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/led_utilities.h": "ce17aced87bdc4df119055b51f65f2d0e3fc6566bd7690af590d135693ff7cb9",
+    "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/lightshow_modes.h": "39b93c9f99a1d7c8c1719feaa17025e211cd6a96f9e610ea98e2693a2e0c6267",
+    "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/leds.h": "312708a94b085aa362cbac9f6e31a25ed6b6cfee52766cce3fc2de1f61353b89",
+    "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/bloom.h": "50eb5c380e95573adee25b793cd53c33b9be7ddc9745663846314b5048ba3d99"
+  },
+  "command": [
+    "/opt/homebrew/bin/g++-15",
+    "-std=c++17",
+    "-O2",
+    "-ffp-contract=off",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/reference",
+    "docs/effects-language-001/evidence/source-probe-002/official_statement_probe.cpp",
+    "-o",
+    "docs/effects-language-001/evidence/source-probe-002/probe"
+  ],
+  "compile_exit": 0,
+  "compile_log": "",
+  "run_exit": 0,
+  "run_log": "1800 frames: original retained statements and both adapters match exactly at declared boundaries\n",
+  "boundary": "Original draw_sprite and retained-history statements; supplied post-colour bytes for SB, red HSV mapping for Emotiscope. Not full donor AP/output parity."
+}

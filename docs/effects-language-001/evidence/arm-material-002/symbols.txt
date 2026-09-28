@@ -1,0 +1,26 @@
+         U __aeabi_d2f
+         U __aeabi_dadd
+         U __aeabi_dcmpge
+         U __aeabi_dcmpgt
+         U __aeabi_dcmple
+         U __aeabi_dcmplt
+         U __aeabi_ddiv
+         U __aeabi_dmul
+         U __aeabi_dsub
+         U __aeabi_f2d
+         U __aeabi_ul2d
+00000000 0000018c T _ZN2k14core6visual13ribbonPaletteEtf
+         U _ZN2k14core6visual14productPaletteEt
+0000042c 00000108 T _ZN2k14core6visual14RibbonMaterial5resetEy
+0000121c 00000990 T _ZN2k14core6visual14RibbonMaterial6renderEyf
+00000534 000004c4 T _ZN2k14core6visual14RibbonMaterial7advanceEy
+00000d30 000004ec T _ZN2k14core6visual14RibbonMaterial7consumeERKNS1_20VisualAudioFrameViewEy
+00000a68 000002c8 T _ZN2k14core6visual14RibbonMaterial7depositEffy
+000009f8 00000070 T _ZN2k14core6visual14RibbonMaterial9configureERKNS1_14RibbonSettingsEy
+0000018c 000002a0 T _ZN2k14core6visual19validRibbonSettingsERKNS1_14RibbonSettingsE
+         U expf
+         U memcpy
+         U memset
+         U powf
+         U sqrt
+         U sqrtf

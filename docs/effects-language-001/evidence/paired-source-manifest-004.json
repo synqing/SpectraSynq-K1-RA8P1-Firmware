@@ -1,0 +1,21 @@
+{
+  "src/k1/core/visual/paired_wave_scene.cpp": "93d7ec3838c239eaf0a0e2cfe7f14c0aadfcfc4ccd27799ce8aa3cdf361e58a8",
+  "src/k1/core/visual/paired_wave_scene.h": "07cf83515c2a7d20c68b9511ed0697518a6f8a30bc675b29f3b7d9ba20706263",
+  "src/k1/core/visual/ribbon_material.cpp": "a93b166dbcf53a2b671281f99efc5db514ec24a814a498246e284762d3b6c8be",
+  "src/k1/core/visual/ribbon_material.h": "98791ff14223c924aee5a5136b218f666af884f8223d2589ed95e3c856978c2c",
+  "src/k1/core/visual/ribbon_profile.cpp": "062652785e9bac50c85f5d71b8d7fc04bbf7ec1be25dfefab1a4d7d8e52d1e81",
+  "src/k1/core/visual/ribbon_profile.h": "638f2646d3a9d0c70f3b4eaa3909d5ae132348962516e344dc1bd568f0ea55bb",
+  "tests/host/ribbon_replay.cpp": "301003554366d19d4e2b477826b7aacbe0e12702de3430325734096ec7a58a6a",
+  "tests/host/test_paired_wave_scene.cpp": "a58fd1962ed21aec312e09372f855857b957dac194dae66c1b3f247a9a6da636",
+  "tests/host/test_ribbon_material.cpp": "ee3b5815cbc2dc9dd0a45c028b60372b46c5eb0a1dcc03ba3d6bf196da27a634",
+  "tests/host/test_ribbon_profile.cpp": "e06ec10ea74ed69c1fc7cbe6c2dc6844cbe3397f1fd04844d3056762e339a17a",
+  "tests/reference/cross_strip_reference.h": "c3af024ecb156547d2ff293af99ff31e7f7def58244a03756b334f38e7633efc",
+  "tools/audio/build_ribbon_replay.py": "3d9f8a7cd852ca0b133ac205d10255c6fa67dbed4b35497496cdcc62979eba10",
+  "tools/audio/package_paired_audition.py": "d114b5ec71f71f2902fdd6cf725ea2fc2f9230b792d85757e51e0f56642be974",
+  "tools/audio/paired_audition.html": "11edd590294418fc0f6a0fb900f1ce5b5a73fe84d49cb03b5a22e1285e094b71",
+  "tools/audio/ribbon_audition.html": "bae74c1e5576281ba1652b3895034fd5c19306c821dfea3924ae7d361853ea2a",
+  "tools/audio/serve_ribbon_audition.py": "0a9e9da4bcf6dfb39364d97d4deb6f536d9da1291965ae6623f10b2227e82913",
+  "tools/audio/verify_cross_strip_source.py": "4529841118db190b4ecb413950bb48fd919b9b87a17d2a5d6bc5c9e076b2244a",
+  "tools/audio/verify_ribbon.py": "586b6cd9e904c5c743c7b2635e19ee72831b57332636fc6fa4198a74fb27ad89",
+  "tools/audio/verify_ribbon_arm.py": "9d737119ce90e5e411a1bacf760cc7c312d9d4f960b469684046e38534016159"
+}

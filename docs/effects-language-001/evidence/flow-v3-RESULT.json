@@ -1,0 +1,921 @@
+{
+  "fixtures": {
+    "synthetic": {
+      "identity": {
+        "fixture": "synthetic",
+        "input_sha256": "declared-six-studies-v1",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/dc656065989cdc50a054/frames",
+          "--synthetic",
+          "1",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "f6206b79409aa1b75d7e06f104c02c188bba0854d94b701e14263e8508df3891",
+          "frames.matched.rgb16le": "fa8f36e77f5bdbb8a0790789bc2c0998e6976fdc7c4b650d1e9dda9eb27c06c2",
+          "frames.json": "855aa8cb2d675dfdd1247f823e78ff5cf12be93359628dccb62dcb65782e0ebb",
+          "frames.rgb16le": "a577befb512439e8b40c3afa2f406f1743d61629e6bab255288ebc757c394009",
+          "replay.log": "56d7ae2be7be412d789be6ef1cdb97ae2f6e3ab3c54e72f02a2c4d5f46140a56"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 53.2542214084,
+          "occupancy_at_1pct_ceiling": 0.12643036,
+          "peak_code": 4661
+        },
+        {
+          "channel_sum_seconds": 46.4046155998,
+          "occupancy_at_1pct_ceiling": 0.16740557,
+          "peak_code": 4661
+        },
+        {
+          "channel_sum_seconds": 8.03609267313,
+          "occupancy_at_1pct_ceiling": 0.052754826,
+          "peak_code": 4087
+        },
+        {
+          "channel_sum_seconds": 35.0069667608,
+          "occupancy_at_1pct_ceiling": 0.12768713,
+          "peak_code": 6168
+        },
+        {
+          "channel_sum_seconds": 23.5867139696,
+          "occupancy_at_1pct_ceiling": 0.12887099,
+          "peak_code": 6168
+        }
+      ],
+      "frames": 7201,
+      "hops": 0,
+      "low_byte_pixels": 191124
+    },
+    "song-0": {
+      "identity": {
+        "fixture": "song-0",
+        "input_sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/3bdbb807a9503ffd15ce/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "64af48f2276243e6365f68ea72922c7b48be8e06a0ecb5344425686bbc872bd7",
+          "frames.matched.rgb16le": "ee8088c39e868543210bef09cca1eeed182c7b64107b1a8e379a707743b5e0a4",
+          "frames.json": "b2419ea64f451d9ea9a5cb58e1b1b695b939ed5253b4472598d97fcc408fb801",
+          "frames.rgb16le": "6b25123c4c4d89b58ec99bec7ece50fc0063d4256c133e112153a6380b447a80",
+          "replay.log": "0a3ce0272fa0f67fdb658c666e8fc0d33b54196948876a058f065c47b19a85cc",
+          "audio.wav": "01ad3987441f5576341d68020682bacaa6227cb8e1dcecab158fdff108b658e6"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 26.6491302358,
+          "occupancy_at_1pct_ceiling": 0.69021105,
+          "peak_code": 1722
+        },
+        {
+          "channel_sum_seconds": 23.6394104931,
+          "occupancy_at_1pct_ceiling": 0.85739031,
+          "peak_code": 1722
+        },
+        {
+          "channel_sum_seconds": 64.2678502581,
+          "occupancy_at_1pct_ceiling": 0.53961052,
+          "peak_code": 3942
+        },
+        {
+          "channel_sum_seconds": 54.920494138,
+          "occupancy_at_1pct_ceiling": 0.58890933,
+          "peak_code": 4176
+        },
+        {
+          "channel_sum_seconds": 12.040920882,
+          "occupancy_at_1pct_ceiling": 0.43927034,
+          "peak_code": 2667
+        }
+      ],
+      "frames": 3601,
+      "hops": 4000,
+      "low_byte_pixels": 494534
+    },
+    "sparse_reentry": {
+      "identity": {
+        "fixture": "sparse_reentry",
+        "input_sha256": "8290c278b35f9fac71552d4d04835530aec6b0c7a9581fb6a8fb33c37a6ea78e",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/541a228bdc831027ec6c/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "d5ef7bb06915798f56ccc8227ae7550c241f24bb218ca865ce7e269a5381db49",
+          "frames.matched.rgb16le": "f315620301ed14c1fa41488de0f316cbc75deb6c6bcbdebe5c638a8498d2cb26",
+          "frames.json": "40806e5f7246e1da833f2a400ad14c77bc1cd887ec0ffbb9a05af3aa79b72b27",
+          "frames.rgb16le": "229ba2d64550b24a589fbc6752c86222bcfc31b35af83903a59b03152152af57",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "745e08e1f26ad59f154e0eee03e576152dd404175d2ce36c246ab1cf7ea2b85d"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 0.464789806973,
+          "occupancy_at_1pct_ceiling": 0.007657371,
+          "peak_code": 682
+        },
+        {
+          "channel_sum_seconds": 0.541005569543,
+          "occupancy_at_1pct_ceiling": 0.0018977089,
+          "peak_code": 682
+        },
+        {
+          "channel_sum_seconds": 7.39953663437,
+          "occupancy_at_1pct_ceiling": 0.090560634,
+          "peak_code": 3724
+        },
+        {
+          "channel_sum_seconds": 11.756364538,
+          "occupancy_at_1pct_ceiling": 0.13235941,
+          "peak_code": 2363
+        },
+        {
+          "channel_sum_seconds": 0.574971643651,
+          "occupancy_at_1pct_ceiling": 0.015358135,
+          "peak_code": 1059
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 190774
+    },
+    "clear120": {
+      "identity": {
+        "fixture": "clear120",
+        "input_sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/cae63030fdd313feabf1/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "a4470409c8f1463ed5bfdc7c5dabd166484cd1c6749d597f0ef8dd7eefc56e35",
+          "frames.matched.rgb16le": "5cdf9ad74e046a56820e8671fbf4ea63711770f050125e3ddbc87485a2282284",
+          "frames.json": "2ce9377ce4a240121bed7b04ce38287db93ffd7f06530052694b49899d9bcede",
+          "frames.rgb16le": "00a709ecbcbfd65bedbaddf3ed28cfa97b9e524e373a44993d1e2b79e893b907",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "aef99be4cb0056f297f7c8ac4615fbababe3e38808c4a9796ee5217c5ddad87d"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 0.67300806185,
+          "occupancy_at_1pct_ceiling": 0.011065147,
+          "peak_code": 682
+        },
+        {
+          "channel_sum_seconds": 0.784329747463,
+          "occupancy_at_1pct_ceiling": 0.002736635,
+          "peak_code": 682
+        },
+        {
+          "channel_sum_seconds": 10.5037570255,
+          "occupancy_at_1pct_ceiling": 0.12987156,
+          "peak_code": 3724
+        },
+        {
+          "channel_sum_seconds": 17.0344597035,
+          "occupancy_at_1pct_ceiling": 0.18437862,
+          "peak_code": 2363
+        },
+        {
+          "channel_sum_seconds": 0.835170010936,
+          "occupancy_at_1pct_ceiling": 0.022862185,
+          "peak_code": 1021
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 272646
+    },
+    "dense": {
+      "identity": {
+        "fixture": "dense",
+        "input_sha256": "20006c160b8bafe64f46a7302ffb6275e98127d02a516d1d141a8e1d06aaeed5",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/cc9d8bbee0024dc69e5d/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "d1b0ce53acfbe0b624f9c7fa3fe79604d628342bec8e798bf315dd742fd4808e",
+          "frames.matched.rgb16le": "cccbc66b2e28e1eceea54008bb366bd56500213ea80b071f9351fee705758bbd",
+          "frames.json": "fd2fdd4579add79c056bf14681d1bcad0fa849593f3d0c7966d304c1c2818ea0",
+          "frames.rgb16le": "165781410b60f3f8289bcd77c874a1a2bc0963e37eac15228f72e43c8b68d8e9",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "1a48301f72bf9567d6d5414be65a30ce2c1b594c516ff7a9a06f04c35ae105b3"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 14.8671129931,
+          "occupancy_at_1pct_ceiling": 0.54940118,
+          "peak_code": 718
+        },
+        {
+          "channel_sum_seconds": 13.6350143689,
+          "occupancy_at_1pct_ceiling": 0.53270366,
+          "peak_code": 718
+        },
+        {
+          "channel_sum_seconds": 102.746171766,
+          "occupancy_at_1pct_ceiling": 0.62388336,
+          "peak_code": 3724
+        },
+        {
+          "channel_sum_seconds": 62.2868663055,
+          "occupancy_at_1pct_ceiling": 0.4800162,
+          "peak_code": 4762
+        },
+        {
+          "channel_sum_seconds": 7.10463696244,
+          "occupancy_at_1pct_ceiling": 0.22119301,
+          "peak_code": 1753
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 500206
+    },
+    "fractional12743": {
+      "identity": {
+        "fixture": "fractional12743",
+        "input_sha256": "7feb082bb40f4094d3a93d785cedbddfb74472a89dc2bc987250454b09979141",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/f6015430a796968ebee8/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "37b35c337ee822ee660f72e4c63f02fee6798e8be945e3dfaa97fd57e1fe6f6b",
+          "frames.matched.rgb16le": "e1eadcb379de40db905df0ada927b72e29e23c2ca50c59d70fe54681863fa4c1",
+          "frames.json": "8a24f0d145356345292aaace02b93b0b612550edc7817d74a9d82cd54f2319c3",
+          "frames.rgb16le": "4ae3a8dedde6e47b8258f22481878714e9c785011a32738eb754b614fe4e5d22",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "d07d62a3584c95c1a6b8edf94fe032ee453f468b6dc80123976a46f2ebd16b88"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 1.6934851606,
+          "occupancy_at_1pct_ceiling": 0.0475729,
+          "peak_code": 1069
+        },
+        {
+          "channel_sum_seconds": 1.72421708502,
+          "occupancy_at_1pct_ceiling": 0.015554848,
+          "peak_code": 1069
+        },
+        {
+          "channel_sum_seconds": 15.0387828387,
+          "occupancy_at_1pct_ceiling": 0.15256885,
+          "peak_code": 4112
+        },
+        {
+          "channel_sum_seconds": 17.9819829099,
+          "occupancy_at_1pct_ceiling": 0.19163388,
+          "peak_code": 2316
+        },
+        {
+          "channel_sum_seconds": 0.868337529564,
+          "occupancy_at_1pct_ceiling": 0.02390361,
+          "peak_code": 1025
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 280856
+    },
+    "half_time": {
+      "identity": {
+        "fixture": "half_time",
+        "input_sha256": "19a35e34ae7125fecf64900adbee5fdf9c944a90400dbf1e4773b665228cd974",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/0cd833780e6db4ce89d2/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "33480407b276a708ab675357558c5878b74d353e92b71b4059ddb02412cc14c9",
+          "frames.matched.rgb16le": "231ce39f771acb8fbbd4a17b52fbf794c7a6722a2706d1f5d4e81992f17eb84e",
+          "frames.json": "e67daf6687ad1514341efd76218ca80d9f0b3a8d175b5e9af0e4f2930ed890ef",
+          "frames.rgb16le": "8e56e13e4fdc819ce9dc4d03bc393e6433ba47241eceb5a15b11f4f73076f592",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "fdbfe07bddd706083309301528e9569393c56c4fbdd3688a32efd4228a32a7a1"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 1.54931843036,
+          "occupancy_at_1pct_ceiling": 0.037552071,
+          "peak_code": 1053
+        },
+        {
+          "channel_sum_seconds": 1.66263243559,
+          "occupancy_at_1pct_ceiling": 0.011507753,
+          "peak_code": 1053
+        },
+        {
+          "channel_sum_seconds": 27.9372841484,
+          "occupancy_at_1pct_ceiling": 0.24241206,
+          "peak_code": 4813
+        },
+        {
+          "channel_sum_seconds": 26.0568238346,
+          "occupancy_at_1pct_ceiling": 0.34810229,
+          "peak_code": 2273
+        },
+        {
+          "channel_sum_seconds": 0.901848121869,
+          "occupancy_at_1pct_ceiling": 0.025844712,
+          "peak_code": 926
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 405210
+    },
+    "silence": {
+      "identity": {
+        "fixture": "silence",
+        "input_sha256": "75c4124e7b4e22b53b59f9208d359b0cc16157ae1e4beba52159c5a6b801dd2b",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/2e54e893516cb24c973b/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "d64fa5279c2904b4b6e4ccffe35c8d2866764a014c9a8f27c40f4193113eb008",
+          "frames.matched.rgb16le": "1bdb62598bfc1362256d0e94323ac409b0a4c38ea6a60abeaca9746d17cf4656",
+          "frames.json": "5802888b291ffca1e33da109902607902065dd418109e00ea6c66002df04f1d5",
+          "frames.rgb16le": "1bdb62598bfc1362256d0e94323ac409b0a4c38ea6a60abeaca9746d17cf4656",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "b9c7e2b61dedda64a5d25c66c3a02409535df7e81559e376e644d53bec016beb"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 0,
+          "occupancy_at_1pct_ceiling": 0,
+          "peak_code": 0
+        },
+        {
+          "channel_sum_seconds": 0,
+          "occupancy_at_1pct_ceiling": 0,
+          "peak_code": 0
+        },
+        {
+          "channel_sum_seconds": 0,
+          "occupancy_at_1pct_ceiling": 0,
+          "peak_code": 0
+        },
+        {
+          "channel_sum_seconds": 0,
+          "occupancy_at_1pct_ceiling": 0,
+          "peak_code": 0
+        },
+        {
+          "channel_sum_seconds": 0,
+          "occupancy_at_1pct_ceiling": 0,
+          "peak_code": 0
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 0
+    },
+    "syncopation": {
+      "identity": {
+        "fixture": "syncopation",
+        "input_sha256": "27306f97be9312ed6f93878fa6563d19ac1f3916da485a24b01cd263543c7576",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/153b2758cef28b219f1d/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "188aa854a01514d90cbd9a108e9fa9984294562013a0db55cbd9ff8a58fe4844",
+          "frames.matched.rgb16le": "e8dd3de17faeacec31a03dbe5ffa7a318b2ed8bdad92c82707b0d7a981dc747c",
+          "frames.json": "6a6dad8b6d810d38b1d1c877317d95cb630dc2bee741ea4d475e0ef1b664e8c8",
+          "frames.rgb16le": "e93841add4f0e2a9f2e1b243b86e7e282be6a69590adb1bb082662672c7ed335",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "febc8c8fe7ca0bd1dff58aa5f9b3265d2f0673feeea64f62d461b0a182252e1c"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 0.679956766105,
+          "occupancy_at_1pct_ceiling": 0.011250289,
+          "peak_code": 682
+        },
+        {
+          "channel_sum_seconds": 0.791439180082,
+          "occupancy_at_1pct_ceiling": 0.0027887063,
+          "peak_code": 682
+        },
+        {
+          "channel_sum_seconds": 10.4185341166,
+          "occupancy_at_1pct_ceiling": 0.12872888,
+          "peak_code": 3749
+        },
+        {
+          "channel_sum_seconds": 23.4324500903,
+          "occupancy_at_1pct_ceiling": 0.21028697,
+          "peak_code": 4995
+        },
+        {
+          "channel_sum_seconds": 0.83598357112,
+          "occupancy_at_1pct_ceiling": 0.023599861,
+          "peak_code": 1002
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 274082
+    },
+    "tempo_step": {
+      "identity": {
+        "fixture": "tempo_step",
+        "input_sha256": "4e7a5b39b0ff47147abf79d6e67ccea58a2b1bde0e1e833ab83b3379893b18c3",
+        "settings": {
+          "velocity": 64,
+          "spread": 0.12,
+          "lifetime": 1.6,
+          "width": 2,
+          "spacing": 0.7,
+          "gap": 0.32,
+          "return_strength": 0.24,
+          "injection": 1.6,
+          "persistence": 0,
+          "palette": 33,
+          "recolour": 0,
+          "knee": 0
+        },
+        "executable_sha256": "fd213b80e43fd2561d7432734e15bb19aabf83060781b696edd34f9fb436a1f9",
+        "command": [
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/build/ribbon_replay",
+          "--output",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/playback/a2a8896ce59e3704b392/frames",
+          "--pcm",
+          "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+          "--velocity",
+          "64",
+          "--spread",
+          "0.12",
+          "--lifetime",
+          "1.6",
+          "--width",
+          "2",
+          "--spacing",
+          "0.7",
+          "--gap",
+          "0.32",
+          "--return",
+          "0.24",
+          "--injection",
+          "1.6",
+          "--persistence",
+          "0",
+          "--palette",
+          "33",
+          "--recolour",
+          "0",
+          "--knee",
+          "0"
+        ],
+        "files": {
+          "frames.native-grb16": "17fdb1a6540e5fac8d821256850055b62614220364901ca45eb81d334ff97acb",
+          "frames.matched.rgb16le": "88efd427e0a3d08dc637adea4b901b90134fb0157a97fb15ec1b6eba2e29895c",
+          "frames.json": "6a43756c7bb1a89885f40cc7eeda0aeea002fb562e85c7f31bb830de6295498b",
+          "frames.rgb16le": "cb169dc0cb89a53030b971920abbcd50c7ed34527d68a91e44b317afe44c95fd",
+          "replay.log": "5774bd33a437ccb38fa681459b7c2153a1b2c56c2b0feafb41ad57453b2d33df",
+          "audio.wav": "db095423e05b0517a6833d1ebb368b10454304f33a6c551332e3241377a5ac6d"
+        },
+        "physical_execution": false
+      },
+      "metrics": [
+        {
+          "channel_sum_seconds": 1.43771368989,
+          "occupancy_at_1pct_ceiling": 0.040126707,
+          "peak_code": 1065
+        },
+        {
+          "channel_sum_seconds": 1.46905343201,
+          "occupancy_at_1pct_ceiling": 0.01305832,
+          "peak_code": 1065
+        },
+        {
+          "channel_sum_seconds": 12.0216421251,
+          "occupancy_at_1pct_ceiling": 0.13051956,
+          "peak_code": 4450
+        },
+        {
+          "channel_sum_seconds": 17.6796083518,
+          "occupancy_at_1pct_ceiling": 0.1724919,
+          "peak_code": 4748
+        },
+        {
+          "channel_sum_seconds": 0.754495307851,
+          "occupancy_at_1pct_ceiling": 0.021074404,
+          "peak_code": 1249
+        }
+      ],
+      "frames": 4321,
+      "hops": 4800,
+      "low_byte_pixels": 252706
+    }
+  },
+  "deterministic": true,
+  "limitations": [
+    "Host only",
+    "No optical acceptance",
+    "Song-1 untouched",
+    "AP-G3 remains open"
+  ],
+  "source_sha256": "33cc6e1ae9569df55cec2615bcd79269cc7c36b2c89c678fbeefafed299b5cfa"
+}

@@ -1,0 +1,6 @@
+{
+  "status": "Paired C++ frames ready \u00b7 e7d73902ce8651d52720",
+  "metrics": "1  pair energy 674.337 channel-sum\u00b7s   occupancy 99.5%   peak 5654/6168\n2  pair energy 109.909 channel-sum\u00b7s   occupancy 59.0%   peak 4176/6168\n3  pair energy 399.648 channel-sum\u00b7s   occupancy 96.4%   peak 4991/6168\nCandidate limiter active: 0/3601 frames. Descriptors do not establish visual success.",
+  "identity": "Executable 6ae52389ce19b210bf021ec29e4854b1dbcc61ad25e678279ac6b3b3986bb8de\nPCM 1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be\nlogical top and bottom left-to-right; no target pin binding",
+  "errors": []
+}

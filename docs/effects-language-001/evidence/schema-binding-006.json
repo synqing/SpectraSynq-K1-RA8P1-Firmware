@@ -1,0 +1,7 @@
+{
+  "build_inputs": 139,
+  "schema_sha256": "be842590544d84297f6753812a031f0cbb8eed9ebfa8c1e8c4a1b73bd84d88da",
+  "dependency_method": "GCC -MMD per translation unit; project/non-system closure",
+  "mutation_refusal": "Rebuild required: source changed: platform/ra8p1/k1_live_schema.inc",
+  "live_sources_modified": false
+}

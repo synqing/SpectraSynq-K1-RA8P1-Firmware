@@ -1,0 +1,72 @@
+[
+  {
+    "fixture": "clear120",
+    "frames": 4321,
+    "sha256": "00a709ecbcbfd65bedbaddf3ed28cfa97b9e524e373a44993d1e2b79e893b907",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "dense",
+    "frames": 4321,
+    "sha256": "a8df291387626e173aaa184875b4a6ef93b5b4a551cf44cbac6e86c087e1f0ed",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "fractional12743",
+    "frames": 4321,
+    "sha256": "4ae3a8dedde6e47b8258f22481878714e9c785011a32738eb754b614fe4e5d22",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "half_time",
+    "frames": 4321,
+    "sha256": "8e56e13e4fdc819ce9dc4d03bc393e6433ba47241eceb5a15b11f4f73076f592",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "silence",
+    "frames": 4321,
+    "sha256": "1bdb62598bfc1362256d0e94323ac409b0a4c38ea6a60abeaca9746d17cf4656",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "song-0",
+    "frames": 3601,
+    "sha256": "ce1507f45c9134d7fbd8e0c444d79bd5253d8e4ee0f6b83c60687ca9a3e03d75",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "sparse_reentry",
+    "frames": 4321,
+    "sha256": "229ba2d64550b24a589fbc6752c86222bcfc31b35af83903a59b03152152af57",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "syncopation",
+    "frames": 4321,
+    "sha256": "e93841add4f0e2a9f2e1b243b86e7e282be6a69590adb1bb082662672c7ed335",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "synthetic",
+    "frames": 7201,
+    "sha256": "4180666f1fe675839d1d9a474ac977f509b3858551a272f73a055f538fe490dc",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  },
+  {
+    "fixture": "tempo_step",
+    "frames": 4321,
+    "sha256": "cb169dc0cb89a53030b971920abbcd50c7ed34527d68a91e44b317afe44c95fd",
+    "all_five_original_lanes_identical": true,
+    "causal_metadata_identical": true
+  }
+]

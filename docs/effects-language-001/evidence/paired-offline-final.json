@@ -1,0 +1,10 @@
+{
+  "package": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/paired-retained-verification-004/K1-paired-song-0.html",
+  "playback": {
+    "time": 23.545313,
+    "paused": false
+  },
+  "network_requests": [],
+  "errors": [],
+  "identity": "Executable 8dcfbfb96dbeb710a251396426ccb2534bfdb14a4124d6eb9e236a86310c5857\nPCM 1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be\nlogical top and bottom left-to-right; no target pin binding"
+}

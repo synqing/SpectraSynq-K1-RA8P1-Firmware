@@ -1,0 +1,17 @@
+{
+  "pid": 18313,
+  "process": "18313 21337 Tue Sep 29 01:02:31 2026     /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python tools/audio/serve_ribbon_audition.py --output out/paired-capacity-verification-006-final/playback --build out/paired-capacity-verification-006-final/build/ribbon_replay --port 8769",
+  "cwd": "p18313\nfcwd\nn/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001",
+  "checks": [
+    {
+      "path": "/paired",
+      "status": 200,
+      "bytes": 11953
+    },
+    {
+      "path": "/config",
+      "status": 200,
+      "bytes": 535
+    }
+  ]
+}

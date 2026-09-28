@@ -1,0 +1,11 @@
+{
+  "source_sha256": {
+    "src/k1/core/visual/paired_wave_scene.cpp": "93d7ec3838c239eaf0a0e2cfe7f14c0aadfcfc4ccd27799ce8aa3cdf361e58a8",
+    "src/k1/core/visual/paired_wave_scene.h": "07cf83515c2a7d20c68b9511ed0697518a6f8a30bc675b29f3b7d9ba20706263",
+    "tools/audio/paired_audition.html": "11edd590294418fc0f6a0fb900f1ce5b5a73fe84d49cb03b5a22e1285e094b71",
+    "tools/audio/package_paired_audition.py": "d114b5ec71f71f2902fdd6cf725ea2fc2f9230b792d85757e51e0f56642be974",
+    "tools/audio/serve_ribbon_audition.py": "0a9e9da4bcf6dfb39364d97d4deb6f536d9da1291965ae6623f10b2227e82913"
+  },
+  "frames": "out/paired-retained-verification-004/playback/a7345e2824f27903183b/frames.paired.rgb16le",
+  "status": "unaccepted retained candidate; preceding comparison"
+}
