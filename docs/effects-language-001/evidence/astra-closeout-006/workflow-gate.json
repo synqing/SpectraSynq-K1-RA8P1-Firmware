@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"active_obligations\": [], \"can_normal_stop\": true, \"completed_ids\": [], \"coverage\": \"bound assignment only; domain verification remains required\", \"external_blockers\": [{\"id\": \"ORCH-0\", \"reason\": \"Formal ORCH-0 admission is refused by the installed governance service: Incomplete candidate identity. Four observed documentary cases pass; root source coverage is incomplete. Host development continued independently.\"}, {\"id\": \"VP-1\", \"reason\": \"depends on ORCH-0\"}, {\"id\": \"VP-2\", \"reason\": \"depends on CTL-2, VP-1\"}, {\"id\": \"VP-3\", \"reason\": \"depends on VP-2, IVV-1\"}, {\"id\": \"MOD-1\", \"reason\": \"depends on CTL-2, VP-1\"}, {\"id\": \"MOD-SLICE\", \"reason\": \"depends on MOD-1, VP-2\"}, {\"id\": \"IVV-SLICE\", \"reason\": \"depends on INT-SLICE\"}], \"internal_unfinished\": [], \"invalid_evidence\": [], \"native_unfinished_count\": 0, \"registry_bound\": true, \"session_key\": \"31b71435bd49aaa2805452dc\"}"
+    }
+  ],
+  "isError": false
+}

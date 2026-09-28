@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"application\": {\"action\": null, \"observation\": null, \"used\": false}, \"candidate_set_id\": \"78615ef296a3c6bc9f44ece406867493dfbeb4730be43774900e50375163493b\", \"composition_version\": \"review_c0\", \"contract\": \"workflow_review\", \"contract_version\": \"workflow_review_v1_0\", \"envelope_version\": \"semantic_decision_envelope_v1_0\", \"execution_authority\": false, \"input_revisions\": {\"requirement\": \"Astra closeout must preserve exact revision 006 and all failures, provide a runnable local package and source checkpoint, explicitly release source/server ownership to Grok, and leave parent contracts and unobserved physical/runtime acceptance open. No discretionary tuning or target writes.\"}, \"observations\": {\"artifact_verified\": false, \"context_delivered\": false, \"decision_applicable\": false, \"procedure_followed\": false, \"provider_accepted\": false}, \"provider\": {\"model\": null, \"raw_answers\": {}, \"request_ids\": [], \"status\": \"not_called\", \"usage\": {}}, \"result\": {\"decision_applicable\": false, \"status\": \"invalid_reference\"}, \"schema\": \"semantic-decision-envelope.v1\", \"validity\": {}}"
+    }
+  ],
+  "isError": false
+}
