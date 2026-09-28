@@ -25,8 +25,8 @@ def main():
         for label,field,phase in [('candidate','on','on'),('field-off','off','off'),('phase-off','on','off')]:
             out=evidence/label;out.mkdir(exist_ok=True)
             trace=out/(f['id']+'.jsonl')
-            args=[str(exe),str(pcm),'normal',str(trace),field,phase,'scene' if label=='candidate' else 'plain']
-            run=subprocess.run(args,capture_output=True,text=True)
+            replay_argv=[str(exe),str(pcm),'normal',str(trace),field,phase,'scene' if label=='candidate' else 'plain']
+            run=subprocess.run(replay_argv,capture_output=True,text=True)
             base=args.baseline/(f['id']+'.jsonl');diff=None;count=0
             if run.returncode==0:
                 with base.open() as a,trace.open() as b:
