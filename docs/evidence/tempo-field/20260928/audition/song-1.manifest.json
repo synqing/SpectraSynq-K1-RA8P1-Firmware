@@ -1,0 +1,22 @@
+{
+  "schema": "k1.tempo.host-audition.v1",
+  "label": "song-1",
+  "held_out": true,
+  "sample_rate": 24000,
+  "duration_seconds": 30.0,
+  "hops": 4000,
+  "pcm_sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a",
+  "baseline_sha256": "05f4f832f86a9fcaccc4107be821fbc9212ba1a59c9c4024d616be03b71df828",
+  "candidate_sha256": "57ed14f331d1a266c0005196b8cc404de1c71208dff69edb972931a4b444d946",
+  "builder_sha256": "ee38dac7d198d88ec1028dc8f99035d4be14e1409c541db2cdb1b6e020617c75",
+  "renderer_maximum_level": 10.4966898,
+  "maximum_renderer_total_difference": 1.679999999737447e-05,
+  "maximum_packaged_total_difference": 0.05493247882810692,
+  "pixel_encoding": "gzip of little-endian uint16: hop, mask 0..7, baseline/candidate, first80; full_scale=24",
+  "presentation": "audio.currentTime, last trace row available_us <= playback time; no future shift",
+  "clock_mapping": "host replay origin zero, 48000 media frames per second; not target timing",
+  "availability_disclosure": "Simulated host replay availability at hop release; no measured computation latency. Causal ordering is tested; physical audio-to-light latency is not measured.",
+  "template_sha256": "1363e2dfea99219c05a5a0df1e1f959ec16b6450bf0bd776572b89c2dd2b9693",
+  "scope": "Host expressive audition. No optical, target timing, beat annotation or preference acceptance claim.",
+  "html_sha256": "2d92fbe3db5aee05d6ce3eb92724b97babc2100d5f52153e7e41564b0cd1d3ef"
+}

@@ -1,0 +1,14 @@
+{
+  "at": "2026-09-28T00:18:34.530945+00:00",
+  "operation": "existing titan_broker.py info-once",
+  "command": "/Users/spectrasynq/.platformio/penv/bin/python tools/serial-studio/titan_broker.py info-once --evidence docs/evidence/tempo-field/20260928/target-identity",
+  "result": "FramingError",
+  "detail": "header mismatch magic=b'\\xb4\\x00\\x00\\x00' status=33155 rid=0 want=1 size=0",
+  "exit_code": 1,
+  "reset": false,
+  "programmed": false,
+  "emission_changed": false,
+  "identity": "UNKNOWN",
+  "optical": "UNKNOWN",
+  "release_condition": "Existing serial-owner transport returns valid INFO for UID545433931bd25436593630352d068363 and current build/config; then paired target admission before physical candidate claim"
+}

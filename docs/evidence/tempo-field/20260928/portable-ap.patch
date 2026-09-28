@@ -1,0 +1,877 @@
+diff --git a/scripts/tempo_acf_slice_overlay.py b/scripts/tempo_acf_slice_overlay.py
+index ba808f4..213b15c 100644
+--- a/scripts/tempo_acf_slice_overlay.py
++++ b/scripts/tempo_acf_slice_overlay.py
+@@ -43,6 +43,7 @@ def apply_tempo_acf_slice_overlay(root):
+                                 state.acf_job.sample * state.novelty_scale);
+                 state.event = buildOutput(state);
+                 state.event.updated = true;
++                completeTempoEvidence(state);
+             }
+         }
+         return;
+@@ -50,7 +51,8 @@ def apply_tempo_acf_slice_overlay(root):
+     if after_c.count(old) != 1:
+         raise RuntimeError('tempo overlay early-return mismatch')
+     after_c = after_c.replace(old, new)
+-    old = '''    computeTempoAcfAtRate(state.novelty_history,
++    old = '''    captureTempoEvidence(state);
++    computeTempoAcfAtRate(state.novelty_history,
+                           state.history_index,
+                           state.novelty_scale,
+                           state.novelty_rate_hz,
+@@ -59,7 +61,8 @@ def apply_tempo_acf_slice_overlay(root):
+     advanceFlywheel(
+         state, delta_seconds, sample * state.novelty_scale);
+     state.event = buildOutput(state);
+-    state.event.updated = true;'''
++    state.event.updated = true;
++    completeTempoEvidence(state);'''
+     new = '''    if (state.acf_job.active) {
+         while (state.acf_job.active && !state.acf_job.lags_done) {
+             tempoAcfSlicePump(state.acf_job, 65535U);
+@@ -71,8 +74,10 @@ def apply_tempo_acf_slice_overlay(root):
+                             state.acf_job.sample * state.novelty_scale);
+             state.event = buildOutput(state);
+             state.event.updated = true;
++                completeTempoEvidence(state);
+         }
+     }
++    captureTempoEvidence(state);
+     tempoAcfSliceBegin(state.acf_job,
+                        state.novelty_history,
+                        state.history_index,
+@@ -80,6 +85,10 @@ def apply_tempo_acf_slice_overlay(root):
+                        state.novelty_rate_hz,
+                        delta_seconds,
+                        sample);
++    state.acf_job.evidence_endpoint = state.evidence.pending.endpoint;
++    state.acf_job.evidence_epoch = state.evidence.pending.epoch;
++    state.acf_job.evidence_configuration_revision = state.evidence.pending.configuration_revision;
++    state.acf_job.evidence_valid = state.evidence.pending.valid;
+     {
+         const unsigned chunk =
+             static_cast<unsigned>((state.acf_job.lag_count + 2) / 3);
+@@ -90,6 +99,7 @@ def apply_tempo_acf_slice_overlay(root):
+             advanceFlywheel(state, delta_seconds, sample * state.novelty_scale);
+             state.event = buildOutput(state);
+             state.event.updated = true;
++                completeTempoEvidence(state);
+         }
+     }'''
+     if after_c.count(old) != 1:
+diff --git a/src/k1/contract/tempo_field_v1.h b/src/k1/contract/tempo_field_v1.h
+new file mode 100644
+index 0000000..67ddd3d
+--- /dev/null
++++ b/src/k1/contract/tempo_field_v1.h
+@@ -0,0 +1,71 @@
++#pragma once
++#include <array>
++#include <cstdint>
++
++namespace k1::contract {
++inline constexpr std::uint16_t kTempoFieldSchemaVersion = 1;
++inline constexpr std::size_t kTempoFieldCapacity = 8;
++inline constexpr std::size_t kTempoFieldFreshCapacity = 4;
++enum class TempoTrackAdmission : std::uint8_t { unavailable, fresh, coasting, stale };
++struct TempoFieldCandidateV1 final {
++    std::uint16_t bin_id = 0; // Bank identity: BPM = 60 + bin_id.
++    std::uint32_t generation = 0;
++    float bpm = 0.0F;
++    float salience = 0.0F;
++    float point_salience = 0.0F;
++    std::uint64_t epoch = 0;
++    std::uint64_t support_start = 0;
++    std::uint64_t support_end = 0;
++    std::uint64_t last_observed_frame = 0;
++    std::uint64_t reference_frame = 0;
++    std::uint64_t observation_age_frames = 0;
++    std::uint64_t raw_observed_frame = 0;
++    std::uint64_t raw_observation_age_frames = 0;
++    std::uint64_t beat_index = 0;
++    std::uint64_t beat_period_q32 = 0;
++    double phase01 = 0.0;
++    float phase_uncertainty_cycles = 0.0F;
++    std::uint32_t root_generation = 0;
++    std::uint16_t root_id = 0;
++    std::uint16_t ratio_numerator = 1;
++    std::uint16_t ratio_denominator = 1;
++    TempoTrackAdmission admission = TempoTrackAdmission::unavailable;
++    bool phase_valid = false;
++    bool uncertainty_valid = false; // Correlation phase is not attack-time uncertainty.
++    bool raw_observation_valid = false;
++    bool derived = false;
++};
++struct TempoCanonicalV1 final {
++    float target_bpm = 0.0F;
++    float running_bpm = 0.0F;
++    float phase01 = 0.0F;
++    float confidence = 0.0F;
++    std::uint32_t reference_wall_ms = 0;
++    std::uint16_t winner_id = 0;
++    bool locked = false;
++    bool media_projection_valid = false; // Wall-advanced incumbent stays in wall time.
++};
++struct TempoFieldV1 final {
++    std::uint16_t schema_version = kTempoFieldSchemaVersion;
++    std::uint32_t configuration_revision = 1;
++    std::uint64_t epoch = 0;
++    std::uint64_t generation = 0;
++    std::uint64_t support_start = 0;
++    std::uint64_t support_end = 0;
++    std::uint64_t available_us = 0;
++    float activity = 0.0F; // Mean square stored novelty, before ACF normalisation.
++    TempoCanonicalV1 canonical{};
++    std::array<TempoFieldCandidateV1, kTempoFieldCapacity> candidates{};
++    std::uint8_t count = 0;
++    std::uint8_t fresh_phase_count = 0;
++    bool availability_valid = false;
++    bool enabled = false;
++    bool valid = false;
++    bool warming = true;
++    bool silence = true;
++    bool activity_valid = false;
++    bool phase_authority = false;
++    bool coasting = false;
++};
++static_assert(sizeof(TempoFieldV1) < 2048, "Tempo field exceeds snapshot design budget");
++} // namespace k1::contract
+diff --git a/src/k1/core/audio/audio_pipeline.cpp b/src/k1/core/audio/audio_pipeline.cpp
+index 62d5fe3..4b94bd5 100644
+--- a/src/k1/core/audio/audio_pipeline.cpp
++++ b/src/k1/core/audio/audio_pipeline.cpp
+@@ -56,6 +56,7 @@ AudioPipeline::AudioPipeline() noexcept
+ void AudioPipeline::reset() noexcept {
+     gdft_state_ = {};
+     resetTempoTracker(tempo_state_);
++    tempo_field_publisher_ = {};
+     onset_.reset();
+     saliency_.reset();
+     musical_time_ = {};
+@@ -147,7 +148,11 @@ AudioPipelineOutput AudioPipeline::process(
+     updateTempoTracker(tempo_state_,
+                        TempoTrackerInput{input.frame_ms,
+                                          features.novelty,
+-                                         input.silence});
++                                         input.silence,
++                                         input.media_time.frame_index,
++                                         input.media_time.epoch_id,
++                                         input.tempo_configuration_revision,
++                                         input.media_time_valid});
+     output.tempo = readTempoTracker(tempo_state_);
+ 
+     if (input.media_time_valid) {
+@@ -185,6 +190,10 @@ AudioPipelineOutput AudioPipeline::process(
+       }
+     }
+ 
++    output.tempo_field = publishTempoField(tempo_field_publisher_,tempo_state_,
++        input.media_time,input.media_time_valid,input.publish_time_us,
++        input.tempo_field_enabled && tempo_field_enabled_,
++        input.tempo_phase_enabled && tempo_phase_enabled_);
+     output.gdft_overflow_count = raw.q0_overflow_count;
+     output.valid = true;
+     return output;
+diff --git a/src/k1/core/audio/audio_pipeline.h b/src/k1/core/audio/audio_pipeline.h
+index 7645df8..9366fef 100644
+--- a/src/k1/core/audio/audio_pipeline.h
++++ b/src/k1/core/audio/audio_pipeline.h
+@@ -9,6 +9,7 @@
+ #include "core/audio/musical_time.h"
+ #include "core/audio/onset_beat.h"
+ #include "core/audio/tempo_tracker.h"
++#include "core/audio/tempo_field_publisher.h"
+ 
+ namespace k1::core::audio {
+ 
+@@ -26,11 +27,15 @@ struct AudioPipelineInput final {
+     // callers may omit it; production derives it from hop_end_sample_index.
+     AudioTime media_time{};
+     bool media_time_valid = false;
++    std::uint32_t tempo_configuration_revision = 1;
++    bool tempo_field_enabled = true;
++    bool tempo_phase_enabled = true;
+ };
+ 
+ struct AudioPipelineOutput final {
+     contract::AudioFeaturesV1 features{};
+     TempoTrackerEvent tempo{};
++    contract::TempoFieldV1 tempo_field{};
+     OnsetBeatFrame onset{};
+     SaliencyUpdate saliency{};
+     MusicalTime musical_time{};
+@@ -48,6 +53,8 @@ class AudioPipeline final {
+     AudioPipeline() noexcept;
+ 
+     void reset() noexcept;
++    void setTempoFieldEnabled(bool enabled) noexcept { tempo_field_enabled_ = enabled; }
++    void setTempoPhaseEnabled(bool enabled) noexcept { tempo_phase_enabled_ = enabled; }
+     [[nodiscard]] AudioPipelineOutput process(
+         const AudioPipelineInput& input) noexcept;
+ 
+@@ -55,6 +62,9 @@ class AudioPipeline final {
+     GdftConfiguration gdft_configuration_{};
+     GdftPostprocessState gdft_state_{};
+     TempoTrackerState tempo_state_{};
++    TempoFieldPublisher tempo_field_publisher_{};
++    bool tempo_field_enabled_ = true;
++    bool tempo_phase_enabled_ = true;
+     OnsetBeat onset_{};
+     MusicalSaliency saliency_{};
+     MusicalTime musical_time_{};
+diff --git a/src/k1/core/audio/tempo_acf_slice.h b/src/k1/core/audio/tempo_acf_slice.h
+index 785a9f3..6e8ad56 100644
+--- a/src/k1/core/audio/tempo_acf_slice.h
++++ b/src/k1/core/audio/tempo_acf_slice.h
+@@ -12,6 +12,11 @@ inline constexpr std::size_t kTempoAcfLagCap = 200;
+ // Same MAC order as computeTempoAcfAtRate. Work is split by lag row so a hop
+ // can publish the last tempo without waiting for the full nested multiply.
+ struct TempoAcfSliceJob final {
++    // Source identity is fixed at job creation, never its later completion.
++    std::uint64_t evidence_endpoint = 0;
++    std::uint64_t evidence_epoch = 0;
++    std::uint32_t evidence_configuration_revision = 1;
++    bool evidence_valid = false;
+     bool active = false;
+     bool lags_done = false;
+     std::uint16_t row = 0;
+diff --git a/src/k1/core/audio/tempo_field_publisher.cpp b/src/k1/core/audio/tempo_field_publisher.cpp
+new file mode 100644
+index 0000000..8e44379
+--- /dev/null
++++ b/src/k1/core/audio/tempo_field_publisher.cpp
+@@ -0,0 +1,74 @@
++#include "core/audio/tempo_field_publisher.h"
++#include <cmath>
++#include <limits>
++namespace k1::core::audio {
++contract::TempoFieldV1 publishTempoField(TempoFieldPublisher& p,
++    const TempoTrackerState& tracker, AudioTime now, bool media_valid,
++    std::uint64_t available_us, bool enabled, bool phase_enabled) noexcept {
++    const auto& e=tracker.evidence;
++    const auto& stamp=e.completed;
++    const bool discontinuity=p.field.epoch!=now.epoch_id ||
++        p.field.configuration_revision!=e.current.configuration_revision ||
++        (p.field.valid && now.frame_index<p.field.support_end);
++    if(discontinuity || !enabled || !media_valid || e.invalid) {
++        p.field={}; p.tracks={}; p.was_enabled=false;
++    }
++    if(!enabled || !media_valid || e.invalid) return p.field;
++    if(!phase_enabled && p.was_phase_enabled) {
++        for(auto& t:p.tracks.slots) t.phase_valid=false;
++        for(auto& t:p.field.candidates) t.phase_valid=false;
++    }
++    // Re-enabling waits for genuinely new evidence; cache reads never analyse.
++    const bool fresh=e.generation!=p.seen_generation;
++    if(!p.was_enabled) { p.field.enabled=true; p.field.epoch=now.epoch_id;
++        p.field.configuration_revision=e.current.configuration_revision; }
++    p.was_enabled=true;p.was_phase_enabled=phase_enabled;
++    if(fresh) {
++        p.seen_generation=e.generation;
++        if(!stamp.valid || stamp.epoch!=now.epoch_id ||
++           stamp.configuration_revision!=e.current.configuration_revision ||
++           now.frame_index<stamp.endpoint || (p.field.valid && available_us<p.field.available_us)) {
++            p.field={};p.field.enabled=true;p.field.epoch=now.epoch_id;
++            p.field.configuration_revision=e.current.configuration_revision;
++            p.field.generation=e.generation; return p.field;
++        }
++        contract::TempoFieldV1 next{};
++        next.enabled=true; next.epoch=stamp.epoch;
++        next.configuration_revision=stamp.configuration_revision;
++        next.generation=e.generation; next.support_end=stamp.endpoint;
++        // Support includes the oldest pooled novelty interval. Correlation
++        // sample ages still run from 511 intervals ago to the endpoint.
++        const auto span=kTempoAcfHistoryLength*e.interval_frames;
++        next.support_start=stamp.endpoint>=span?stamp.endpoint-span:0;
++        next.available_us=available_us;next.availability_valid=available_us!=0;next.warming=e.history_samples<kTempoAcfHistoryLength;
++        // The incumbent ring deliberately survives namespace discontinuities.
++        // Admit historical evidence only after every pooled value belongs to
++        // the current epoch/configuration. Immediate features remain separate.
++        next.valid=tracker.acf.valid && !next.warming;
++        next.silence=tracker.silence_detected;
++        double energy=0; bool finite=true;
++        for(float x:e.snapshot) { if(!std::isfinite(x)||x<0) finite=false; else energy+=static_cast<double>(x)*x; }
++        const double mean_square=energy/kTempoAcfHistoryLength;
++        finite = finite && std::isfinite(mean_square) &&
++                 mean_square <= std::numeric_limits<float>::max();
++        next.activity_valid=finite && !next.warming;
++        next.activity=next.activity_valid?static_cast<float>(mean_square):0.0F;
++        if(!finite) next.valid=false;
++        if(next.valid) updateTempoPhaseTracks(p.tracks,next,e.snapshot,tracker.acf,e.interval_frames,phase_enabled);
++        for(std::size_t i=0;i<next.count;++i) {
++            auto& t=next.candidates[i];
++            t.raw_observation_valid=e.raw_observed_valid[t.bin_id];
++            t.raw_observed_frame=e.raw_observed_frame[t.bin_id];
++        }
++        p.field=next;
++    }
++    auto& c=p.field.canonical;
++    c.target_bpm=tracker.event.bpm;c.running_bpm=tracker.flywheel_run_bpm;
++    c.phase01=tracker.flywheel_phase01;c.confidence=tracker.event.confidence;
++    c.locked=tracker.event.locked;c.winner_id=tracker.winner_bin;
++    c.reference_wall_ms=e.phase_reference_wall_ms;c.media_projection_valid=false;
++    ageTempoPhaseTracks(p.field,now.frame_index);
++    if(!phase_enabled) p.field.phase_authority=false;
++    return p.field;
++}
++} // namespace k1::core::audio
+diff --git a/src/k1/core/audio/tempo_field_publisher.h b/src/k1/core/audio/tempo_field_publisher.h
+new file mode 100644
+index 0000000..93bcc7c
+--- /dev/null
++++ b/src/k1/core/audio/tempo_field_publisher.h
+@@ -0,0 +1,16 @@
++#pragma once
++#include "core/audio/tempo_tracker.h"
++#include "core/audio/tempo_phase_tracks.h"
++namespace k1::core::audio {
++struct TempoFieldPublisher final {
++    contract::TempoFieldV1 field{};
++    TempoPhaseTracks tracks{};
++    std::uint64_t seen_generation = 0;
++    bool was_enabled = false;
++    bool was_phase_enabled = false;
++};
++// Single AP owner, bounded copy out. No pointer into mutable detector state.
++[[nodiscard]] contract::TempoFieldV1 publishTempoField(TempoFieldPublisher& publisher,
++    const TempoTrackerState& tracker, AudioTime now, bool media_valid,
++    std::uint64_t available_us, bool enabled=true, bool phase_enabled=true) noexcept;
++} // namespace k1::core::audio
+diff --git a/src/k1/core/audio/tempo_phase_tracks.cpp b/src/k1/core/audio/tempo_phase_tracks.cpp
+new file mode 100644
+index 0000000..79e9cee
+--- /dev/null
++++ b/src/k1/core/audio/tempo_phase_tracks.cpp
+@@ -0,0 +1,186 @@
++#include "core/audio/tempo_phase_tracks.h"
++#include "core/audio/musical_time.h"
++#include <algorithm>
++#include <cmath>
++#include <limits>
++namespace k1::core::audio {
++namespace {
++constexpr double kTau = 6.283185307179586476925286766559;
++double wrap(double x) noexcept { return x - std::floor(x); }
++void invalidateTracks(TempoPhaseTracks& state, contract::TempoFieldV1& field) noexcept {
++    field.valid=false;field.phase_authority=false;field.coasting=false;
++    field.count=0;field.fresh_phase_count=0;field.candidates={};
++    state.slots={}; // Preserve generation counter; exhaustion stays latched.
++}
++}
++bool observeTempoPhase(const TempoNoveltyRing& samples, float bpm,
++                       std::uint64_t interval, double& out) noexcept {
++    out = 0.0;
++    if (!std::isfinite(bpm) || bpm < 1.0F || bpm > 1000.0F ||
++        interval == 0 || interval > 48000) return false;
++    double c = 0.0, s = 0.0, energy = 0.0;
++    for (std::size_t i = 0; i < samples.size(); ++i) {
++        if (!std::isfinite(samples[i]) || samples[i] < 0.0F) return false;
++        const double angle = kTau * static_cast<double>(bpm) / 60.0 *
++            (static_cast<double>(samples.size()-1-i) * interval / 48000.0);
++        c += samples[i] * std::cos(angle);
++        s += samples[i] * std::sin(angle);
++        energy += samples[i];
++    }
++    if (!(energy > 0.0) || std::hypot(c,s) <= energy * 1.0e-12) return false;
++    out = wrap(std::atan2(s,c) / kTau);
++    return std::isfinite(out);
++}
++bool projectTempoTrack(const contract::TempoFieldCandidateV1& t,
++                       AudioTime now, TempoExtendedPhase& out) noexcept {
++    out = {};
++    if (!t.phase_valid || t.epoch != now.epoch_id || !t.beat_period_q32 ||
++        !std::isfinite(t.phase01) || t.phase01 < 0.0 || t.phase01 >= 1.0 ||
++        now.frame_index < t.reference_frame || now.frame_index < t.last_observed_frame ||
++        now.frame_index-t.last_observed_frame > kTempoPhaseCoastFrames) return false;
++    const double advance = static_cast<double>(now.frame_index-t.reference_frame) *
++        static_cast<double>(kQ32One) / static_cast<double>(t.beat_period_q32);
++    const double total = t.phase01 + advance;
++    const double whole = std::floor(total);
++    if (!std::isfinite(whole) || whole >= static_cast<double>(UINT64_MAX)) return false;
++    const auto beats = static_cast<std::uint64_t>(whole);
++    if (beats > UINT64_MAX-t.beat_index) return false;
++    out = {t.beat_index+beats, wrap(total)};
++    return true;
++}
++bool deriveTempoPhase(const TempoExtendedPhase& root, std::uint32_t p,
++                      std::uint32_t q, std::uint64_t epoch,
++                      std::uint64_t requested_epoch, TempoExtendedPhase& out) noexcept {
++    out = {};
++    if (!p || !q || epoch != requested_epoch || !std::isfinite(root.phase01) ||
++        root.phase01 < 0.0 || root.phase01 >= 1.0) return false;
++    const auto whole = root.beat_index / q;
++    if (whole > UINT64_MAX/p) return false;
++    std::uint64_t result = whole*p;
++    const std::uint64_t tail = (root.beat_index % q)*p;
++    const double fraction_product = root.phase01 * p;
++    const auto fraction_whole = static_cast<std::uint64_t>(fraction_product);
++    if (tail > UINT64_MAX-fraction_whole) return false;
++    const auto numerator = tail+fraction_whole;
++    if (result > UINT64_MAX-numerator/q) return false;
++    result += numerator/q;
++    double fraction = (static_cast<double>(numerator%q) +
++                       fraction_product-fraction_whole)/q;
++    if (fraction >= 1.0) { if (result == UINT64_MAX) return false; ++result; fraction=0.0; }
++    out = {result,fraction};
++    return true;
++}
++void ageTempoPhaseTracks(contract::TempoFieldV1& field, std::uint64_t now) noexcept {
++    field.phase_authority=false; field.coasting=false;
++    if(field.count>contract::kTempoFieldCapacity) { field.valid=false;field.count=0;return; }
++    for (std::size_t i=0;i<field.count;++i) {
++        auto& t=field.candidates[i];
++        if (now < t.last_observed_frame) { t.phase_valid=false; t.admission=contract::TempoTrackAdmission::unavailable; continue; }
++        t.observation_age_frames=now-t.last_observed_frame;
++        if (t.raw_observation_valid) {
++            if (now<t.raw_observed_frame) t.raw_observation_valid=false;
++            else t.raw_observation_age_frames=now-t.raw_observed_frame;
++        }
++        if (t.observation_age_frames>=kTempoPhaseStaleFrames) {
++            t.phase_valid=false; t.admission=contract::TempoTrackAdmission::stale;
++        } else if (t.observation_age_frames>0) {
++            t.admission=contract::TempoTrackAdmission::coasting;
++            if (t.observation_age_frames>kTempoPhaseCoastFrames) t.phase_valid=false;
++        }
++        field.phase_authority |= t.phase_valid;
++        field.coasting |= t.admission==contract::TempoTrackAdmission::coasting;
++    }
++}
++void updateTempoPhaseTracks(TempoPhaseTracks& state, contract::TempoFieldV1& field,
++    const TempoNoveltyRing& samples, const TempoAcfOutput& acf,
++    std::uint64_t interval, bool phase_enabled) noexcept {
++    using contract::TempoTrackAdmission;
++    std::array<std::uint16_t,contract::kTempoFieldFreshCapacity> selected{};
++    std::size_t selected_count=0;
++    std::array<bool,kTempoAcfBinCount> used{};
++    float maximum=0;
++    bool finite=true;
++    for (std::size_t i=0;i<kTempoAcfBinCount;++i) {
++        const auto s=acf.comb_salience[i];
++        if (!std::isfinite(s)||s<0||!std::isfinite(acf.point_salience[i])||acf.point_salience[i]<0) finite=false;
++        maximum=std::max(maximum,s);
++    }
++    if (!finite) {
++        field.valid=false; field.activity_valid=false; field.activity=0;
++        invalidateTracks(state,field);return;
++    }
++    if (field.activity_valid && field.activity>0 && maximum>0) {
++      for (std::size_t pass=0;pass<selected.size();++pass) {
++        int best=-1;
++        for (std::size_t i=0;i<kTempoAcfBinCount;++i) {
++            if (used[i] || (i>0 && acf.comb_salience[i]<=acf.comb_salience[i-1]) ||
++                (i+1<kTempoAcfBinCount && acf.comb_salience[i]<acf.comb_salience[i+1])) continue;
++            bool retained=false;
++            for (const auto& t:state.slots) if(t.generation && t.bin_id==i) retained=true;
++            if (acf.comb_salience[i]<maximum*(retained?0.1F:0.2F)) continue;
++            bool separated=true;
++            for(std::size_t j=0;j<selected_count;++j)
++                if(std::fabs(static_cast<float>(i)-selected[j])/(60.0F+std::min<std::size_t>(i,selected[j]))<kTempoPeakSeparation) separated=false;
++            if (!separated) continue;
++            if(best<0 || acf.comb_salience[i]>acf.comb_salience[best]) best=static_cast<int>(i);
++        }
++        if(best<0) break;
++        selected[selected_count++]=static_cast<std::uint16_t>(best); used[best]=true;
++      }
++    }
++    for(auto& t:state.slots) {
++      if(t.generation && (t.epoch!=field.epoch || field.support_end<t.last_observed_frame ||
++         field.support_end-t.last_observed_frame>=kTempoPhaseStaleFrames)) t={};
++      if(t.generation) t.admission=TempoTrackAdmission::coasting;
++      if(!phase_enabled) t.phase_valid=false;
++    }
++    field.fresh_phase_count=0;
++    for(std::size_t j=0;j<selected_count;++j) {
++      const auto id=selected[j];
++      contract::TempoFieldCandidateV1* t=nullptr;
++      for(auto& slot:state.slots) if(slot.generation && slot.bin_id==id) t=&slot;
++      if(!t) for(auto& slot:state.slots) if(!slot.generation) {t=&slot;break;}
++      if(!t) continue; // Full overlap capacity: never evict a live object silently.
++      const bool is_new=!t->generation;
++      double phase=0;
++      // A historic window remains useful salience evidence during silence,
++      // but cannot refresh the last direct phase observation or coast budget.
++      const bool observed=phase_enabled && !field.warming && !field.silence &&
++          observeTempoPhase(samples,60.0F+id,interval,phase);
++      TempoExtendedPhase predicted{};
++      const bool projected=projectTempoTrack(*t, AudioTime{field.epoch,field.support_end},predicted);
++      double error=0;
++      if(observed && projected) {error=phase-predicted.phase01; error-=std::floor(error+0.5);}
++      const bool restart=is_new || (observed && (!projected || std::fabs(error)>kTempoPhaseCorrectionLimit));
++      if(restart) {
++        if(state.next_generation==UINT32_MAX) {invalidateTracks(state,field);return;}
++        *t={}; t->generation=state.next_generation++; t->beat_index=0;
++      } else if(observed) {
++        t->beat_index=predicted.beat_index;
++        const double corrected=predicted.phase01+error;
++        if(corrected>=1.0) {
++          if(t->beat_index==UINT64_MAX) {t->phase_valid=false;continue;}
++          ++t->beat_index;
++        } else if(corrected<0.0) {
++          if(t->beat_index==0) {
++            if(state.next_generation==UINT32_MAX) {invalidateTracks(state,field);return;}
++            t->generation=state.next_generation++;
++          } else --t->beat_index;
++        }
++      }
++      t->bin_id=id; t->bpm=60.0F+id; t->epoch=field.epoch;
++      t->salience=acf.comb_salience[id];t->point_salience=acf.point_salience[id];
++      t->support_start=field.support_start;t->support_end=field.support_end;
++      t->root_id=id;t->root_generation=t->generation;
++      t->beat_period_q32=beatPeriodFromBpm(t->bpm);
++      t->admission=TempoTrackAdmission::fresh;
++      if(observed) {
++        t->phase01=phase;t->reference_frame=field.support_end;t->last_observed_frame=field.support_end;
++        t->phase_valid=true; ++field.fresh_phase_count;
++      } else if(!phase_enabled || field.warming) t->phase_valid=false;
++    }
++    field.count=0;
++    for(const auto& t:state.slots) if(t.generation) field.candidates[field.count++]=t;
++    ageTempoPhaseTracks(field,field.support_end);
++}
++} // namespace k1::core::audio
+diff --git a/src/k1/core/audio/tempo_phase_tracks.h b/src/k1/core/audio/tempo_phase_tracks.h
+new file mode 100644
+index 0000000..d5dae1a
+--- /dev/null
++++ b/src/k1/core/audio/tempo_phase_tracks.h
+@@ -0,0 +1,31 @@
++#pragma once
++#include "contract/tempo_field_v1.h"
++#include "core/audio/tempo_acf.h"
++#include "core/audio/media_time.h"
++namespace k1::core::audio {
++inline constexpr std::uint64_t kTempoPhaseCoastFrames = 48000;
++inline constexpr std::uint64_t kTempoPhaseStaleFrames = 96000;
++inline constexpr double kTempoPhaseCorrectionLimit = 0.08;
++inline constexpr float kTempoPeakSeparation = 0.06F;
++struct TempoExtendedPhase final { std::uint64_t beat_index = 0; double phase01 = 0.0; };
++// Chronological stored novelty (including incumbent decay), rectangular extra
++// window. Newest sample is support_end, NOT a calibrated attack timestamp.
++// C+iS = sum x[i] exp(+i*2*pi*bpm/60*(511-i)*interval/48000).
++[[nodiscard]] bool observeTempoPhase(const TempoNoveltyRing& chronological,
++    float bpm, std::uint64_t interval_frames, double& phase_out) noexcept;
++[[nodiscard]] bool projectTempoTrack(const contract::TempoFieldCandidateV1& track,
++    AudioTime now, TempoExtendedPhase& out) noexcept;
++[[nodiscard]] bool deriveTempoPhase(const TempoExtendedPhase& root,
++    std::uint32_t numerator, std::uint32_t denominator,
++    std::uint64_t root_epoch, std::uint64_t requested_epoch,
++    TempoExtendedPhase& out) noexcept;
++struct TempoPhaseTracks final {
++    std::array<contract::TempoFieldCandidateV1, contract::kTempoFieldCapacity> slots{};
++    std::uint32_t next_generation = 1;
++};
++void updateTempoPhaseTracks(TempoPhaseTracks& state,
++    contract::TempoFieldV1& field, const TempoNoveltyRing& chronological,
++    const TempoAcfOutput& acf, std::uint64_t interval_frames,
++    bool phase_enabled) noexcept;
++void ageTempoPhaseTracks(contract::TempoFieldV1& field, std::uint64_t now_frame) noexcept;
++} // namespace k1::core::audio
+diff --git a/src/k1/core/audio/tempo_tracker.cpp b/src/k1/core/audio/tempo_tracker.cpp
+index f672992..86f8fb8 100644
+--- a/src/k1/core/audio/tempo_tracker.cpp
++++ b/src/k1/core/audio/tempo_tracker.cpp
+@@ -269,6 +269,10 @@ void updateTempoBank(TempoTrackerState& state,
+         (state.calculation_bin + 1U) % kTempoTrackerBinCount);
+     state.bins[bin0].magnitude_raw = computeMagnitude(state, bin0);
+     state.bins[bin1].magnitude_raw = computeMagnitude(state, bin1);
++    for (auto bin : {bin0, bin1}) {
++        state.evidence.raw_observed_frame[bin] = state.evidence.history_source.endpoint;
++        state.evidence.raw_observed_valid[bin] = state.evidence.history_source.valid;
++    }
+     state.calculation_bin = static_cast<std::uint16_t>(
+         (state.calculation_bin + 2U) % kTempoTrackerBinCount);
+ 
+@@ -425,7 +429,26 @@ TempoTrackerEvent buildOutput(const TempoTrackerState& state) noexcept {
+ 
+ }  // namespace
+ 
++void captureTempoEvidence(TempoTrackerState& state) noexcept {
++    auto& e = state.evidence;
++    e.pending = e.current;
++    if (e.history_samples < kTempoAcfHistoryLength) ++e.history_samples;
++    for (std::size_t i=0; i<kTempoAcfHistoryLength; ++i)
++        e.pending_snapshot[i] = state.novelty_history[(state.history_index+i)%kTempoAcfHistoryLength];
++}
++void completeTempoEvidence(TempoTrackerState& state) noexcept {
++    auto& e = state.evidence;
++    e.completed = e.pending;
++    e.phase_reference_wall_ms = e.pending.wall_ms;
++    e.snapshot = e.pending_snapshot;
++    e.completed.valid = e.pending.valid && e.current.valid &&
++        e.pending.epoch == e.current.epoch &&
++        e.pending.configuration_revision == e.current.configuration_revision;
++    if (e.generation == UINT64_MAX) { e.invalid=true; e.completed.valid=false; }
++    else ++e.generation;
++}
+ void resetTempoTracker(TempoTrackerState& state) noexcept {
++    state.evidence = {};
+     state.smoothed.fill(0.0F);
+     state.novelty_history.fill(0.0F);
+     state.acf = {};
+@@ -524,6 +547,23 @@ void initialiseTempoTracker(TempoTrackerState& state,
+ void updateTempoTracker(TempoTrackerState& state,
+                         const TempoTrackerInput& input) noexcept {
+     state.event.updated = false;
++    auto& evidence = state.evidence;
++    const bool discontinuity = evidence.current.valid != input.media_valid ||
++        (input.media_valid && (input.epoch != evidence.current.epoch ||
++         input.configuration_revision != evidence.current.configuration_revision ||
++         input.media_frame < evidence.current.endpoint));
++    if (discontinuity) {
++        evidence.history_samples = 0;
++        evidence.raw_observed_valid.fill(false);
++        evidence.completed.valid = false;
++        evidence.pending.valid = false;
++        evidence.history_source.valid = false;
++    }
++    evidence.current = {input.epoch, input.media_frame, input.configuration_revision,
++                        input.media_valid && !evidence.invalid && std::isfinite(input.novelty),
++                        input.frame_ms};
++    evidence.interval_frames = static_cast<std::uint64_t>(
++        std::llround(48000.0 / static_cast<double>(state.novelty_rate_hz)));
+     const std::uint32_t now_ms = input.frame_ms;
+     float novelty = clamp(input.novelty, 0.0F, 1.0F);
+     if (input.silence) novelty = 0.0F;
+@@ -555,11 +595,13 @@ void updateTempoTracker(TempoTrackerState& state,
+     state.novelty_history[state.history_index] = sample;
+     state.history_index = static_cast<std::uint16_t>(
+         (state.history_index + 1U) % kTempoAcfHistoryLength);
++    evidence.history_source = evidence.current;
+     if (++state.scale_count >= 3U) {
+         updateScale(state, 0.3F);
+         state.scale_count = 0;
+     }
+     checkSilence(state);
++    captureTempoEvidence(state);
+     computeTempoAcfAtRate(state.novelty_history,
+                           state.history_index,
+                           state.novelty_scale,
+@@ -570,6 +612,7 @@ void updateTempoTracker(TempoTrackerState& state,
+         state, delta_seconds, sample * state.novelty_scale);
+     state.event = buildOutput(state);
+     state.event.updated = true;
++    completeTempoEvidence(state);
+ }
+ 
+ TempoTrackerEvent readTempoTracker(const TempoTrackerState& state) noexcept {
+diff --git a/src/k1/core/audio/tempo_tracker.h b/src/k1/core/audio/tempo_tracker.h
+index b06cf18..f4f6d95 100644
+--- a/src/k1/core/audio/tempo_tracker.h
++++ b/src/k1/core/audio/tempo_tracker.h
+@@ -15,6 +15,10 @@ struct TempoTrackerInput final {
+     std::uint32_t frame_ms = 0;
+     float novelty = 0.0F;
+     bool silence = false;
++    std::uint64_t media_frame = 0;
++    std::uint64_t epoch = 0;
++    std::uint32_t configuration_revision = 1;
++    bool media_valid = false;
+ };
+ 
+ struct TempoTrackerEvent final {
+@@ -42,7 +46,30 @@ struct TempoTrackerBin final {
+     float magnitude_raw = 0.0F;
+ };
+ 
++struct TempoEvidenceStamp final {
++    std::uint64_t epoch = 0;
++    std::uint64_t endpoint = 0;
++    std::uint32_t configuration_revision = 1;
++    bool valid = false;
++    std::uint32_t wall_ms = 0;
++};
++struct TempoTrackerEvidence final {
++    TempoEvidenceStamp current{};
++    TempoEvidenceStamp pending{};
++    TempoEvidenceStamp history_source{};
++    TempoEvidenceStamp completed{};
++    TempoNoveltyRing snapshot{};
++    TempoNoveltyRing pending_snapshot{};
++    std::array<std::uint64_t, kTempoTrackerBinCount> raw_observed_frame{};
++    std::array<bool, kTempoTrackerBinCount> raw_observed_valid{};
++    std::uint64_t generation = 0;
++    std::uint32_t phase_reference_wall_ms = 0;
++    std::uint64_t interval_frames = 1080;
++    std::uint16_t history_samples = 0;
++    bool invalid = false;
++};
+ struct TempoTrackerState final {
++    TempoTrackerEvidence evidence{};
+     std::array<TempoTrackerBin, kTempoTrackerBinCount> bins{};
+     std::array<float, kTempoTrackerBinCount> smoothed{};
+     std::array<float, kTempoTrackerBinCount> tempo_prior{};
+@@ -106,6 +133,9 @@ void resetTempoTracker(TempoTrackerState& state) noexcept;
+ void updateTempoTracker(TempoTrackerState& state,
+                         const TempoTrackerInput& input) noexcept;
+ 
++// Metadata-only hooks used by the effective sliced source too.
++void captureTempoEvidence(TempoTrackerState& state) noexcept;
++void completeTempoEvidence(TempoTrackerState& state) noexcept;
+ [[nodiscard]] TempoTrackerEvent readTempoTracker(
+     const TempoTrackerState& state) noexcept;
+ [[nodiscard]] TempoTrackerDebug readTempoTrackerDebug(
+diff --git a/src/k1/core/visual/tempo_reference_scene.cpp b/src/k1/core/visual/tempo_reference_scene.cpp
+new file mode 100644
+index 0000000..1581151
+--- /dev/null
++++ b/src/k1/core/visual/tempo_reference_scene.cpp
+@@ -0,0 +1,100 @@
++#include "core/visual/tempo_reference_scene.h"
++#include "core/audio/tempo_phase_tracks.h"
++#include <algorithm>
++#include <cmath>
++
++namespace k1::core::visual {
++namespace {
++float unit(float x) noexcept { return std::isfinite(x) ? std::clamp(x, 0.0F, 1.0F) : 0.0F; }
++float pulse(float radius, float centre, float width) noexcept {
++    return std::max(0.0F, 1.0F - std::fabs(radius-centre)/width);
++}
++}
++TempoReferencePair renderTempoReferencePair(const VisualAudioFrameView& view,
++    audio::AudioTime now, std::uint64_t presentation_us,
++    TempoReferenceOptions options) noexcept {
++    TempoReferencePair out{};
++    if (presentation_us < view.source_publication_us ||
++        (view.audio.validity_flags & contract::kValidBaseSnapshot) == 0U) return out;
++    const auto* field = view.tempo_field;
++    bool field_ok = field != nullptr && field->enabled && field->valid &&
++        field->schema_version == contract::kTempoFieldSchemaVersion &&
++        field->epoch == now.epoch_id && field->availability_valid &&
++        field->available_us <= presentation_us &&
++        field->support_start <= field->support_end &&
++        field->support_end <= now.frame_index &&
++        field->count <= contract::kTempoFieldCapacity;
++    if (field_ok) {
++        for (std::size_t j=0;j<field->count;++j) {
++            const auto& t=field->candidates[j];
++            if (t.bin_id>=audio::kTempoTrackerBinCount || !std::isfinite(t.salience) || t.salience<0.0F)
++                field_ok=false;
++            for (std::size_t k=0;k<j;++k)
++                if (field->candidates[k].bin_id==t.bin_id) field_ok=false;
++        }
++    }
++    out.field_available = field_ok;
++    std::array<double, contract::kTempoFieldCapacity> phase{};
++    std::array<float, contract::kTempoFieldCapacity> weight{};
++    float weight_sum = 0.0F;
++    if (field_ok && field->phase_authority && options.candidate_field) {
++        for (std::size_t j=0; j<field->count; ++j) {
++            const auto& track = field->candidates[j];
++            audio::TempoExtendedPhase p{};
++            if (track.salience <= 0.0F ||
++                (track.admission != contract::TempoTrackAdmission::fresh &&
++                 track.admission != contract::TempoTrackAdmission::coasting) ||
++                track.support_end > now.frame_index ||
++                !audio::projectTempoTrack(track, now, p)) continue;
++            phase[j] = p.phase01;
++            weight[j] = track.salience;
++            weight_sum += weight[j];
++            if (track.derived) ++out.derived_count;
++            else ++out.measured_count;
++            if (track.admission == contract::TempoTrackAdmission::coasting ||
++                now.frame_index > track.last_observed_frame)
++                ++out.coasting_count;
++        }
++    }
++    // Onset timing is declared in AP wall milliseconds. Never invent a support
++    // delay correction. This view's publication age extends the supplied age.
++    float accent = 0.0F, accent_radius = 0.0F;
++    const double age_ms = static_cast<double>(view.audio.onset_event_age_ms) +
++        static_cast<double>(presentation_us-view.source_publication_us)/1000.0;
++    if (options.observed_accents && view.audio.onset_event_id != 0U &&
++        (view.audio.validity_flags & contract::kValidOnsetV2) != 0U && age_ms < 600.0) {
++        accent_radius = static_cast<float>(age_ms/600.0);
++        accent = unit(std::max(view.audio.onset_strength, view.audio.bass_onset_strength)) *
++            static_cast<float>(1.0-age_ms/600.0);
++        out.accent_available = accent > 0.0F;
++    }
++    // Incumbent phase is sampled as published. Its winner BPM must never be
++    // used to extrapolate the actual flywheel running frequency.
++    const float clock_phase = unit(view.tempo.phase01);
++    const float clock_level = options.incumbent_clock ? unit(view.tempo.confidence) : 0.0F;
++    double base_sum=0.0, candidate_sum=0.0;
++    for (std::size_t i=0; i<kTempoReferencePixels; ++i) {
++        const float radius = std::max(0.0F, (std::fabs(static_cast<float>(i)-79.5F)-0.5F)/79.0F);
++        const float base = 0.10F + 0.7F*clock_level*pulse(radius,clock_phase,0.18F);
++        float candidate = base + 1.2F*accent*pulse(radius,accent_radius,0.12F);
++        if (weight_sum>0.0F && std::isfinite(weight_sum))
++            for(std::size_t j=0;j<contract::kTempoFieldCapacity;++j)
++                candidate += 0.6F*(weight[j]/weight_sum)*pulse(radius,static_cast<float>(phase[j]),0.10F);
++        out.baseline[i]=base; out.candidate[i]=candidate;
++        base_sum+=base; candidate_sum+=candidate;
++    }
++    // Identical audio-level envelope, exact total matching and shared headroom.
++    const float envelope = (view.audio.event_flags & contract::kEventSilence) != 0U ? 0.0F : unit(view.audio.vu_level);
++    float peak=0.0F;
++    for(std::size_t i=0;i<kTempoReferencePixels;++i) {
++        out.baseline[i]=static_cast<float>(out.baseline[i]/base_sum);
++        out.candidate[i]=static_cast<float>(out.candidate[i]/candidate_sum);
++        peak=std::max(peak,std::max(out.baseline[i],out.candidate[i]));
++    }
++    out.matched_total = peak>0.0F ? std::min(160.0F*4.0F*envelope,24.0F/peak) : 0.0F;
++    for(std::size_t i=0;i<kTempoReferencePixels;++i) {
++        out.baseline[i]*=out.matched_total; out.candidate[i]*=out.matched_total;
++    }
++    return out;
++}
++} // namespace k1::core::visual
+diff --git a/src/k1/core/visual/tempo_reference_scene.h b/src/k1/core/visual/tempo_reference_scene.h
+new file mode 100644
+index 0000000..d163a17
+--- /dev/null
++++ b/src/k1/core/visual/tempo_reference_scene.h
+@@ -0,0 +1,30 @@
++#pragma once
++#include <array>
++#include "core/visual/visual_audio_frame.h"
++#include "core/audio/media_time.h"
++
++namespace k1::core::visual {
++// Host reference composition: fixed teal (R=.12,G=1,B=.72), centre 79/80.
++// Level is linear channel output in [0,24]; this is not an optical calibration.
++inline constexpr std::size_t kTempoReferencePixels = 160;
++struct TempoReferenceOptions final {
++    bool observed_accents = true;
++    bool incumbent_clock = true;
++    bool candidate_field = true;
++};
++struct TempoReferencePair final {
++    std::array<float, kTempoReferencePixels> baseline{};
++    std::array<float, kTempoReferencePixels> candidate{};
++    float matched_total = 0.0F;
++    std::uint8_t measured_count = 0;
++    std::uint8_t derived_count = 0;
++    std::uint8_t coasting_count = 0;
++    bool field_available = false;
++    bool accent_available = false;
++};
++// Pure bounded reader; view lifetime is the caller's immutable render scope.
++// presentation_us and media coordinate must come from the qualified mapping.
++[[nodiscard]] TempoReferencePair renderTempoReferencePair(
++    const VisualAudioFrameView& view, audio::AudioTime presentation_media,
++    std::uint64_t presentation_us, TempoReferenceOptions options = {}) noexcept;
++} // namespace k1::core::visual
+diff --git a/src/k1/core/visual/visual_audio_frame.h b/src/k1/core/visual/visual_audio_frame.h
+index 88d8fcc..7220c5a 100644
+--- a/src/k1/core/visual/visual_audio_frame.h
++++ b/src/k1/core/visual/visual_audio_frame.h
+@@ -5,6 +5,7 @@
+ #include <cstdint>
+ 
+ #include "contract/audio_features_v1.h"
++#include "contract/tempo_field_v1.h"
+ #include "core/audio/tempo_tracker.h"
+ 
+ namespace k1::core::visual {
+@@ -32,6 +33,9 @@ struct VisualAudioFrameView final {
+   const audio::TempoTrackerEvent& tempo;
+   const VisualWaveformHistory& waveform;
+   std::uint64_t source_publication_us;
++  // Scoped to this render call, pointing only at the runtime's committed copy.
++  // A persistent consumer must own a bounded copy; reads never advance AP.
++  const contract::TempoFieldV1* tempo_field = nullptr;
+ };
+ 
+ }  // namespace k1::core::visual

@@ -1,0 +1,1341 @@
+{
+  "schema": "k1.tempo.sliced.complete-pipeline-parity.v1",
+  "script_sha256": "ce0c8a2ed24525d9c6720fc8fbf35b02b392c821d806018fb0e8e2d8c3d81d02",
+  "manifest_sha256": "307638abc2933ea050fae002fc5e2c9a1135a7283413d2f54edbbaf58297dd78",
+  "baseline_tracer_reconstruction": [
+    {
+      "fixture": "clear120",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "6df1d2ea038a7197e6dc226c82fcc675249c4982ed38ab90bf9c41a70e3b3d70",
+      "retained_trace_sha256": "6df1d2ea038a7197e6dc226c82fcc675249c4982ed38ab90bf9c41a70e3b3d70"
+    },
+    {
+      "fixture": "syncopation",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "41eee037b81d79af53a450f12f53b4b1aa85134d9d8c322f5a211de783283523",
+      "retained_trace_sha256": "41eee037b81d79af53a450f12f53b4b1aa85134d9d8c322f5a211de783283523"
+    },
+    {
+      "fixture": "half_time",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "4e483b76b57065242793c56889345f26870e88108d4041de58f9d0d0e11715eb",
+      "retained_trace_sha256": "4e483b76b57065242793c56889345f26870e88108d4041de58f9d0d0e11715eb"
+    },
+    {
+      "fixture": "sparse_reentry",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "828ffab5a1b6ae8972d13b5836e3240af3eedcbae21f11155cf79bd8b7109b85",
+      "retained_trace_sha256": "828ffab5a1b6ae8972d13b5836e3240af3eedcbae21f11155cf79bd8b7109b85"
+    },
+    {
+      "fixture": "dense",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "a53aeddda9e9e302336ac78f27908aa238d6dcdd1b6583f93894bc2881f188dd",
+      "retained_trace_sha256": "a53aeddda9e9e302336ac78f27908aa238d6dcdd1b6583f93894bc2881f188dd"
+    },
+    {
+      "fixture": "tempo_step",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "75e5545700072c8c3599845391b220be3b790e5bfcfca473f09ea7b578a508b6",
+      "retained_trace_sha256": "75e5545700072c8c3599845391b220be3b790e5bfcfca473f09ea7b578a508b6"
+    },
+    {
+      "fixture": "silence",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "a65137fa03477d6eb24f81de84227eed4225a535693326447f11cab08cd35c52",
+      "retained_trace_sha256": "a65137fa03477d6eb24f81de84227eed4225a535693326447f11cab08cd35c52"
+    },
+    {
+      "fixture": "fractional12743",
+      "exact_serialised_fields_equal": true,
+      "hops": 4800,
+      "reconstructed_trace_sha256": "61b52757ce118fd84e43f2c84f9cbec22ce5d245eca5a8c816583e31794d0d4c",
+      "retained_trace_sha256": "61b52757ce118fd84e43f2c84f9cbec22ce5d245eca5a8c816583e31794d0d4c"
+    },
+    {
+      "fixture": "song-0",
+      "exact_serialised_fields_equal": true,
+      "hops": 4000,
+      "reconstructed_trace_sha256": "cf443a6932ea77bf80ef9fa8b527e6c152d39f6a9eded8a87798be6fef89db5c",
+      "retained_trace_sha256": "cf443a6932ea77bf80ef9fa8b527e6c152d39f6a9eded8a87798be6fef89db5c"
+    },
+    {
+      "fixture": "song-1",
+      "exact_serialised_fields_equal": true,
+      "hops": 4000,
+      "reconstructed_trace_sha256": "05f4f832f86a9fcaccc4107be821fbc9212ba1a59c9c4024d616be03b71df828",
+      "retained_trace_sha256": "05f4f832f86a9fcaccc4107be821fbc9212ba1a59c9c4024d616be03b71df828"
+    }
+  ],
+  "results": [
+    {
+      "fixture": "clear120",
+      "pcm_sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/clear120-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.6806192920194007,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "8bc59bbed0e07b6f926cc8af2234463eb85763c0ce0480bdad0ffc1f5c0cb972"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/clear120-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.733213750005234,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "03bddfe1cea15ff0da2a06667d2358ce5e356c1907abb0d8e3091c05f4cd2fb6"
+        }
+      ]
+    },
+    {
+      "fixture": "clear120",
+      "pcm_sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/clear120-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.26281104201916605,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "8bc59bbed0e07b6f926cc8af2234463eb85763c0ce0480bdad0ffc1f5c0cb972"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/clear120-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.26602179097244516,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "396eef376a95df628d0bf2aaef928a41fe2ff362e2cb51ff75bc5b7eb3bfb4f2"
+        }
+      ]
+    },
+    {
+      "fixture": "clear120",
+      "pcm_sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/clear120-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2714001249987632,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "8bc59bbed0e07b6f926cc8af2234463eb85763c0ce0480bdad0ffc1f5c0cb972"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/clear120.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/clear120-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3161317090271041,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "cabd2659b0cac5e17843f7c293083d86034a3269a3b55634a9cc36dd3b1f3656"
+        }
+      ]
+    },
+    {
+      "fixture": "syncopation",
+      "pcm_sha256": "27306f97be9312ed6f93878fa6563d19ac1f3916da485a24b01cd263543c7576",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/syncopation-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2568662079866044,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":80,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "46696f0d5fc5aec3e3fbbc5b9ff8f135f8efd7eaf3a18f45053f872153107ac0"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/syncopation-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.34621099999640137,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":80,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "5128b661ef101a5b5ed0f87bc73a62f842bde8cb67a13db36f006f3dc95d0d1f"
+        }
+      ]
+    },
+    {
+      "fixture": "syncopation",
+      "pcm_sha256": "27306f97be9312ed6f93878fa6563d19ac1f3916da485a24b01cd263543c7576",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/syncopation-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.26550849998602644,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":80,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "46696f0d5fc5aec3e3fbbc5b9ff8f135f8efd7eaf3a18f45053f872153107ac0"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/syncopation-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.26867812499403954,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":80,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "c21c1d71db2a470f833241b6a5b3841dafca3c64b7e488853614c4c3da4c2bde"
+        }
+      ]
+    },
+    {
+      "fixture": "syncopation",
+      "pcm_sha256": "27306f97be9312ed6f93878fa6563d19ac1f3916da485a24b01cd263543c7576",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/syncopation-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2649987920303829,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":80,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "46696f0d5fc5aec3e3fbbc5b9ff8f135f8efd7eaf3a18f45053f872153107ac0"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/syncopation.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/syncopation-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3140817499952391,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":80,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "d96d423ac8e160e4606c01d5c96ddc8577984b13ab135d8855fd5d8bb1b0e937"
+        }
+      ]
+    },
+    {
+      "fixture": "half_time",
+      "pcm_sha256": "19a35e34ae7125fecf64900adbee5fdf9c944a90400dbf1e4773b665228cd974",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/half_time-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.268727749993559,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":90,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "de0f1bc71006b7ce472cc6f6a9c47f6d4579a97c2ded928ac8888c0c47e61f06"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/half_time-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.35294745897408575,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":90,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "06a3cdf00b8602b3656813e891d6d495f534989196640e12d9d967f6aba6c373"
+        }
+      ]
+    },
+    {
+      "fixture": "half_time",
+      "pcm_sha256": "19a35e34ae7125fecf64900adbee5fdf9c944a90400dbf1e4773b665228cd974",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/half_time-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2722967910231091,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":90,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "de0f1bc71006b7ce472cc6f6a9c47f6d4579a97c2ded928ac8888c0c47e61f06"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/half_time-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.289606417005416,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":90,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "4bba32be9c65467c22ff0b7656f1d10c064ab1a69839990bdc8f419175799df2"
+        }
+      ]
+    },
+    {
+      "fixture": "half_time",
+      "pcm_sha256": "19a35e34ae7125fecf64900adbee5fdf9c944a90400dbf1e4773b665228cd974",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/half_time-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.27716020902153105,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":90,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "de0f1bc71006b7ce472cc6f6a9c47f6d4579a97c2ded928ac8888c0c47e61f06"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/half_time.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/half_time-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.325823416991625,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":90,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "8458d51e724a023bb0d0afd18e40d7ab5b4e6d1c8bac80d8f8e1253215971e0c"
+        }
+      ]
+    },
+    {
+      "fixture": "sparse_reentry",
+      "pcm_sha256": "8290c278b35f9fac71552d4d04835530aec6b0c7a9581fb6a8fb33c37a6ea78e",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/sparse_reentry-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.24652250000508502,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "b87caa96926f1840c0d74b2a9c730628eabab36bf0a1235fa93637f9bbcc95ad"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/sparse_reentry-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.31662991701159626,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "712ab000ea52057cffd6c39964df5995308ebe6499b5efc5a621488a0c6ee285"
+        }
+      ]
+    },
+    {
+      "fixture": "sparse_reentry",
+      "pcm_sha256": "8290c278b35f9fac71552d4d04835530aec6b0c7a9581fb6a8fb33c37a6ea78e",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/sparse_reentry-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2463206669781357,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "b87caa96926f1840c0d74b2a9c730628eabab36bf0a1235fa93637f9bbcc95ad"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/sparse_reentry-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2848363329540007,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "3e39b0db5b59e4a8e9577d1096a2f049aacd400920895082b843913b71cdf62b"
+        }
+      ]
+    },
+    {
+      "fixture": "sparse_reentry",
+      "pcm_sha256": "8290c278b35f9fac71552d4d04835530aec6b0c7a9581fb6a8fb33c37a6ea78e",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/sparse_reentry-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2442116669844836,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "b87caa96926f1840c0d74b2a9c730628eabab36bf0a1235fa93637f9bbcc95ad"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/sparse_reentry.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/sparse_reentry-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3086935420287773,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "f2edcd77a2023380a19cf417a400138d0636a94c57941b4550916b620362f73b"
+        }
+      ]
+    },
+    {
+      "fixture": "dense",
+      "pcm_sha256": "20006c160b8bafe64f46a7302ffb6275e98127d02a516d1d141a8e1d06aaeed5",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/dense-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2820986660080962,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1887492db16d2e8704c423b49a61d771a28364a8f2a99dc543b3a08250dad186"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/dense-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3289212909876369,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "d824edc4a39c177c9d1876667a5d63f06dc7199be5d7a34bf04b8993c5396403"
+        }
+      ]
+    },
+    {
+      "fixture": "dense",
+      "pcm_sha256": "20006c160b8bafe64f46a7302ffb6275e98127d02a516d1d141a8e1d06aaeed5",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/dense-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2696441669831984,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1887492db16d2e8704c423b49a61d771a28364a8f2a99dc543b3a08250dad186"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/dense-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.29073983296984807,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "7238d4bc25de4649d9fc430a4437811a4dc405b52ee5db047a6376d9cabe738f"
+        }
+      ]
+    },
+    {
+      "fixture": "dense",
+      "pcm_sha256": "20006c160b8bafe64f46a7302ffb6275e98127d02a516d1d141a8e1d06aaeed5",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/dense-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2775127909844741,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1887492db16d2e8704c423b49a61d771a28364a8f2a99dc543b3a08250dad186"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/dense.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/dense-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.33919691597111523,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":120,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1a8898952a9b580d5481534deac9d39b447f6b7cb7e9b0fc340508f24b23f5d8"
+        }
+      ]
+    },
+    {
+      "fixture": "tempo_step",
+      "pcm_sha256": "4e7a5b39b0ff47147abf79d6e67ccea58a2b1bde0e1e833ab83b3379893b18c3",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/tempo_step-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2679880840005353,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":135,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "6c5902602061ad5a29be9f7bcb8f03a19c2f74234a73307efeebcbf3424d86c2"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/tempo_step-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3205551660503261,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":135,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "7e092c82c7f55738fea3473683d3480b6969b31085945e609bb407b9f8c2832f"
+        }
+      ]
+    },
+    {
+      "fixture": "tempo_step",
+      "pcm_sha256": "4e7a5b39b0ff47147abf79d6e67ccea58a2b1bde0e1e833ab83b3379893b18c3",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/tempo_step-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.25181266700383276,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":135,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "6c5902602061ad5a29be9f7bcb8f03a19c2f74234a73307efeebcbf3424d86c2"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/tempo_step-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.300327249977272,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":135,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "7f675ebb67f19771fc29b995b81f2e9569ff18d478fbdc0d550f2574c102aa21"
+        }
+      ]
+    },
+    {
+      "fixture": "tempo_step",
+      "pcm_sha256": "4e7a5b39b0ff47147abf79d6e67ccea58a2b1bde0e1e833ab83b3379893b18c3",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/tempo_step-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.253231999988202,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":135,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "6c5902602061ad5a29be9f7bcb8f03a19c2f74234a73307efeebcbf3424d86c2"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/tempo_step.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/tempo_step-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.31734845804749057,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":135,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "b57a3e0ac2dedb8b177a94a643c0de5051f753d1bff70bfd65928b9a9d492660"
+        }
+      ]
+    },
+    {
+      "fixture": "silence",
+      "pcm_sha256": "75c4124e7b4e22b53b59f9208d359b0cc16157ae1e4beba52159c5a6b801dd2b",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/silence-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.22510437498567626,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":108,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1a3fd424565edc7060044aca54a73153efefd759c11702d582c32ed3cb8c4440"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/silence-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2357277920236811,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":108,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "58b8332844fb549d7571aed29768442c773206285914764b801a9637a9b78f86"
+        }
+      ]
+    },
+    {
+      "fixture": "silence",
+      "pcm_sha256": "75c4124e7b4e22b53b59f9208d359b0cc16157ae1e4beba52159c5a6b801dd2b",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/silence-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.22688258398557082,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":108,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1a3fd424565edc7060044aca54a73153efefd759c11702d582c32ed3cb8c4440"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/silence-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.23185525002190843,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":108,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "52ccbc7f7f8f28b7bde43c4b30bc00513d1c928503d5a39fd0dc3b50474e5d91"
+        }
+      ]
+    },
+    {
+      "fixture": "silence",
+      "pcm_sha256": "75c4124e7b4e22b53b59f9208d359b0cc16157ae1e4beba52159c5a6b801dd2b",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/silence-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2197301249834709,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":108,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "1a3fd424565edc7060044aca54a73153efefd759c11702d582c32ed3cb8c4440"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/silence.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/silence-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2351580829708837,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":108,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "58b8332844fb549d7571aed29768442c773206285914764b801a9637a9b78f86"
+        }
+      ]
+    },
+    {
+      "fixture": "fractional12743",
+      "pcm_sha256": "7feb082bb40f4094d3a93d785cedbddfb74472a89dc2bc987250454b09979141",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/fractional12743-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2805734589928761,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":127,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "ea7bbf9f8fec043ab4b554fff72ed6ff13e8c1b02316b65a6b03c3ea985e79da"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/fractional12743-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3146206249948591,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":127,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "5fa3a8f42fa9f4b4ce5a2b6a11cfb8a39860c2e1cc8dba5be1a4cf177d02f1de"
+        }
+      ]
+    },
+    {
+      "fixture": "fractional12743",
+      "pcm_sha256": "7feb082bb40f4094d3a93d785cedbddfb74472a89dc2bc987250454b09979141",
+      "variant": "field-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/fractional12743-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2610722500248812,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":127,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "ea7bbf9f8fec043ab4b554fff72ed6ff13e8c1b02316b65a6b03c3ea985e79da"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/fractional12743-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2624964580172673,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":127,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "5f0b96248549ef9e73e1a4a3a0756ba3d4a04aedbba38f59c53733f2dcd3d4d5"
+        }
+      ]
+    },
+    {
+      "fixture": "fractional12743",
+      "pcm_sha256": "7feb082bb40f4094d3a93d785cedbddfb74472a89dc2bc987250454b09979141",
+      "variant": "phase-off",
+      "compared_hops": 4800,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/fractional12743-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2690590000129305,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":127,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "ea7bbf9f8fec043ab4b554fff72ed6ff13e8c1b02316b65a6b03c3ea985e79da"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/fractional12743.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/fractional12743-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.31106616696342826,
+          "stdout": "{\"hops\":4800,\"generation\":4800,\"peak\":0,\"tempo_bpm\":127,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "73fd6f6e406641065f197efd035c1fe646b69c1dcba77e120f89c1d4ca54d2e9"
+        }
+      ]
+    },
+    {
+      "fixture": "song-0",
+      "pcm_sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4000,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-0-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2307443749741651,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.0802002,\"tempo_bpm\":102,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "e498f9439d043fe1411ffe2ecd1c2e10a5d80703a4a7578bb33225df14784513"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-0-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2986604169709608,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.0802002,\"tempo_bpm\":102,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "5ed62ac079751c4298a533b5ec8d5c6d2ff0ec083fc4843c49ca81239be4dcf2"
+        }
+      ]
+    },
+    {
+      "fixture": "song-0",
+      "pcm_sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be",
+      "variant": "field-off",
+      "compared_hops": 4000,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-0-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2323947079712525,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.0802002,\"tempo_bpm\":102,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "e498f9439d043fe1411ffe2ecd1c2e10a5d80703a4a7578bb33225df14784513"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-0-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.24439220799831674,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.0802002,\"tempo_bpm\":102,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "164ca3d52a4611eb16e3cbaa338984632f4a2fb067d01183899592838dc87b73"
+        }
+      ]
+    },
+    {
+      "fixture": "song-0",
+      "pcm_sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be",
+      "variant": "phase-off",
+      "compared_hops": 4000,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-0-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.23666395799955353,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.0802002,\"tempo_bpm\":102,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "e498f9439d043fe1411ffe2ecd1c2e10a5d80703a4a7578bb33225df14784513"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-0.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-0-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2700807499932125,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.0802002,\"tempo_bpm\":102,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "cfeda390e40c46319ae8b8db37ba5495846de4c58eb5c4787278b680a9dccba1"
+        }
+      ]
+    },
+    {
+      "fixture": "song-1",
+      "pcm_sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a",
+      "variant": "field-on-phase-on",
+      "compared_hops": 4000,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-1-field-on-phase-on/baseline.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2409169590100646,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.112122,\"tempo_bpm\":91,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "f9d97e8bffe9cfe6c735a58191e899059343ee3e8901ee30da7043e5ab93bf49"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-1-field-on-phase-on/candidate.jsonl",
+            "on",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.3012331660138443,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.112122,\"tempo_bpm\":91,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "d5fbc3a67c126c38dd3889914eaa99a838077847448bcff0c92e8fd7985df9f2"
+        }
+      ]
+    },
+    {
+      "fixture": "song-1",
+      "pcm_sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a",
+      "variant": "field-off",
+      "compared_hops": 4000,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-1-field-off/baseline.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.23584337497595698,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.112122,\"tempo_bpm\":91,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "f9d97e8bffe9cfe6c735a58191e899059343ee3e8901ee30da7043e5ab93bf49"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-1-field-off/candidate.jsonl",
+            "off",
+            "on",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.24345958302728832,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.112122,\"tempo_bpm\":91,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "2c4b6566ffaf691cbc8597fd20397b84548a2fca60f8945b64c3a1525f5c5498"
+        }
+      ]
+    },
+    {
+      "fixture": "song-1",
+      "pcm_sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a",
+      "variant": "phase-off",
+      "compared_hops": 4000,
+      "exact_legacy_parity": true,
+      "first_mismatch": null,
+      "runs": [
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/baseline/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-1-phase-off/baseline.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.23082491697277874,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.112122,\"tempo_bpm\":91,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "f9d97e8bffe9cfe6c735a58191e899059343ee3e8901ee30da7043e5ab93bf49"
+        },
+        {
+          "command": [
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/candidate/replay_live_k1",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/pcm/song-1.pcm",
+            "normal",
+            "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/sliced-parity/epoch-repair-1/song-1-phase-off/candidate.jsonl",
+            "on",
+            "off",
+            "plain"
+          ],
+          "exit": 0,
+          "seconds": 0.2832157499506138,
+          "stdout": "{\"hops\":4000,\"generation\":4000,\"peak\":0.112122,\"tempo_bpm\":91,\"valid\":1}\n",
+          "stderr": "",
+          "trace_sha256": "58b37c0f3c00f6558c1fb26863abc2bcf1e22543c57c2bba7e905d7f88a7d6bd"
+        }
+      ]
+    }
+  ],
+  "all_exact": true,
+  "claim_scope": "HOST complete LiveAudioRuntime::consume with sliced generated portable tempo source. No target timing or optical claim."
+}

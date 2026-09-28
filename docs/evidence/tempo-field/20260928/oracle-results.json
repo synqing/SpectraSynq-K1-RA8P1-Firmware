@@ -1,0 +1,52 @@
+{
+  "scope": "host mathematical phase and direct lifecycle seam only",
+  "not_tested": [
+    "musical beat accuracy",
+    "target timing/capture",
+    "physical light"
+  ],
+  "runs": [
+    {
+      "mutation": null,
+      "returncode": 0,
+      "expected_result": "tests pass",
+      "satisfied": true,
+      "log": "docs/evidence/tempo-field/20260928/oracle-baseline.log"
+    },
+    {
+      "mutation": "phase_sign",
+      "returncode": 1,
+      "expected_result": "tests fail",
+      "satisfied": true,
+      "log": "docs/evidence/tempo-field/20260928/oracle-phase_sign.log"
+    },
+    {
+      "mutation": "time_endpoint",
+      "returncode": 1,
+      "expected_result": "tests fail",
+      "satisfied": true,
+      "log": "docs/evidence/tempo-field/20260928/oracle-time_endpoint.log"
+    },
+    {
+      "mutation": "freshness",
+      "returncode": 1,
+      "expected_result": "tests fail",
+      "satisfied": true,
+      "log": "docs/evidence/tempo-field/20260928/oracle-freshness.log"
+    }
+  ],
+  "sha256": {
+    "scripts/test_tempo_field.py": "e432dfd4b68000063a48f7940524d910e8ce47639ed9c97afa880e5cd53c047c",
+    "tests/audio/tempo_oracle_bridge.cpp": "1738b53757e619dc6f225211a2a198e5ff176bbdf8d8ad99b5373fc299e976c3",
+    "tools/audio/phase_oracle.py": "c4c10a8d5e73baa586f48a4471dd3c2224474e3e58473ead0819c4b1549cc8cb",
+    "tools/audio/score_tempo_field.py": "d6288241e1cdce0fcec6f3f7a4183414854d225c3f463a08e6190c7adec28916",
+    "src/k1/core/audio/tempo_phase_tracks.cpp": "1837ff728f9797682e8e3fa2ec93481387ec9815e21383896db5ff71bf2b6670",
+    "src/k1/core/audio/tempo_phase_tracks.h": "2c95786b4e4da231fab57811811bf746d5e7711b29456b32fef7908b65b421ac",
+    "src/k1/core/audio/tempo_field_publisher.cpp": "20619b640e42f6bdf5056d612a3e4679615d89d8a0c7fc56565dabd7861a15b5",
+    "src/k1/core/audio/tempo_tracker.cpp": "8a27516c98c0cdd3f83a8dfb6c6683a334808165b1fdf8773b99dd02e816ad24",
+    "src/k1/core/visual/tempo_reference_scene.cpp": "af86546f059083dc6c63a1954fdc4eaa0bee1a9c3f7c9c6bf8507b74c5975c10",
+    "tests/audio/tempo_reference_scene_test.cpp": "3f75b55b85012c1a4ed548bf05ab1e99d6f04ee44fee292ea6546f3528231d88",
+    "src/k1/contract/tempo_field_v1.h": "2b30e9bb1dc4afb0b716cedb8b5864673586169c2365a1e434b6a44ff83dd028",
+    "docs/evidence/tempo-field/20260928/oracle-freeze.md": "97242c476216dc3f06c7e7cfa37adc5ba8d96cce67fbbda8799f61578d0f8d8c"
+  }
+}

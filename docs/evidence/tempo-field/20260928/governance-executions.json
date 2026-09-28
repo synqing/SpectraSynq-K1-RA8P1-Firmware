@@ -1,0 +1,43 @@
+{
+  "session": "51e4c1e52e45739e506104d6",
+  "executions": [
+    {
+      "label": "runtime completion cache allocation",
+      "exit": 0,
+      "receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/51e2b130dbbd313ee2a626760d147546a520d69424375c8e7979443728f72e86.json"
+    },
+    {
+      "label": "phase oracle mutations",
+      "exit": 0,
+      "receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/66b5f4ee234b2baa4fc3417eea9c0d56c24e2ee4c9ca88a0d6ea73cf922fe56a.json"
+    },
+    {
+      "label": "fixed PCM scorer",
+      "exit": 0,
+      "receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/5d8564862da4bb865e0740dad547f33f8546592d80c4c8fdb10a161cf8a1514e.json"
+    },
+    {
+      "label": "final committed12-method oracle",
+      "exit": 0,
+      "receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/6ff0292e7e87424dd2919a72dc441c8133f179d69b843f98580bb364414229d0.json"
+    },
+    {
+      "label": "final full PCM scoring",
+      "exit": 0,
+      "receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/478953e2f169e9fc40b619ccaf829790fac5b93dc26df1e11700d24dd8916811.json"
+    },
+    {
+      "label": "final actual browser playback",
+      "exit": 0,
+      "receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/3cce225123822a725566606b2c8c828616586d7b57e1834f3c727690dea73503.json"
+    }
+  ],
+  "accept_attempt": {
+    "task_ids": [
+      "AP-1",
+      "AP-2"
+    ],
+    "result": "Explicit observed case results are required; command success is insufficient"
+  },
+  "gate": "can_normal_stop=false; existing AP registry dependencies ORCH-0 CTL-2 IVV-1 and unadmitted AP tasks remain. Original assignments unchanged."
+}

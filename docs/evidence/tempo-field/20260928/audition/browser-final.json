@@ -1,0 +1,134 @@
+[
+  {
+    "id": "song-0",
+    "htmlSha256": "6f7fa11470fae0bbe75ff6b4914d3d5bca12f2fa2cfd11b60a8323910a1d6859",
+    "duration": 30,
+    "playbackAdvanced": true,
+    "currentTime": 0.155244,
+    "availabilityBoundaries": 4000,
+    "causalityViolations": 0,
+    "decodedPixelValues": 5120000,
+    "eightControlsExercised": true,
+    "disabledLayersMatchBaseline": true,
+    "captures": [
+      {
+        "file": "song-0-18s-srgb.png",
+        "presentation": 18,
+        "available_us": 18000000,
+        "onset_event_id": 303,
+        "onset_age_ms": 68,
+        "onset_strength": 0,
+        "phase_authority": 0,
+        "silence": 1,
+        "table": "42 / 585\t102.0 BPM\tUnavailable\tUnknown\t1.000\n8 / 586\t68.0 BPM\tUnavailable\tUnknown\t0.643\n76 / 587\t136.0 BPM\tUnavailable\tUnknown\t0.325\n22 / 588\t82.0 BPM\tUnavailable\tUnknown\t0.263",
+        "candidateReadout": "Total 11.218 · Δ 0.0139 · peak 0.260/24"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "id": "song-1",
+    "htmlSha256": "2d92fbe3db5aee05d6ce3eb92724b97babc2100d5f52153e7e41564b0cd1d3ef",
+    "duration": 30,
+    "playbackAdvanced": true,
+    "currentTime": 0.256868,
+    "availabilityBoundaries": 4000,
+    "causalityViolations": 0,
+    "decodedPixelValues": 5120000,
+    "eightControlsExercised": true,
+    "disabledLayersMatchBaseline": true,
+    "captures": [
+      {
+        "file": "song-1-18s-srgb.png",
+        "presentation": 18,
+        "available_us": 18000000,
+        "onset_event_id": 267,
+        "onset_age_ms": 53,
+        "onset_strength": 0,
+        "phase_authority": 1,
+        "silence": 0,
+        "table": "31 / 389\t91.0 BPM\tCoasting · measured\t0.015 s\t1.000\n1 / 394\t61.0 BPM\tCoasting · measured\t0.015 s\t0.484\n61 / 397\t121.0 BPM\tCoasting · measured\t0.105 s\t0.376\n78 / 392\t138.0 BPM\tCoasting · measured\t0.015 s\t0.330\n0 / 396\t60.0 BPM\tCoasting · measured\t0.105 s\t0.492\n62 / 395\t122.0 BPM\tCoasting · measured\t0.015 s\t0.365",
+        "candidateReadout": "Total 59.074 · Δ 0.0037 · peak 1.138/24"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "id": "clear120",
+    "htmlSha256": "5e460b857bfa129b103ce4858f025d4e6e3855722bd654388bb9625504a8fa09",
+    "duration": 36,
+    "playbackAdvanced": true,
+    "currentTime": 0.259428,
+    "availabilityBoundaries": 4800,
+    "causalityViolations": 0,
+    "decodedPixelValues": 6144000,
+    "eightControlsExercised": true,
+    "disabledLayersMatchBaseline": true,
+    "captures": [
+      {
+        "file": "clear120-18s-srgb.png",
+        "presentation": 18,
+        "available_us": 18000000,
+        "onset_event_id": 50,
+        "onset_age_ms": 480,
+        "onset_strength": 0,
+        "phase_authority": 1,
+        "silence": 0,
+        "table": "60 / 1\t120.0 BPM\tCoasting · measured\t0.015 s\t1.000\n0 / 31\t60.0 BPM\tCoasting · measured\t0.015 s\t0.872\n20 / 29\t80.0 BPM\tCoasting · measured\t0.015 s\t0.402\n30 / 24\t90.0 BPM\tCoasting · measured\t0.015 s\t0.214\n12 / 30\t72.0 BPM\tCoasting · measured\t0.983 s\t0.212",
+        "candidateReadout": "Total 0.000 · Δ 0.0000 · peak 0.000/24"
+      }
+    ],
+    "errors": []
+  },
+  {
+    "id": "sparse_reentry",
+    "htmlSha256": "416309a55052f85f2140b7f9fa705bfca24e50cb61137dc73d16e5a73b1bd422",
+    "duration": 36,
+    "playbackAdvanced": true,
+    "currentTime": 0.257186,
+    "availabilityBoundaries": 4800,
+    "causalityViolations": 0,
+    "decodedPixelValues": 6144000,
+    "eightControlsExercised": true,
+    "disabledLayersMatchBaseline": true,
+    "captures": [
+      {
+        "file": "sparse_reentry-18s-srgb.png",
+        "presentation": 18,
+        "available_us": 18000000,
+        "onset_event_id": 32,
+        "onset_age_ms": 6480,
+        "onset_strength": 0,
+        "phase_authority": 0,
+        "silence": 1,
+        "table": "60 / 285\t120.0 BPM\tUnavailable\tUnknown\t1.000\n0 / 286\t60.0 BPM\tUnavailable\tUnknown\t0.723\n20 / 287\t80.0 BPM\tUnavailable\tUnknown\t0.344\n30 / 288\t90.0 BPM\tUnavailable\tUnknown\t0.190",
+        "candidateReadout": "Total 0.000 · Δ 0.0000 · peak 0.000/24"
+      },
+      {
+        "file": "sparse_reentry-23s-srgb.png",
+        "presentation": 23,
+        "available_us": 22995000,
+        "onset_event_id": 33,
+        "onset_age_ms": 975,
+        "onset_strength": 0,
+        "phase_authority": 1,
+        "silence": 0,
+        "table": "61 / 914\t121.0 BPM\tCoasting · measured\t0.492 s\t1.000\n0 / 915\t60.0 BPM\tCoasting · measured\t0.988 s\t0.310\n1 / 916\t61.0 BPM\tCoasting · measured\t0.965 s\t0.229\n60 / 917\t120.0 BPM\tCoasting · measured\t0.020 s\t1.000",
+        "candidateReadout": "Total 0.000 · Δ 0.0000 · peak 0.000/24"
+      },
+      {
+        "file": "sparse_reentry-23.01s-srgb.png",
+        "presentation": 23.01,
+        "available_us": 23010000,
+        "onset_event_id": 34,
+        "onset_age_ms": 0,
+        "onset_strength": 1,
+        "phase_authority": 1,
+        "silence": 0,
+        "table": "61 / 914\t121.0 BPM\tCoasting · measured\t0.007 s\t1.000\n0 / 918\t60.0 BPM\tCoasting · measured\t0.007 s\t0.311\n1 / 916\t61.0 BPM\tCoasting · measured\t0.975 s\t0.229\n60 / 917\t120.0 BPM\tCoasting · measured\t0.030 s\t1.000",
+        "candidateReadout": "Total 93.708 · Δ 0.0183 · peak 2.459/24"
+      }
+    ],
+    "errors": []
+  }
+]

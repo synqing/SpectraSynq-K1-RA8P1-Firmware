@@ -1,0 +1,17 @@
+{
+  "build_id": "01c3284e4bd8e9117bbc2abe104ac09d30385d73717c97769b5b2c2f50904703",
+  "build_pass": true,
+  "hex_sha256": "298c2312b4790c5420403d1591fe7d981f3035482b21c77007ab789c97235b61",
+  "receipt_sha256": "5e76c63c70a9a5b01898b86a99b6b6a92b9cb4b57f004508141e0a393735e2e9",
+  "source_checked": 134,
+  "source_errors": [],
+  "size": "   text\t   data\t    bss\t    dec\t    hex\tfilename\n 264660\t  21280\t 395076\t 681016\t  a6438\tdocs/evidence/tempo-field/20260928/arm-tempo-field-epoch-repair-1/rtthread.elf\n",
+  "prior_arm_size_proof": "arm-memory-final.json",
+  "size_headers_unchanged": true,
+  "static_stack": {
+    "stage/src/k1/core/audio/tempo_field_publisher.su": "src/k1/core/audio/tempo_field_publisher.cpp:5:24:k1::contract::TempoFieldV1 k1::core::audio::publishTempoField(TempoFieldPublisher&, const TempoTrackerState&, AudioTime, bool, uint64_t, bool, bool)\t1304\tstatic\n",
+    "stage/src/k1/core/audio/tempo_phase_tracks.su": "src/k1/core/audio/tempo_phase_tracks.cpp:10:6:void k1::core::audio::{anonymous}::invalidateTracks(k1::core::audio::TempoPhaseTracks&, k1::contract::TempoFieldV1&)\t16\tstatic\nsrc/k1/core/audio/tempo_phase_tracks.cpp:16:6:bool k1::core::audio::observeTempoPhase(const TempoNoveltyRing&, float, uint64_t, double&)\t80\tstatic\nsrc/k1/core/audio/tempo_phase_tracks.cpp:34:6:bool k1::core::audio::projectTempoTrack(const k1::contract::TempoFieldCandidateV1&, AudioTime, TempoExtendedPhase&)\t72\tstatic\nsrc/k1/core/audio/tempo_phase_tracks.cpp:51:6:bool k1::core::audio::deriveTempoPhase(const TempoExtendedPhase&, uint32_t, uint32_t, uint64_t, uint64_t, TempoExtendedPhase&)\t56\tstatic\nsrc/k1/core/audio/tempo_phase_tracks.cpp:73:6:void k1::core::audio::ageTempoPhaseTracks(k1::contract::TempoFieldV1&, uint64_t)\t36\tstatic\nsrc/k1/core/audio/tempo_phase_tracks.cpp:94:6:void k1::core::audio::updateTempoPhaseTracks(TempoPhaseTracks&, k1::contract::TempoFieldV1&, const TempoNoveltyRing&, const TempoAcfOutput&, uint64_t, bool)\t424\tstatic\n",
+    "stage/src/k1/core/audio/audio_pipeline.su": "src/k1/core/audio/audio_pipeline.cpp:48:1:k1::core::audio::AudioPipeline::AudioPipeline()\t24\tstatic\nsrc/k1/core/audio/audio_pipeline.cpp:56:6:void k1::core::audio::AudioPipeline::reset()\t2648\tstatic\nsrc/k1/core/audio/audio_pipeline.cpp:65:21:k1::core::audio::AudioPipelineOutput k1::core::audio::AudioPipeline::process(const k1::core::audio::AudioPipelineInput&)\t4400\tstatic\n"
+  },
+  "physical_test": "NOT_RUN_NO_HARDWARE_AUTHORITY_IN_WORKER"
+}

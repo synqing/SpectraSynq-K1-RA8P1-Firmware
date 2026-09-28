@@ -1,0 +1,22 @@
+{
+  "schema": "k1.tempo.host-audition.v1",
+  "label": "clear120",
+  "held_out": false,
+  "sample_rate": 24000,
+  "duration_seconds": 36.0,
+  "hops": 4800,
+  "pcm_sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70",
+  "baseline_sha256": "6df1d2ea038a7197e6dc226c82fcc675249c4982ed38ab90bf9c41a70e3b3d70",
+  "candidate_sha256": "1e295f9aeb39f6f4dab2538a1ae34a13e18093b393ac799eaa33b8765f3f00a5",
+  "builder_sha256": "ee38dac7d198d88ec1028dc8f99035d4be14e1409c541db2cdb1b6e020617c75",
+  "renderer_maximum_level": 4.25832748,
+  "maximum_renderer_total_difference": 9.658000010404066e-06,
+  "maximum_packaged_total_difference": 0.043213550011444335,
+  "pixel_encoding": "gzip of little-endian uint16: hop, mask 0..7, baseline/candidate, first80; full_scale=24",
+  "presentation": "audio.currentTime, last trace row available_us <= playback time; no future shift",
+  "clock_mapping": "host replay origin zero, 48000 media frames per second; not target timing",
+  "availability_disclosure": "Simulated host replay availability at hop release; no measured computation latency. Causal ordering is tested; physical audio-to-light latency is not measured.",
+  "template_sha256": "1363e2dfea99219c05a5a0df1e1f959ec16b6450bf0bd776572b89c2dd2b9693",
+  "scope": "Host expressive audition. No optical, target timing, beat annotation or preference acceptance claim.",
+  "html_sha256": "5e460b857bfa129b103ce4858f025d4e6e3855722bd654388bb9625504a8fa09"
+}

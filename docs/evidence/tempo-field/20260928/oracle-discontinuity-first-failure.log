@@ -1,0 +1,18 @@
+Retained excerpt of actual tools.exec_command output before repair.
+Command: python3 scripts/test_tempo_field.py
+Exit code: 1
+
+test_discontinuity_full_history_AP_AC03_08 (__main__.TempoOracle.test_discontinuity_full_history_AP_AC03_08)
+  configuration_change=0 ... FAIL
+  configuration_change=1 ... FAIL
+
+Both failures: AssertionError: 2 != 0
+Bridge return2: evidence.history_samples < 512 and (published field.valid or phase_authority).
+
+Ran 12 tests in 4.383s
+FAILED (failures=2)
+
+Witness construction: actual initialised tracker prewarmed through hop1536;
+retained nonzero novelty history, change epoch7->8 or configuration1->2;
+inspect every published hop until512 new novelty samples. No detector arithmetic
+or expected count threshold was changed by the verifier.

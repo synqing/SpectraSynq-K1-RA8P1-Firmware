@@ -1,0 +1,5 @@
+{
+  "build_id": "c611b2fdea80fb576f1d33fc3b28e87087031dfc63d688828f5a631ccb64842b",
+  "size": "   text\t   data\t    bss\t    dec\t    hex\tfilename\n 264612\t  21280\t 395076\t 680968\t  a6408\tdocs/evidence/tempo-field/20260928/arm-tempo-field/rtthread.elf\n",
+  "pass": true
+}

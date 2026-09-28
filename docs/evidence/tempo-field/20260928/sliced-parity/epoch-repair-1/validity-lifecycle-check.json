@@ -1,0 +1,72 @@
+[
+  {
+    "fixture": "clear120-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 269,
+    "violations": [],
+    "trace_sha256": "03bddfe1cea15ff0da2a06667d2358ce5e356c1907abb0d8e3091c05f4cd2fb6"
+  },
+  {
+    "fixture": "dense-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 4139,
+    "violations": [],
+    "trace_sha256": "d824edc4a39c177c9d1876667a5d63f06dc7199be5d7a34bf04b8993c5396403"
+  },
+  {
+    "fixture": "fractional12743-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 269,
+    "violations": [],
+    "trace_sha256": "5fa3a8f42fa9f4b4ce5a2b6a11cfb8a39860c2e1cc8dba5be1a4cf177d02f1de"
+  },
+  {
+    "fixture": "half_time-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 269,
+    "violations": [],
+    "trace_sha256": "06a3cdf00b8602b3656813e891d6d495f534989196640e12d9d967f6aba6c373"
+  },
+  {
+    "fixture": "silence-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 4800,
+    "violations": [],
+    "trace_sha256": "58b8332844fb549d7571aed29768442c773206285914764b801a9637a9b78f86"
+  },
+  {
+    "fixture": "song-0-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 1051,
+    "violations": [],
+    "trace_sha256": "5ed62ac079751c4298a533b5ec8d5c6d2ff0ec083fc4843c49ca81239be4dcf2"
+  },
+  {
+    "fixture": "song-1-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 1820,
+    "violations": [],
+    "trace_sha256": "d5fbc3a67c126c38dd3889914eaa99a838077847448bcff0c92e8fd7985df9f2"
+  },
+  {
+    "fixture": "sparse_reentry-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 1280,
+    "violations": [],
+    "trace_sha256": "712ab000ea52057cffd6c39964df5995308ebe6499b5efc5a621488a0c6ee285"
+  },
+  {
+    "fixture": "syncopation-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 269,
+    "violations": [],
+    "trace_sha256": "5128b661ef101a5b5ed0f87bc73a62f842bde8cb67a13db36f006f3dc95d0d1f"
+  },
+  {
+    "fixture": "tempo_step-field-on-phase-on",
+    "warm_hops": 1538,
+    "silent_hops": 269,
+    "violations": [],
+    "trace_sha256": "7e092c82c7f55738fea3473683d3480b6969b31085945e609bb407b9f8c2832f"
+  }
+]

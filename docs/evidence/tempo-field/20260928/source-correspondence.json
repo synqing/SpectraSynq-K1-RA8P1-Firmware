@@ -1,0 +1,67 @@
+[
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/audio_pipeline.h",
+    "historical_sha256": "2206ebb60ec0ec30d2a5c3e7c96b65114a0afd3b6e58c8cb231de6f71bf48189",
+    "current_sha256": "2206ebb60ec0ec30d2a5c3e7c96b65114a0afd3b6e58c8cb231de6f71bf48189"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/audio_pipeline.cpp",
+    "historical_sha256": "fcce06cf9f723b5c313870aed880fe23365f312791142d015b15c8013681d7bb",
+    "current_sha256": "fcce06cf9f723b5c313870aed880fe23365f312791142d015b15c8013681d7bb"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/tempo_tracker.h",
+    "historical_sha256": "d5eb1aab842bf4b035b2e9b83e65696ce35d84f2e55fc725a8fd96e7cab98b32",
+    "current_sha256": "d5eb1aab842bf4b035b2e9b83e65696ce35d84f2e55fc725a8fd96e7cab98b32"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/tempo_tracker.cpp",
+    "historical_sha256": "76d49284b69702c2544617a11b6830133ea411d0cc0fc5f82a19a51ddb12e5ea",
+    "current_sha256": "76d49284b69702c2544617a11b6830133ea411d0cc0fc5f82a19a51ddb12e5ea"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/tempo_acf.h",
+    "historical_sha256": "17698236599ce46fe05c0f0cffa1c918cf165b05b47c7ebbb4217d0eb6c13344",
+    "current_sha256": "17698236599ce46fe05c0f0cffa1c918cf165b05b47c7ebbb4217d0eb6c13344"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/tempo_acf.cpp",
+    "historical_sha256": "c70a9bfa30a7c716fa4028791ba845b2d3837f11db35f7ab7f7bd35d97caaceb",
+    "current_sha256": "c70a9bfa30a7c716fa4028791ba845b2d3837f11db35f7ab7f7bd35d97caaceb"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/audio_rate_config.h",
+    "historical_sha256": "581448d23107ee70c1fe38e2e06d51eec482ea2acdf18275cf6a76d39505b558",
+    "current_sha256": "581448d23107ee70c1fe38e2e06d51eec482ea2acdf18275cf6a76d39505b558"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/contract/audio_features_v1.h",
+    "historical_sha256": "ef11e6a832e32ce736a8005d1faf172ae67a477827dc5b990a6daf8b5f38f2c3",
+    "current_sha256": "ef11e6a832e32ce736a8005d1faf172ae67a477827dc5b990a6daf8b5f38f2c3"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/visual/visual_audio_frame.h",
+    "historical_sha256": "9a7d13c40045c2ebfd37fc5a7104be3d28ff48796543d879e1412099bde0505e",
+    "current_sha256": "9a7d13c40045c2ebfd37fc5a7104be3d28ff48796543d879e1412099bde0505e"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/gdft_postprocess.cpp",
+    "historical_sha256": "0ca6b4b47a4bc3df9bf6ee8f1185113e460de5dd7a04a018c72792929c3ed76d",
+    "current_sha256": "0ca6b4b47a4bc3df9bf6ee8f1185113e460de5dd7a04a018c72792929c3ed76d"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/onset_beat.cpp",
+    "historical_sha256": "0da74c63816d97bb5805af2766ca96de1daadc4c1ffbf32e8bff797d82019ec5",
+    "current_sha256": "0da74c63816d97bb5805af2766ca96de1daadc4c1ffbf32e8bff797d82019ec5"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/musical_time.h",
+    "historical_sha256": "7d822d83ce34bd589ca25cab3f030ae5d22cb0885c34db5085b90928b93a8de7",
+    "current_sha256": "7d822d83ce34bd589ca25cab3f030ae5d22cb0885c34db5085b90928b93a8de7"
+  },
+  {
+    "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/src/k1/core/audio/musical_time.cpp",
+    "historical_sha256": "82f4bd8ef594841ab88fe1812ad4c14a8cf49e9af039faa36e3a76302cd38a95",
+    "current_sha256": "82f4bd8ef594841ab88fe1812ad4c14a8cf49e9af039faa36e3a76302cd38a95"
+  }
+]

@@ -1,0 +1,116 @@
+{
+  "executable_sha256": "01d748afaedb65476ced663590d10d0d5c50449a48fd1522296ad3270ab69bb0",
+  "fixture_manifest_sha256": "307638abc2933ea050fae002fc5e2c9a1135a7283413d2f54edbbaf58297dd78",
+  "results": [
+    {
+      "id": "clear120",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 120,
+        "valid": 1
+      },
+      "trace_sha256": "6df1d2ea038a7197e6dc226c82fcc675249c4982ed38ab90bf9c41a70e3b3d70"
+    },
+    {
+      "id": "syncopation",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 80,
+        "valid": 1
+      },
+      "trace_sha256": "41eee037b81d79af53a450f12f53b4b1aa85134d9d8c322f5a211de783283523"
+    },
+    {
+      "id": "half_time",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 90,
+        "valid": 1
+      },
+      "trace_sha256": "4e483b76b57065242793c56889345f26870e88108d4041de58f9d0d0e11715eb"
+    },
+    {
+      "id": "sparse_reentry",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 120,
+        "valid": 1
+      },
+      "trace_sha256": "828ffab5a1b6ae8972d13b5836e3240af3eedcbae21f11155cf79bd8b7109b85"
+    },
+    {
+      "id": "dense",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 120,
+        "valid": 1
+      },
+      "trace_sha256": "a53aeddda9e9e302336ac78f27908aa238d6dcdd1b6583f93894bc2881f188dd"
+    },
+    {
+      "id": "tempo_step",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 135,
+        "valid": 1
+      },
+      "trace_sha256": "75e5545700072c8c3599845391b220be3b790e5bfcfca473f09ea7b578a508b6"
+    },
+    {
+      "id": "silence",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 108,
+        "valid": 1
+      },
+      "trace_sha256": "a65137fa03477d6eb24f81de84227eed4225a535693326447f11cab08cd35c52"
+    },
+    {
+      "id": "fractional12743",
+      "summary": {
+        "hops": 4800,
+        "generation": 4800,
+        "peak": 0,
+        "tempo_bpm": 127,
+        "valid": 1
+      },
+      "trace_sha256": "61b52757ce118fd84e43f2c84f9cbec22ce5d245eca5a8c816583e31794d0d4c"
+    },
+    {
+      "id": "song-0",
+      "summary": {
+        "hops": 4000,
+        "generation": 4000,
+        "peak": 0.0802002,
+        "tempo_bpm": 102,
+        "valid": 1
+      },
+      "trace_sha256": "cf443a6932ea77bf80ef9fa8b527e6c152d39f6a9eded8a87798be6fef89db5c"
+    },
+    {
+      "id": "song-1",
+      "summary": {
+        "hops": 4000,
+        "generation": 4000,
+        "peak": 0.112122,
+        "tempo_bpm": 91,
+        "valid": 1
+      },
+      "trace_sha256": "05f4f832f86a9fcaccc4107be821fbc9212ba1a59c9c4024d616be03b71df828"
+    }
+  ]
+}
