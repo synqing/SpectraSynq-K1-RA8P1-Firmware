@@ -269,6 +269,10 @@ void updateTempoBank(TempoTrackerState& state,
         (state.calculation_bin + 1U) % kTempoTrackerBinCount);
     state.bins[bin0].magnitude_raw = computeMagnitude(state, bin0);
     state.bins[bin1].magnitude_raw = computeMagnitude(state, bin1);
+    for (auto bin : {bin0, bin1}) {
+        state.evidence.raw_observed_frame[bin] = state.evidence.history_source.endpoint;
+        state.evidence.raw_observed_valid[bin] = state.evidence.history_source.valid;
+    }
     state.calculation_bin = static_cast<std::uint16_t>(
         (state.calculation_bin + 2U) % kTempoTrackerBinCount);
 
@@ -425,7 +429,26 @@ TempoTrackerEvent buildOutput(const TempoTrackerState& state) noexcept {
 
 }  // namespace
 
+void captureTempoEvidence(TempoTrackerState& state) noexcept {
+    auto& e = state.evidence;
+    e.pending = e.current;
+    if (e.history_samples < kTempoAcfHistoryLength) ++e.history_samples;
+    for (std::size_t i=0; i<kTempoAcfHistoryLength; ++i)
+        e.pending_snapshot[i] = state.novelty_history[(state.history_index+i)%kTempoAcfHistoryLength];
+}
+void completeTempoEvidence(TempoTrackerState& state) noexcept {
+    auto& e = state.evidence;
+    e.completed = e.pending;
+    e.phase_reference_wall_ms = e.pending.wall_ms;
+    e.snapshot = e.pending_snapshot;
+    e.completed.valid = e.pending.valid && e.current.valid &&
+        e.pending.epoch == e.current.epoch &&
+        e.pending.configuration_revision == e.current.configuration_revision;
+    if (e.generation == UINT64_MAX) { e.invalid=true; e.completed.valid=false; }
+    else ++e.generation;
+}
 void resetTempoTracker(TempoTrackerState& state) noexcept {
+    state.evidence = {};
     state.smoothed.fill(0.0F);
     state.novelty_history.fill(0.0F);
     state.acf = {};
@@ -524,6 +547,23 @@ void initialiseTempoTracker(TempoTrackerState& state,
 void updateTempoTracker(TempoTrackerState& state,
                         const TempoTrackerInput& input) noexcept {
     state.event.updated = false;
+    auto& evidence = state.evidence;
+    const bool discontinuity = evidence.current.valid != input.media_valid ||
+        (input.media_valid && (input.epoch != evidence.current.epoch ||
+         input.configuration_revision != evidence.current.configuration_revision ||
+         input.media_frame < evidence.current.endpoint));
+    if (discontinuity) {
+        evidence.history_samples = 0;
+        evidence.raw_observed_valid.fill(false);
+        evidence.completed.valid = false;
+        evidence.pending.valid = false;
+        evidence.history_source.valid = false;
+    }
+    evidence.current = {input.epoch, input.media_frame, input.configuration_revision,
+                        input.media_valid && !evidence.invalid && std::isfinite(input.novelty),
+                        input.frame_ms};
+    evidence.interval_frames = static_cast<std::uint64_t>(
+        std::llround(48000.0 / static_cast<double>(state.novelty_rate_hz)));
     const std::uint32_t now_ms = input.frame_ms;
     float novelty = clamp(input.novelty, 0.0F, 1.0F);
     if (input.silence) novelty = 0.0F;
@@ -555,11 +595,13 @@ void updateTempoTracker(TempoTrackerState& state,
     state.novelty_history[state.history_index] = sample;
     state.history_index = static_cast<std::uint16_t>(
         (state.history_index + 1U) % kTempoAcfHistoryLength);
+    evidence.history_source = evidence.current;
     if (++state.scale_count >= 3U) {
         updateScale(state, 0.3F);
         state.scale_count = 0;
     }
     checkSilence(state);
+    captureTempoEvidence(state);
     computeTempoAcfAtRate(state.novelty_history,
                           state.history_index,
                           state.novelty_scale,
@@ -570,6 +612,7 @@ void updateTempoTracker(TempoTrackerState& state,
         state, delta_seconds, sample * state.novelty_scale);
     state.event = buildOutput(state);
     state.event.updated = true;
+    completeTempoEvidence(state);
 }
 
 TempoTrackerEvent readTempoTracker(const TempoTrackerState& state) noexcept {

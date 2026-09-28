@@ -440,7 +440,8 @@ void palette_step(bool emit) {
       live ? live->features : trajectory.output.features,
       live ? live->tempo : trajectory.output.tempo,
       live_runtime.waveform(),
-      live ? live->features.publish_time_us : 0U};
+      live ? live->features.publish_time_us : 0U,
+      live ? &live->tempo_field : nullptr};
   // Freshness is a MIR flag, not a licence to starve the plate.
   const bool rendered=palettes.step(palette_time_us, (live && live->valid) ? &view : nullptr);
   if (rendered) {
@@ -454,7 +455,7 @@ void palette_step(bool emit) {
 #else
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
-      trajectory.output.features.publish_time_us};
+      trajectory.output.features.publish_time_us, &trajectory.output.tempo_field};
   const bool rendered=palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr);
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR

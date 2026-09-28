@@ -48,6 +48,10 @@ void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
 
 void LiveAudioRuntime::resetAudioOwned() noexcept {
   pipeline_.reset();
+  field_stamp_generation_ = 0;
+  field_stamp_epoch_ = 0;
+  field_stamp_configuration_ = 0;
+  field_stamp_available_us_ = 0;
   window_ = {};
   waveform_ = {};
   private_ = {};
@@ -150,6 +154,8 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
                               ? hop.newest_sample_capture_estimate_us
                               : hop.supporting_dma_receipt_us;
   input.publish_time_us = 0;
+  input.tempo_field_enabled = tempo_field_enabled_;
+  input.tempo_phase_enabled = tempo_phase_enabled_;
   input.peak_scaled = peak;
   input.vu_level = std::sqrt(energy / static_cast<float>(K1_AUDIO_HOP_SAMPLES));
   input.silence = peak == 0.0F;
@@ -242,6 +248,20 @@ void LiveAudioRuntime::finalisePublication(core::audio::AudioPipelineOutput& out
                                            const k1_audio_hop_t& hop,
                                            std::uint64_t ap_finish_us) noexcept {
   output.features.publish_time_us = ap_finish_us;
+  auto& field = output.tempo_field;
+  // Completion belongs to the evidence generation, never to a cached copy.
+  if (field.enabled && field.generation != 0U) {
+    if (field.generation != field_stamp_generation_ ||
+        field.epoch != field_stamp_epoch_ ||
+        field.configuration_revision != field_stamp_configuration_) {
+      field_stamp_generation_ = field.generation;
+      field_stamp_epoch_ = field.epoch;
+      field_stamp_configuration_ = field.configuration_revision;
+      field_stamp_available_us_ = ap_finish_us;
+    }
+    field.available_us = field_stamp_available_us_;
+    field.availability_valid = true;
+  }
   if (hop.capture_estimate_valid &&
       hop.newest_sample_capture_estimate_us > ap_finish_us) {
     output.features.capture_time_us = hop.supporting_dma_receipt_us;

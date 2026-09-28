@@ -9,7 +9,10 @@ from pathlib import Path
 
 from verify_imports import ROOT
 
-NAMES = json.loads((ROOT / "docs/import-slices.json").read_text())["product"]
+NAMES = json.loads((ROOT / "docs/import-slices.json").read_text())["product"] + [
+    "core/audio/tempo_field_publisher.cpp", "core/audio/tempo_phase_tracks.cpp",
+    "core/visual/tempo_reference_scene.cpp",
+]
 
 
 def main() -> int:

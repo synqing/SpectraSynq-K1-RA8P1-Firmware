@@ -11,6 +11,7 @@ import shutil
 import subprocess
 from datetime import datetime, timezone
 from verify_imports import ROOT, verify, REFERENCE, PIN
+from verify_tempo_adaptation import verify_tempo_adaptation, LOCAL_FILES as TEMPO_FIELD_LOCAL_FILES, MANIFEST as TEMPO_FIELD_MANIFEST
 from stage_profile import instrument_stage_sources
 from palette_renderer_overlay import apply_palette_overlay
 from tempo_acf_slice_overlay import apply_tempo_acf_slice_overlay
@@ -379,6 +380,8 @@ def main():
     parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
     parser.add_argument('--palette-ws2816-gpt-pair',action='store_true',
                         help='concurrent GPT6/P601 + GPT8/P604 WS2816 pair; exclusive of single-lane GPT and GPIO WS2816')
+    parser.add_argument('--tempo-field',action='store_true',
+                        help='admit only the hash-pinned TempoField portable adaptation')
     parser.add_argument('--tempo-acf-slice',action='store_true',
                         help='split tempo ACF lag rows across hops; DualMCU files stay unmodified on disk')
     parser.add_argument('--tempo-placement',choices=('empty-tcm','dtcm'),default=None,
@@ -427,7 +430,8 @@ def main():
     try:
         assert command(['git','-C',BSP,'rev-parse','HEAD']).strip()==BSP_PIN, 'BSP pin moved'
         assert not command(['git','-C',BSP,'status','--porcelain','--untracked-files=all']).strip(), 'BSP dirty'
-        receipt['imports']=verify(ROOT,REFERENCE,'product',True)
+        receipt['imports']=(verify_tempo_adaptation(ROOT,REFERENCE) if args.tempo_field
+                            else verify(ROOT,REFERENCE,'product',True))
         assert receipt['imports']['pass'], 'import gate failed'
         if bool(args.npu_model)!=bool(args.npu_input): raise RuntimeError('NPU model and input must be supplied together')
         if args.npu_model and not args.resident_controls: raise RuntimeError('NPU load requires the resident K1 schedule')
@@ -436,6 +440,9 @@ def main():
         if args.stage_profile and not args.resident_controls: raise RuntimeError('stage profiling requires the resident K1 schedule')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'src/k1'/p for p in RA8P1_LOCAL_K1_FILES]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
+        if args.tempo_field:
+            material += [ROOT/'src/k1'/name for name in TEMPO_FIELD_LOCAL_FILES]
+            material += [ROOT/TEMPO_FIELD_MANIFEST, ROOT/'scripts/verify_tempo_adaptation.py']
         if args.palette_runtime:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_PLATFORM_FILES]
             material += [ROOT/'src/k1'/name for name in PRODUCT_OUTPUT_CHAIN_FILES]
@@ -503,7 +510,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
@@ -743,6 +750,11 @@ def main():
         for name in names:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
+        if args.tempo_field:
+            for name in TEMPO_FIELD_LOCAL_FILES:
+                target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/name,target)
+            receipt['tempo_field_adaptation']=receipt['imports']
         for name in RA8P1_LOCAL_K1_FILES:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)

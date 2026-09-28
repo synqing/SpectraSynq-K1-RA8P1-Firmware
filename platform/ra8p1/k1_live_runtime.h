@@ -48,6 +48,10 @@ class LiveAudioRuntime final {
   LiveAudioRuntime& operator=(const LiveAudioRuntime&) = delete;
 
   void initialise(std::uint32_t clock_hz) noexcept;
+  void setTempoEvidence(bool field, bool phase) noexcept {
+    tempo_field_enabled_ = field;
+    tempo_phase_enabled_ = phase;
+  }
   LiveHopStatus serviceOneHop() noexcept;
   LiveHopStatus consume(const k1_audio_hop_t& hop) noexcept;
   void invalidate(std::uint32_t reason) noexcept;
@@ -94,6 +98,12 @@ class LiveAudioRuntime final {
                            std::uint64_t ap_finish_us) noexcept;
 
   core::audio::AudioPipeline pipeline_{};
+  bool tempo_field_enabled_ = true;
+  bool tempo_phase_enabled_ = true;
+  std::uint64_t field_stamp_generation_ = 0;
+  std::uint64_t field_stamp_epoch_ = 0;
+  std::uint32_t field_stamp_configuration_ = 0;
+  std::uint64_t field_stamp_available_us_ = 0;
   core::audio::GdftSampleWindow window_{};
   core::visual::VisualWaveformHistory waveform_{};
   k1_audio_hop_t hop_{};

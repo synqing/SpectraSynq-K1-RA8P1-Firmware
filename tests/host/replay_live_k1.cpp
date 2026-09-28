@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <vector>
+#include "replay_trace.h"
 
 using k1::titan::LiveAudioRuntime;
 
@@ -22,8 +23,10 @@ int main(int argc, char** argv) {
     pcm.push_back(sample);
   }
   std::fclose(fp);
+  FILE* trace = argc > 3 ? std::fopen(argv[3], "w") : nullptr;
   LiveAudioRuntime runtime;
   runtime.initialise(1000000000U);
+  runtime.setTempoEvidence(argc <= 4 || std::strcmp(argv[4], "off") != 0, argc <= 5 || std::strcmp(argv[5], "off") != 0);
   std::uint64_t seq = 0;
   std::uint32_t hops = 0;
   for (std::size_t offset = 0; offset + 180 <= pcm.size(); offset += 180) {
@@ -36,12 +39,14 @@ int main(int argc, char** argv) {
     hop.supporting_dma_receipt_us = seq * 7500U;
     hop.newest_sample_capture_estimate_us = hop.supporting_dma_receipt_us;
     hop.capture_estimate_valid = 1;
-    runtime.advanceHostCycles(argc > 2 ? 15000000U : 7500000U);
+    runtime.advanceHostCycles((argc > 2 && std::strcmp(argv[2], "delay") == 0) ? 15000000U : 7500000U);
     if (runtime.consume(hop) != k1::titan::LiveHopStatus::Ok) {
       return 4;
     }
     hops += 1;
+    if (trace && runtime.latest()) writeReplayTrace(trace, *runtime.latest(), seq, runtime.observeNowUs(), argc > 6 && std::strcmp(argv[6], "scene") == 0);
   }
+  if (trace) std::fclose(trace);
   const auto snap = runtime.snapshot();
   std::printf("{\"hops\":%u,\"generation\":%llu,\"peak\":%.6g,\"tempo_bpm\":%.6g,\"valid\":%u}\n",
               hops,

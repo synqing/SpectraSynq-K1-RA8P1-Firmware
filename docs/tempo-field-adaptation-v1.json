@@ -1,0 +1,43 @@
+{
+  "schema": "k1.tempo-field-adaptation.v1",
+  "source_commit": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+  "purpose": "Explicit AP TempoField and immutable visual view adaptation; strict imports remain the default.",
+  "authority_sha256": {
+    "docs/IMPORT-MANIFEST.tsv": "f21826a73e3bc39a6b973fe3e65266837e018eeb027f67e9d1573edc9360b01a",
+    "docs/import-slices.json": "98cd17c17574807fcd78649dbbf20429e2a2bc74145f04a51800ac6ea2caf2fa"
+  },
+  "adapted": {
+    "core/audio/audio_pipeline.cpp": {
+      "base_sha256": "fcce06cf9f723b5c313870aed880fe23365f312791142d015b15c8013681d7bb",
+      "candidate_sha256": "5b0863c4cc2aafa7400c768438efeabc92d4d3b35574a05073d13f55bd00650f"
+    },
+    "core/audio/audio_pipeline.h": {
+      "base_sha256": "2206ebb60ec0ec30d2a5c3e7c96b65114a0afd3b6e58c8cb231de6f71bf48189",
+      "candidate_sha256": "336e3fac3f0c187258b10843391948e32f922a4021f1228ae16947adc1bbabb4"
+    },
+    "core/audio/tempo_tracker.cpp": {
+      "base_sha256": "76d49284b69702c2544617a11b6830133ea411d0cc0fc5f82a19a51ddb12e5ea",
+      "candidate_sha256": "8a27516c98c0cdd3f83a8dfb6c6683a334808165b1fdf8773b99dd02e816ad24"
+    },
+    "core/audio/tempo_tracker.h": {
+      "base_sha256": "d5eb1aab842bf4b035b2e9b83e65696ce35d84f2e55fc725a8fd96e7cab98b32",
+      "candidate_sha256": "51fe67be6a081db2936c54f102e021e7e81b7ce575d04c91cbe35084e36962cb"
+    },
+    "core/visual/visual_audio_frame.h": {
+      "base_sha256": "9a7d13c40045c2ebfd37fc5a7104be3d28ff48796543d879e1412099bde0505e",
+      "candidate_sha256": "b930f6646025eaee6b13d94e806053513a9f6fbd362ca48c4850d3666f21a44b"
+    }
+  },
+  "local": {
+    "contract/tempo_field_v1.h": "2b30e9bb1dc4afb0b716cedb8b5864673586169c2365a1e434b6a44ff83dd028",
+    "core/audio/tempo_field_publisher.h": "dc666a852b8f0312fc2dcde59c48ab0b53908551dd6fc56698034650c0886954",
+    "core/audio/tempo_field_publisher.cpp": "20619b640e42f6bdf5056d612a3e4679615d89d8a0c7fc56565dabd7861a15b5",
+    "core/audio/tempo_phase_tracks.h": "2c95786b4e4da231fab57811811bf746d5e7711b29456b32fef7908b65b421ac",
+    "core/audio/tempo_phase_tracks.cpp": "1837ff728f9797682e8e3fa2ec93481387ec9815e21383896db5ff71bf2b6670"
+  },
+  "auxiliary": {
+    "scripts/tempo_acf_slice_overlay.py": "05c27bb025aa680bb5718b7349b97f3778a949bcfc453020ed448215e3056cef",
+    "src/k1/core/audio/tempo_acf_slice.cpp": "ed2028926c9160370516b356b1c77c99cb91f3247d738f52d0ed7c3ba50a504e",
+    "src/k1/core/audio/tempo_acf_slice.h": "ed9bf10f286f1ff5b5769fac7004e204eed9ebd3c397cb255ac1105d16b7dd09"
+  }
+}

@@ -56,6 +56,7 @@ AudioPipeline::AudioPipeline() noexcept
 void AudioPipeline::reset() noexcept {
     gdft_state_ = {};
     resetTempoTracker(tempo_state_);
+    tempo_field_publisher_ = {};
     onset_.reset();
     saliency_.reset();
     musical_time_ = {};
@@ -147,7 +148,11 @@ AudioPipelineOutput AudioPipeline::process(
     updateTempoTracker(tempo_state_,
                        TempoTrackerInput{input.frame_ms,
                                          features.novelty,
-                                         input.silence});
+                                         input.silence,
+                                         input.media_time.frame_index,
+                                         input.media_time.epoch_id,
+                                         input.tempo_configuration_revision,
+                                         input.media_time_valid});
     output.tempo = readTempoTracker(tempo_state_);
 
     if (input.media_time_valid) {
@@ -185,6 +190,10 @@ AudioPipelineOutput AudioPipeline::process(
       }
     }
 
+    output.tempo_field = publishTempoField(tempo_field_publisher_,tempo_state_,
+        input.media_time,input.media_time_valid,input.publish_time_us,
+        input.tempo_field_enabled && tempo_field_enabled_,
+        input.tempo_phase_enabled && tempo_phase_enabled_);
     output.gdft_overflow_count = raw.q0_overflow_count;
     output.valid = true;
     return output;

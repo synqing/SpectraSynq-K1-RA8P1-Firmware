@@ -4,6 +4,14 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <cstdlib>
+#include <new>
+
+static unsigned allocations=0;
+void* operator new(std::size_t n) { ++allocations; if (void* p=std::malloc(n)) return p; throw std::bad_alloc(); }
+void* operator new[](std::size_t n) { return ::operator new(n); }
+void operator delete(void* p) noexcept { std::free(p); }
+void operator delete[](void* p) noexcept { std::free(p); }
 
 using k1::titan::LiveAudioRuntime;
 using k1::titan::LiveHopStatus;
@@ -78,6 +86,35 @@ int main() {
   assert(runtime.warmupHops() == 1);
   assert(runtime.latest() != nullptr);
   assert(runtime.snapshot().physical_timestamp_valid == 0);
+
+  // Actual runtime completion stamps must survive cached publication unchanged.
+  std::uint64_t evidence_generation=0, evidence_available=0;
+  unsigned completions=0, cached=0;
+  const auto allocations_before=allocations;
+  for (std::uint64_t seq=2;seq<=1700;++seq) {
+    k1_audio_hop_t h{}; fill_hop(&h,8,seq);
+    runtime.advanceHostCycles(7500000U);
+    assert(runtime.consume(h)==LiveHopStatus::Ok);
+    const auto a=runtime.latest()->tempo_field;
+    const auto b=runtime.latest()->tempo_field;
+    assert(a.generation==b.generation && a.available_us==b.available_us);
+    if (a.generation!=0) {
+      assert(a.availability_valid && a.available_us<=runtime.observeNowUs());
+      assert(a.epoch==8 && a.support_end<=seq*360);
+      if(a.generation==evidence_generation) {
+        assert(a.available_us==evidence_available); ++cached;
+      } else { assert(a.available_us>evidence_available); ++completions; }
+      evidence_generation=a.generation; evidence_available=a.available_us;
+    }
+    assert(!runtime.latest()->predicted_next_beat_valid);
+  }
+  assert(completions>0 && cached>0);
+  assert(allocations==allocations_before);
+  runtime.setTempoEvidence(false,false);
+  k1_audio_hop_t disabled{}; fill_hop(&disabled,8,1701);
+  runtime.advanceHostCycles(7500000U);
+  assert(runtime.consume(disabled)==LiveHopStatus::Ok);
+  assert(!runtime.latest()->tempo_field.enabled);
 
   char json[1024];
   const auto n = runtime.mirJson(json, sizeof(json));

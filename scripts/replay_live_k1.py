@@ -13,12 +13,18 @@ from pathlib import Path
 
 from verify_imports import ROOT
 
-NAMES = json.loads((ROOT / "docs/import-slices.json").read_text())["product"]
+NAMES = json.loads((ROOT / "docs/import-slices.json").read_text())["product"] + [
+    "core/audio/tempo_field_publisher.cpp", "core/audio/tempo_phase_tracks.cpp",
+    "core/visual/tempo_reference_scene.cpp",
+]
 
 
-def compile_replay(tmp: Path) -> Path:
+def compile_replay(tmp: Path, sliced: bool = False) -> Path:
     sources = tmp / "k1"
     shutil.copytree(ROOT / "src/k1", sources)
+    if sliced:
+        from tempo_acf_slice_overlay import apply_tempo_acf_slice_overlay
+        apply_tempo_acf_slice_overlay(sources)
     exe = tmp / "replay_live_k1"
     command = [
         "c++", "-std=c++17", "-O2", "-ffp-contract=off",
@@ -31,6 +37,7 @@ def compile_replay(tmp: Path) -> Path:
         str(ROOT / "platform/ra8p1/k1_live_protocol.cpp"),
         str(ROOT / "src/k1/core/audio/k1_audio_hop.c"),
         *[str(sources / name) for name in NAMES if name.endswith(".cpp")],
+        *([str(sources / "core/audio/tempo_acf_slice.cpp")] if sliced else []),
         str(ROOT / "tests/host/replay_live_k1.cpp"),
         "-o", str(exe),
     ]
@@ -43,14 +50,19 @@ def main() -> int:
     parser.add_argument("--pcm", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repeat", type=int, default=2)
+    parser.add_argument("--sliced", action="store_true")
+    parser.add_argument("--field", choices=["on","off"], default="on")
+    parser.add_argument("--phase", choices=["on","off"], default="on")
+    parser.add_argument("--scene", action="store_true")
     args = parser.parse_args()
     pcm = args.pcm.resolve()
     args.output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="k1-replay-") as temp:
-        exe = compile_replay(Path(temp))
+        exe = compile_replay(Path(temp), args.sliced)
         results = []
-        for _ in range(args.repeat):
-            results.append(json.loads(subprocess.check_output([str(exe), str(pcm)], text=True)))
+        for i in range(args.repeat):
+            trace = args.output / f"trace-{i}.jsonl"
+            results.append(json.loads(subprocess.check_output([str(exe), str(pcm), "normal", str(trace), args.field, args.phase, "scene" if args.scene else "plain"], text=True)))
         delayed = subprocess.run([str(exe), str(pcm), "delay"], capture_output=True, text=True)
         delay_payload = None
         if delayed.returncode == 0:
