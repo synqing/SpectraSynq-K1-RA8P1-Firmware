@@ -26,16 +26,20 @@ OBSERVE_OPS = {
     1: {"payload": b"", "name": "INFO"},
     6: {"payload": b"", "name": "platform_metrics"},
     15: {"payload": None, "name": "palette_catalogue"},
+    16: {"payload": None, "name": "palette_configure"},
     17: {"payload": b"", "name": "palette_status"},
     18: {"payload": None, "name": "palette_frame"},
+    19: {"payload": b"", "name": "palette_wire_snapshot"},
     21: {"payload": b"", "name": "legacy_mir_json"},
     23: {"payload": b"", "name": "live_snapshot"},
     24: {"payload": None, "name": "live_events"},
     25: {"payload": None, "name": "live_config"},
     26: {"payload": None, "name": "live_timing"},
 }
-FORBIDDEN_OPS = {2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 16, 19, 20, 22}
-CAMPAIGN_OPS = {1, 6, 15, 17, 18, 21, 23, 24, 25, 26}
+# Opcode 16 is palette-configure. Campaign admits it only as the Stage B
+# emit arm/disarm (flags bit 2). SET_CONFIG cannot turn emission off.
+FORBIDDEN_OPS = {2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 20, 22}
+CAMPAIGN_OPS = {1, 6, 15, 16, 17, 18, 19, 21, 23, 24, 25, 26}
 PAIR_FIXTURE_OP = 27
 
 
@@ -158,12 +162,16 @@ class Transport:
             if not self._pair_fixture or not self.campaign:
                 raise ObserveDenied("opcode 27 is not admitted")
         else:
+            if op == 19 and not self.campaign:
+                raise ObserveDenied("wire snapshot requires campaign lease")
             if op in FORBIDDEN_OPS:
                 raise ObserveDenied(f"opcode {op} is not observe-only")
             spec = OBSERVE_OPS.get(op)
             if spec is None or op not in self.allowed:
                 raise ObserveDenied(f"opcode {op} is not admitted")
-            if spec["payload"] is not None and payload != spec["payload"]:
+            diagnostic = (self.campaign and op == 17 and
+                          (payload in (b"LBRQ", b"HWST") or (len(payload) == 8 and payload[:4] == b"LBPG")))
+            if spec["payload"] is not None and payload != spec["payload"] and not diagnostic:
                 raise ObserveDenied(f"opcode {op} payload not admitted")
             if spec["payload"] is None and not self.campaign:
                 raise ObserveDenied(f"opcode {op} requires campaign lease")
@@ -230,7 +238,7 @@ class Transport:
         extra = set(ops) - set(OBSERVE_OPS)
         if extra:
             raise ObserveDenied(f"cannot admit {extra}")
-        if (set(ops) & {15, 18, 21, 23, 24, 25, 26}) and not self.campaign:
+        if (set(ops) & {15, 16, 18, 19, 21, 23, 24, 25, 26}) and not self.campaign:
             raise ObserveDenied("campaign opcodes require campaign=True")
         self.allowed = set(ops)
 

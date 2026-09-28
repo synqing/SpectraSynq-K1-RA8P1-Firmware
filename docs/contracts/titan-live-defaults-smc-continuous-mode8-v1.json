@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "profile": "smc-titan-continuous-mode8",
+  "reviewed": "2026-09-27",
+  "mode_a": 8,
+  "mode_b": 8,
+  "flags": 5,
+  "emit_default": "on",
+  "automatic_catalogue_cycle": false,
+  "brightness": 24,
+  "palette_a": 33,
+  "palette_b": 43,
+  "transition_ms": 1500,
+  "travel_ms": 4000,
+  "first_control": "visual_a.vp_waveform_shift_rate",
+  "notes": "Captain mandates autonomous continuous music visualisation. Build with --live-emit. Brightness24 and existing mapping preserved."
+}

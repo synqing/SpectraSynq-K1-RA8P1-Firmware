@@ -18,6 +18,10 @@
 #include "r_dmac.h"
 #include "r_pdm.h"
 #include "titan_onboard_mic.h"
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+#include "ws281x_gpt_dma_hw_pair.h"
+#endif
+#include "k1_dmac_lane_guard.h"
 
 static void k1_pdm_target_dmac_isr(dmac_callback_args_t *args);
 

@@ -73,6 +73,7 @@ class LiveAudioRuntime final {
   void setIdentity(const std::uint8_t uid[16], const std::uint8_t build_sha[32]) noexcept;
   void setControlMeta(std::uint16_t mode_id, std::uint16_t palette_id, std::uint8_t emit_on,
                       std::uint32_t revision, std::uint16_t gain_q8) noexcept;
+  void setRenderReceipt(const LiveRenderReceipt& receipt) noexcept;
   void setCaptureMeta(std::uint64_t start_us, std::uint64_t end_us, std::uint32_t starved,
                       std::uint32_t measured_hz, std::uint32_t hop_dt_us) noexcept;
   void setStaleMarkers(std::uint64_t injection_start, std::uint64_t injection_end) noexcept;
@@ -82,6 +83,7 @@ class LiveAudioRuntime final {
     return publication_deadline_misses_;
   }
   std::uint64_t nowUs() noexcept;
+  std::uint64_t observeNowUs() const noexcept;
   std::uint64_t eventWriteSeq() const noexcept { return events_.write_seq; }
   std::uint64_t timingWriteSeq() const noexcept { return timing_.write_seq; }
 
@@ -114,6 +116,7 @@ class LiveAudioRuntime final {
   std::uint32_t asrc_starved_ = 0;
   std::uint32_t measured_hz_ = 0;
   std::uint32_t config_revision_ = 0;
+  LiveRenderReceipt render_receipt_{};
   std::uint16_t mode_id_ = 32;
   std::uint16_t palette_id_ = 0;
   std::uint16_t gain_q8_ = 256;

@@ -8,6 +8,7 @@ import os
 import queue
 import signal
 import socket
+import struct
 import sys
 import threading
 import time
@@ -69,6 +70,7 @@ def identity_tuple_changed(previous: dict, rebound: dict) -> bool:
         "contract",
         "accepted",
         "identified",
+        "boot_id",
     )
     for key in keys:
         if rebound.get(key) != previous.get(key):
@@ -371,11 +373,16 @@ def identity_key(bound: dict | None) -> tuple:
 
 class Broker:
     def __init__(self, evidence: Path, replay_only: bool = False, backend=None,
-                 control_enabled: bool = False):
+                 control_enabled: bool = False, continuous_output: bool = False,
+                 emit_window_seconds: float = 8.0):
         self.evidence = evidence
         self.replay_only = replay_only
         self.backend = backend
         self.control_enabled = bool(control_enabled)
+        self.continuous_output = bool(continuous_output)
+        if not 1.0 <= emit_window_seconds <= 120.0:
+            raise ValueError("diagnostic emit window must be within 1..120 seconds")
+        self.emit_window_seconds = float(emit_window_seconds)
         self.recorder = Recorder(evidence / "broker.jsonl")
         self.publisher = Publisher(self.recorder)
         self.lock_handle = None
@@ -387,6 +394,8 @@ class Broker:
         self.last_progress = None
         self.same_progress = 0
         self.sample_mono = None
+        self.topic_mono = {}
+        self.emit_deadline = None
         self.last_row = None
         self.last_metrics = None
         self.last_palette = None
@@ -430,6 +439,7 @@ class Broker:
         checkpoint = load_checkpoint(self.evidence)
         raw_path.write_text(json.dumps({"usb": usb, "info": info["info"], "header_sequence": info["sequence"], "checkpoint": checkpoint}, indent=2) + "\n")
         bound = bind_identity(info["info"], checkpoint=checkpoint)
+        self.topic_mono["identity"] = time.monotonic()
         self.last_info_sequence = info["info"].get("sequence")
         if not bound["identified"]:
             self.release_hardware()
@@ -452,11 +462,15 @@ class Broker:
                 body = json.loads(got["body"])
                 if op == 6:
                     self.last_metrics = body
+                    self.topic_mono["pdm"] = time.monotonic()
                 else:
                     self.last_palette = body
+                    self.topic_mono["palette"] = time.monotonic()
                 self.poll_ops.append(op)
         if self.control_enabled:
-            admitted |= {23, 25}
+            admitted |= {16, 23, 25}
+            if (self.last_palette or {}).get("wire_profile") in (3, 4):
+                admitted.add(19)
             self.transport.allow(admitted)
             self._bind_control_plane(bound)
         else:
@@ -497,7 +511,7 @@ class Broker:
             raise RuntimeError("no transport")
         with self._sched:
             if op == 25 and payload and len(payload) >= 4:
-                if proto._u32(payload, 0) == proto.CFG_PATCH:
+                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12):
                     if self.quiesced():
                         raise RestrictedControlError("paused", "quiesce.flag")
                     if not self.control_enabled:
@@ -555,6 +569,9 @@ class Broker:
 
     def write_live_stats(self) -> None:
         payload = {
+            "identity": self.bound,
+            "topic_mono": dict(self.topic_mono),
+            "host_mono": time.monotonic(),
             "hw_writes": self.hw_writes,
             "serial_opens": self.serial_opens,
             "epoch": self.epoch,
@@ -563,7 +580,9 @@ class Broker:
             "pdm": (self.last_metrics or {}).get("pdm_target") if isinstance(self.last_metrics, dict) else None,
             "palette": self.last_palette,
         }
-        (self.evidence / "live-stats.json").write_text(json.dumps(payload) + "\n")
+        temp = self.evidence / "live-stats.tmp"
+        temp.write_text(json.dumps(payload) + "\n")
+        temp.replace(self.evidence / "live-stats.json")
 
     def poll_once(self) -> None:
         if self.replay_only or self.transport is None or self.quiesced():
@@ -593,6 +612,10 @@ class Broker:
                 self.control_plane.on_reconnect(self._control_bound(self.bound or {}))
             return
         self.sample_mono = time.monotonic()
+        self.recorder.put({"kind": "telemetry", "op": op,
+                           "request_started": started,
+                           "response_parsed": self.sample_mono, "body": body})
+        self.topic_mono[{1: "identity", 6: "pdm", 17: "palette"}[op]] = self.sample_mono
         if op == 1:
             checkpoint = load_checkpoint(self.evidence)
             rebound = bind_identity(body, checkpoint=checkpoint)
@@ -611,6 +634,8 @@ class Broker:
                 self.epoch += 1
                 self.last_metrics = None
                 self.last_palette = None
+                self.topic_mono.pop("pdm", None)
+                self.topic_mono.pop("palette", None)
                 if self.control_plane is not None:
                     self.control_plane.on_reconnect(self._control_bound(rebound))
                 self.recorder.put({
@@ -660,6 +685,220 @@ class Broker:
             self.stop = True
         return line
 
+    def _palette_flags(self, pal: dict, enable: bool) -> int:
+        flags = 1
+        if pal.get("automatic_cycle"):
+            flags |= 2
+        if enable:
+            flags |= 4
+        if pal.get("direction") == "edges_in":
+            flags |= 8
+        if pal.get("showcase") in (True, "true"):
+            flags |= 16
+        return flags
+
+    def apply_emit(self, enable: bool) -> dict:
+        """Arm or disarm physical output via opcode 16 flags bit 2. Brightness stays 24."""
+        if self.transport is None:
+            raise RuntimeError("no transport")
+        if 16 not in self.transport.allowed:
+            raise ObserveDenied("opcode 16 is not admitted")
+        if enable:
+            if (self.evidence / "DIAGNOSTIC_FAULT").exists():
+                raise RuntimeError("diagnostic fault latched")
+            admitted, reason = hardware_writes_admitted(self.evidence, self._control_bound(self.bound))
+            if not admitted:
+                raise RestrictedControlError("ADMISSION_HOLD", reason)
+            if not self.bound or not self.bound.get("accepted"):
+                raise RuntimeError("identity not accepted")
+            if any(time.monotonic() - self.topic_mono.get(k, -1e20) > 5.0
+                   for k in ("identity", "pdm", "palette")):
+                raise RuntimeError("stale pre-arm telemetry")
+            if (self.last_palette or {}).get("mode_a") != 8:
+                raise RuntimeError("mode drift")
+            if any((self.last_palette or {}).get(k) != 0 for k in
+                   ("pair_fault", "lane_a0_fault", "lane_a1_fault")):
+                raise RuntimeError("fault or unknown fault state")
+            if (self.last_palette or {}).get("emit_enabled") is not False:
+                raise RuntimeError("already armed or unknown emit state")
+            if (self.last_metrics or {}).get("pdm_target", {}).get("rate_locked") not in (1, True):
+                raise RuntimeError("audio not locked")
+        pal = self.last_palette
+        # Mode selection may have happened since the observer's last poll.
+        # Fault shutdown must use the current device configuration.
+        if not pal or not enable:
+            got = self.transact(17, b"", timeout=2.0)
+            if not got.get("ok"):
+                raise RuntimeError(f"palette status {got.get('status')}")
+            pal = json.loads(got["body"])
+            self.last_palette = pal
+        flags = self._palette_flags(pal, enable)
+        payload = struct.pack(
+            "<10I",
+            3,
+            int(pal["palette_a"]),
+            int(pal["palette_b"]),
+            int(pal["mode_a"]),
+            int(pal["mode_b"]),
+            flags,
+            24,
+            int(pal.get("output_channel") or 0),
+            int(pal.get("transition_ms") or 1500),
+            int(pal.get("travel_ms") or 4000),
+        )
+        if enable:
+            self.emit_deadline = (None if getattr(self, "continuous_output", False)
+                                  else time.monotonic() + getattr(self, "emit_window_seconds", 8.0))
+        got = self.transact(16, payload, timeout=2.0)
+        status = self.transact(17, b"", timeout=2.0)
+        after = json.loads(status["body"]) if status.get("ok") else {}
+        if status.get("ok"):
+            self.last_palette = after
+            self.topic_mono["palette"] = time.monotonic()
+        if after.get("emit_enabled") is False:
+            self.emit_deadline = None
+        result = {
+            "ok": bool(got.get("ok") and status.get("ok")),
+            "enable": bool(enable),
+            "continuous_output": getattr(self, "continuous_output", False),
+            "configure_status": got.get("status"),
+            "emit_enabled": after.get("emit_enabled"),
+            "output_backend": after.get("output_backend"),
+            "brightness": after.get("brightness"),
+            "mode_a": after.get("mode_a"),
+            "mode_b": after.get("mode_b"),
+            "flags": flags,
+        }
+        name = "emit-arm.json" if enable else "emit-disarm.json"
+        (self.evidence / name).write_text(json.dumps(result, indent=2) + "\n")
+        self.recorder.put({"kind": "emit", **result})
+        return result
+
+    def _service_emit_requests(self) -> None:
+        if self.transport is None or self.replay_only:
+            return
+        disarm = self.evidence / "EMIT_DISARM"
+        arm = self.evidence / "EMIT_ARM"
+        try:
+            if self.emit_deadline is not None and time.monotonic() >= self.emit_deadline:
+                disarm.write_text("watchdog\n")
+            if disarm.exists():
+                self.apply_emit(False)
+                disarm.unlink(missing_ok=True)
+                arm.unlink(missing_ok=True)
+                return
+            registers = self.evidence / "HWST_REQUEST"
+            if registers.exists():
+                if self.quiesced() or not self.control_enabled:
+                    return
+                if not self.bound or not self.bound.get("accepted"):
+                    raise RuntimeError("register snapshot requires accepted identity")
+                if (self.last_palette or {}).get("emit_enabled") is not False:
+                    raise RuntimeError("register snapshot requires emission off")
+                from titan_register_snapshot import decode
+                got = self.transact(17, b"HWST")
+                if not got.get("ok"):
+                    raise RuntimeError("register snapshot rejected")
+                raw = got["body"]
+                decoded = decode(raw)
+                (self.evidence / "registers.bin").write_bytes(raw)
+                (self.evidence / "registers.json").write_text(json.dumps({
+                    "identity": self.bound, "mono": time.monotonic(),
+                    "registers": decoded, "scope": "sequential off-state MMIO reads; audio remains live"
+                }, indent=2) + "\n")
+                registers.unlink()
+            wire = self.evidence / "WIRE_SNAPSHOT_REQUEST"
+            if wire.exists():
+                if self.quiesced() or not self.control_enabled:
+                    return
+                if not self.bound or not self.bound.get("accepted"):
+                    raise RuntimeError("wire snapshot requires accepted identity")
+                emitting = (self.last_palette or {}).get("emit_enabled")
+                # One immutable submission read is bounded independently of
+                # normal music output. Continuous operation has no emit timer.
+                bounded = (wire.read_text().strip() == "bounded" and
+                           (getattr(self, "continuous_output", False) or
+                            (self.emit_deadline is not None and time.monotonic() < self.emit_deadline)))
+                if emitting is not False and not (emitting is True and bounded):
+                    raise RuntimeError("wire snapshot requires emission off or a bounded run")
+                from palette_wire_snapshot import score_snapshot
+                got = self.transact(19, b"")
+                if not got.get("ok"):
+                    raise RuntimeError("wire snapshot rejected")
+                raw = got["body"]
+                scored = score_snapshot(raw)
+                (self.evidence / "wire-snapshot.bin").write_bytes(raw)
+                record = json.dumps({
+                    "identity": self.bound, "mono": time.monotonic(),
+                    "emission_active": emitting, "score": scored,
+                    "scope": "retained last submission attempt; not a completion receipt"
+                }, indent=2) + "\n"
+                (self.evidence / "wire-snapshot.json").write_text(record)
+                archive = self.evidence / f"wire-snapshot-{scored['sequence']:010d}"
+                if not archive.with_suffix(".bin").exists():
+                    archive.with_suffix(".bin").write_bytes(raw)
+                    archive.with_suffix(".json").write_text(record)
+                wire.unlink()
+            request = self.evidence / "LOOPBACK_REQUEST"
+            if request.exists():
+                if self.quiesced() or not self.control_enabled:
+                    return
+                admitted, reason = hardware_writes_admitted(self.evidence, self._control_bound(self.bound))
+                if not admitted or (self.last_palette or {}).get("emit_enabled") is not False:
+                    raise RuntimeError("capture request denied: " + reason)
+                got = self.transact(17, b"LBRQ")
+                (self.evidence / "loopback-request.json").write_text(json.dumps({"ok": got.get("ok"), "status": got.get("status"), "bound": self.bound}) + "\n")
+                request.unlink()
+                if not got.get("ok"):
+                    raise RuntimeError("capture request rejected")
+            dump_request = self.evidence / "LOOPBACK_DUMP"
+            if dump_request.exists():
+                if (self.last_palette or {}).get("emit_enabled") is not False:
+                    raise RuntimeError("capture readback requires emission off")
+                raw = bytearray()
+                total = 4096
+                while len(raw) < total:
+                    got = self.transact(17, b"LBPG" + struct.pack("<I", len(raw)))
+                    if not got.get("ok") or not got.get("body"):
+                        raise RuntimeError("capture page unavailable")
+                    raw.extend(got["body"])
+                    if len(raw) >= 88:
+                        fields = struct.unpack_from("<22I", raw)
+                        total = 88 + 480 + fields[7] * 2
+                        if total > 88 + 480 + 40960 * 2:
+                            raise RuntimeError("capture size invalid")
+                if len(raw) != total:
+                    raise RuntimeError("capture length mismatch")
+                (self.evidence / "loopback-raw.bin").write_bytes(raw)
+                names = ("generation payload_fnv1a truncated period_counts clock_hz valid armed samples_count "
+                         "expected_cells rising falling first_rise last_fall extra_rising high_after_last "
+                         "sample_period_counts open_ok start_level min_high max_high peek_head peek_tail").split()
+                # Header is five metadata words followed by the original 17-word result.
+                if len(names) != 22:
+                    raise RuntimeError("capture header contract mismatch")
+                meta = dict(zip(names, fields))
+                meta.update(payload_hex=raw[88:568].hex(), samples=list(struct.unpack_from(
+                    "<"+str(fields[7])+"H", raw, 568)), identity=self.bound,
+                    uniform_sampling_qualified=False, optical="UNKNOWN", independent_din=False)
+                (self.evidence / "loopback-capture.json").write_text(json.dumps(meta)+"\n")
+                dump_request.unlink()
+            if arm.exists():
+                if self.quiesced():
+                    return
+                self.apply_emit(True)
+                arm.unlink(missing_ok=True)
+        except Exception as exc:  # noqa: BLE001
+            arm.unlink(missing_ok=True)
+            (self.evidence / "HWST_REQUEST").unlink(missing_ok=True)
+            (self.evidence / "WIRE_SNAPSHOT_REQUEST").unlink(missing_ok=True)
+            (self.evidence / "LOOPBACK_REQUEST").unlink(missing_ok=True)
+            (self.evidence / "LOOPBACK_DUMP").unlink(missing_ok=True)
+            (self.evidence / "DIAGNOSTIC_FAULT").write_text(str(exc) + "\n")
+            if self.emit_deadline is not None:
+                disarm.write_text("fault\n")
+            self.errors.append(f"emit request: {exc}")
+            (self.evidence / "emit-error.json").write_text(json.dumps({"error": str(exc)}) + "\n")
+
     def loop(self) -> None:
         poll_every = 1.0 / POLL_HZ
         pub_every = 1.0 / PUBLISH_HZ
@@ -667,6 +906,8 @@ class Broker:
         next_pub = time.monotonic()
         while not self.stop:
             now = time.monotonic()
+            if not self.replay_only and self.transport:
+                self._service_emit_requests()
             if not self.replay_only and self.transport and now >= next_poll:
                 self.poll_once()
                 self.write_live_stats()
@@ -709,12 +950,14 @@ def cmd_run(args) -> int:
         evidence,
         replay_only=args.replay_only,
         control_enabled=bool(getattr(args, "live_control", False)),
+        continuous_output=bool(getattr(args, "continuous_output", False)),
+        emit_window_seconds=float(getattr(args, "emit_window_seconds", 8.0)),
     )
     signal.signal(signal.SIGTERM, lambda *_: setattr(broker, "stop", True))
     signal.signal(signal.SIGINT, lambda *_: setattr(broker, "stop", True))
     try:
         if not args.replay_only:
-            usb = find_titan()
+            usb = find_titan(inventory_lsof=False)
             (evidence / "pre-open-ownership.json").write_text(json.dumps(usb, indent=2) + "\n")
             broker.attach(usb)
         broker.loop()
@@ -815,6 +1058,10 @@ def main() -> int:
     run.add_argument("--replay-only", action="store_true")
     run.add_argument("--live-control", action="store_true",
                      help="explicitly enable opcode 23/25 control service; default is observe-only")
+    run.add_argument("--continuous-output", action="store_true",
+                     help="Captain authorised continuous product operation; no diagnostic emit timer")
+    run.add_argument("--emit-window-seconds", type=float, default=8.0,
+                     help="bounded diagnostic arm duration, 1..120 seconds; default 8")
     sub.add_parser("status")
     sub.add_parser("stop")
     info = sub.add_parser("info-once")

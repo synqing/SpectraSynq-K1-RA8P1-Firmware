@@ -1,0 +1,67 @@
+{
+  "name": "Titan real-time ownership regression contract",
+  "scope": "Software checks; physical acceptance is separately mandatory",
+  "checks": [
+    {
+      "id": "OWN-1",
+      "purpose": "Read commands preserve complete runtime object with advancing clocks",
+      "argv": [
+        "python3",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/scripts/test_control_owner.py"
+      ]
+    },
+    {
+      "id": "OWN-2",
+      "purpose": "Final USB IRQ mask preserves originally disabled lines",
+      "argv": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tests/host/test_usb_idle_dispatch.py"
+      ]
+    },
+    {
+      "id": "OWN-3",
+      "purpose": "Full DMA-owned buffers immutable while replacement queued",
+      "argv": [
+        "python3",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/scripts/test_ws281x_gpt_dma_hw_pair.py"
+      ]
+    },
+    {
+      "id": "OWN-4",
+      "purpose": "Protocol regressions after pure clock observer addition",
+      "argv": [
+        "python3",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/scripts/test_live_protocol.py"
+      ]
+    },
+    {
+      "id": "OWN-5",
+      "purpose": "Final USB and bounded diagnostic broker regressions",
+      "argv": [
+        "python3",
+        "-m",
+        "pytest",
+        "-q",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tests/host/test_usb_idle_dispatch.py",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tools/serial-studio/tests/test_continuous_output.py",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tools/serial-studio/tests/test_live_control_path.py",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tools/serial-studio/tests/test_window_health.py"
+      ]
+    },
+    {
+      "id": "OWN-6",
+      "purpose": "Bounded MIDI callback with finite batches and oversize rejection",
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/.venv/bin/python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/tests"
+      ]
+    }
+  ]
+}

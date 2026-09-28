@@ -1,3 +1,35 @@
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
+
+<!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
+**Captain directive — 27 September 2026; supersedes conflicting earlier operating instructions below.**
+
+Titan must boot with visual output ON and run continuous, autonomous, audio-reactive music visualisation whenever powered and the application is running. Normal output must not wait for a host, broker, camera, recording session, approval, or diagnostic window. Old boot-off requirements and automatic timed disarm at the end of diagnostic/camera/host sessions are superseded. A diagnostic timeout ends the diagnostic activity; it must not gate or stop normal music visualisation. Do not invent another permission gate for this already-authorised behaviour. Put this mandate first in every new Titan-facing agent instruction, plan and handover.
+
+Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
+<!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
+
+<!-- BEGIN SMC-TITAN STANDING DEPLOYMENT AUTHORITY -->
+# SMC–Titan: repair, flash and verify — standing user instruction, 27 September 2026
+
+The operator explicitly requires implemented fixes to reach the physical Titan immediately after the relevant software checks pass. Do not return another “built, not flashed; approve this image?” handback within the scope below.
+
+**Required sequence:** targeted repair → relevant regression tests → ARM build → verify exact HEX/hash, board identity and build settings → programme through the existing E2 Lite/SWD workflow → read back identity/configuration → run the bounded physical test → report actual results. Complete that sequence in the executing session. A source edit or successful compilation is not a completed fix, and a flashed image is not yet proven working.
+
+**Standing authority:** this directive supplies ongoing permission for replacement diagnostic/repair firmware, programming and bounded bench runs in SMC-TITAN-CONTROL-001. It supersedes older per-image “ask Captain”, “offline only” and separate Permission A/B handback requirements for this lane. Record the replacement image's exact path/hash and the scope in the existing admission record; do not fabricate a hardware-PASS record or bypass native tool permissions. A new file hash alone does not require another permission request.
+
+**Scope:** only the existing SMC host worktree and Titan firmware worktree, and Titan UID `545433931bd25436593630352d068363`. Preserve the established P601/GPT6 and P604/GPT8 wiring, microphone DMA 1/2 and LED DMA 0/3 unless the user separately authorises a change. No edits or flashing in K1.Sliders, DualMCU, K1-System-R3 or the vendor BSP. Preserve mixer mappings and the prior Stage A evidence.
+
+**Programming:** use the existing `ra8p1-e2lite-router` E2 Lite/SWD procedure, probe target power OFF, 1 MHz, `-noquery -run`, permitted range `02000000,02C9F01F`. Quiesce and hand off the existing serial owner; do not kill unrelated processes, use GDB/serial ROM, erase the chip or overwrite configuration areas. Verify the candidate before writing and full UID/build/schema/emit state afterwards.
+
+**Bench bounds:** boot with emission OFF, retain mode 8 and the current limited control profile. Diagnostic/light runs: maximum brightness 24/255, maximum 120 seconds each, audio running, first-fault capture retained. Stop and disarm immediately on fault, audio discontinuity, identity mismatch or loss of control. If software cannot guarantee off, report it immediately and ask the operator to remove LED power. Transmission disabled is not independent proof of optical darkness. Do not re-arm the same fault-latched image or auto-restore the old emit-on archive. No cold power-cycle/reconnect reliability experiment under this scope.
+
+**Stopping rule:** stop deployment for failed required checks, mismatched/unknown target or HEX, unavailable hardware/native permission, a genuine unsafe condition, an out-of-scope change, or a later explicit user HOLD. State the concrete obstacle and continue independent repair work. Do not stop merely to obtain another in-scope image approval; do not weaken checks or relabel failure to avoid a stop.
+
+**Operator:** do not request slider movement during unattended driver diagnosis. Cue slider 7 only with healthy output and recording active. Preserve distinctions between accepted values, renderer use, completed transfers and observed light. Report “installed and tested” with the actual result, or the exact technical obstacle—not “ready for permission”.
+
+**Persistence:** read this rule after handoff/context loss, before preparing a candidate or applying historical instructions. Do not reactivate superseded permission gates. A later user HOLD immediately overrides standing authority. No automatic background flashing task is created by this document.
+<!-- END SMC-TITAN STANDING DEPLOYMENT AUTHORITY -->
+
 # Anti-compression mandate
 
 Any agent that shrinks, compresses, simplifies, or reduces an execution plan is to be treated as having destroyed the plan. The operational document is this file's task list and the parent technical plan. A shorter substitute is not an adoption of either.

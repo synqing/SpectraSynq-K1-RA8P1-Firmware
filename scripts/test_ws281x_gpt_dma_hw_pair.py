@@ -7,6 +7,7 @@ with tempfile.TemporaryDirectory() as temp:
     exe = Path(temp) / 'gpt-pair-hw-test'
     subprocess.run([
         'cc', '-std=c11', '-Wall', '-Wextra', '-Werror', '-Wno-unused-function',
+        '-fsanitize=address', '-fno-omit-frame-pointer',
         '-I' + str(ROOT / 'tests/target_mock'),
         '-I' + str(ROOT / 'platform/ra8p1'),
         str(ROOT / 'tests/test_ws281x_gpt_dma_hw_pair.c'),

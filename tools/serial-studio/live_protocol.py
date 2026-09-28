@@ -20,7 +20,9 @@ EVENT_BYTES = 192
 TIMING_BYTES = 56
 HEADER_BYTES = 64
 CONFIG_BYTES_V1 = 896
-CONFIG_BYTES_V2 = 1152
+CONFIG_BYTES_V2 = 1156
+CONFIG_BYTES_V2_LEGACY = 1152
+CONFIG_BOOT_ID_OFFSET = 1152
 CONFIG_BYTES = CONFIG_BYTES_V1
 VISUAL_BYTES = 128
 CFG_GET_SCHEMA = 1
@@ -30,7 +32,31 @@ CFG_BEGIN_SET = 4
 CFG_APPEND_SET = 5
 CFG_COMMIT_SET = 6
 CFG_ABORT_SET = 7
+CFG_PATCH = 8
 CFG_TEST_STALE = 11
+PATCH_KIND_F32 = 1
+PATCH_MAX_ENTRIES = 8
+PATCH_FIELDS = {
+    1: "vp_waveform_fallback_brightness",
+    2: "sensitivity",
+    3: "mood",
+    4: "chroma",
+    5: "saturation",
+    6: "hue_position",
+    7: "vp_waveform_shift_rate",
+    8: "vp_waveform_idle_fade",
+}
+PATCH_NAMES = {name: field_id for field_id, name in PATCH_FIELDS.items()}
+PATCH_RANGES = {
+    1: (0.0, 1.0),
+    2: (0.0, 1.0),
+    3: (0.0, 1.0),
+    4: (0.0, 1.0),
+    5: (0.0, 1.0),
+    6: (0.0, 1.0),
+    7: (0.0, 240.0),
+    8: (0.90, 0.999),
+}
 
 
 def _u16(buf: bytes, off: int) -> int:
@@ -131,6 +157,15 @@ def unpack_snapshot(buf: bytes) -> dict:
         "uid": buf[728:744].hex(),
         "build_sha256": buf[744:776].hex(),
         "schema_sha256": buf[776:808].hex(),
+        "last_rendered_request_id": _u32(buf, 812) if len(buf) >= 844 else 0,
+        "last_rendered_revision": _u32(buf, 816) if len(buf) >= 844 else 0,
+        "last_rendered_frame": _u32(buf, 820) if len(buf) >= 844 else 0,
+        "last_rendered_hop": _u32(buf, 824) if len(buf) >= 844 else 0,
+        "superseded_request_id": _u32(buf, 828) if len(buf) >= 844 else 0,
+        "accepted_request_id": _u32(buf, 832) if len(buf) >= 844 else 0,
+        "accepted_revision": _u32(buf, 836) if len(buf) >= 844 else 0,
+        "last_emitted_request_id": _u32(buf, 840) if len(buf) >= 844 else 0,
+        "last_rendered_publication_us": _u64(buf, 844) if len(buf) >= 852 else 0,
         "valid": bool(_u16(buf, 6) & 1),
         "warming": bool(_u16(buf, 6) & 2),
         "stale": bool(_u16(buf, 6) & 4),
@@ -297,12 +332,14 @@ def unpack_config(buf: bytes) -> dict:
         "transition_ms": _u32(buf, 40),
         "travel_ms": _u32(buf, 44),
         "emit_on": buf[48],
+        "boot_id": _u32(buf, CONFIG_BOOT_ID_OFFSET) if len(buf) >= CONFIG_BYTES_V2 else 0,
+        "last_patch_request_id": _u32(buf, 52),
         "focus_a": focus_a,
         "focus_b": focus_b,
         "visual_capable": False,
         "wire_bytes": len(buf),
     }
-    if len(buf) >= CONFIG_BYTES_V2 and out["version"] >= 2:
+    if len(buf) >= CONFIG_BYTES_V2_LEGACY and out["version"] >= 2:
         out["visual_a"] = unpack_visual(buf, CONFIG_BYTES_V1)
         out["visual_b"] = unpack_visual(buf, CONFIG_BYTES_V1 + VISUAL_BYTES)
         out["visual_capable"] = True
@@ -336,18 +373,107 @@ def pack_config(cfg: dict) -> bytes:
                      int(cfg.get("transition_ms", 0)),
                      int(cfg.get("travel_ms", 4000)))
     buf[48] = int(cfg.get("emit_on", 0))
+    struct.pack_into("<I", buf, 52, int(cfg.get("last_patch_request_id", 0)))
     for i, value in enumerate(focus_a):
         struct.pack_into("<f", buf, 56 + i * 4, float(value))
     for i, value in enumerate(focus_b):
         struct.pack_into("<f", buf, 476 + i * 4, float(value))
     if version >= 2:
         buf[CONFIG_BYTES_V1:CONFIG_BYTES_V1 + VISUAL_BYTES] = pack_visual(cfg.get("visual_a"))
-        buf[CONFIG_BYTES_V1 + VISUAL_BYTES:CONFIG_BYTES_V2] = pack_visual(cfg.get("visual_b"))
+        vis_b_off = CONFIG_BYTES_V1 + VISUAL_BYTES
+        buf[vis_b_off:vis_b_off + VISUAL_BYTES] = pack_visual(cfg.get("visual_b"))
+        boot_id = int(cfg["boot_id"]) if "boot_id" in cfg else 1
+        struct.pack_into("<I", buf, CONFIG_BOOT_ID_OFFSET, boot_id)
     return bytes(buf)
 
 
 def pack_config_sub(sub: int, payload: bytes = b"") -> bytes:
     return struct.pack("<I", sub) + payload
+
+
+def split_patch_name(name: str) -> tuple[str, str, int]:
+    if not isinstance(name, str) or "." not in name:
+        raise ValueError("field must be visual_a.<id> or visual_b.<id>")
+    prefix, short = name.split(".", 1)
+    if prefix not in ("visual_a", "visual_b"):
+        raise ValueError(f"unknown prefix {prefix}")
+    if "." in short or short not in PATCH_NAMES:
+        raise ValueError(f"forbidden patch field {name}")
+    return prefix, short, 0 if prefix == "visual_a" else 1
+
+
+def pack_patch(revision: int, fields: dict[str, float], request_id: int, channel: int | None = None,
+               boot_id: int = 0) -> bytes:
+    if not fields:
+        raise ValueError("empty patch")
+    if len(fields) > PATCH_MAX_ENTRIES:
+        raise ValueError("too many patch fields")
+    if request_id is None:
+        raise ValueError("request_id required")
+    derived = None
+    seen = set()
+    resolved: list[tuple[int, float]] = []
+    for name, value in fields.items():
+        _prefix, short, ch = split_patch_name(name)
+        if derived is None:
+            derived = ch
+        elif ch != derived:
+            raise ValueError("mixed visual channels in one patch")
+        field_id = PATCH_NAMES[short]
+        if field_id in seen:
+            raise ValueError("duplicate patch field")
+        seen.add(field_id)
+        number = float(value)
+        lo, hi = PATCH_RANGES[field_id]
+        if number != number or number < lo or number > hi:  # noqa: PLR0124 NaN
+            raise ValueError(f"patch {name} out of range")
+        resolved.append((field_id, number))
+    if channel is None:
+        channel = derived if derived is not None else 0
+    elif channel != derived:
+        raise ValueError("explicit channel disagrees with field names")
+    if channel not in (0, 1):
+        raise ValueError("logical channel must be 0 or 1")
+    payload = struct.pack("<IIHHI", int(revision), int(request_id), len(resolved), int(channel),
+                          int(boot_id))
+    for field_id, number in resolved:
+        payload += struct.pack("<HHf", field_id, PATCH_KIND_F32, number)
+    return pack_config_sub(CFG_PATCH, payload)
+
+
+def unpack_patch(buf: bytes) -> dict:
+    if len(buf) < 4:
+        raise ValueError("short patch")
+    sub = _u32(buf, 0)
+    if sub != CFG_PATCH:
+        raise ValueError("not a patch")
+    body = buf[4:]
+    if len(body) < 16:
+        raise ValueError("short patch body")
+    revision = _u32(body, 0)
+    request_id = _u32(body, 4)
+    count = struct.unpack_from("<H", body, 8)[0]
+    channel = struct.unpack_from("<H", body, 10)[0]
+    boot_id = _u32(body, 12)
+    if count < 1 or count > PATCH_MAX_ENTRIES or channel > 1:
+        raise ValueError("bad patch header")
+    if len(body) != 16 + count * 8:
+        raise ValueError("patch size mismatch")
+    fields = {}
+    prefix = "visual_a" if channel == 0 else "visual_b"
+    for i in range(count):
+        off = 16 + i * 8
+        field_id, kind = struct.unpack_from("<HH", body, off)
+        value = _f32(body, off + 4)
+        short = PATCH_FIELDS.get(field_id)
+        if short is None or kind != PATCH_KIND_F32:
+            raise ValueError("forbidden or invalid patch entry")
+        name = f"{prefix}.{short}"
+        if name in fields:
+            raise ValueError("duplicate patch field")
+        fields[name] = value
+    return {"revision": revision, "request_id": request_id, "channel": channel, "boot_id": boot_id,
+            "fields": fields}
 
 
 def pack_stale_test(uid_hex: str, build_sha_hex: str) -> bytes:
@@ -386,3 +512,49 @@ def groups_present(snap: dict) -> dict:
         "freshness": True,
         "controls": True,
     }
+
+
+# Performance is a separate typed owner operation; legacy PATCH stays unchanged.
+PERFORMANCE_FIELDS = {row["name"]: (int(key), float(row["min"]), float(row["max"]))
+                      for key, row in CONTRACT["performance"]["fields"].items()}
+PERFORMANCE_PALETTES = tuple(CONTRACT["performance"]["curated_palettes"])
+
+def performance_value(config: dict, name: str):
+    focus={'level_gain':0,'tonal_gain':5,'novelty_gain':1,'bass_onset_gain':7,'kick_gain':10,'snare_gain':11,'hihat_gain':12,'transient_gain':9,'low_gain':2}
+    if name.startswith('focus_a.'):return config['focus_a'][focus[name.split('.')[1]]]
+    prefix, field = name.split(".", 1)
+    return config[prefix][field]
+
+def pack_performance(revision: int, fields: dict[str, float], request_id: int,
+                     boot_id: int, palette: int | None = None, audition: bool = False) -> bytes:
+    import math
+    if not isinstance(fields, dict) or not 1 <= len(fields) <= PATCH_MAX_ENTRIES:
+        raise ValueError("Performance needs 1..8 fields")
+    if type(audition) is not bool or (audition and (palette is not None or not set(fields)<=set(['focus_a.'+n+'_gain' for n in ('level','novelty','kick','snare','hihat','transient')]))):
+        raise ValueError("invalid audition lease")
+    if palette is not None and (type(palette) is not int or palette not in PERFORMANCE_PALETTES):
+        raise ValueError("palette is not curated")
+    for value in (revision, request_id, boot_id):
+        if type(value) is not int or not 0 <= value <= 0xffffffff:
+            raise ValueError("invalid Performance identity")
+    if not boot_id or not request_id: raise ValueError("missing Performance identity")
+    data = struct.pack("<IIHHI", revision, request_id, len(fields), 0, boot_id)
+    for name, value in fields.items():
+        if name not in PERFORMANCE_FIELDS or isinstance(value, bool):
+            raise ValueError("unsupported Performance field")
+        field, lo, hi = PERFORMANCE_FIELDS[name]
+        number = float(value)
+        if not math.isfinite(number) or not lo <= number <= hi:
+            raise ValueError("Performance value outside range")
+        data += struct.pack("<HHf", field, PATCH_KIND_F32, number)
+    return struct.pack("<I", 11 if audition else 9) + data if palette is None else struct.pack("<II", 10, palette) + data
+
+
+def pack_selection(revision, request_id, boot_id, mode, palette, fields=None):
+    for value in (revision, request_id, boot_id, mode, palette):
+        if type(value) is not int or not 0 <= value <= 0xffffffff:
+            raise ValueError('invalid selection identity')
+    if not request_id or not boot_id: raise ValueError('missing selection identity')
+    if mode not in CONTRACT['performance']['selection']['modes'] or palette not in PERFORMANCE_PALETTES:
+        raise ValueError('unsupported effect or palette')
+    return struct.pack('<IIIIII', 12, revision, request_id, boot_id, mode, palette) + (pack_performance(revision,fields,request_id,boot_id)[20:] if fields else b'')

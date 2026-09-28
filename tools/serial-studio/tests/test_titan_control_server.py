@@ -34,6 +34,7 @@ class FakeTransport:
             "version": 2,
             "revision": 3,
             "emit_on": 0,
+            "boot_id": 1,
             "flags": 1,
             "mode_a": 8,
             "visual_a": {"hue_position": 0.1, "vp_waveform_shift_rate": 120.0},
@@ -57,6 +58,8 @@ class FakeTransport:
                 return {"ok": True, "status": 0, "body": self.cfg_blob}
             if sub == proto.CFG_PATCH:
                 patch = proto.unpack_patch(payload)
+                if int(patch.get("boot_id") or 0) != int(self.cfg.get("boot_id") or 0):
+                    return {"ok": False, "status": 6, "body": b""}
                 if int(patch["revision"]) != int(self.cfg["revision"]):
                     return {"ok": False, "status": 5, "body": b""}
                 channel = "visual_a" if patch["channel"] == 0 else "visual_b"
@@ -92,6 +95,7 @@ def test_empty_approval_wrong_id_denied(tmp_path):
         "session": hello["session"],
         "request_id": 1,
         "revision": 3,
+        "boot_id": 1,
         "fields": {"visual_a.vp_waveform_shift_rate": 40.0},
     })
     assert got["ok"] is False
@@ -126,6 +130,7 @@ def test_matching_checkpoint_admits(tmp_path):
         "session": hello["session"],
         "request_id": 7,
         "revision": 3,
+        "boot_id": 1,
         "fields": {"visual_a.vp_waveform_shift_rate": 40.0},
     })
     assert got["ok"] is True
@@ -194,6 +199,7 @@ def test_serialised_transport(tmp_path):
                 "session": hello["session"],
                 "request_id": rid,
                 "revision": 3,
+                "boot_id": 1,
                 "fields": {"visual_a.vp_waveform_shift_rate": 40.0},
             })
         except Exception as exc:  # noqa: BLE001

@@ -217,6 +217,9 @@ int k1_pdm_stream_context_start(k1_pdm_stream_t *stream,
         return K1_PDM_STREAM_INVALID;
     }
     k1_pdm_stream_clear_slots(stream);
+    /* Sequence is local to an epoch. Paired restart must discard any unequal
+       pre-fault completion counts; epoch still rejects stale owners. */
+    stream->next_sequence = 0u;
     stream->epoch++;
     if (stream->epoch == 0u) stream->epoch = 1u;
     stream->halted = 0;
@@ -338,6 +341,9 @@ int k1_pdm_stream_context_recover(k1_pdm_stream_t *stream,
         }
     }
     k1_pdm_stream_clear_slots(stream);
+    /* Sequence is local to an epoch. Paired restart must discard any unequal
+       pre-fault completion counts; epoch still rejects stale owners. */
+    stream->next_sequence = 0u;
     stream->epoch++;
     if (stream->epoch == 0u) stream->epoch = 1u;
     stream->halted = 0;

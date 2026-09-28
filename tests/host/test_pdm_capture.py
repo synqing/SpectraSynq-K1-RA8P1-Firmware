@@ -509,7 +509,7 @@ def test_gpio_strip_is_runtime_gated_while_pdm_runs():
     assert "k1_ws281x_diag_emit" in emit
 
 
-def test_dual_pdm_starts_only_after_usb_configuration_is_observed():
+def test_product_pdm_starts_without_usb_and_fixture_retains_enumeration_policy():
     entry = (ROOT / "platform/ra8p1/hal_entry.c").read_text(encoding="utf-8")
     usb_open = entry.index("R_USB_Open")
     configured = entry.index("case USB_STATUS_CONFIGURED")
@@ -517,6 +517,9 @@ def test_dual_pdm_starts_only_after_usb_configuration_is_observed():
     pdm_poll = entry.index("k1_pdm_target_poll();", pdm_start)
     assert usb_open < configured < pdm_start < pdm_poll
     assert entry[:configured].count("k1_pdm_target_initialise()") == 0
+    assert "#ifdef K1_LIVE_EMIT\n        if(!k1_pdm_target_initialised())\n#else" in entry
+    assert entry.count("if(usb_ready && !hold_usb && k1_fixture_usb_service_allowed())") == 2
+    assert "#ifndef K1_LIVE_EMIT\n        for(;;) k1_status_led_poll" in entry
 
 
 def test_pdm_target_is_dual_edge_dmac_and_excludes_parallel_cpu_fifo_drain():
@@ -567,7 +570,10 @@ def test_platform_reports_selected_dma_channels_not_stale_literals():
     assert '(unsigned long)K1_PDM_TARGET_FALL_DMA_CHANNEL' in source
     assert "--dmac-lane-map" in build
     assert "K1_WS281X_GPT_DMA_CHANNEL=0u" in build
+    assert "K1_WS281X_GPT_DMA_CHANNEL=2u" in build
+    assert "K1_PDM_TARGET_RISE_DMA_CHANNEL=0u" in build
     assert "K1_PDM_TARGET_RISE_DMA_CHANNEL=1u" in build
+    assert "K1_PDM_TARGET_FALL_DMA_CHANNEL=1u" in build
     assert "K1_PDM_TARGET_FALL_DMA_CHANNEL=2u" in build
 
 

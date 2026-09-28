@@ -37,7 +37,7 @@ extern int k1_useful_npu_probe(void);
 extern int k1_coexist_probe(void);
 #endif
 static uint8_t usb_read[64];
-static bool attached, read_armed, write_pending;
+static bool attached, usb_configured, read_armed, write_pending;
 static uint32_t svc_pdm_cyc, svc_gpt_cyc, svc_usb_cyc;
 static uint32_t max_pdm_gap_cyc, max_gpt_gap_cyc, max_usb_gap_cyc;
 static void k1_mark_service(uint32_t *last, uint32_t *max_gap) {
@@ -69,14 +69,14 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
     const uint32_t first_tick=rt_tick_get(), first_cycle=DWT->CYCCNT;
 #ifdef K1_PDM_TARGET
     /* Do not stall 100 ms on the USB request path. GPT timeout is ~14 ms. */
-    k1_pdm_target_poll();
-#ifdef K1_PALETTE_WS2816_GPT_PAIR
-    k1_ws281x_gpt_dma_hw_pair_poll();
-#elif defined(K1_PALETTE_GPT_DMA)
+    /* Observation only: PDM progression belongs to the main loop. */
+#if defined(K1_PALETTE_GPT_DMA) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
     k1_ws281x_gpt_dma_hw_poll();
 #endif
-    k1_mark_service(&svc_pdm_cyc, &max_pdm_gap_cyc);
-    k1_mark_service(&svc_gpt_cyc, &max_gpt_gap_cyc);
+    /* Paired LED progress belongs to fixture_poll. Polling it here could
+       start pending DMA immediately before this USB metrics response. */
+
+
 #else
     rt_thread_mdelay(100);
 #endif
@@ -178,6 +178,43 @@ static void k1_handle_request(const usb_event_info_t *event_info) {
     else if (USB_PCDC_SET_CONTROL_LINE_STATE == request)
         (void)R_USB_PeriControlStatusSet(&g_basic0_ctrl,USB_SETUP_STATUS_ACK);
 }
+/* USB IRQ isolation. Only this USB instance is deferred; GPT/DMAC/PDM IRQs
+   remain enabled. Preserve pending bits and the driver's previous enable mask.
+   The foreground owner can start a generation only after suspend returns. */
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+static bool usb_irq_suspended;
+static uint8_t usb_irq_saved;
+static IRQn_Type k1_usb_instance_irq(unsigned index) {
+    const IRQn_Type fs[4]={g_basic0_cfg.irq,g_basic0_cfg.irq_r,
+                          g_basic0_cfg.irq_d0,g_basic0_cfg.irq_d1};
+    const IRQn_Type hs[4]={g_basic0_cfg.hsirq,g_basic0_cfg.hsirq_d0,
+                          g_basic0_cfg.hsirq_d1,FSP_INVALID_VECTOR};
+    return g_basic0_cfg.module_number==0 ? fs[index] : hs[index];
+}
+static void k1_usb_irq_suspend(void) {
+    if (usb_irq_suspended) return;
+    usb_irq_saved=0;
+    for (unsigned i=0;i<4;i++) {
+        const IRQn_Type irq=k1_usb_instance_irq(i);
+        if ((int32_t)irq<0) continue;
+        if (NVIC_GetEnableIRQ(irq)) {
+            usb_irq_saved|=(uint8_t)(1u<<i);
+            NVIC_DisableIRQ(irq);
+        }
+    }
+    __DSB(); __ISB();
+    usb_irq_suspended=true;
+}
+static void k1_usb_irq_resume(void) {
+    if (!usb_irq_suspended || !k1_fixture_usb_service_allowed()) return;
+    usb_irq_suspended=false;
+    for (unsigned i=0;i<4;i++) {
+        const IRQn_Type irq=k1_usb_instance_irq(i);
+        if ((int32_t)irq>=0 && (usb_irq_saved & (1u<<i))) NVIC_EnableIRQ(irq);
+    }
+}
+#endif
+
 void hal_entry(void) {
 #if BSP_CFG_DCACHE_ENABLED && !defined(K1_KEEP_DCACHE_ENABLED)
     SCB_DisableDCache(); __DSB(); __ISB();
@@ -210,12 +247,42 @@ void hal_entry(void) {
     (void)titan_led2_phy_init((uint32_t)rt_tick_get());
     k1_fixture_initialise(uid,SystemCoreClock,R_CPU_CTRL->CPU1ACTCSR);
     /* No SecondaryCoreStart and no RM_ETHOSU_Open in the scalar image. */
-    if(FSP_SUCCESS!=R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg)) {
+    const bool usb_ready = FSP_SUCCESS==R_USB_Open(&g_basic0_ctrl,&g_basic0_cfg);
+    if(!usb_ready) {
         k1_status_led_fault(1,"usb_open",(uint32_t)rt_tick_get());
+        #ifndef K1_LIVE_EMIT
         for(;;) k1_status_led_poll((uint32_t)rt_tick_get(),1);
+#endif
     }
     k1_status_led_boot_ok((uint32_t)rt_tick_get());
+#if defined(K1_PALETTE_WS2816_GPT_PAIR) && defined(K1_LIVE_EMIT)
+    /* Bounded startup phase only: let USB enumerate before the first LED IRQ
+       deferral. No host is required; autonomous audio/render starts after a
+       500 ms admission interval (individual USB events are non-preemptible).
+       USB 2.0 Connect Timing ECN, section 7.1.7.3: host debounce alone is
+       at least 100 ms, followed by reset and at least 10 ms recovery. The
+       former 100 ms window could expire before enumeration even began.
+       CONFIGURED precedes CDC class setup requests; service the full bounded
+       window so early configuration does not cut off that handover. An absent
+       host never blocks product startup beyond this fixed interval.
+       Runtime admission and transmitter timing remain unchanged. */
+    const uint32_t usb_boot_start=DWT->CYCCNT;
+    while (usb_ready &&
+           (uint32_t)(DWT->CYCCNT-usb_boot_start)<SystemCoreClock/2U) {
+        usb_event_info_t boot_info={0}; usb_status_t boot_event=USB_STATUS_NONE;
+        (void)R_USB_EventGet(&boot_info,&boot_event);
+        if (boot_event==USB_STATUS_CONFIGURED)
+            attached=usb_configured=true;
+        else if (boot_event==USB_STATUS_RESUME)
+            attached=usb_configured;
+        else if (boot_event==USB_STATUS_REQUEST) k1_handle_request(&boot_info);
+        rt_thread_mdelay(1);
+    }
+#endif
     for(;;) {
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+        if (usb_ready) k1_usb_irq_resume();
+#endif
         k1_fixture_schedule_step();
         const uint32_t remaining=k1_fixture_release_remaining_cycles();
         const bool hold_usb=k1_fixture_schedule_active() && remaining<(SystemCoreClock/1250U);
@@ -224,18 +291,33 @@ void hal_entry(void) {
         const uint32_t led_t0=DWT->CYCCNT;
         /* RGB is cheap and independent of USB hold. LED2 MDIO is admitted
            only when remaining slack covers one Clause-22 frame. */
-        k1_status_led_set_led2_budget(k1_fixture_schedule_active() ? remaining
-                                                                  : 0xffffffffu);
-        k1_status_led_poll(led_now, 1);
-        k1_status_led_add_service_cycles(DWT->CYCCNT-led_t0);
+        if (k1_fixture_usb_service_allowed()) {
+            const uint32_t status_budget=SystemCoreClock/10000U;
+            k1_status_led_set_led2_budget(k1_fixture_schedule_active() && remaining<status_budget
+                                         ? remaining : status_budget);
+            k1_status_led_poll(led_now, 1);
+            k1_status_led_add_service_cycles(DWT->CYCCNT-led_t0);
+        }
+        /* FSP EventGet advances one queued USB interrupt per call. Drain a
+           reply only in idle time. Stop admitting work after 1 ms; an individual
+           event is non-preemptible, so this is not a worst-case execution bound.
+           See staged FSP r_usb_basic.c / usb_pstd_pcd_task(). */
+        const uint32_t usb_start=DWT->CYCCNT;
+        do {
         usb_event_info_t info={0}; usb_status_t event=USB_STATUS_NONE;
-        if(!hold_usb) {
+        if(usb_ready && !hold_usb && k1_fixture_usb_service_allowed()) {
+            k1_fixture_control_service();
             (void)R_USB_EventGet(&info,&event);
             k1_note_usb_event((uint32_t)event);
             switch(event) {
-            case USB_STATUS_CONFIGURED: case USB_STATUS_RESUME:
-                attached=true;
+            case USB_STATUS_CONFIGURED:
+                attached=usb_configured=true;
                 k1_status_led_usb(1,1,led_now);
+                break;
+            case USB_STATUS_RESUME:
+                /* Resume is a bus event, not proof of SET_CONFIGURATION. */
+                attached=usb_configured;
+                k1_status_led_usb(attached,attached,led_now);
                 break;
             case USB_STATUS_REQUEST: k1_handle_request(&info); break;
             case USB_STATUS_READ_COMPLETE:
@@ -243,18 +325,41 @@ void hal_entry(void) {
                 k1_fixture_consume(usb_read,info.data_size,(uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
                 break;
             case USB_STATUS_WRITE_COMPLETE: write_pending=false; k1_fixture_sent(); break;
-            case USB_STATUS_DETACH: case USB_STATUS_SUSPEND:
+            case USB_STATUS_DETACH:
+                usb_configured=false;
+                /* fall through */
+            case USB_STATUS_SUSPEND:
                 attached=false; read_armed=false; write_pending=false; k1_fixture_disconnect();
                 k1_status_led_usb(0,0,led_now);
                 break;
             default: break;
             }
         }
+        /* Dispatch before palette polling can start the next LED frame.
+           Recheck: a consumed diagnostic command may itself start a frame. */
+        size_t size; const uint8_t* reply=k1_fixture_reply(&size);
+        if(usb_ready && !hold_usb && k1_fixture_usb_service_allowed()) {
+            if(attached && size && !write_pending &&
+               FSP_SUCCESS==R_USB_Write(&g_basic0_ctrl,(uint8_t*)reply,(uint32_t)size,USB_CLASS_PCDC)) write_pending=true;
+            if(attached && !size && !read_armed && !k1_fixture_control_pending() &&
+               FSP_SUCCESS==R_USB_Read(&g_basic0_ctrl,usb_read,sizeof(usb_read),USB_CLASS_PCDC)) read_armed=true;
+        }
+            /* Enumeration has no CDC write_pending flag. Drain its internal
+               FSP work within the same idle-only time budget; otherwise each
+               EP0 stage receives just one task step before the next LED poll.
+               Configured runtime reply admission is unchanged. */
+            if(!usb_ready || hold_usb || !k1_fixture_usb_service_allowed() ||
+               (attached && !write_pending)) break;
+        } while((uint32_t)(DWT->CYCCNT-usb_start)<SystemCoreClock/1000U);
 #ifdef K1_PDM_TARGET
-        /* USB enumeration can occupy more than the bounded 15 ms PDM ring.
-           Start capture only once CONFIGURED has been observed and this loop
-           can immediately become its active consumer. */
+        /* Product audio starts as soon as this loop can consume it. USB is
+           an optional control connection, never the power-on permission. */
+#ifdef K1_LIVE_EMIT
+        if(!k1_pdm_target_initialised())
+#else
+        /* Offline fixtures retain the enumeration-first capture contract. */
         if(attached && !k1_pdm_target_initialised())
+#endif
             (void)k1_pdm_target_initialise();
 #endif
 #ifdef K1_PCM1808_TARGET
@@ -267,6 +372,9 @@ void hal_entry(void) {
         k1_pdm_target_poll();
         k1_mark_service(&svc_pdm_cyc, &max_pdm_gap_cyc);
 #endif
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+        if (usb_ready) k1_usb_irq_suspend();
+#endif
         k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
 #if defined(K1_PALETTE_GPT_DMA) || defined(K1_PALETTE_WS2816_GPT_PAIR)
         k1_mark_service(&svc_gpt_cyc, &max_gpt_gap_cyc);
@@ -275,13 +383,6 @@ void hal_entry(void) {
 #ifdef K1_PCM1808_TARGET
         k1_pcm1808_target_poll();
 #endif
-        size_t size; const uint8_t* reply=k1_fixture_reply(&size);
-        if(!hold_usb) {
-            if(attached && size && !write_pending &&
-               FSP_SUCCESS==R_USB_Write(&g_basic0_ctrl,(uint8_t*)reply,(uint32_t)size,USB_CLASS_PCDC)) write_pending=true;
-            if(attached && !size && !read_armed &&
-               FSP_SUCCESS==R_USB_Read(&g_basic0_ctrl,usb_read,sizeof(usb_read),USB_CLASS_PCDC)) read_armed=true;
-        }
         if(!k1_fixture_schedule_active()) {
 #ifdef K1_PDM_TARGET
             if(!k1_pdm_target_running()) rt_thread_mdelay(1);

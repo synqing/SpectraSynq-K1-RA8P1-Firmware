@@ -8,6 +8,9 @@ void k1_fixture_initialise(const uint8_t uid[16], uint32_t clock_hz, uint32_t cp
 void k1_fixture_consume(const uint8_t* bytes, size_t count, uint32_t tick_ms);
 void k1_fixture_poll(uint32_t tick_ms);
 void k1_fixture_disconnect(void);
+bool k1_fixture_usb_service_allowed(void);
+bool k1_fixture_control_pending(void);
+void k1_fixture_control_service(void);
 const uint8_t* k1_fixture_reply(size_t* count);
 void k1_fixture_sent(void);
 uint32_t k1_cycle_count(void);

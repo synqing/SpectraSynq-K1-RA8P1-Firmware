@@ -6,6 +6,7 @@
 #include "hd_pixel16.h"
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
 #include "ws281x_gpt_dma_hw_pair.h"
+#include "ws281x_p601_loopback.h"
 #endif
 #include <cmath>
 #include <cstdio>
@@ -182,6 +183,34 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   effect_frames_ = dwell_frames_ = dwell_reinits_ = 0U;
   wide_valid_[0] = wide_valid_[1] = false;
   return true;
+}
+void PaletteRuntime::selectPerformancePalette(std::uint32_t id, std::uint64_t now_us) noexcept {
+  // Caller validates the curated ID; preserve audio and owner timing.
+  if (id >= kProductPaletteCount || config_.output_channel != 0U) return;
+  if (id != config_.palette_a && config_.mode_a == 32U)
+    a_.effectState().waveform_k1_dot = {};
+  config_.palette_a = id;
+  a_.controls().palette_id = static_cast<std::uint16_t>(id);
+#ifdef K1_PALETTE_MORPH
+  transitions_[0].select(a_.controls().palette_id, config_.transition_ms, now_us);
+#else
+  (void)now_us;
+#endif
+}
+void PaletteRuntime::selectPerformanceMode(std::uint32_t mode) noexcept {
+  // Validated by the finite selection command. Called only by the idle RT owner.
+  // Keep audio publication, timing, focus and scalar controls; reset effect history.
+  if (mode == config_.mode_a && mode == config_.mode_b) return;
+  auto ca = a_.controls(); auto cb = b_.controls();
+  auto fa = a_.audioFocus(); auto fb = b_.audioFocus();
+  a_ = ChannelRenderState{PixelChannelId::kChannelA};
+  b_ = ChannelRenderState{PixelChannelId::kChannelB};
+  a_.controls() = ca; b_.controls() = cb;
+  a_.audioFocus() = fa; b_.audioFocus() = fb;
+  config_.mode_a = config_.mode_b = mode;
+  a_.controls().mode_id = b_.controls().mode_id = static_cast<std::uint16_t>(mode);
+  dwell_armed_[0] = dwell_armed_[1] = false;
+  wide_valid_[0] = wide_valid_[1] = false;
 }
 void PaletteRuntime::resetAudioState() noexcept {
   last_live_us_ = 0U;
@@ -465,7 +494,33 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"completed_generation\":%lu,\"pair_completions\":%lu,"
       "\"pending_replacements\":%lu,\"lane_a0_dma\":%lu,\"lane_a1_dma\":%lu,"
       "\"lane_a0_stop\":%lu,\"lane_a1_stop\":%lu,\"lane_a0_fault\":%lu,"
-      "\"lane_a1_fault\":%lu,\"pair_fault\":%lu"
+      "\"lane_a1_fault\":%lu,\"pair_fault\":%lu,"
+      "\"pair_fault_site\":%lu,\"pair_fault_lane\":%lu,"
+      "\"pair_fault_generation\":%lu,\"pair_fault_dmcra\":%lu,"
+      "\"pair_fault_dmcra_a\":%lu,\"pair_fault_cyccnt\":%lu,"
+      "\"pair_fault_gpt8_gtcr\":%lu,\"pair_fault_gpt1_gtcnt\":%lu,"
+      "\"pair_fault_dma_irqs_b\":%lu,\"pair_fault_stop_irqs_b\":%lu,"
+      "\"pair_last_stop_valid_a\":%lu,\"pair_last_stop_pwm_running_a\":%lu,"
+      "\"pair_last_stop_gtcnt_a\":%lu,\"pair_last_stop_gtccr_a\":%lu,"
+      "\"pair_last_stop_dmcra_a\":%lu,\"pair_last_stop_valid_b\":%lu,"
+      "\"pair_last_stop_pwm_running_b\":%lu,\"pair_last_stop_gtcnt_b\":%lu,"
+      "\"pair_last_stop_gtccr_b\":%lu,\"pair_last_stop_dmcra_b\":%lu,"
+      "\"p601_loopback_valid\":%lu,\"p601_loopback_open\":%lu,"
+      "\"p601_loopback_samples\":%lu,\"p601_loopback_expected\":%lu,"
+      "\"p601_loopback_rising\":%lu,\"p601_loopback_falling\":%lu,"
+      "\"p601_loopback_extra\":%lu,\"p601_loopback_high_after\":%lu,"
+      "\"p601_loopback_first_rise\":%lu,\"p601_loopback_last_fall\":%lu,"
+      "\"p601_loopback_start\":%lu,\"p601_loopback_min_high\":%lu,"
+      "\"p601_loopback_max_high\":%lu,\"p601_loopback_peek_head\":%lu,"
+      "\"p601_loopback_peek_tail\":%lu,"
+      "\"pair_frame_max_ch\":%lu,\"pair_frame_white\":%lu,\"pair_frame_crc\":%lu,"
+      "\"pair_elc_a\":%lu,\"pair_elc_b\":%lu"
+      ",\"reset_admissions\":%lu,\"reset_min_cycles\":%lu,\"reset_last_cycles\":%lu,"
+      "\"reset_required_cycles\":%lu,\"reset_stale_rejections\":%lu,"
+      "\"reset_generation\":%lu,\"reset_cpu_hz\":%lu"
+      ",\"start_samples\":%lu,\"start_min_cycles\":%lu,\"start_previous_generation\":%lu,"
+      "\"start_next_generation\":%lu,\"start_stop_a\":%lu,\"start_stop_b\":%lu,"
+      "\"start_before\":%lu,\"start_after\":%lu,\"reset_admission_cycle\":%lu"
 #endif
       "}",
       visual_path_ ? visual_path_ : "none",
@@ -489,7 +544,63 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_hw_stopped(1),
       (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_fault(0),
       (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_fault(1),
-      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_fault()
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_fault(),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->site,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->lane,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->generation,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->dmcra[1],
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->dmcra[0],
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->cyccnt,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->gpt8_gtcr,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->gpt1_gtcnt,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->dma_irqs[1],
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_first_fault_record()->stop_irqs[1],
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->valid,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->pwm_running,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->pwm_gtcnt,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->pwm_gtccr,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->dmcra,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(1)->valid,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(1)->pwm_running,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(1)->pwm_gtcnt,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(1)->pwm_gtccr,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(1)->dmcra,
+      (unsigned long)k1_p601_loopback_result()->valid,
+      (unsigned long)k1_p601_loopback_result()->open_ok,
+      (unsigned long)k1_p601_loopback_result()->samples,
+      (unsigned long)k1_p601_loopback_result()->expected_cells,
+      (unsigned long)k1_p601_loopback_result()->rising,
+      (unsigned long)k1_p601_loopback_result()->falling,
+      (unsigned long)k1_p601_loopback_result()->extra_rising,
+      (unsigned long)k1_p601_loopback_result()->high_after_last,
+      (unsigned long)k1_p601_loopback_result()->first_rise,
+      (unsigned long)k1_p601_loopback_result()->last_fall,
+      (unsigned long)k1_p601_loopback_result()->start_level,
+      (unsigned long)k1_p601_loopback_result()->min_high,
+      (unsigned long)k1_p601_loopback_result()->max_high,
+      (unsigned long)k1_p601_loopback_result()->peek_head,
+      (unsigned long)k1_p601_loopback_result()->peek_tail,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_frame()->max_ch,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_frame()->white_pixels,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_frame()->crc_a,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->elc_gpt_a,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_stop(0)->elc_gpt_b,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->admissions,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->min_cycles,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->last_cycles,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->required_cycles,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->stale_clock_rejections,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->generation,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->cpu_hz,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->start_samples,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->start_min_cycles,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->previous_generation,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->next_generation,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->stop_a,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->stop_b,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->start_before,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->start_after,
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_reset_witness()->admission
 #endif
       );
   if (extra <= 0 || std::size_t(n - 1 + extra) >= capacity) return 0U;

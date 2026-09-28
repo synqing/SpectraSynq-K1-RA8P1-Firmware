@@ -38,6 +38,7 @@ def pack_snapshot_min(*, hop_sequence: int = 0, hops_consumed: int = 0,
     struct.pack_into("<I", buf, 832, int(rec.get("accepted_request_id") or 0))
     struct.pack_into("<I", buf, 836, int(rec.get("accepted_revision") or 0))
     struct.pack_into("<I", buf, 840, int(rec.get("emitted_request_id") or 0))
+    struct.pack_into("<Q", buf, 844, int(rec.get("rendered_publication_us") or 0))
     return bytes(buf)
 
 
@@ -59,12 +60,14 @@ class LiveDeviceSerial(FakeSerial):
         self.duplicate_next = False
         self.stale_body_once = False
         self.malformed_next = False
+        self.restart_before_apply = False
         self.whole_config_attempts = 0
         self.patch_applies = 0
         self.cfg = {
             "version": 2,
             "revision": int(revision),
             "emit_on": int(emit_on),
+            "boot_id": 1,
             "flags": 1,
             "mode_a": int(mode_a),
             "mode_b": int(mode_a),
@@ -80,10 +83,15 @@ class LiveDeviceSerial(FakeSerial):
                 "flags": proto.VIS_ENABLED | proto.VIS_MIRROR | proto.VIS_CHROMATIC,
             },
         }
+        self._boot_rate = float(self.cfg["visual_a"]["vp_waveform_shift_rate"])
         self._rx_acc = bytearray()
         self.closed_by_test = False
         self.forbidden_subs = 0
         self.render_frames = 0
+        self.emit_busy = False
+        self.emit_pending_generation = 0
+        self.emit_pending_request = 0
+        self.emit_generation = 0
         self.receipt = {
             "accepted_request_id": 0,
             "accepted_revision": 0,
@@ -93,6 +101,7 @@ class LiveDeviceSerial(FakeSerial):
             "rendered_revision": 0,
             "rendered_frame": 0,
             "rendered_hop": 0,
+            "rendered_publication_us": 0,
             "superseded_request_id": 0,
             "emitted_request_id": 0,
         }
@@ -104,23 +113,28 @@ class LiveDeviceSerial(FakeSerial):
         self.render_frames = 0
         self.consume_events = []
         self.receipt = {key: 0 for key in self.receipt}
+        self.emit_busy = False
+        self.emit_pending_generation = 0
+        self.emit_pending_request = 0
         self.cfg["revision"] = 0
         self.cfg["last_patch_request_id"] = 0
+        self.cfg["boot_id"] = int(self.cfg.get("boot_id") or 1) + 1
         vis = dict(self.cfg.get("visual_a") or {})
-        vis["vp_waveform_shift_rate"] = 0.0
+        vis["vp_waveform_shift_rate"] = float(self._boot_rate)
         self.cfg["visual_a"] = vis
         self._rx_acc = bytearray()
 
-    def render_frame(self) -> None:
-        """Latch renderer consumption. Snapshot does not do this by itself."""
+    def render_frame(self, path: str = "effect") -> None:
+        """Latch renderer consumption only on effect/hold. Snapshot does not do this."""
         pending = int(self.receipt.get("pending_request_id") or 0)
         self.render_frames += 1
         self.audio_hop += 1
-        if pending:
+        if pending and path in {"effect", "hold"}:
             self.receipt["rendered_request_id"] = pending
             self.receipt["rendered_revision"] = int(self.receipt.get("pending_revision") or 0)
             self.receipt["rendered_frame"] = self.render_frames
             self.receipt["rendered_hop"] = self.audio_hop
+            self.receipt["rendered_publication_us"] = self.audio_hop
             self.receipt["pending_request_id"] = 0
             self.receipt["pending_revision"] = 0
             self.consume_events.append({
@@ -128,7 +142,27 @@ class LiveDeviceSerial(FakeSerial):
                 "hop_sequence": self.audio_hop,
                 "frame": self.render_frames,
                 "revision": self.receipt["rendered_revision"],
+                "path": path,
             })
+            if int(self.cfg.get("emit_on") or 0) != 0 and not self.emit_busy:
+                self.emit_generation += 1
+                self.emit_busy = True
+                self.emit_pending_generation = self.emit_generation
+                self.emit_pending_request = pending
+
+    def complete_output(self) -> None:
+        if int(self.cfg.get("emit_on") or 0) == 0:
+            self.receipt["emitted_request_id"] = 0
+            self.emit_busy = False
+            self.emit_pending_generation = 0
+            self.emit_pending_request = 0
+            return
+        rid = int(self.emit_pending_request or 0)
+        if rid:
+            self.receipt["emitted_request_id"] = rid
+        self.emit_busy = False
+        self.emit_pending_generation = 0
+        self.emit_pending_request = 0
 
     def write(self, data: bytes) -> int:
         n = super().write(data)
@@ -160,10 +194,14 @@ class LiveDeviceSerial(FakeSerial):
     def restart_same_image(self) -> None:
         self.sequence = 1
         self.audio_hop = 0
+        self.emit_busy = False
+        self.emit_pending_generation = 0
+        self.emit_pending_request = 0
         self.cfg["revision"] = 0
         self.cfg["last_patch_request_id"] = 0
+        self.cfg["boot_id"] = int(self.cfg.get("boot_id") or 1) + 1
         vis = dict(self.cfg.get("visual_a") or {})
-        vis["vp_waveform_shift_rate"] = 0.0
+        vis["vp_waveform_shift_rate"] = float(self._boot_rate)
         self.cfg["visual_a"] = vis
 
     def _info_body(self) -> bytes:
@@ -178,6 +216,7 @@ class LiveDeviceSerial(FakeSerial):
             "schema_sha256": self.schema,
             "schema": self.schema,
             "runtime_kind": "live",
+            "boot_id": int(self.cfg.get("boot_id") or 0),
         }
         return json.dumps(payload).encode()
 
@@ -279,6 +318,14 @@ class LiveDeviceSerial(FakeSerial):
             patch = proto.unpack_patch(payload)
         except ValueError:
             self._respond(3, req, b"")
+            return
+        if self.restart_before_apply:
+            self.restart_before_apply = False
+            self.restart()
+        patch_boot = int(patch.get("boot_id") or 0)
+        cfg_boot = int(self.cfg.get("boot_id") or 0)
+        if cfg_boot == 0 or patch_boot == 0 or patch_boot != cfg_boot:
+            self._respond(6, req, b"")
             return
         if int(patch["revision"]) != int(self.cfg["revision"]):
             self._respond(5, req, b"")

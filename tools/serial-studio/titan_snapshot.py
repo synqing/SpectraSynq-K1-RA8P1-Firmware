@@ -104,6 +104,7 @@ def bind_identity(
         "protocol": info.get("protocol"),
         "clock_hz": info.get("clock_hz"),
         "device_sequence": info.get("sequence"),
+        "boot_id": info.get("boot_id") if visible else None,
         "runtime_kind": info.get("runtime_kind"),
         "hop_samples": contract["hop_samples"] if contract else None,
         "admitted_rate_hz": contract["admitted_rate_hz"] if contract else None,

@@ -25,6 +25,7 @@
 #include "core/visual/ws2816_pack.h"
 #include "ws2816_gpio_emit.h"
 #include "ws281x_diag.h"
+#include "ws281x_p601_loopback.h"
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
 #include "ws281x_gpt_dma_hw_pair.h"
 #include "pair_fixture_admit.h"
@@ -48,6 +49,8 @@
 #ifdef K1_LIVE_RUNTIME
 #include "k1_live_runtime.h"
 #include "k1_live_protocol.h"
+#include "k1_performance_control.h"
+#include "k1_live_boot_identity.h"
 #endif
 namespace {
 fixture::Trajectory trajectory;
@@ -58,11 +61,44 @@ k1::titan::PaletteRuntime palettes;
 #ifdef K1_LIVE_RUNTIME
 k1::titan::LiveAudioRuntime live_runtime;
 k1::titan::LiveConfigBlob live_cfg{};
+k1::titan::LiveRenderReceipt live_render_receipt{};
+std::uint32_t live_render_frames = 0;
+std::uint32_t live_emit_pending_generation = 0;
+std::uint32_t live_emit_pending_request = 0;
 std::uint8_t live_cfg_stage[k1::titan::kLiveConfigBlobBytes]{};
 std::uint32_t live_cfg_stage_len = 0;
 std::uint32_t live_cfg_stage_expected = 0;
 bool live_cfg_staging = false;
 std::uint32_t live_cfg_revision = 0;
+#if defined(K1_PALETTE_WS2816_GPT_PAIR)
+// Single foreground producer and RT owner; USB RX remains backpressured until
+// the immutable command is applied and its response is transmitted.
+enum class ControlPhase : std::uint8_t { Empty, Queued, Applied };
+enum class ControlKind : std::uint8_t { Palette, Patch, Performance, PerformanceScene, PerformanceAudition, PerformanceSelection };
+k1::titan::PerformanceRamp performance_ramp;
+k1::titan::PerformanceAudition performance_auditions[16];
+auto& performance_audition=performance_auditions[0]; // level lease, retained test name
+std::uint32_t pending_performance_mask=0;
+struct PendingControl {
+  ControlPhase phase = ControlPhase::Empty;
+  ControlKind kind = ControlKind::Patch;
+  k1::titan::PaletteConfig palette{};
+  k1::titan::LiveConfigBlob config{};
+  std::uint32_t base_revision = 0;
+  std::uint32_t request_id = 0;
+  std::uint32_t status = 0;
+};
+PendingControl pending_control;
+std::uint32_t control_queued = 0, control_applied = 0;
+std::uint32_t control_overlap = 0, readonly_started_pair = 0;
+bool realtime_owner_active = false;
+bool control_timeout_pending = false;
+std::uint32_t owner_reentry_rejected = 0;
+#endif
+
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+void pair_begin_black_shutdown();
+#endif
 
 void live_hex32(const char* hex, std::uint8_t out[32]) {
   for (unsigned i = 0; i < 32U; ++i) {
@@ -213,11 +249,12 @@ bool live_apply_config(const k1::titan::LiveConfigBlob& cfg, std::uint64_t now_u
   pal.palette_b = cfg.palette_b;
   pal.mode_a = cfg.mode_a;
   pal.mode_b = cfg.mode_b;
-  pal.flags = (cfg.flags | 4U) & ~2U;
+  pal.flags = cfg.emit_on ? ((cfg.flags | 4U) & ~2U) : (cfg.flags & ~6U);
   pal.brightness = cfg.brightness;
   pal.output_channel = cfg.output_channel;
   pal.transition_ms = cfg.transition_ms;
   pal.travel_ms = cfg.travel_ms;
+  const bool was_emit = palettes.emitEnabled();
   if (!palettes.configure(pal, now_us)) return false;
   live_copy_focus(palettes.channel(0).audioFocus(), cfg.focus_a);
   live_copy_focus(palettes.channel(1).audioFocus(), cfg.focus_b);
@@ -226,14 +263,20 @@ bool live_apply_config(const k1::titan::LiveConfigBlob& cfg, std::uint64_t now_u
     live_copy_visual(palettes.channel(1).controls(), cfg.visual_b);
   }
   live_cfg = cfg;
-  live_cfg.emit_on = 1;
+  live_cfg.emit_on = palettes.emitEnabled() ? 1 : 0;
   live_cfg.revision = ++live_cfg_revision;
   live_cfg.flags = palettes.config().flags;
   const auto& applied = palettes.config();
   live_runtime.setControlMeta(static_cast<std::uint16_t>(applied.mode_a),
-                              static_cast<std::uint16_t>(applied.palette_a), 1,
+                              static_cast<std::uint16_t>(applied.palette_a),
+                              live_cfg.emit_on,
                               live_cfg.revision,
                               static_cast<std::uint16_t>(applied.brightness));
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  if (was_emit && !palettes.emitEnabled()) pair_begin_black_shutdown();
+#else
+  (void)was_emit;
+#endif
   return true;
 }
 
@@ -280,12 +323,75 @@ bool fixture_hold=false;
 std::uint32_t fixture_hold_generation=0;
 std::uint8_t fixture_owned_a0[K1_PAIR_FIXTURE_LANE_BYTES];
 std::uint8_t fixture_owned_a1[K1_PAIR_FIXTURE_LANE_BYTES];
+bool pair_black_drain=false;
+bool pair_cannot_clear=false;
+std::uint32_t pair_black_generation=0;
+const std::uint8_t pair_black_lane[K1_WS281X_PAIR_LANE_BYTES]{};
+void pair_begin_black_shutdown() {
+  if (k1_ws281x_gpt_dma_hw_pair_last_fault() != K1_WS281X_FAULT_NONE) {
+    pair_cannot_clear = true;
+    pair_black_drain = false;
+    return;
+  }
+  pair_cannot_clear = false;
+  pair_black_drain = true;
+  const std::uint32_t generation = ++palette_pair_generation;
+  pair_black_generation = generation;
+  (void)k1_ws281x_gpt_dma_hw_pair_submit(pair_black_lane, K1_WS281X_PAIR_LANE_BYTES,
+                                         pair_black_lane, K1_WS281X_PAIR_LANE_BYTES,
+                                         3U, generation);
+}
+void pair_poll_black_drain() {
+  k1_ws281x_gpt_dma_hw_pair_poll();
+  if (!pair_black_drain) return;
+  if (k1_ws281x_gpt_dma_hw_pair_last_fault() != K1_WS281X_FAULT_NONE) {
+    pair_cannot_clear = true;
+    pair_black_drain = false;
+    return;
+  }
+  if (k1_ws281x_gpt_dma_hw_pair_busy()) return;
+  if (k1_ws281x_gpt_dma_hw_pair_completed_generation() == pair_black_generation) {
+    pair_black_drain = false;
+    return;
+  }
+  const std::uint32_t generation = ++palette_pair_generation;
+  pair_black_generation = generation;
+  (void)k1_ws281x_gpt_dma_hw_pair_submit(pair_black_lane, K1_WS281X_PAIR_LANE_BYTES,
+                                         pair_black_lane, K1_WS281X_PAIR_LANE_BYTES,
+                                         3U, generation);
+}
 void palette_pair_poll() {
   k1_ws281x_gpt_dma_hw_pair_poll();
   const auto completed=k1_ws281x_gpt_dma_hw_pair_completions();
   const auto failed=k1_ws281x_gpt_dma_hw_pair_errors();
-  if (completed!=palette_pair_frames) { palettes.recordEmit(0,0); palette_pair_frames=completed; }
-  if (failed!=palette_pair_errors) { palettes.recordEmit(1,0); palette_pair_errors=failed; }
+  if (completed!=palette_pair_frames) {
+    palettes.recordEmit(0,0);
+    palette_pair_frames=completed;
+#ifdef K1_LIVE_RUNTIME
+    const std::uint32_t completed_generation =
+        k1_ws281x_gpt_dma_hw_pair_completed_generation();
+    if (live_cfg.emit_on != 0U) {
+      if (k1::titan::liveNotePairCompleted(&live_render_receipt, completed_generation,
+                                          live_emit_pending_generation,
+                                          live_emit_pending_request)) {
+        live_runtime.setRenderReceipt(live_render_receipt);
+      }
+    } else {
+      live_render_receipt.emitted_request_id = 0;
+      live_runtime.setRenderReceipt(live_render_receipt);
+    }
+    live_emit_pending_request = 0;
+    live_emit_pending_generation = 0;
+#endif
+  }
+  if (failed!=palette_pair_errors) {
+    palettes.recordEmit(1,0);
+    palette_pair_errors=failed;
+#ifdef K1_LIVE_RUNTIME
+    live_emit_pending_request = 0;
+    live_emit_pending_generation = 0;
+#endif
+  }
 }
 #endif
 #ifdef K1_PALETTE_GPT_DMA
@@ -297,13 +403,33 @@ void palette_gpt_poll() {
   k1_ws281x_gpt_dma_hw_poll();
   const auto completed=k1_ws281x_gpt_dma_hw_completions();
   const auto failed=k1_ws281x_gpt_dma_hw_errors();
-  if (completed!=palette_gpt_frames) { palettes.recordEmit(0,0); palette_gpt_frames=completed; }
-  if (failed!=palette_gpt_errors) { palettes.recordEmit(1,0); palette_gpt_errors=failed; }
+  if (completed!=palette_gpt_frames) {
+    palettes.recordEmit(0,0);
+    palette_gpt_frames=completed;
+#ifdef K1_LIVE_RUNTIME
+    if (live_emit_pending_request != 0U) {
+      k1::titan::liveNotePhysicalEmit(&live_render_receipt);
+      live_runtime.setRenderReceipt(live_render_receipt);
+      live_emit_pending_request = 0;
+    }
+#endif
+  }
+  if (failed!=palette_gpt_errors) {
+    palettes.recordEmit(1,0);
+    palette_gpt_errors=failed;
+#ifdef K1_LIVE_RUNTIME
+    live_emit_pending_request = 0;
+#endif
+  }
 }
 #endif
 void palette_step(bool emit) {
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   palette_pair_poll();
+  if (pair_black_drain) {
+    pair_poll_black_drain();
+    return;
+  }
 #endif
 #ifdef K1_PALETTE_GPT_DMA
   palette_gpt_poll();
@@ -317,6 +443,14 @@ void palette_step(bool emit) {
       live ? live->features.publish_time_us : 0U};
   // Freshness is a MIR flag, not a licence to starve the plate.
   const bool rendered=palettes.step(palette_time_us, (live && live->valid) ? &view : nullptr);
+  if (rendered) {
+    live_render_frames += 1U;
+    if (k1::titan::livePathConsumesAcceptedRevision(palettes.visualPath())) {
+      k1::titan::liveNoteRendererConsumed(&live_render_receipt, live_runtime.hopsConsumed(),
+                                          live_render_frames, palettes.lastPublicationUs());
+      live_runtime.setRenderReceipt(live_render_receipt);
+    }
+  }
 #else
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
@@ -380,8 +514,18 @@ void palette_step(bool emit) {
       snapshot_word(13, generation);
       const int status = k1_ws281x_gpt_dma_hw_pair_submit(
           wire_a0, size0, wire_a1, size1, 3U, generation);
-      if (status == K1_WS281X_SUBMIT_ACCEPTED ||
-          status == K1_WS281X_SUBMIT_BUSY) {
+      if (status == K1_WS281X_SUBMIT_ACCEPTED) {
+        palette_pair_pending = false;
+#ifdef K1_LIVE_RUNTIME
+        if (live_cfg.emit_on != 0U) {
+          live_emit_pending_generation = generation;
+          live_emit_pending_request = live_render_receipt.rendered_request_id;
+        } else {
+          live_emit_pending_generation = 0;
+          live_emit_pending_request = 0;
+        }
+#endif
+      } else if (status == K1_WS281X_SUBMIT_BUSY) {
         palette_pair_pending = false;
       }
     }
@@ -420,6 +564,12 @@ void palette_step(bool emit) {
       cycles += result.emit_cycles;
     }
     palettes.recordEmit(status, cycles);
+#ifdef K1_LIVE_RUNTIME
+    if (status == 0) {
+      k1::titan::liveNotePhysicalEmit(&live_render_receipt);
+      live_runtime.setRenderReceipt(live_render_receipt);
+    }
+#endif
 #else
     std::uint8_t wire[128U * 3U];
     const auto size = palettes.packBenchGrb(wire, sizeof(wire));
@@ -430,12 +580,21 @@ void palette_step(bool emit) {
       palette_gpt_pending=false;
       std::memcpy(palette_last_wire, wire, size);
       palette_last_wire_size = size;
+#ifdef K1_LIVE_RUNTIME
+      live_emit_pending_request = live_render_receipt.rendered_request_id;
+#endif
     }
     // Submit acceptance is not an emitted frame. Only poll records completion.
 #else
     k1_ws281x_diag_result_t result{};
     const int status = k1_ws281x_diag_emit(wire, size, 1U, 0U, palette_clock_hz, &result);
     palettes.recordEmit(status, result.emit_cycles);
+#ifdef K1_LIVE_RUNTIME
+    if (status == 0) {
+      k1::titan::liveNotePhysicalEmit(&live_render_receipt);
+      live_runtime.setRenderReceipt(live_render_receipt);
+    }
+#endif
 #endif
 #endif
   }
@@ -732,10 +891,29 @@ void respond(std::uint32_t status, std::uint32_t cycles, const char* payload, st
 void error(std::uint32_t status) { ++rejected; respond(status,0,"",0); fill=0; wanted=32; }
 #ifdef K1_PALETTE_RUNTIME
 #ifdef K1_LIVE_RUNTIME
+void live_ensure_boot_id() {
+  if (live_cfg.boot_id != 0U) {
+    return;
+  }
+  std::uint32_t id = 0;
+  auto store = k1::titan::liveRamNoinitBootStore();
+  if (!k1::titan::liveIssueBootIdentity(&store, &id) || id == 0U) {
+    live_cfg.boot_id = 0;
+    return;
+  }
+  live_cfg.boot_id = id;
+}
+
 void live_handle_config(std::uint32_t size) {
   if (size < 4U) { error(3); return; }
   const auto* p = rx + 32;
   const std::uint32_t sub = get32(p);
+#if defined(K1_PALETTE_WS2816_GPT_PAIR)
+  if (sub != k1::titan::kLiveCfgGetSchema && sub != k1::titan::kLiveCfgGetConfig &&
+      sub != k1::titan::kLiveCfgPatch && sub != k1::titan::kLiveCfgPerformance &&
+      sub != k1::titan::kLiveCfgPerformanceScene && sub != k1::titan::kLiveCfgPerformanceAudition &&
+      sub != k1::titan::kLiveCfgPerformanceSelection) { error(10); return; }
+#endif
   if (sub == k1::titan::kLiveCfgGetSchema) {
     std::uint32_t offset = 0;
     std::uint32_t want = 4032;
@@ -749,7 +927,10 @@ void live_handle_config(std::uint32_t size) {
     return;
   }
   if (sub == k1::titan::kLiveCfgGetConfig) {
+#ifndef K1_PALETTE_WS2816_GPT_PAIR
+    live_ensure_boot_id();
     live_refresh_cfg_from_runtime();
+#endif
     const auto n = k1::titan::liveEncodeConfig(
         reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_cfg);
     if (!n) error(8); else respond(0, 0, trace.data, n);
@@ -806,6 +987,129 @@ void live_handle_config(std::uint32_t size) {
     live_cfg_stage_len = 0;
     respond(0, 0, "ABORT", 5);
     return;
+  }
+  if (sub == k1::titan::kLiveCfgPerformanceSelection) {
+#if defined(K1_PALETTE_WS2816_GPT_PAIR)
+    if (size < 24U || size > 88U || (size-24U)%8U) { error(3); return; }
+    const auto expected=get32(p+4), rid=get32(p+8), boot=get32(p+12);
+    const auto mode=get32(p+16), palette=get32(p+20);
+    if (!boot || boot!=live_cfg.boot_id) { error(6); return; }
+    if (expected!=live_cfg_revision) { error(5); return; }
+    if (!rid || !k1::titan::performanceMode(mode) ||
+        !k1::titan::performancePalette(palette) || live_cfg.output_channel!=0U ||
+        live_cfg.brightness>24U) { error(3); return; }
+    if (pending_control.phase != ControlPhase::Empty) { error(10); return; }
+    auto candidate=live_cfg;
+    candidate.mode_a=candidate.mode_b=mode; candidate.palette_a=palette;
+    const unsigned count=(size-24U)/8U;
+    pending_performance_mask=0;
+    if (count) {
+      k1::titan::LivePatchEntry entries[8]{};
+      for(unsigned i=0;i<count;++i) {
+        const auto* e=p+24U+i*8U;
+        entries[i].field_id=k1::titan::liveGetU16(e);
+        entries[i].kind=k1::titan::liveGetU16(e+2);
+        entries[i].value=k1::titan::liveGetF32(e+4);
+      }
+      if(k1::titan::liveApplyPerformance(&candidate,expected,boot,0,entries,count)!=k1::titan::LivePatchStatus::Ok){error(3);return;}
+      for(unsigned i=0;i<count;++i)pending_performance_mask|=1U<<k1::titan::performanceIndex(entries[i].field_id);
+    } else ++candidate.revision;
+    pending_control.config=candidate;
+    pending_control.base_revision=live_cfg_revision;
+    pending_control.request_id=rid;
+    pending_control.kind=ControlKind::PerformanceSelection;
+    pending_control.status=0;
+    ++control_queued;
+    pending_control.phase=ControlPhase::Queued;
+    return;
+#else
+    error(10); return;
+#endif
+  }
+  if ((sub == k1::titan::kLiveCfgPatch || sub == k1::titan::kLiveCfgPerformance ||
+       sub == k1::titan::kLiveCfgPerformanceScene || sub == k1::titan::kLiveCfgPerformanceAudition) && size >= 20U) {
+    const bool perf = sub != k1::titan::kLiveCfgPatch;
+#ifndef K1_PALETTE_WS2816_GPT_PAIR
+    if (perf) { error(10); return; }
+#endif
+    const bool scene = sub == k1::titan::kLiveCfgPerformanceScene;
+    const unsigned offset = scene ? 8U : 4U;
+    if (size < offset + k1::titan::kLivePatchHeaderBytes) { error(3); return; }
+    const auto palette = scene ? get32(p+4) : live_cfg.palette_a;
+    if (scene && !k1::titan::performancePalette(palette)) { error(3); return; }
+    k1::titan::LivePatchEntry entries[k1::titan::kLivePatchMaxEntries]{};
+    std::uint32_t expected = 0;
+    std::uint32_t request_id = 0;
+    std::uint32_t boot_id = 0;
+    std::uint16_t channel = 0;
+    std::uint16_t count = 0;
+    if (!k1::titan::liveDecodePatch(p + offset, size - offset, &expected, &request_id, &channel, &boot_id,
+                                    entries, &count, k1::titan::kLivePatchMaxEntries)) {
+      error(3); return;
+    }
+#ifndef K1_PALETTE_WS2816_GPT_PAIR
+    live_ensure_boot_id();
+    live_refresh_cfg_from_runtime();
+#endif
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+    if (perf && !request_id) { error(3); return; }
+    if (pending_control.phase != ControlPhase::Empty) { error(10); return; }
+    auto candidate = live_cfg;
+    const auto status = perf
+        ? k1::titan::liveApplyPerformance(&candidate, expected, boot_id, channel, entries, count)
+        : k1::titan::liveApplyPatch(&candidate, expected, boot_id, channel, entries, count);
+    if (status == k1::titan::LivePatchStatus::Stale) { error(5); return; }
+    if (status == k1::titan::LivePatchStatus::WrongBoot) { error(6); return; }
+    if (status != k1::titan::LivePatchStatus::Ok) { error(3); return; }
+    pending_performance_mask=0;
+    for(unsigned i=0;i<count;++i) {
+      const auto id=entries[i].field_id;
+      if(sub==k1::titan::kLiveCfgPerformanceAudition && !k1::titan::performanceAuditionField(id)){error(3);return;}
+      const auto index=k1::titan::performanceIndex(id);
+      if(index<16)pending_performance_mask|=1U<<index;
+    }
+    if (scene) candidate.palette_a = palette;
+    pending_control.config = candidate;
+    pending_control.base_revision = live_cfg_revision;
+    pending_control.request_id = request_id;
+    pending_control.kind = sub==k1::titan::kLiveCfgPerformanceAudition ? ControlKind::PerformanceAudition : scene ? ControlKind::PerformanceScene :
+                           perf ? ControlKind::Performance : ControlKind::Patch;
+    pending_control.status = 0;
+    ++control_queued;
+    pending_control.phase = ControlPhase::Queued; // publish last
+    return;
+#else
+    const std::uint8_t emit_before = live_cfg.emit_on;
+    const std::uint32_t flags_before = live_cfg.flags;
+    const std::uint32_t boot_before = live_cfg.boot_id;
+    const auto status = k1::titan::liveApplyPatch(&live_cfg, expected, boot_id, channel, entries,
+                                                  count);
+    if (status == k1::titan::LivePatchStatus::Stale) { error(5); return; }
+    if (status == k1::titan::LivePatchStatus::WrongBoot) { error(6); return; }
+    if (status != k1::titan::LivePatchStatus::Ok) { error(3); return; }
+    live_cfg.emit_on = emit_before;
+    live_cfg.flags = flags_before;
+    live_cfg_revision = live_cfg.revision;
+    live_copy_visual(palettes.channel(0).controls(), live_cfg.visual_a);
+    live_copy_visual(palettes.channel(1).controls(), live_cfg.visual_b);
+    live_runtime.setControlMeta(static_cast<std::uint16_t>(palettes.config().mode_a),
+                                static_cast<std::uint16_t>(palettes.config().palette_a),
+                                palettes.emitEnabled() ? 1 : 0,
+                                live_cfg.revision,
+                                static_cast<std::uint16_t>(palettes.config().brightness));
+    live_refresh_cfg_from_runtime();
+    live_cfg.emit_on = emit_before;
+    live_cfg.flags = flags_before;
+    live_cfg.boot_id = boot_before;
+    live_cfg.revision = live_cfg_revision;
+    live_cfg.last_patch_request_id = request_id;
+    k1::titan::liveNotePatchAccepted(&live_render_receipt, request_id, live_cfg.revision);
+    live_runtime.setRenderReceipt(live_render_receipt);
+    const auto n = k1::titan::liveEncodeConfig(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_cfg);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    return;
+#endif
   }
   if (sub == k1::titan::kLiveCfgTestStale && size == 4U + 16U + 32U) {
     if (std::memcmp(p + 4, board_uid, 16) != 0) { error(5); return; }
@@ -954,15 +1258,63 @@ void handle_pair_fixture(std::uint32_t size) {
   else respond(0, 0, trace.data, std::size_t(n));
 }
 #endif
-void execute() {
 #ifdef K1_PALETTE_RUNTIME
-  // USB JSON can stall k1_fixture_poll. Render first so skipped_releases
-  // records genuine lateness, not host-CDC blocking. Cadence unchanged.
-  palette_time_us = palette_clock.sample(k1_cycle_count(), palette_clock_hz);
-  palette_step(true);
+std::size_t control_palette_status(char* out, std::size_t capacity) {
+  const auto n = palettes.statusJson(out, capacity);
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  if (!n || n >= capacity || out[n-1] != '}') return 0;
+  const int extra = std::snprintf(out+n-1, capacity-n+1,
+      ",\"control_queued\":%lu,\"control_applied\":%lu,\"control_queue_depth\":%u,"
+      "\"control_while_pair_active\":%lu,\"command_started_pair\":%lu,\"owner_reentry_rejected\":%lu}",
+      (unsigned long)control_queued, (unsigned long)control_applied,
+      pending_control.phase == ControlPhase::Queued ? 1U : 0U,
+      (unsigned long)control_overlap, (unsigned long)readonly_started_pair,
+      (unsigned long)owner_reentry_rejected);
+  if (extra < 0 || std::size_t(extra) >= capacity-n+1) return 0;
+  return n-1+std::size_t(extra);
+#else
+  return n;
+#endif
+}
+#endif
+void execute() {
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  struct LifecycleWitness {
+    std::uint32_t before = k1_ws281x_gpt_dma_hw_pair_submitted_generation();
+    ~LifecycleWitness() {
+      if (before != k1_ws281x_gpt_dma_hw_pair_submitted_generation()) ++readonly_started_pair;
+    }
+  } lifecycle_witness;
+#endif
+#if defined(K1_PALETTE_RUNTIME) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
+  // The paired transmitter is serviced by the main loop. Starting a pair
+  // here would put JSON/USB FIFO work inside its DMA duty-update window.
+  // USB JSON can stall k1_fixture_poll. Render when the cycle clock has
+  // moved so a stalled CDC still updates the plate. A frozen host-test
+  // clock must not emit on status/catalogue packets.
+  {
+    const std::uint32_t now_cycles = k1_cycle_count();
+    palette_time_us = palette_clock.sample(now_cycles, palette_clock_hz);
+    static std::uint32_t palette_usb_step_cycles;
+    if (now_cycles != palette_usb_step_cycles) {
+      palette_usb_step_cycles = now_cycles;
+      palette_step(true);
+    }
+  }
 #endif
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  // Live control admits observation and queued palette/scalar changes only.
+  // Intrusive GPIO, PDM and pair fixtures remain in dedicated offline builds.
+  if (!(command == 1U || command == 6U || (command >= 15U && command <= 19U) ||
+        (command == 21U || (command >= 23U && command <= 26U)) || (command == 20U && size == 0U))) {
+    error(10); return;
+  }
+  if (command == 17U && size == 4U && std::memcmp(rx+32,"LBRQ",4U)==0) {
+    error(10); return;
+  }
+#endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   if (command == K1_PAIR_FIXTURE_OPCODE) {
     handle_pair_fixture(size);
@@ -1006,29 +1358,61 @@ void execute() {
         get32(p), get32(p+4), get32(p+8), get32(p+12),
         get32(p+16), get32(p+20), get32(p+24), get32(p+28),
         size >= 36U ? get32(p+32) : 0U, size == 40U ? get32(p+36) : 4000U};
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+    if (pending_control.phase != ControlPhase::Empty) { error(10); return; }
+    if (config.brightness > 24U || config.mode_a != config.mode_b ||
+        ((config.flags & 4U) && !k1::titan::performanceMode(config.mode_a))) {
+      error(3); return;
+    }
+    pending_control.palette = config;
+    pending_control.kind = ControlKind::Palette;
+    pending_control.status = 0;
+    ++control_queued;
+    pending_control.phase = ControlPhase::Queued;
+#else
+    const bool was_emit = palettes.emitEnabled();
     if (!palettes.configure(config, palette_time_us)) { error(3); return; }
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+    if (was_emit && !palettes.emitEnabled()) pair_begin_black_shutdown();
+#else
+    (void)was_emit;
+#endif
     palette_step(false);
-    const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
+    const auto n = control_palette_status(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
+#endif
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  } else if (command == k1::titan::kPaletteStatusOpcode && size == 4U &&
+             std::memcmp(rx + 32U, "HWST", 4U) == 0) {
+    if (palettes.emitEnabled()) { error(3); return; }
+    std::uint32_t registers[K1_WS281X_PAIR_REG_WORDS];
+    const auto words = k1_ws281x_gpt_dma_hw_pair_registers(registers, K1_WS281X_PAIR_REG_WORDS);
+    if (!words) error(3);
+    else respond(0, 0, reinterpret_cast<const char *>(registers), words * sizeof(std::uint32_t));
+#endif
+#ifdef K1_P601_LOOPBACK
+  } else if (command == k1::titan::kPaletteStatusOpcode && size == 4U &&
+             std::memcmp(rx + 32U, "LBRQ", 4U) == 0) {
+    if (palettes.emitEnabled() || !k1_p601_loopback_request()) { error(3); return; }
+    respond(0, 0, nullptr, 0U);
+  } else if (command == k1::titan::kPaletteStatusOpcode && size == 8U &&
+             std::memcmp(rx + 32U, "LBPG", 4U) == 0) {
+    std::uint32_t offset = 0U;
+    std::memcpy(&offset, rx + 36U, 4U);
+    const auto n = k1_p601_loopback_read(offset, reinterpret_cast<std::uint8_t *>(trace.data), 4096U);
+    if (!n) error(3); else respond(0, 0, trace.data, n);
+#endif
   } else if (command == k1::titan::kPaletteStatusOpcode && size == 0U) {
-    const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
+    const auto n = control_palette_status(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
 #ifdef K1_LIVE_RUNTIME
   } else if (command == k1::titan::kLiveMirOpcode && size == 0U) {
     const auto n = live_runtime.mirJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
   } else if (command == k1::titan::kLiveSnapshotOpcode && size == 0U) {
-#ifdef K1_PDM_TARGET
-    live_runtime.setCaptureMeta(k1_pdm_target_first_capture_start_us(),
-                                k1_pdm_target_last_capture_end_us(),
-                                k1_pdm_target_asrc_starved(),
-                                k1_pdm_target_measured_hz(),
-                                k1_pdm_target_last_hop_dt_us());
-    live_runtime.setStaleMarkers(k1_pdm_target_injection_start_us(),
-                                 k1_pdm_target_injection_end_us());
-#endif
+
     const auto n = live_runtime.encodeSnapshot(
-        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_runtime.nowUs());
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_runtime.observeNowUs());
     if (!n) error(8); else respond(0, 0, trace.data, n);
   } else if (command == k1::titan::kLiveEventsOpcode && (size == 0U || size == 8U)) {
     const std::uint64_t after = size == 8U
@@ -1063,6 +1447,9 @@ void execute() {
   } else
 #endif
   if (command == 1 && size == 0) {
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_RUNTIME) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
+    live_ensure_boot_id();
+#endif
     char uid[33]; for(unsigned i=0;i<16;++i) std::snprintf(uid+i*2,3,"%02x",board_uid[i]);
 #ifdef K1_NPU_LOAD
     const char* u55_opened=k1_npu_ready()?"true":"false";
@@ -1072,7 +1459,7 @@ void execute() {
     const int n=std::snprintf(trace.data,sizeof(trace.data),
       "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\"sr24000.hop180.bins80.xover40\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true"
 #ifdef K1_LIVE_RUNTIME
-      ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":true,\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":true"
+      ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"boot_id\":%lu,\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":true,\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":true"
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       ",\"pair_fixture\":true"
 #endif
@@ -1082,7 +1469,7 @@ void execute() {
       uid,K1_BUILD_ID,K1_SOURCE_PIN,(unsigned long)clock_hz,(unsigned long)cpu_wait,u55_opened,initialised?"true":"false",
       (unsigned long)rejected,(unsigned long)trajectory.sequence,unsigned(sizeof(trajectory)),unsigned(sizeof(trace))
 #ifdef K1_LIVE_RUNTIME
-      , kTitanLiveSchemaSha256
+      , kTitanLiveSchemaSha256, (unsigned long)live_cfg.boot_id
 #endif
       );
     if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8); else respond(0,0,trace.data,std::size_t(n));
@@ -1343,15 +1730,20 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   palette_clock_hz = hz;
 #ifdef K1_PALETTE_AUTOSTART
   k1::titan::PaletteConfig config;
-  // Always boot audio-reactive WaveformK1 with physical emit on.
-  // Colour palettes 33/43. No 4 s catalogue carousel. No PALETTE_BOUNCE.
+#ifdef K1_LIVE_BOOT_MODE
+  const std::uint32_t live_boot_mode = K1_LIVE_BOOT_MODE;
+#else
+  const std::uint32_t live_boot_mode = k1::titan::kLiveAudioBootMode;
+#endif
+  // Default product boot is WaveformK1 mode 32. A hashed --live-defaults
+  // candidate may select another supported mode without a whole-config SET.
   config.flags = 5U;
-  config.mode_a = k1::titan::kLiveAudioBootMode;
-  config.mode_b = k1::titan::kLiveAudioBootMode;
+  config.mode_a = live_boot_mode;
+  config.mode_b = live_boot_mode;
 #ifdef K1_PALETTE_MORPH
   config.version = 3U; config.transition_ms = 1500U;
   config.palette_a = 33U; config.palette_b = 43U;
-  config.brightness = 128U;
+  config.brightness = 24U;
 #endif
 #ifdef K1_PALETTE_WS2816
   // Keep the selected showcase/morph defaults above across normal RESET.
@@ -1360,7 +1752,7 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   config.palette_a = 33U; config.palette_b = 43U; config.brightness = 24U;
-#ifndef K1_LIVE_EMIT
+#if !defined(K1_LIVE_EMIT) || (defined(K1_LIVE_BOOT_EMIT) && !K1_LIVE_BOOT_EMIT)
   config.flags = 1U; /* active, physical emit off until host/INFO */
 #endif
 #endif
@@ -1371,8 +1763,13 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   live_runtime.initialise(hz);
   live_cfg.version = 1U;
   live_cfg.palette_version = 3U;
+#ifdef K1_LIVE_BOOT_MODE
+  live_cfg.mode_a = K1_LIVE_BOOT_MODE;
+  live_cfg.mode_b = K1_LIVE_BOOT_MODE;
+#else
   live_cfg.mode_a = k1::titan::kLiveAudioBootMode;
   live_cfg.mode_b = k1::titan::kLiveAudioBootMode;
+#endif
   live_cfg.flags = 5U;
   live_cfg.emit_on = 1;
   live_cfg.palette_a = 33U;
@@ -1380,7 +1777,7 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   live_cfg.brightness = 128U;
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   live_cfg.brightness = 24U;
-#ifndef K1_LIVE_EMIT
+#if !defined(K1_LIVE_EMIT) || (defined(K1_LIVE_BOOT_EMIT) && !K1_LIVE_BOOT_EMIT)
   live_cfg.flags = 1U;
   live_cfg.emit_on = 0;
 #endif
@@ -1390,7 +1787,14 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   std::uint8_t build_sha[32]{};
   live_hex32(K1_BUILD_ID, build_sha);
   live_runtime.setIdentity(uid, build_sha);
-  live_runtime.setControlMeta(static_cast<std::uint16_t>(k1::titan::kLiveAudioBootMode), 33, 1, 0, 128);
+  live_runtime.setControlMeta(static_cast<std::uint16_t>(palettes.config().mode_a),
+                              static_cast<std::uint16_t>(palettes.config().palette_a),
+                              palettes.emitEnabled() ? 1 : 0, live_cfg_revision,
+                              static_cast<std::uint16_t>(palettes.config().brightness));
+#endif
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  live_ensure_boot_id();
+  live_refresh_cfg_from_runtime();
 #endif
   // Constructor witness: ChannelRenderState must have installed each channel ID.
   initialised=trajectory.b.channel()==k1::core::visual::PixelChannelId::kChannelB;
@@ -1400,8 +1804,14 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   k1_status_led_init(0);
 }
 extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,std::uint32_t now) {
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  if (k1_ws281x_gpt_dma_hw_pair_transmitting()) { ++control_overlap; return; }
+#endif
   led_now=now;
   if(tx_size) return; // Single outstanding transaction; USB read arm enforces backpressure.
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  if (pending_control.phase != ControlPhase::Empty) return;
+#endif
   for(std::size_t i=0;i<count;++i) {
     if(fill==0) started=now;
     rx[fill++]=bytes[i];
@@ -1414,10 +1824,90 @@ extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,s
   }
 }
 extern "C" void k1_fixture_poll(std::uint32_t now) {
-  led_now=now;
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  if (realtime_owner_active) { ++owner_reentry_rejected; return; }
+  if(fill && now-started>2000) control_timeout_pending = true;
+#else
   if(fill && now-started>2000) error(9);
+#endif
+  led_now=now;
 #ifdef K1_PALETTE_RUNTIME
   palette_time_us = palette_clock.sample(k1_cycle_count(), palette_clock_hz);
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  realtime_owner_active = true;
+  struct OwnerExit { ~OwnerExit() { realtime_owner_active = false; } } owner_exit;
+  if (pending_control.phase == ControlPhase::Queued &&
+      !k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+    if (pending_control.kind == ControlKind::Palette) {
+      performance_ramp.cancel();
+      for(auto& lease:performance_auditions)lease.active=false;
+      const bool was_emit = palettes.emitEnabled();
+      if (!palettes.configure(pending_control.palette, palette_time_us)) {
+        pending_control.status = 3;
+      } else {
+        if (was_emit && !palettes.emitEnabled()) pair_begin_black_shutdown();
+        live_refresh_cfg_from_runtime();
+      }
+    } else if (pending_control.base_revision != live_cfg_revision) {
+      pending_control.status = 5;
+    } else {
+      for(unsigned i=0;i<16;++i) {
+        auto& lease=performance_auditions[i];const auto id=k1::titan::kPerformanceFields[i];
+        const bool touched=(pending_performance_mask&(1U<<i))!=0;
+        const bool scene=pending_control.kind==ControlKind::PerformanceScene||pending_control.kind==ControlKind::PerformanceSelection;
+        if(scene && lease.active && !touched)*k1::titan::performanceField(pending_control.config,id)=lease.original;
+        if(pending_control.kind==ControlKind::PerformanceAudition && touched)
+          lease.renew(*k1::titan::performanceField(live_cfg,id),palette_time_us);
+        else if(scene||touched)lease.active=false;
+      }
+      live_cfg = pending_control.config;
+      live_cfg_revision = live_cfg.revision;
+      live_cfg.last_patch_request_id = pending_control.request_id;
+      if (pending_control.kind == ControlKind::Patch) {
+        live_copy_visual(palettes.channel(0).controls(), live_cfg.visual_a);
+        live_copy_visual(palettes.channel(1).controls(), live_cfg.visual_b);
+      } else {
+        if (pending_control.kind == ControlKind::PerformanceSelection)
+          palettes.selectPerformanceMode(live_cfg.mode_a);
+        if (pending_control.kind == ControlKind::PerformanceScene ||
+            pending_control.kind == ControlKind::PerformanceSelection)
+          palettes.selectPerformancePalette(live_cfg.palette_a, palette_time_us);
+        performance_ramp.start(palette_time_us);
+      }
+      k1::titan::liveNotePatchAccepted(&live_render_receipt,
+                                      pending_control.request_id, live_cfg.revision);
+      live_runtime.setRenderReceipt(live_render_receipt);
+    }
+    ++control_applied;
+    pending_control.phase = ControlPhase::Applied;
+  }
+#endif
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  // Device-owned timeout restores a momentary gesture even if the host dies.
+  // It runs only in this owner and never writes a DMA-owned frame.
+  if (!k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+    bool expired=false;
+    for(unsigned i=0;i<16;++i) {
+      auto& lease=performance_auditions[i];
+      if(lease.active && palette_time_us>=lease.expires_us) {
+        lease.active=false;*k1::titan::performanceField(live_cfg,k1::titan::kPerformanceFields[i])=lease.original;expired=true;
+      }
+    }
+    if(expired) {
+      live_cfg.revision=++live_cfg_revision;live_cfg.last_patch_request_id=0;
+      performance_ramp.start(palette_time_us);live_render_receipt={};live_runtime.setRenderReceipt(live_render_receipt);
+    }
+  }
+  if (performance_ramp.active && !k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+    auto rendered = live_cfg;
+    live_read_visual(rendered.visual_a, palettes.channel(0).controls());
+    live_read_focus(rendered.focus_a, palettes.channel(0).audioFocus());
+    if (performance_ramp.step(rendered, live_cfg, palette_time_us)) {
+      live_copy_visual(palettes.channel(0).controls(), rendered.visual_a);
+      live_copy_focus(palettes.channel(0).audioFocus(), rendered.focus_a);
+    }
+  }
+#endif
   palette_step(true);
 #ifdef K1_RESIDENT_SCHEDULE
   if (k1_fixture_schedule_active()) return;
@@ -1472,7 +1962,49 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   palette_step(true);
 #endif
 }
-extern "C" void k1_fixture_disconnect(void) { fill=0; wanted=32; tx_size=0; }
+extern "C" bool k1_fixture_control_pending(void) {
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  return pending_control.phase != ControlPhase::Empty;
+#else
+  return false;
+#endif
+}
+extern "C" void k1_fixture_control_service(void) {
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  if (k1_ws281x_gpt_dma_hw_pair_transmitting()) { ++control_overlap; return; }
+  if (control_timeout_pending) {
+    control_timeout_pending = false;
+    // A complete request has already reset fill. Never time it out again while
+    // its immutable intent or response is awaiting the next owner/service pass.
+    if (fill && !tx_size && pending_control.phase == ControlPhase::Empty) error(9);
+  }
+  if (pending_control.phase != ControlPhase::Applied || tx_size) return;
+  if (pending_control.status) error(pending_control.status);
+  else {
+    const auto n = pending_control.kind == ControlKind::Palette
+        ? control_palette_status(trace.data, sizeof(trace.data))
+        : k1::titan::liveEncodeConfig(reinterpret_cast<std::uint8_t*>(trace.data),
+                                      sizeof(trace.data), live_cfg);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  }
+  pending_control.phase = ControlPhase::Empty;
+#endif
+}
+extern "C" bool k1_fixture_usb_service_allowed(void) {
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  return !k1_ws281x_gpt_dma_hw_pair_transmitting();
+#else
+  return true;
+#endif
+}
+extern "C" void k1_fixture_disconnect(void) {
+  fill=0; wanted=32; tx_size=0;
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+  // Cancel unconsumed intent; an already applied value remains authoritative.
+  pending_control.phase = ControlPhase::Empty;
+  control_timeout_pending = false;
+#endif
+}
 extern "C" const std::uint8_t* k1_fixture_reply(std::size_t* count) { *count=tx_size; return tx; }
 extern "C" void k1_fixture_sent(void) { tx_size=0; }
 #ifdef K1_RESIDENT_SCHEDULE

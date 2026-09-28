@@ -91,6 +91,7 @@ class PaletteRuntime {
   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
+  void selectPerformanceMode(std::uint32_t mode) noexcept;
   void resetAudioState() noexcept;
   void stop() noexcept { config_.flags = 0U; }
   bool active() const noexcept { return (config_.flags & 1U) != 0U; }
@@ -114,8 +115,11 @@ class PaletteRuntime {
                                unsigned lane) const noexcept;
   std::size_t catalogueJson(char* out, std::size_t capacity) const noexcept;
   std::size_t statusJson(char* out, std::size_t capacity) const noexcept;
+  // Owner-only same-mode palette selection; retain audio/presence/history clocks.
+  void selectPerformancePalette(std::uint32_t id, std::uint64_t now_us) noexcept;
   void recordEmit(int result, std::uint32_t cycles) noexcept;
   const char* visualPath() const noexcept { return visual_path_ ? visual_path_ : "none"; }
+  std::uint64_t lastPublicationUs() const noexcept { return last_publication_us_; }
   std::uint64_t skippedReleases() const noexcept { return skipped_; }
   std::uint64_t frames() const noexcept { return frames_; }
  private:

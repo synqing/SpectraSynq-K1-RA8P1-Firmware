@@ -20,9 +20,11 @@ from tempo_dtcm_overlay import (
     verify_tempo_placement_receipt,
 )
 
-BSP = ROOT.parent / 'sdk-bsp-ra8p1-titan-mini'
+from repo_layout import sibling
+
+BSP = sibling(ROOT, 'sdk-bsp-ra8p1-titan-mini')
 BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
-TOOLCHAIN = ROOT.parent / 'toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin'
+TOOLCHAIN = sibling(ROOT, 'toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin')
 SCALAR = '-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
 SAFETY = '-ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage'
 OPTIMISATIONS = {
@@ -44,6 +46,8 @@ PLATFORM_FILES = [
     'ws281x_gpt_dma_pair.h', 'ws281x_gpt_dma_pair.c',
     'ws281x_gpt_dma_hw.h', 'ws281x_gpt_dma_hw.c',
     'ws281x_gpt_dma_hw_pair.h', 'ws281x_gpt_dma_hw_pair.c',
+    'ws281x_p601_loopback.h', 'ws281x_p601_loopback.c',
+    'k1_dmac_lane_guard.h',
     'pair_fixture_admit.h', 'pair_fixture_admit.c',
     'k1_status_led.h', 'k1_status_led.c',
     'titan_status_gpio.h', 'titan_status_gpio.c',
@@ -66,6 +70,10 @@ LIVE_RUNTIME_FILES = [
     'k1_live_runtime.h',
     'k1_live_protocol.cpp',
     'k1_live_protocol.h',
+    'k1_performance_control.h',
+    'k1_live_boot_identity.cpp',
+    'k1_live_boot_identity.h',
+    'k1_crc32.h',
     'k1_live_schema.inc',
 ]
 # Local DualMCU ports. Not byte-identical; do not add to import-slices.
@@ -370,7 +378,7 @@ def main():
     parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
     parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
     parser.add_argument('--palette-ws2816-gpt-pair',action='store_true',
-                        help='concurrent GPT6/P601 + GPT7/P603 WS2816 pair; exclusive of single-lane GPT and GPIO WS2816')
+                        help='concurrent GPT6/P601 + GPT8/P604 WS2816 pair; exclusive of single-lane GPT and GPIO WS2816')
     parser.add_argument('--tempo-acf-slice',action='store_true',
                         help='split tempo ACF lag rows across hops; DualMCU files stay unmodified on disk')
     parser.add_argument('--tempo-placement',choices=('empty-tcm','dtcm'),default=None,
@@ -379,6 +387,8 @@ def main():
                         help='named live K1 AP/VP owner; first candidate defaults emit off')
     parser.add_argument('--live-emit',action='store_true',
                         help='opt in to physical emit on a --live-runtime image')
+    parser.add_argument('--p601-loopback', action='store_true',
+                        help='GPT2/DMAC4 PORT6 PIDR sampler on P601; does not change PWM stop')
     parser.add_argument('--live-defaults',type=Path,
                         help='optional hashed live-default JSON; omitted uses firmware canonical defaults')
     args=parser.parse_args()
@@ -493,7 +503,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime),live_runtime=args.live_runtime,live_emit=args.live_emit),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
@@ -546,6 +556,30 @@ def main():
                     '-DK1_WS281X_GPT_DMA_CHANNEL_A1=3u',
                     '-DK1_WS281X_GPT_DMA_IRQ_A1=DMAC3_INT_IRQn',
                 ])
+        else:
+            if args.pdm_target:
+                defines.extend([
+                    '-DK1_PDM_TARGET_RISE_DMA_CHANNEL=0u',
+                    '-DK1_PDM_TARGET_RISE_DMA_IRQ=DMAC0_INT_IRQn',
+                    '-DK1_PDM_TARGET_FALL_DMA_CHANNEL=1u',
+                    '-DK1_PDM_TARGET_FALL_DMA_IRQ=DMAC1_INT_IRQn',
+                ])
+            if args.palette_gpt_dma or args.palette_ws2816_gpt_pair:
+                defines.extend([
+                    '-DK1_WS281X_GPT_DMA_CHANNEL=2u',
+                    '-DK1_WS281X_GPT_DMA_IRQ=DMAC2_INT_IRQn',
+                ])
+            if args.palette_ws2816_gpt_pair:
+                defines.extend([
+                    '-DK1_WS281X_GPT_DMA_CHANNEL_A1=3u',
+                    '-DK1_WS281X_GPT_DMA_IRQ_A1=DMAC3_INT_IRQn',
+                ])
+        owners = []
+        for item in defines:
+            if 'DMA_CHANNEL=' in item:
+                owners.append(item.split('=', 1)[1])
+        if len(owners) != len(set(owners)):
+            raise RuntimeError('DMAC channel collision in compiler defines: ' + ' '.join(defines))
         if args.palette_gpt_dma: defines.append('-DK1_PALETTE_GPT_DMA=1')
         if args.palette_ws2816_gpt_pair: defines.append('-DK1_PALETTE_WS2816_GPT_PAIR=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
@@ -554,10 +588,64 @@ def main():
         if args.palette_ws2816: defines.append('-DK1_PALETTE_WS2816=1')
         if args.npu_model: defines.append('-DK1_NPU_LOAD=1')
         if args.p4_source: defines.append('-DK1_P4_LOAD=1')
-        if args.pdm_target: defines.append('-DK1_PDM_TARGET=1')
+        if args.pdm_target:
+            # Four fixed slots cover observed 12.259 ms service gaps at 7.4 ms
+            # per block; DMA allocation and interrupt priorities are unchanged.
+            defines.extend(['-DK1_PDM_TARGET=1', '-DK1_PDM_STREAM_SLOT_COUNT=4u'])
         if args.pcm1808_target: defines.append('-DK1_PCM1808_TARGET=1')
+        if args.p601_loopback: defines.append('-DK1_P601_LOOPBACK=1')
         if args.live_runtime: defines.append('-DK1_LIVE_RUNTIME=1')
         if args.live_emit: defines.append('-DK1_LIVE_EMIT=1')
+        if args.live_defaults:
+            defaults=json.loads(args.live_defaults.read_text())
+            if not isinstance(defaults, dict) or defaults.get('mode_a') is None:
+                raise RuntimeError('live defaults must name mode_a')
+            boot_mode=int(defaults['mode_a'])
+            defines.append(f'-DK1_LIVE_BOOT_MODE={boot_mode}u')
+            receipt['live_boot_mode']=boot_mode
+            receipt['live_defaults']=str(args.live_defaults)
+            emit_default=defaults.get('emit_default')
+            if emit_default not in ('on','off'):
+                raise RuntimeError('live defaults must name emit_default on or off')
+            if emit_default == 'on' and not args.live_emit:
+                raise RuntimeError('boot-on defaults require live emitter capability')
+            defines.append(f'-DK1_LIVE_BOOT_EMIT={1 if emit_default == "on" else 0}')
+            receipt['live_emit_default']=emit_default
+        def _define_value(name):
+            prefix = f'-D{name}='
+            for item in defines:
+                if item.startswith(prefix):
+                    return item.split('=', 1)[1]
+            return None
+        receipt['dmac_resolved'] = {
+            'lane_map': args.dmac_lane_map,
+            'pdm_rise': _define_value('K1_PDM_TARGET_RISE_DMA_CHANNEL'),
+            'pdm_fall': _define_value('K1_PDM_TARGET_FALL_DMA_CHANNEL'),
+            'led_a': _define_value('K1_WS281X_GPT_DMA_CHANNEL'),
+            'led_b': _define_value('K1_WS281X_GPT_DMA_CHANNEL_A1'),
+            'pdm_rise_irq': _define_value('K1_PDM_TARGET_RISE_DMA_IRQ'),
+            'pdm_fall_irq': _define_value('K1_PDM_TARGET_FALL_DMA_IRQ'),
+            'led_a_irq': _define_value('K1_WS281X_GPT_DMA_IRQ'),
+            'led_b_irq': _define_value('K1_WS281X_GPT_DMA_IRQ_A1'),
+        }
+        irq_for_ch = {
+            '0u': 'DMAC0_INT_IRQn',
+            '1u': 'DMAC1_INT_IRQn',
+            '2u': 'DMAC2_INT_IRQn',
+            '3u': 'DMAC3_INT_IRQn',
+        }
+        for ch_name, irq_name in (
+            ('K1_PDM_TARGET_RISE_DMA_CHANNEL', 'K1_PDM_TARGET_RISE_DMA_IRQ'),
+            ('K1_PDM_TARGET_FALL_DMA_CHANNEL', 'K1_PDM_TARGET_FALL_DMA_IRQ'),
+            ('K1_WS281X_GPT_DMA_CHANNEL', 'K1_WS281X_GPT_DMA_IRQ'),
+            ('K1_WS281X_GPT_DMA_CHANNEL_A1', 'K1_WS281X_GPT_DMA_IRQ_A1'),
+        ):
+            ch = _define_value(ch_name)
+            irq = _define_value(irq_name)
+            if ch is None and irq is None:
+                continue
+            if irq_for_ch.get(ch) != irq:
+                raise RuntimeError(f'{ch_name}={ch} requires {irq_for_ch.get(ch)}, got {irq}')
         if defines:
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc',' '.join(defines)+' -Dgcc')
@@ -721,14 +809,20 @@ def main():
                 assert symbol in dump, f'missing GPT pair execution symbol {symbol}'
             assert 'k1_ws281x_gpt_dma_hw_submit' not in dump, 'single-lane GPT submit linked into pair image'
             receipt['gpt_checkpoint']='PRE_SILICON_ONLY'
+            pins=(ROOT/'platform/ra8p1/titan_led_pins.h').read_text()
+            pair_src=(ROOT/'platform/ra8p1/ws281x_gpt_dma_hw_pair.c').read_text()
+            palette_src=(ROOT/'platform/ra8p1/palette_runtime.cpp').read_text()
+            assert 'P604' in pins and 'GPT8' in pins, 'DIN-B GPT pin header is not P604/GPT8'
+            assert '.channel = 8u' in pair_src and 'K1_TITAN_DIN_B_GPT' in pair_src
+            assert 'din_b\\":\\"P604' in palette_src
             receipt['pair_allocation']={
                 'lane_a0':{'pin':'P601','gpt_pwm':6,'stop_gpt':0,
                            'dma':0 if args.dmac_lane_map=='led-first' else 2,
                            'elc':['GPT_A','GPT_B']},
-                'lane_a1':{'pin':'P603','gpt_pwm':7,'stop_gpt':1,'dma':3,
+                'lane_a1':{'pin':'P604','gpt_pwm':8,'stop_gpt':1,'dma':3,
                            'elc':['GPT_C','GPT_D']},
                 'profile':3,
-                'gtstr_mask':'GPT6|GPT7',
+                'gtstr_mask':'GPT6|GPT8',
                 'source_precision':'rgb8_to_grb48',
             }
         if args.palette_gpt_dma:
@@ -797,7 +891,8 @@ def main():
             receipt['live_runtime']={
                 'owner':'LiveAudioRuntime',
                 'mailbox':'removed',
-                'emit_default':'off' if not args.live_emit else 'on',
+                'emit_default':receipt.get('live_emit_default', 'on' if args.live_emit else 'off'),
+                'emit_capable':bool(args.live_emit),
                 'phase_8_recording':'scheduled_after_dev_ready',
             }
         if args.pcm1808_target:

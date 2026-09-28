@@ -14,8 +14,8 @@ from typing import Callable
 
 import live_protocol as proto
 
-ALLOWED_OPS = frozenset({"hello", "get_config", "patch", "snapshot"})
-ALLOWED_WRITE_OPS = frozenset({"patch", "get_config", "snapshot"})
+ALLOWED_OPS = frozenset({"hello", "get_config", "patch", "performance", "selection", "snapshot"})
+ALLOWED_WRITE_OPS = frozenset({"patch", "performance", "selection", "get_config", "snapshot"})
 APPROVAL_FILES = ("accepted-checkpoint.json", "accepted-candidate.json")
 FORBIDDEN_CONFIG_SUBS = frozenset(
     {
@@ -265,18 +265,35 @@ class RestrictedControlPlane:
         if conn_id and self.session.writer_id is None:
             self.session.writer_id = conn_id
         fields = request.get("fields") or {}
-        if not isinstance(fields, dict) or not fields:
+        selection = request.get("op") == "selection"
+        if not isinstance(fields, dict) or (not fields and not selection) or (selection and len(fields)>8):
             return {"ok": False, "error": "empty_patch"}
         request_id = request.get("request_id")
         if request_id is None:
             return {"ok": False, "error": "request_id_required"}
+        boot_id = request.get("boot_id")
+        if boot_id is None:
+            return {
+                "ok": False,
+                "error": "missing_boot_id",
+                "request_id": int(request_id),
+                "session": self.session.token,
+            }
         try:
-            wire = proto.pack_patch(int(request.get("revision", 0)), fields, request_id=int(request_id))
-        except ValueError as exc:
+            if selection:
+                wire = proto.pack_selection(request.get("revision"), request_id, boot_id,
+                                            request.get("mode"), request.get("palette"), fields)
+            elif request.get("op") == "performance":
+                wire = proto.pack_performance(request.get("revision"), fields, request_id=request_id,
+                                              boot_id=boot_id, palette=request.get("palette"), audition=request.get("audition",False))
+            else:
+                wire = proto.pack_patch(int(request.get("revision", 0)), fields, request_id=int(request_id),
+                                        boot_id=int(boot_id))
+        except (ValueError, TypeError, OverflowError) as exc:
             self.forbidden_attempts += 1
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
         sub = proto._u32(wire, 0)
-        if sub in FORBIDDEN_CONFIG_SUBS or sub != proto.CFG_PATCH:
+        if sub in FORBIDDEN_CONFIG_SUBS or sub not in ({12} if selection else {9, 10, 11} if request.get("op") == "performance" else {proto.CFG_PATCH}):
             self.forbidden_attempts += 1
             return {"ok": False, "error": "would_emit_whole_config"}
         if (self.evidence / "quiesce.flag").exists():
@@ -298,10 +315,13 @@ class RestrictedControlPlane:
                 "queued_cleared": False,
             }
         rec = load_approval_record(self.evidence)
+        if request.get("op") in {"performance", "selection"} and (rec is None or request["op"] not in rec.get("ops", [])):
+            return {"ok": False, "error": "ops_denied", "admit_reason": "performance_not_admitted"}
         scoped = None
         if rec is not None:
             scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
-        if scoped is not None and set(fields) - set(scoped):
+        requested_scope = set(fields) | ({"scene.palette_a"} if request.get("palette") is not None else set()) | ({"scene.mode"} if selection else set())
+        if scoped is not None and requested_scope - set(scoped):
             return {
                 "ok": False,
                 "error": "ops_denied",
@@ -321,7 +341,12 @@ class RestrictedControlPlane:
                     "queued_cleared": got.get("error") == "hold",
                 }
             status = got.get("status")
-            error = "stale" if status == 5 else "patch_rejected"
+            if status == 6:
+                error = "wrong_boot"
+            elif status == 5:
+                error = "stale"
+            else:
+                error = "patch_rejected"
             return {
                 "ok": False,
                 "error": error,
@@ -331,16 +356,21 @@ class RestrictedControlPlane:
             }
         cfg = proto.unpack_config(got["body"])
         self.last_config = cfg
-        applied = {name: _visual_get(cfg, name) for name in fields}
+        applied = {name: (proto.performance_value(cfg, name) if request.get("op") in {"performance", "selection"}
+                          else _visual_get(cfg, name)) for name in fields}
         self.hw_writes += 1
         return {
             "ok": True,
             "revision": cfg.get("revision"),
             "applied": applied,
+            "palette_a": cfg.get("palette_a"),
+            "mode_a": cfg.get("mode_a"), "mode_b": cfg.get("mode_b"),
+            "config": cfg if selection else None,
             "emit_on": cfg.get("emit_on"),
             "session": self.session.token,
             "request_id": int(request_id),
             "last_patch_request_id": cfg.get("last_patch_request_id"),
+            "boot_id": cfg.get("boot_id"),
         }
 
 
@@ -492,4 +522,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

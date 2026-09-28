@@ -28,6 +28,22 @@ class SnapshotTests(unittest.TestCase):
             changed = bytearray(fixture()); struct.pack_into('<I', changed, offset, 7)
             self.assertFalse(score_snapshot(changed)['pass_wire'])
 
+    def test_pair_generation_is_not_gpio_status(self):
+        changed = bytearray(fixture(24))
+        struct.pack_into('<I', changed, 28, 3)
+        struct.pack_into('<2I', changed, 48, 924, 924)
+        score = score_snapshot(changed)
+        self.assertTrue(score['pass_wire'])
+        self.assertEqual(score['attempted_generation'], 924)
+        self.assertEqual(score['submission_accepted'], 'UNKNOWN')
+        self.assertEqual(score['optical'], 'UNKNOWN')
+        for a, b in ((0, 0), (924, 925)):
+            struct.pack_into('<2I', changed, 48, a, b)
+            self.assertFalse(score_snapshot(changed)['pass_wire'])
+        struct.pack_into('<2I', changed, 48, 924, 924)
+        changed[1503] ^= 1
+        self.assertFalse(score_snapshot(changed)['pass_wire'])
+
     def test_invalid_layout(self):
         for bad in (b'', fixture()[:-1], fixture()+b'x'):
             with self.assertRaises(ValueError): score_snapshot(bad)

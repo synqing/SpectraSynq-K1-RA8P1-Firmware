@@ -1,0 +1,44 @@
+{
+  "name": "titan-smc-control-rc1",
+  "qualified_build": "725378889ca3f37d3781526fef2bd59a7534eec4e12db577abcd5868c7dcc366",
+  "boot_emit": "off",
+  "brightness_limit": 24,
+  "mode": 8,
+  "uid": "545433931bd25436593630352d068363",
+  "pins": [
+    "P601",
+    "P604"
+  ],
+  "pwm": [
+    6,
+    8
+  ],
+  "led_dma": [
+    0,
+    3
+  ],
+  "pdm_dma": [
+    1,
+    2
+  ],
+  "diagnostics": {
+    "p601_sampler": false,
+    "register_readback": true,
+    "ownership_counters": true
+  },
+  "build_flags": [
+    "--pdm-target",
+    "--palette-runtime",
+    "--palette-autostart",
+    "--palette-morph",
+    "--palette-ws2816-gpt-pair",
+    "--dmac-priority",
+    "fixed",
+    "--dmac-lane-map",
+    "led-first",
+    "--live-runtime",
+    "--live-emit",
+    "--live-defaults",
+    "docs/contracts/titan-live-defaults-smc-control-mode8-v1.json"
+  ]
+}

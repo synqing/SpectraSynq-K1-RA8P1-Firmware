@@ -28,11 +28,18 @@ def score_snapshot(payload: bytes) -> dict:
             lit.append(pixel)
         opposite = wire[(159-pixel)*6:(160-pixel)*6]
         mirror_mismatches += actual != opposite
+    pair = state['wire_profile'] == 3
+    coherent = (state['result_a'] > 0 and state['result_a'] == state['result_b']
+                if pair else state['result_a'] == 0 and state['result_b'] == 0)
     state.update(time_us=state['time_low'] | state['time_high'] << 32,
                  native_rgb8_hex=native.hex(), submitted_grb48_hex=wire.hex(),
                  wire_crc32=zlib.crc32(wire), scaling_byte_mismatches=mismatches,
                  mirror_pixel_mismatches=mirror_mismatches, nonzero_pixels=lit,
                  lane_nonzero_counts=[sum(p//80 == lane for p in lit) for lane in (0, 1)],
-                 pass_wire=(mismatches == 0 and state['result_a'] == 0 and state['result_b'] == 0),
+                 pass_wire=(mismatches == 0 and coherent),
+                 attempted_generation=state['result_a'] if pair else None,
+                 submission_accepted='UNKNOWN' if pair else coherent,
+                 measured_waveform='UNKNOWN', optical='UNKNOWN',
+                 source_precision='RGB8_REPLICATED_TO_16',
                  evidence_level='ON_TARGET_SUBMISSION_BUFFER_NOT_GPIO_OR_PHOTONS')
     return state

@@ -20,7 +20,66 @@ inline constexpr std::uint32_t kLiveCfgBeginSet = 4U;
 inline constexpr std::uint32_t kLiveCfgAppendSet = 5U;
 inline constexpr std::uint32_t kLiveCfgCommitSet = 6U;
 inline constexpr std::uint32_t kLiveCfgAbortSet = 7U;
+inline constexpr std::uint32_t kLiveCfgPatch = 8U;
 inline constexpr std::uint32_t kLiveCfgTestStale = 11U;
+inline constexpr std::uint16_t kLivePatchKindF32 = 1U;
+inline constexpr std::uint16_t kLivePatchMaxEntries = 8U;
+inline constexpr std::size_t kLivePatchHeaderBytes = 16U;
+inline constexpr std::uint16_t kPatchVisFallbackBrightness = 1U;
+inline constexpr std::uint16_t kPatchVisSensitivity = 2U;
+inline constexpr std::uint16_t kPatchVisMood = 3U;
+inline constexpr std::uint16_t kPatchVisChroma = 4U;
+inline constexpr std::uint16_t kPatchVisSaturation = 5U;
+inline constexpr std::uint16_t kPatchVisHuePosition = 6U;
+inline constexpr std::uint16_t kPatchVisShiftRate = 7U;
+inline constexpr std::uint16_t kPatchVisIdleFade = 8U;
+
+struct LivePatchEntry final {
+  std::uint16_t field_id = 0;
+  std::uint16_t kind = 0;
+  float value = 0.0F;
+};
+
+enum class LivePatchStatus : std::uint32_t {
+  Ok = 0,
+  Stale = 1,
+  Invalid = 2,
+  Forbidden = 3,
+  WrongBoot = 6
+};
+
+struct LiveRenderReceipt final {
+  std::uint32_t accepted_request_id = 0;
+  std::uint32_t accepted_revision = 0;
+  std::uint32_t pending_request_id = 0;
+  std::uint32_t pending_revision = 0;
+  std::uint32_t rendered_request_id = 0;
+  std::uint32_t rendered_revision = 0;
+  std::uint32_t rendered_frame = 0;
+  std::uint32_t rendered_hop = 0;
+  std::uint64_t rendered_publication_us = 0;
+  std::uint32_t superseded_request_id = 0;
+  std::uint32_t emitted_request_id = 0;
+};
+
+inline bool livePathConsumesAcceptedRevision(const char* path) noexcept {
+  if (path == nullptr) {
+    return false;
+  }
+  return std::strcmp(path, "effect") == 0 || std::strcmp(path, "hold") == 0;
+}
+
+void liveNotePatchAccepted(LiveRenderReceipt* receipt, std::uint32_t request_id,
+                           std::uint32_t revision) noexcept;
+void liveNoteRendererConsumed(LiveRenderReceipt* receipt, std::uint32_t hop,
+                              std::uint32_t frame,
+                              std::uint64_t publication_us = 0) noexcept;
+void liveNotePhysicalEmit(LiveRenderReceipt* receipt) noexcept;
+void liveNotePhysicalEmitCompleted(LiveRenderReceipt* receipt,
+                                   std::uint32_t completed_request_id) noexcept;
+bool liveNotePairCompleted(LiveRenderReceipt* receipt, std::uint32_t completed_generation,
+                           std::uint32_t pending_generation,
+                           std::uint32_t pending_request_id) noexcept;
 
 inline constexpr std::size_t kLiveSnapshotBytes = 1184U;
 inline constexpr std::size_t kLiveEventBytes = 192U;
@@ -34,7 +93,9 @@ inline constexpr std::uint32_t kLiveTimingReadMax = 64U;
 inline constexpr std::uint32_t kLiveStaleSourceUs = 120000U;
 inline constexpr std::uint32_t kLiveConfigBlobBytesV1 = 896U;
 inline constexpr std::uint32_t kLiveVisualControlsBytes = 128U;
-inline constexpr std::uint32_t kLiveConfigBlobBytesV2 = 1152U;
+inline constexpr std::uint32_t kLiveConfigBlobBytesV2Legacy = 1152U;
+inline constexpr std::uint32_t kLiveConfigBlobBytesV2 = 1156U;
+inline constexpr std::uint32_t kLiveConfigBootIdOffset = 1152U;
 inline constexpr std::uint32_t kLiveConfigBlobBytes = kLiveConfigBlobBytesV2;
 
 inline constexpr std::uint32_t kVisEnabled = 1U;
@@ -70,6 +131,11 @@ inline void livePutU16(std::uint8_t* p, std::uint16_t v) noexcept {
   p[0] = static_cast<std::uint8_t>(v);
   p[1] = static_cast<std::uint8_t>(v >> 8U);
 }
+inline void livePutU24(std::uint8_t* p, std::uint32_t v) noexcept {
+  p[0] = static_cast<std::uint8_t>(v);
+  p[1] = static_cast<std::uint8_t>(v >> 8U);
+  p[2] = static_cast<std::uint8_t>(v >> 16U);
+}
 inline void livePutU32(std::uint8_t* p, std::uint32_t v) noexcept {
   p[0] = static_cast<std::uint8_t>(v);
   p[1] = static_cast<std::uint8_t>(v >> 8U);
@@ -87,6 +153,10 @@ inline void livePutF32(std::uint8_t* p, float v) noexcept {
 }
 inline std::uint16_t liveGetU16(const std::uint8_t* p) noexcept {
   return static_cast<std::uint16_t>(p[0] | (static_cast<std::uint16_t>(p[1]) << 8U));
+}
+inline std::uint32_t liveGetU24(const std::uint8_t* p) noexcept {
+  return static_cast<std::uint32_t>(p[0]) | (static_cast<std::uint32_t>(p[1]) << 8U) |
+         (static_cast<std::uint32_t>(p[2]) << 16U);
 }
 inline std::uint32_t liveGetU32(const std::uint8_t* p) noexcept {
   return static_cast<std::uint32_t>(p[0]) | (static_cast<std::uint32_t>(p[1]) << 8U) |
@@ -215,6 +285,15 @@ struct LiveSnapshotFields final {
   std::uint64_t warmup_complete_us = 0;
   std::uint8_t uid[16]{};
   std::uint8_t build_sha256[32]{};
+  std::uint32_t last_rendered_request_id = 0;
+  std::uint32_t last_rendered_revision = 0;
+  std::uint32_t last_rendered_frame = 0;
+  std::uint32_t last_rendered_hop = 0;
+  std::uint64_t last_rendered_publication_us = 0;
+  std::uint32_t superseded_request_id = 0;
+  std::uint32_t accepted_request_id = 0;
+  std::uint32_t accepted_revision = 0;
+  std::uint32_t last_emitted_request_id = 0;
 };
 
 struct LiveVisualControls final {
@@ -259,6 +338,8 @@ struct LiveConfigBlob final {
   std::uint32_t transition_ms = 0;
   std::uint32_t travel_ms = 4000;
   std::uint8_t emit_on = 0;
+  std::uint32_t boot_id = 0; /* 0 is never a valid issued id; v2 wire offset 1152 */
+  std::uint32_t last_patch_request_id = 0; /* wire offset 52; device-backed PATCH acceptance */
   float focus_a[105]{};
   float focus_b[105]{};
   LiveVisualControls visual_a{};
@@ -266,7 +347,8 @@ struct LiveConfigBlob final {
 };
 
 inline bool liveConfigSizeAccepted(std::size_t size) noexcept {
-  return size == kLiveConfigBlobBytesV1 || size == kLiveConfigBlobBytesV2;
+  return size == kLiveConfigBlobBytesV1 || size == kLiveConfigBlobBytesV2Legacy ||
+         size == kLiveConfigBlobBytesV2;
 }
 
 inline void liveInitFocusUnity(float* dest) noexcept {
@@ -291,6 +373,16 @@ bool liveDecodeConfig(const std::uint8_t* in, std::size_t size,
                       LiveConfigBlob* cfg) noexcept;
 std::size_t liveEncodeSchemaPage(std::uint8_t* out, std::size_t cap,
                                  std::uint32_t offset, std::uint32_t want) noexcept;
+bool liveDecodePatch(const std::uint8_t* in, std::size_t size, std::uint32_t* expected_revision,
+                     std::uint32_t* request_id, std::uint16_t* channel, std::uint32_t* boot_id,
+                     LivePatchEntry* entries, std::uint16_t* count,
+                     std::uint16_t max_count) noexcept;
+std::size_t liveEncodePatch(std::uint8_t* out, std::size_t cap, std::uint32_t expected_revision,
+                            std::uint32_t request_id, std::uint16_t channel, std::uint32_t boot_id,
+                            const LivePatchEntry* entries, std::uint16_t count) noexcept;
+LivePatchStatus liveApplyPatch(LiveConfigBlob* cfg, std::uint32_t expected_revision,
+                               std::uint32_t expected_boot_id, std::uint16_t channel,
+                               const LivePatchEntry* entries, std::uint16_t count) noexcept;
 
 template <typename Rec, std::uint32_t N>
 struct LiveHistoryRing final {

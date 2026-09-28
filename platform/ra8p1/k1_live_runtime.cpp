@@ -32,6 +32,7 @@ void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
   generation_ = 0;
   hops_consumed_ = 0;
   hops_rejected_ = 0;
+  render_receipt_ = {};
   hops_recorded_ = 0;
   warmup_hops_ = 0;
   publication_deadline_misses_ = 0;
@@ -63,6 +64,20 @@ std::uint64_t LiveAudioRuntime::nowUs() noexcept {
   const std::uint32_t cycles = host_cycles_;
 #endif
   if (k1_live_clock_sample(&clock_, cycles, &sample) != 0) {
+    return sample.microseconds;
+  }
+  return sample.microseconds;
+}
+
+std::uint64_t LiveAudioRuntime::observeNowUs() const noexcept {
+  auto clock_copy = clock_; // Observation must not advance the owner clock.
+  k1_live_clock_sample_t sample{};
+#ifdef K1_RA8P1_TARGET
+  const std::uint32_t cycles = k1_cycle_count();
+#else
+  const std::uint32_t cycles = host_cycles_;
+#endif
+  if (k1_live_clock_sample(&clock_copy, cycles, &sample) != 0) {
     return sample.microseconds;
   }
   return sample.microseconds;
@@ -300,6 +315,10 @@ void LiveAudioRuntime::setControlMeta(std::uint16_t mode_id, std::uint16_t palet
   gain_q8_ = gain_q8;
 }
 
+void LiveAudioRuntime::setRenderReceipt(const LiveRenderReceipt& receipt) noexcept {
+  render_receipt_ = receipt;
+}
+
 void LiveAudioRuntime::setCaptureMeta(std::uint64_t start_us, std::uint64_t end_us,
                                       std::uint32_t starved, std::uint32_t measured_hz,
                                       std::uint32_t hop_dt_us) noexcept {
@@ -441,6 +460,15 @@ void LiveAudioRuntime::fillSnapshotFields(LiveSnapshotFields* fields,
   fields->measured_hz = measured_hz_;
   fields->deadline_us = 7500U;
   fields->publication_deadline_misses = publication_deadline_misses_;
+  fields->last_rendered_request_id = render_receipt_.rendered_request_id;
+  fields->last_rendered_revision = render_receipt_.rendered_revision;
+  fields->last_rendered_frame = render_receipt_.rendered_frame;
+  fields->last_rendered_hop = render_receipt_.rendered_hop;
+  fields->last_rendered_publication_us = render_receipt_.rendered_publication_us;
+  fields->superseded_request_id = render_receipt_.superseded_request_id;
+  fields->accepted_request_id = render_receipt_.accepted_request_id;
+  fields->accepted_revision = render_receipt_.accepted_revision;
+  fields->last_emitted_request_id = render_receipt_.emitted_request_id;
   fields->ap_cycles = last_ap_cycles_;
   fields->vp_cycles = last_vp_cycles_;
   fields->hop_dt_us = last_hop_dt_us_;

@@ -427,6 +427,128 @@ def test_r3_4_duplicate_frame_quarantine_disconnects():
             broker.shutdown()
 
 
+def test_r4_1_zero_revision_restart_before_info_rejects_queue():
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        device = LiveDeviceSerial(revision=0)
+        device.cfg["visual_a"]["vp_waveform_shift_rate"] = 120.0
+        device._boot_rate = 120.0
+        broker, adapter, transport = _attach_stack(tmp, device)
+        try:
+            boot_before = int(device.cfg["boot_id"])
+            _gesture(adapter, 0.49)
+            _gesture(adapter, 0.51)
+            _gesture(adapter, 1.0)
+            device.restart()
+            applied = adapter.flush()
+            assert applied == []
+            assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 120.0) < 1e-4
+            assert device.patch_applies == 0
+            assert int(device.cfg["boot_id"]) != boot_before
+            assert adapter.ready is False or adapter.blocked
+            assert adapter.last_error in {"wrong_boot", "continuity_lost", "missing_boot_id"}
+        finally:
+            transport.close()
+            broker.shutdown()
+
+
+def test_r4_1_restart_between_validate_and_apply():
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        device = LiveDeviceSerial(revision=0)
+        device.cfg["visual_a"]["vp_waveform_shift_rate"] = 120.0
+        device._boot_rate = 120.0
+        broker, adapter, transport = _attach_stack(tmp, device)
+        try:
+            _gesture(adapter, 0.49)
+            _gesture(adapter, 1.0)
+            device.restart_before_apply = True
+            applied = adapter.flush()
+            assert applied == []
+            assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 120.0) < 1e-4
+            assert device.patch_applies == 0
+        finally:
+            transport.close()
+            broker.shutdown()
+
+
+def test_r4_1_same_boot_stale_retry_applies_without_new_gesture():
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        device = LiveDeviceSerial(revision=0)
+        device.cfg["visual_a"]["vp_waveform_shift_rate"] = 120.0
+        device._boot_rate = 120.0
+        broker, adapter, transport = _attach_stack(tmp, device)
+        try:
+            boot = int(device.cfg["boot_id"])
+            _gesture(adapter, 0.49)
+            _gesture(adapter, 1.0)
+            device.bump_revision()
+            applied = adapter.flush()
+            assert applied
+            assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 240.0) < 1e-4
+            assert int(device.cfg["boot_id"]) == boot
+        finally:
+            transport.close()
+            broker.shutdown()
+
+
+def test_r4_2_preview_and_dwell_do_not_consume():
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        device = LiveDeviceSerial(revision=0)
+        broker, adapter, transport = _attach_stack(tmp, device)
+        try:
+            _gesture(adapter, 0.0)
+            _gesture(adapter, 1.0)
+            applied = adapter.flush()
+            assert applied
+            pending = int(device.receipt["pending_request_id"])
+            assert pending
+            device.render_frame(path="preview")
+            assert int(device.receipt["rendered_request_id"]) == 0
+            assert int(device.receipt["pending_request_id"]) == pending
+            device.render_frame(path="no_audio")
+            assert int(device.receipt["rendered_request_id"]) == 0
+            device.render_frame(path="dwell")
+            assert int(device.receipt["rendered_request_id"]) == 0
+            device.render_frame(path="effect")
+            assert int(device.receipt["rendered_request_id"]) == pending
+            assert int(device.receipt["pending_request_id"]) == 0
+            device.complete_output()
+            assert int(device.receipt["emitted_request_id"]) == 0
+        finally:
+            transport.close()
+            broker.shutdown()
+
+
+def test_r5_2_pair_completion_credits_stored_request():
+    with tempfile.TemporaryDirectory() as raw:
+        tmp = Path(raw)
+        device = LiveDeviceSerial(revision=0, emit_on=1)
+        broker, adapter, transport = _attach_stack(tmp, device)
+        try:
+            _gesture(adapter, 0.0)
+            _gesture(adapter, 0.25)
+            assert adapter.flush()
+            first = int(device.receipt["pending_request_id"])
+            assert first
+            device.render_frame(path="effect")
+            assert int(device.emit_pending_request) == first
+            _gesture(adapter, 1.0)
+            assert adapter.flush()
+            second = int(device.receipt["pending_request_id"])
+            assert second and second != first
+            device.render_frame(path="effect")
+            assert int(device.receipt["rendered_request_id"]) == second
+            assert int(device.emit_pending_request) == first
+            device.complete_output()
+            assert int(device.receipt["emitted_request_id"]) == first
+        finally:
+            transport.close()
+            broker.shutdown()
+
+
 def test_observe_only_does_not_start_control():
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
@@ -471,6 +593,11 @@ if __name__ == "__main__":
     test_r3_2_same_image_restart_does_not_replay_queue()
     test_r3_3_quiesce_rejects_writes_and_does_not_apply_later()
     test_r3_4_duplicate_frame_quarantine_disconnects()
+    test_r4_1_zero_revision_restart_before_info_rejects_queue()
+    test_r4_1_restart_between_validate_and_apply()
+    test_r4_1_same_boot_stale_retry_applies_without_new_gesture()
+    test_r4_2_preview_and_dwell_do_not_consume()
+    test_r5_2_pair_completion_credits_stored_request()
     test_observe_only_does_not_start_control()
     test_idle_beyond_writer_timeout()
     print("LIVE_CONTROL_PATH_PASS")

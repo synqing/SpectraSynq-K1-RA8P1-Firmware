@@ -58,7 +58,7 @@ with tempfile.TemporaryDirectory(prefix='k1-palettes-') as temp:
                         # Reintroduce the actual reset regression in a disposable source.
                         bad_source=out/'fixture_bad_boot.cpp'
                         source=(ROOT/'platform/ra8p1/fixture_app.cpp').read_text()
-                        marker='config.mode_a = k1::titan::kLiveAudioBootMode;'
+                        marker='config.mode_a = live_boot_mode;'
                         assert source.count(marker)==1
                         bad_source.write_text(source.replace(
                             marker,

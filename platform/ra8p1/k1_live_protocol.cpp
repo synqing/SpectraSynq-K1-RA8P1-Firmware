@@ -1,5 +1,7 @@
 #include "k1_live_protocol.h"
 
+#include <cmath>
+
 namespace k1::titan {
 namespace {
 
@@ -104,6 +106,15 @@ std::size_t liveEncodeSnapshot(std::uint8_t* out, std::size_t cap,
     out[776 + i] = static_cast<std::uint8_t>((hi << 4U) | lo);
   }
   livePutU32(out + 808, f.publication_deadline_misses);
+  livePutU32(out + 812, f.last_rendered_request_id);
+  livePutU32(out + 816, f.last_rendered_revision);
+  livePutU32(out + 820, f.last_rendered_frame);
+  livePutU32(out + 824, f.last_rendered_hop);
+  livePutU32(out + 828, f.superseded_request_id);
+  livePutU32(out + 832, f.accepted_request_id);
+  livePutU32(out + 836, f.accepted_revision);
+  livePutU32(out + 840, f.last_emitted_request_id);
+  livePutU64(out + 844, f.last_rendered_publication_us);
   return kLiveSnapshotBytes;
 }
 
@@ -253,6 +264,7 @@ std::size_t liveEncodeConfig(std::uint8_t* out, std::size_t cap,
   livePutU32(out + 40, cfg.transition_ms);
   livePutU32(out + 44, cfg.travel_ms);
   out[48] = cfg.emit_on;
+  livePutU32(out + 52, cfg.last_patch_request_id);
   for (unsigned i = 0; i < 105U; ++i) {
     livePutF32(out + 56 + i * 4U, cfg.focus_a[i]);
   }
@@ -263,6 +275,7 @@ std::size_t liveEncodeConfig(std::uint8_t* out, std::size_t cap,
     liveEncodeVisual(out + kLiveConfigBlobBytesV1, cfg.visual_a);
     liveEncodeVisual(out + kLiveConfigBlobBytesV1 + kLiveVisualControlsBytes,
                      cfg.visual_b);
+    livePutU32(out + kLiveConfigBootIdOffset, cfg.boot_id);
   }
   return need;
 }
@@ -286,6 +299,7 @@ bool liveDecodeConfig(const std::uint8_t* in, std::size_t size,
   cfg->transition_ms = liveGetU32(in + 40);
   cfg->travel_ms = liveGetU32(in + 44);
   cfg->emit_on = in[48];
+  cfg->last_patch_request_id = liveGetU32(in + 52);
   for (unsigned i = 0; i < 105U; ++i) {
     cfg->focus_a[i] = liveGetF32(in + 56 + i * 4U);
     cfg->focus_b[i] = liveGetF32(in + 476 + i * 4U);
@@ -293,10 +307,14 @@ bool liveDecodeConfig(const std::uint8_t* in, std::size_t size,
   if (cfg->version == 1U && size == kLiveConfigBlobBytesV1) {
     return true;
   }
-  if (cfg->version >= 2U && size == kLiveConfigBlobBytesV2) {
+  if (cfg->version >= 2U &&
+      (size == kLiveConfigBlobBytesV2 || size == kLiveConfigBlobBytesV2Legacy)) {
     liveDecodeVisual(in + kLiveConfigBlobBytesV1, &cfg->visual_a);
     liveDecodeVisual(in + kLiveConfigBlobBytesV1 + kLiveVisualControlsBytes,
                      &cfg->visual_b);
+    if (size >= kLiveConfigBlobBytesV2) {
+      cfg->boot_id = liveGetU32(in + kLiveConfigBootIdOffset);
+    }
     return true;
   }
   return false;
@@ -325,6 +343,234 @@ std::size_t liveEncodeSchemaPage(std::uint8_t* out, std::size_t cap,
     std::memcpy(out + 12, kTitanLiveSchemaJson + offset, take);
   }
   return 12U + take;
+}
+
+namespace {
+
+LiveVisualControls* patchChannel(LiveConfigBlob* cfg, std::uint16_t channel) noexcept {
+  if (cfg == nullptr) {
+    return nullptr;
+  }
+  if (channel == 0U) {
+    return &cfg->visual_a;
+  }
+  if (channel == 1U) {
+    return &cfg->visual_b;
+  }
+  return nullptr;
+}
+
+float* patchFloatField(LiveVisualControls* vis, std::uint16_t field_id) noexcept {
+  if (vis == nullptr) {
+    return nullptr;
+  }
+  switch (field_id) {
+    case kPatchVisFallbackBrightness:
+      return &vis->vp_waveform_fallback_brightness;
+    case kPatchVisSensitivity:
+      return &vis->sensitivity;
+    case kPatchVisMood:
+      return &vis->mood;
+    case kPatchVisChroma:
+      return &vis->chroma;
+    case kPatchVisSaturation:
+      return &vis->saturation;
+    case kPatchVisHuePosition:
+      return &vis->hue_position;
+    case kPatchVisShiftRate:
+      return &vis->vp_waveform_shift_rate;
+    case kPatchVisIdleFade:
+      return &vis->vp_waveform_idle_fade;
+    default:
+      return nullptr;
+  }
+}
+
+bool patchRangeOk(std::uint16_t field_id, float value) noexcept {
+  if (!std::isfinite(value)) {
+    return false;
+  }
+  if (field_id == kPatchVisShiftRate) {
+    return value >= 0.0F && value <= 240.0F;
+  }
+  if (field_id == kPatchVisIdleFade) {
+    return value >= 0.90F && value <= 0.999F;
+  }
+  return value >= 0.0F && value <= 1.0F;
+}
+
+}  // namespace
+
+bool liveDecodePatch(const std::uint8_t* in, std::size_t size, std::uint32_t* expected_revision,
+                     std::uint32_t* request_id, std::uint16_t* channel, std::uint32_t* boot_id,
+                     LivePatchEntry* entries, std::uint16_t* count,
+                     std::uint16_t max_count) noexcept {
+  if (in == nullptr || expected_revision == nullptr || request_id == nullptr || channel == nullptr ||
+      boot_id == nullptr || count == nullptr) {
+    return false;
+  }
+  if (size < kLivePatchHeaderBytes) {
+    return false;
+  }
+  const std::uint16_t n = liveGetU16(in + 8);
+  const std::uint16_t ch = liveGetU16(in + 10);
+  if (n == 0U || n > max_count || ch > 1U) {
+    return false;
+  }
+  if (size != kLivePatchHeaderBytes + static_cast<std::size_t>(n) * 8U) {
+    return false;
+  }
+  if (entries == nullptr) {
+    return false;
+  }
+  *expected_revision = liveGetU32(in);
+  *request_id = liveGetU32(in + 4);
+  *channel = ch;
+  *boot_id = liveGetU32(in + 12);
+  for (std::uint16_t i = 0; i < n; ++i) {
+    const std::uint8_t* row = in + kLivePatchHeaderBytes + static_cast<std::size_t>(i) * 8U;
+    entries[i].field_id = liveGetU16(row);
+    entries[i].kind = liveGetU16(row + 2);
+    entries[i].value = liveGetF32(row + 4);
+  }
+  *count = n;
+  return true;
+}
+
+std::size_t liveEncodePatch(std::uint8_t* out, std::size_t cap, std::uint32_t expected_revision,
+                            std::uint32_t request_id, std::uint16_t channel, std::uint32_t boot_id,
+                            const LivePatchEntry* entries, std::uint16_t count) noexcept {
+  if (out == nullptr || entries == nullptr || count == 0U || count > kLivePatchMaxEntries ||
+      channel > 1U) {
+    return 0;
+  }
+  const std::size_t need = kLivePatchHeaderBytes + static_cast<std::size_t>(count) * 8U;
+  if (cap < need) {
+    return 0;
+  }
+  livePutU32(out, expected_revision);
+  livePutU32(out + 4, request_id);
+  livePutU16(out + 8, count);
+  livePutU16(out + 10, channel);
+  livePutU32(out + 12, boot_id);
+  for (std::uint16_t i = 0; i < count; ++i) {
+    std::uint8_t* row = out + kLivePatchHeaderBytes + static_cast<std::size_t>(i) * 8U;
+    livePutU16(row, entries[i].field_id);
+    livePutU16(row + 2, entries[i].kind);
+    livePutF32(row + 4, entries[i].value);
+  }
+  return need;
+}
+
+LivePatchStatus liveApplyPatch(LiveConfigBlob* cfg, std::uint32_t expected_revision,
+                               std::uint32_t expected_boot_id, std::uint16_t channel,
+                               const LivePatchEntry* entries, std::uint16_t count) noexcept {
+  if (cfg == nullptr || entries == nullptr || count == 0U || count > kLivePatchMaxEntries) {
+    return LivePatchStatus::Invalid;
+  }
+  LiveVisualControls* vis = patchChannel(cfg, channel);
+  if (vis == nullptr) {
+    return LivePatchStatus::Forbidden;
+  }
+  if (cfg->boot_id == 0U || expected_boot_id == 0U || cfg->boot_id != expected_boot_id) {
+    return LivePatchStatus::WrongBoot;
+  }
+  if (cfg->revision != expected_revision) {
+    return LivePatchStatus::Stale;
+  }
+  std::uint16_t seen[kLivePatchMaxEntries]{};
+  for (std::uint16_t i = 0; i < count; ++i) {
+    if (entries[i].kind != kLivePatchKindF32) {
+      return LivePatchStatus::Invalid;
+    }
+    if (patchFloatField(vis, entries[i].field_id) == nullptr) {
+      return LivePatchStatus::Forbidden;
+    }
+    if (!patchRangeOk(entries[i].field_id, entries[i].value)) {
+      return LivePatchStatus::Invalid;
+    }
+    for (std::uint16_t j = 0; j < i; ++j) {
+      if (seen[j] == entries[i].field_id) {
+        return LivePatchStatus::Invalid;
+      }
+    }
+    seen[i] = entries[i].field_id;
+  }
+  LiveConfigBlob next = *cfg;
+  LiveVisualControls* next_vis = patchChannel(&next, channel);
+  const std::uint8_t emit = cfg->emit_on;
+  const std::uint32_t flags = cfg->flags;
+  const std::uint32_t mode_a = cfg->mode_a;
+  const std::uint32_t mode_b = cfg->mode_b;
+  const std::uint32_t palette_a = cfg->palette_a;
+  const std::uint32_t palette_b = cfg->palette_b;
+  for (std::uint16_t i = 0; i < count; ++i) {
+    float* dest = patchFloatField(next_vis, entries[i].field_id);
+    *dest = entries[i].value;
+  }
+  next.emit_on = emit;
+  next.flags = flags;
+  next.mode_a = mode_a;
+  next.mode_b = mode_b;
+  next.palette_a = palette_a;
+  next.palette_b = palette_b;
+  next.revision = cfg->revision + 1U;
+  *cfg = next;
+  return LivePatchStatus::Ok;
+}
+
+void liveNotePatchAccepted(LiveRenderReceipt* receipt, std::uint32_t request_id,
+                           std::uint32_t revision) noexcept {
+  if (receipt == nullptr || request_id == 0U) {
+    return;
+  }
+  if (receipt->pending_request_id != 0U && receipt->pending_request_id != request_id) {
+    receipt->superseded_request_id = receipt->pending_request_id;
+  }
+  receipt->accepted_request_id = request_id;
+  receipt->accepted_revision = revision;
+  receipt->pending_request_id = request_id;
+  receipt->pending_revision = revision;
+}
+
+void liveNoteRendererConsumed(LiveRenderReceipt* receipt, std::uint32_t hop,
+                              std::uint32_t frame, std::uint64_t publication_us) noexcept {
+  if (receipt == nullptr || receipt->pending_request_id == 0U) {
+    return;
+  }
+  receipt->rendered_request_id = receipt->pending_request_id;
+  receipt->rendered_revision = receipt->pending_revision;
+  receipt->rendered_hop = hop;
+  receipt->rendered_frame = frame;
+  receipt->rendered_publication_us = publication_us;
+  receipt->pending_request_id = 0;
+  receipt->pending_revision = 0;
+}
+
+void liveNotePhysicalEmit(LiveRenderReceipt* receipt) noexcept {
+  if (receipt == nullptr || receipt->rendered_request_id == 0U) {
+    return;
+  }
+  receipt->emitted_request_id = receipt->rendered_request_id;
+}
+
+void liveNotePhysicalEmitCompleted(LiveRenderReceipt* receipt,
+                                   std::uint32_t completed_request_id) noexcept {
+  if (receipt == nullptr || completed_request_id == 0U) {
+    return;
+  }
+  receipt->emitted_request_id = completed_request_id;
+}
+
+bool liveNotePairCompleted(LiveRenderReceipt* receipt, std::uint32_t completed_generation,
+                           std::uint32_t pending_generation,
+                           std::uint32_t pending_request_id) noexcept {
+  if (receipt == nullptr || pending_request_id == 0U ||
+      completed_generation != pending_generation) {
+    return false;
+  }
+  liveNotePhysicalEmitCompleted(receipt, pending_request_id);
+  return true;
 }
 
 }  // namespace k1::titan

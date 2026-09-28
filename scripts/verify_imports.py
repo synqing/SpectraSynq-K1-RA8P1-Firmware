@@ -9,8 +9,10 @@ from pathlib import Path, PurePosixPath
 import re
 import subprocess
 
+from repo_layout import sibling
+
 ROOT = Path(__file__).resolve().parents[1]
-REFERENCE = ROOT.parent / "SpectraSynq-K1-DualMCU-Firmware"
+REFERENCE = sibling(ROOT, "SpectraSynq-K1-DualMCU-Firmware")
 PIN = "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a"
 
 
