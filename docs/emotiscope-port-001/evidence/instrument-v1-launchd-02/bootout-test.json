@@ -1,0 +1,1798 @@
+{
+ "result": {
+  "stayed_down_s": 15.5,
+  "broker_running_while_booted_out": false,
+  "controller_blockers_while_down": [
+   "Titan connection unavailable"
+  ],
+  "ready_again_after_bootstrap_s": 0.6
+ },
+ "samples": [
+  {
+   "t": 1790722777.513535,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "406",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722778.043714,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "409",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722778.5802162,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "412",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722779.136981,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.17,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722779.674241,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.71,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722780.208641,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 1.25,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722780.750446,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 1.79,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722781.276501,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 2.31,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722781.809818,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 2.85,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722782.3415911,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 3.38,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722782.8804412,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 3.92,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722783.417742,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 4.45,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722783.961437,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 5.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722784.494914,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 5.53,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722785.032352,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 6.07,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722785.5738409,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 6.61,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722786.1068668,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 7.14,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722786.635047,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 7.67,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722787.170712,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 8.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722787.7014809,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 8.74,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722788.2333388,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 9.27,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722788.761121,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 9.8,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722789.293199,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 10.33,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722789.830453,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 10.87,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722790.354939,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 11.39,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722790.885043,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 11.92,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722791.424235,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 12.46,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722791.9654331,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 13.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722792.4991848,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 13.54,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722793.032143,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 14.07,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722793.564492,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 14.6,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722794.0960891,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 15.13,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722794.6377358,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 15.67,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "booted-out",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722795.1753862,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 2] No such file or directory",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 16.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 30519,
+    "latched_frames": 15364,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "414",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [
+    {
+     "code": "titan_down",
+     "text": "Titan connection unavailable",
+     "detail": "Titan broker is not running (Titan unplugged, rebooting or broker stopped)"
+    }
+   ],
+   "broker_running": false
+  },
+  {
+   "t": 1790722795.706733,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34352,
+    "latched_frames": 17182,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "2",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722796.2342138,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34352,
+    "latched_frames": 17182,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "4",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722796.7733068,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34567,
+    "latched_frames": 17182,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "7",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722797.312829,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34567,
+    "latched_frames": 17182,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "10",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722797.8513432,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.15,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34567,
+    "latched_frames": 17387,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "12",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722798.3851478,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.06,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34567,
+    "latched_frames": 17387,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "15",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  },
+  {
+   "t": 1790722798.923799,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.18,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 34567,
+    "latched_frames": 17387,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "17",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "bootstrapped",
+   "blockers": [],
+   "broker_running": true
+  }
+ ]
+}

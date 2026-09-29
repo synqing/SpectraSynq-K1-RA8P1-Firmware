@@ -1,0 +1,41 @@
+{
+  "label": "RFP-SWD",
+  "start": "2026-09-29T22:55:44.205635+00:00",
+  "pass": true,
+  "execute": false,
+  "dry_run": true,
+  "programmer": "rfp-cli",
+  "probe": "e2l:5AS079228B",
+  "interface": "swd",
+  "speed_hz": 1000000,
+  "build_id": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+  "uid": "545433931bd25436593630352d068363",
+  "source_pin": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+  "hex_sha256": "5337d52473a599eb42faa3acbf237dcdce1b1756b8d814c1d572a5fecdb10448",
+  "elf_sha256": "89582d0013d8da2ec064cf8bbf61aac1b47fce7f02782c565213ca1411bfaf20",
+  "range": "02000000,02c9f01f",
+  "flags": [
+    "-noquery",
+    "-run"
+  ],
+  "command": [
+    "/Users/spectrasynq/Applications/Renesas/RFP_CLI_V3.24.00/rfp-cli",
+    "-d",
+    "RA",
+    "-t",
+    "e2l:5AS079228B",
+    "-if",
+    "swd",
+    "-s",
+    "1000000",
+    "-noquery",
+    "-run",
+    "-range",
+    "02000000,02c9f01f",
+    "-pv",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/arm-precision-001/rtthread.hex"
+  ],
+  "debug_mode": "none",
+  "note": "identity bindings PASS; command not executed",
+  "end": "2026-09-29T22:55:44.207565+00:00"
+}

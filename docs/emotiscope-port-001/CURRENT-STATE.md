@@ -2,7 +2,17 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current controls image and host — supersedes historical sections below
+## Current image, supervision and A/B — 30 September 2026 (Dependable Instrument v1)
+
+Resident since 06:57 AWST: build `c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74`, HEX `5337d52473a599eb42faa3acbf237dcdce1b1756b8d814c1d572a5fecdb10448`, ELF `89582d0013d8da2ec064cf8bbf61aac1b47fce7f02782c565213ca1411bfaf20`, schema `407d24207fa2a7f14c9ccf34ed601bc94bab1e873fc47be3e83850c1c1924688`, UID `545433931bd25436593630352d068363`. Boots Spectrum, 100/255, emission on, `output_precision` 0. Same P601/GPT6/DMA0, P604/GPT8/DMA3, mic DMA1/2 and 80+80 split. Build `evidence/arm-precision-001`, programme `evidence/programme-precision-001`, admission `evidence/smc-precision-001/accepted-candidate.json` (sha `3d494442…`).
+
+`output_precision` (PATCH field 17, GET flag bit 6): 0 = reference RGB8 dithered ×257 (unchanged; byte-identical to `titan-emotiscope-ref-r1` over the 1000-frame fixture), 1 = the same post-gamma floats rounded to 16 bits. Owner-applied at a frame boundary; never in scenes/defaults; reboot returns 0. Round trip 0→1→0 verified on the board (`evidence/instrument-v1-precision-01`). No A/B verdict yet.
+
+Broker and mixer controller run under launchd (`com.spectrasynq.titan-broker`, `com.spectrasynq.titan-mixer`); commands are on the operator card. The broker exits when Titan's USB node vanishes so launchd re-attaches it. Crash (SIGKILL) and bootout/bootstrap tests passed with frames advancing throughout (`evidence/instrument-v1-launchd-02`). One honest check: `scripts/check_instrument.sh`.
+
+Fault observed 06:17–06:54: the USB branch shared by Titan, keypad, AV adapter, ESP32 and MD202 dropped twice; Titan lost power once (rebooted 06:18) and its USB then stayed absent until an SWD identity read restarted the application. Cause not established (bench cabling or hub). Evidence `evidence/instrument-v1-launchd-01`, `evidence/instrument-v1-titan-usb-01`.
+
+## Previous controls image and host — superseded 30 September 2026
 
 Updated 29 September 2026 from the running broker/controller, not from Git HEAD.
 

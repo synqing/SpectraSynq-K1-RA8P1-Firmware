@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>HOME</key>
+		<string>/Users/spectrasynq</string>
+		<key>LANG</key>
+		<string>en_US.UTF-8</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>PYTHONUNBUFFERED</key>
+		<string>1</string>
+		<key>TITAN_ADMISSION_SHA256</key>
+		<string>3d494442fc62419c572676d5c055761a9dc78d234e7a4fcf596ca3a5215ac8d8</string>
+		<key>TITAN_ADMISSION_SOURCE</key>
+		<string>/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/smc-precision-001/accepted-candidate.json</string>
+		<key>TITAN_BROKER_EVIDENCE</key>
+		<string>/tmp/titan-emotiscope-control</string>
+		<key>TITAN_BROKER_PYTHON</key>
+		<string>/opt/homebrew/opt/python@3.14/bin/python3.14</string>
+	</dict>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+	<key>Label</key>
+	<string>com.spectrasynq.titan-broker</string>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tools/serial-studio/launchd/titan-broker-launch.sh</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>StandardErrorPath</key>
+	<string>/Users/spectrasynq/Library/Logs/SpectraSynq/com.spectrasynq.titan-broker.log</string>
+	<key>StandardOutPath</key>
+	<string>/Users/spectrasynq/Library/Logs/SpectraSynq/com.spectrasynq.titan-broker.log</string>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+	<key>WorkingDirectory</key>
+	<string>/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001</string>
+</dict>
+</plist>

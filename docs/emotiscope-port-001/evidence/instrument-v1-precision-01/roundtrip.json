@@ -1,0 +1,215 @@
+{
+ "steps": [
+  {
+   "output_precision": 0,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 0,
+   "rendered_request_id": 0,
+   "emitted_request_id": 0,
+   "write_state": {
+    "state": "idle",
+    "text": "No write this session",
+    "accepted": 0,
+    "rendered": 0,
+    "emitted": 0
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "before",
+   "t": 1790722678.411745,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 10654,
+    "latched_frames": 5428,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "216",
+    "capture_rate_hz": 41418.0
+   }
+  },
+  {
+   "output_precision": 0,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 0,
+   "rendered_request_id": 0,
+   "emitted_request_id": 0,
+   "write_state": {
+    "state": "idle",
+    "text": "No write this session",
+    "accepted": 0,
+    "rendered": 0,
+    "emitted": 0
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "after-toggle-to-1",
+   "t": 1790722678.417252,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 10654,
+    "latched_frames": 5428,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "216",
+    "capture_rate_hz": 41418.0
+   }
+  },
+  {
+   "output_precision": 1,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 1074200585,
+   "rendered_request_id": 0,
+   "emitted_request_id": 0,
+   "write_state": {
+    "state": "accepted",
+    "text": "Accepted, not yet rendered",
+    "accepted": 1074200585,
+    "rendered": 0,
+    "emitted": 0
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "after-toggle-to-1",
+   "t": 1790722678.724566,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 10654,
+    "latched_frames": 5428,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "218",
+    "capture_rate_hz": 41418.0
+   }
+  },
+  {
+   "output_precision": 1,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 1074200585,
+   "rendered_request_id": 1074200585,
+   "emitted_request_id": 1074200585,
+   "write_state": {
+    "state": "rendered",
+    "text": "Accepted and rendered",
+    "accepted": 1074200585,
+    "rendered": 1074200585,
+    "emitted": 1074200585
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "settled-1",
+   "t": 1790722679.7342532,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 10654,
+    "latched_frames": 5428,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "223",
+    "capture_rate_hz": 41418.0
+   }
+  },
+  {
+   "output_precision": 1,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 1074200585,
+   "rendered_request_id": 1074200585,
+   "emitted_request_id": 1074200585,
+   "write_state": {
+    "state": "rendered",
+    "text": "Accepted and rendered",
+    "accepted": 1074200585,
+    "rendered": 1074200585,
+    "emitted": 1074200585
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "after-toggle-to-0",
+   "t": 1790722679.740392,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 10654,
+    "latched_frames": 5428,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "223",
+    "capture_rate_hz": 41418.0
+   }
+  },
+  {
+   "output_precision": 0,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 1074200587,
+   "rendered_request_id": 1074200587,
+   "emitted_request_id": 1074200587,
+   "write_state": {
+    "state": "rendered",
+    "text": "Accepted and rendered",
+    "accepted": 1074200587,
+    "rendered": 1074200587,
+    "emitted": 1074200587
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "after-toggle-to-0",
+   "t": 1790722680.050678,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 11256,
+    "latched_frames": 5428,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "224",
+    "capture_rate_hz": 41418.0
+   }
+  },
+  {
+   "output_precision": 0,
+   "mode_name": "Spectrum",
+   "output_brightness": 100,
+   "emission_enabled": true,
+   "accepted_request_id": 1074200587,
+   "rendered_request_id": 1074200587,
+   "emitted_request_id": 1074200587,
+   "write_state": {
+    "state": "rendered",
+    "text": "Accepted and rendered",
+    "accepted": 1074200587,
+    "rendered": 1074200587,
+    "emitted": 1074200587
+   },
+   "blockers": [],
+   "last_error": null,
+   "tag": "settled-0",
+   "t": 1790722681.058026,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 11256,
+    "latched_frames": 5730,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "229",
+    "capture_rate_hz": 41418.0
+   }
+  }
+ ],
+ "ok": true
+}
