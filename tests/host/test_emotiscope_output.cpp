@@ -2,6 +2,7 @@
 #include "emotiscope_port.h"
 #include "emotiscope_output.h"
 #include "palette_runtime.h"
+#include "hd_pixel16.h"
 #include <array>
 #include <cmath>
 #include <cstdio>
@@ -81,6 +82,14 @@ static void marker_case() {
         expanded[d]=k1::titan::emotiscopeWirePixel(rgb.data(),d);
         poison[d]={65535,65535,65535};
     }
+    // Candidate adapter: same nearest source, 16-bit value passed through without x257.
+    std::array<uint16_t,384> rgb16{};
+    for (unsigned i=0;i<384;++i) rgb16[i]=uint16_t(i*167u+3u);
+    for (unsigned d=0;d<160;++d) {
+        const Pixel16 px=k1::titan::emotiscopeWirePixel16(rgb16.data(),d);
+        const unsigned s=nearest(d)*3u;
+        require(px.red==rgb16[s] && px.green==rgb16[s+1] && px.blue==rgb16[s+2],"candidate mapping differs");
+    }
     require(nearest(0)==0 && nearest(159)==127,"endpoints missing");
     require(nearest(79)==63 && nearest(80)==64,"centre pair wrong");
     for (unsigned n:coverage) require(n>=1,"native donor pixel lost");
@@ -110,13 +119,16 @@ static void marker_case() {
     std::cout << R"json({"source_pixels_covered":128,"logical_pixels":160,"pixels_per_din":80,"endpoints":true,"centre_63_64_to_79_80":true,"single_brightness_gain":true,"mode1_configured":true,"explicit_dimming_preserved":true,"rejected_legacy_config":true,"grb48_order":true})json" << "\n";
 }
 static void generate(const std::string& kind,const char* path) {
-    const bool integrated=kind=="runtime";
-    require(integrated || kind=="direct","unknown output generator");
+    const bool candidate=kind=="runtime16" || kind=="direct16";
+    const bool integrated=kind=="runtime" || kind=="runtime16";
+    require(integrated || kind=="direct" || kind=="direct16","unknown output generator");
     std::ofstream file(path,std::ios::binary);
     require(bool(file),"cannot open evidence buffer output");
     PaletteRuntime runtime;
     if (integrated) {
         require(runtime.configure(config(),0),"runtime configure failed");
+        require(runtime.outputPrecision()==0u,"boot output precision is not the reference");
+        if (candidate) runtime.setOutputPrecision(1u);
         // These old product controls must have no effect on the donor scene.
         for(unsigned ch=0;ch<2;++ch) {
             auto& c=runtime.channel(ch).controls();
@@ -161,8 +173,17 @@ static void generate(const std::string& kind,const char* path) {
         } else {
             std::array<uint8_t,384> rgb{};
             require(k1_emotiscope_render(hop*5000u,rgb.data()),"direct render failed");
-            for(auto value:rgb) nonzero_bytes+=value!=0;
-            file.write(reinterpret_cast<const char*>(rgb.data()),rgb.size());
+            if (candidate) {
+                // The validated post-gamma floats themselves; the oracle rounds them.
+                static K1EmotiscopeSnapshot snapshot;
+                k1_emotiscope_snapshot(&snapshot);
+                for(float value:snapshot.post_gamma_rgb) nonzero_bytes+=value!=0.0f;
+                file.write(reinterpret_cast<const char*>(snapshot.post_gamma_rgb),
+                           sizeof(snapshot.post_gamma_rgb));
+            } else {
+                for(auto value:rgb) nonzero_bytes+=value!=0;
+                file.write(reinterpret_cast<const char*>(rgb.data()),rgb.size());
+            }
         }
     }
     require(nonzero_bytes>0,"vacuous all-black comparison");
@@ -170,11 +191,51 @@ static void generate(const std::string& kind,const char* path) {
     std::cout<<"{\"frames\":1000,\"nonzero_bytes\":"<<nonzero_bytes
              <<",\"integrated\":"<<(integrated?"true":"false")<<"}\n";
 }
+#ifdef K1_EMOTISCOPE_TEST_SEAM
+// Dim fade through the bottom of the 8-bit range, pushed through the production
+// output stage frame by frame. Counts distinct non-zero wire levels per path.
+static void fade_case() {
+    constexpr unsigned kFrames=600;
+    std::cout<<"{\"frames\":"<<kFrames<<",\"start_level\":0.03,\"end_level\":0.0,\"cases\":[";
+    bool first=true;
+    for (unsigned brightness:{100u,24u}) {
+      for (bool dither:{true,false}) {
+        K1EmotiscopeConfig c{};
+        k1_emotiscope_default_config(&c);
+        c.temporal_dithering=dither;
+        require(k1_emotiscope_set_config(&c),"fade configure failed");
+        std::array<bool,65536> ref_seen{}, cand_seen{};
+        unsigned ref_levels=0, cand_levels=0;
+        std::array<float,384> frame{};
+        std::array<uint8_t,384> rgb8{};
+        std::array<uint16_t,384> rgb16{};
+        for (unsigned f=0; f<kFrames; ++f) {
+            const float v=0.03f*float(kFrames-1u-f)/float(kFrames-1u);
+            frame.fill(v);
+            require(k1_emotiscope_test_transmit(frame.data(),rgb8.data(),rgb16.data()),"fade frame rejected");
+            // Pixel 0 green, wire code after the one production output gain.
+            const uint16_t ref=k1::titan::scale16(uint16_t(rgb8[1]*257u),brightness);
+            const uint16_t cand=k1::titan::scale16(rgb16[1],brightness);
+            if (ref && !ref_seen[ref]) { ref_seen[ref]=true; ++ref_levels; }
+            if (cand && !cand_seen[cand]) { cand_seen[cand]=true; ++cand_levels; }
+        }
+        std::cout<<(first?"":",")<<"{\"output_brightness\":"<<brightness<<",\"temporal_dithering\":"
+                 <<(dither?"true":"false")<<",\"reference_distinct_nonzero_levels\":"<<ref_levels
+                 <<",\"candidate_distinct_nonzero_levels\":"<<cand_levels<<"}";
+        first=false;
+      }
+    }
+    std::cout<<"]}\n";
+}
+#endif
 int main(int argc,char** argv) {
-    require(argc>=2,"usage: markers | direct OUTPUT | runtime OUTPUT");
+    require(argc>=2,"usage: markers | fade | direct|direct16|runtime|runtime16 OUTPUT");
     require(k1_emotiscope_init(0x45e071u),"boot-once donor init failed");
     const std::string kind=argv[1];
     if(kind=="markers") marker_case();
+#ifdef K1_EMOTISCOPE_TEST_SEAM
+    else if(kind=="fade") fade_case();
+#endif
     else { require(argc==3,"output file required"); generate(kind,argv[2]); }
     return 0;
 }

@@ -192,7 +192,7 @@
     "state_magic": 1162695508,
     "engine_id": 1,
     "version": 1,
-    "patch_max_bytes": 152,
+    "patch_max_bytes": 160,
     "fields": {
       "brightness": {"id": 1, "kind": "f32", "min": 0, "max": 1, "default": 1.0},
       "softness": {"id": 2, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
@@ -209,7 +209,8 @@
       "auto_color_cycle": {"id": 13, "kind": "bool", "default": false},
       "reverse_color_range": {"id": 14, "kind": "bool", "default": false, "applicable_when": "color_range > 0"},
       "hardware_output_brightness": {"id": 15, "kind": "u32", "min": 0, "max": 255, "default": 100},
-      "emission_enabled": {"id": 16, "kind": "bool", "default": true}
+      "emission_enabled": {"id": 16, "kind": "bool", "default": true},
+      "output_precision": {"id": 17, "kind": "bool", "default": false, "state_flag_bit": 6, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire", "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"}, "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."}
     },
     "statuses": {
       "ok": 0,

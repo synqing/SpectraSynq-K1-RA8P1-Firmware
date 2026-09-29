@@ -110,6 +110,11 @@ class PaletteRuntime {
   void stop() noexcept { config_.flags = 0U; }
   bool active() const noexcept { return (config_.flags & 1U) != 0U; }
   bool emitEnabled() const noexcept { return (config_.flags & 4U) != 0U; }
+  // Owner-only A/B output precision: 0 = reference RGB8 (boot), 1 = 16-bit
+  // candidate. Takes effect at the next rendered frame. Not part of any scene
+  // or defaults restore; a reboot returns to 0.
+  void setOutputPrecision(std::uint32_t precision) noexcept { output_precision_ = precision ? 1U : 0U; }
+  std::uint32_t outputPrecision() const noexcept { return output_precision_; }
   const PaletteConfig& config() const noexcept { return config_; }
   core::visual::ChannelRenderState& channel(unsigned i) noexcept {
     return i ? b_ : a_;
@@ -166,5 +171,6 @@ class PaletteRuntime {
   std::uint64_t dwell_reinits_ = 0U;
   core::visual::Pixel16 wide_[2][core::visual::kPixelsPerChannel]{};
   bool wide_valid_[2]{};
+  std::uint32_t output_precision_ = 0U;
 };
 } // namespace k1::titan

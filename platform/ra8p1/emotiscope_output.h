@@ -14,4 +14,10 @@ inline core::visual::Pixel16 emotiscopeWirePixel(const std::uint8_t* rgb,
           std::uint16_t(rgb[p+2U] * 257U)};
 }
 // RGB8 expanded for the 16-bit wire format; this is not authored TRUE16.
+// Output-precision candidate: same nearest mapping, 16-bit source, no x257.
+inline core::visual::Pixel16 emotiscopeWirePixel16(const std::uint16_t* rgb16,
+                                                  unsigned destination) noexcept {
+  const unsigned p = emotiscopeSourceIndex(destination) * 3U;
+  return {rgb16[p], rgb16[p+1U], rgb16[p+2U]};
+}
 }

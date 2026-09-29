@@ -475,7 +475,7 @@ class RestrictedControlPlane:
         if conn_id and self.session.writer_id is None:
             self.session.writer_id = conn_id
         fields = request.get("fields")
-        if not isinstance(fields, dict) or len(fields) > 16:
+        if not isinstance(fields, dict) or len(fields) > donor.FIELD_COUNT:
             return {"ok": False, "error": "empty_patch" if not isinstance(fields, dict) else "too_many_fields"}
         ids = self._donor_ids(request)
         if isinstance(ids, dict):
@@ -546,6 +546,7 @@ def donor_public_state(state: dict) -> dict:
         "auto_color_cycle": bool(flags & 8),
         "reverse_color_range": bool(flags & 16),
         "emission_enabled": bool(flags & 32),
+        "output_precision": 1 if flags & donor.FLAG_OUTPUT_PRECISION else 0,
         "hardware_output_brightness": state["output_brightness"],
         "applicability": applicability,
         "speed_applicable": bool(applicability & (1 << 5)),

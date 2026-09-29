@@ -291,11 +291,17 @@ bool PaletteRuntime::step(std::uint64_t now_us,
 #ifdef K1_EMOTISCOPE_PORT
   std::uint8_t rgb[K1_EMOTISCOPE_PIXELS * 3U]{};
   if (!k1_emotiscope_render(static_cast<std::uint32_t>(now_us), rgb)) return false;
+  // Both precisions are computed every frame; the selection is read once here,
+  // at the frame boundary, so a switch never splits a frame.
+  std::uint16_t rgb16[K1_EMOTISCOPE_PIXELS * 3U]{};
+  k1_emotiscope_last_rgb16(rgb16);
+  const bool candidate = output_precision_ != 0U;
   for (unsigned i = 0; i < kPixelsPerChannel; ++i) {
     const unsigned p = emotiscopeSourceIndex(i) * 3U;
     const Pixel8 pixel{rgb[p], rgb[p+1U], rgb[p+2U]};
     a_.frame()[i] = b_.frame()[i] = pixel;
-    wide_[0][i] = wide_[1][i] = emotiscopeWirePixel(rgb, i);
+    wide_[0][i] = wide_[1][i] = candidate ? emotiscopeWirePixel16(rgb16, i)
+                                          : emotiscopeWirePixel(rgb, i);
   }
   wide_valid_[0] = wide_valid_[1] = true;
   last_publication_us_ = audio ? audio->source_publication_us : 0U;
@@ -716,7 +722,16 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
 #endif
       );
   if (extra <= 0 || std::size_t(n - 1 + extra) >= capacity) return 0U;
-  return std::size_t(n - 1 + extra);
+  std::size_t total = std::size_t(n - 1 + extra);
+#ifdef K1_EMOTISCOPE_PORT
+  if (out[total - 1] != '}') return 0U;
+  const int more = std::snprintf(out + total - 1, capacity - total + 1,
+      ",\"output_precision\":%lu,\"output_source\":\"%s\"}", (unsigned long)output_precision_,
+      output_precision_ ? "donor_float_round16" : "donor_rgb8_dither_expanded16");
+  if (more <= 0 || total - 1 + std::size_t(more) >= capacity) return 0U;
+  total = total - 1 + std::size_t(more);
+#endif
+  return total;
 }
 void PaletteRuntime::recordEmit(int result, std::uint32_t cycles) noexcept {
   if (result) ++emit_errors_; else ++emitted_;

@@ -89,6 +89,7 @@ void watch_gpu_fps(){}
 #undef CRGBF
 CRGBF dither_error[NUM_LEDS];
 static uint8_t raw_led_data[NUM_LEDS*3];
+static uint16_t raw_led_data16[NUM_LEDS*3]; // RGB order, one per float in leds
 #include "emotiscope_quantize.inc"
 static bool frame_output_valid=true;
 static uint32_t nonfinite_output_frames=0;
@@ -103,6 +104,12 @@ void transmit_leds(){
   }
   std::memset(raw_led_data,0,sizeof(raw_led_data));
   quantize_color_error(configuration.temporal_dithering);
+  // Precision candidate from the identical validated floats; the reference
+  // quantiser above (and its dither history) runs regardless of selection.
+  // Single-precision (the M85 FPU is SP-only); v in [0,1] so +0.5 then truncate
+  // is round-half-up. -ffp-contract=off keeps the multiply and add unfused.
+  for(unsigned i=0;i<NUM_LEDS*3;++i)
+    raw_led_data16[i]=static_cast<uint16_t>(p[i]*65535.0f+0.5f);
   frame_output_valid=true;
 }
 #include "emotiscope_donor/gpu_core.h"
@@ -222,6 +229,19 @@ extern "C" void k1_emotiscope_test_set_novelty_sample(float value){
   emotiscope::novelty_curve[10]=value;
 }
 extern "C" float k1_emotiscope_test_novelty_sample(void){return emotiscope::novelty_curve[10];}
+// Push a known post-gamma float frame through the production output stage
+// (validation, RGB8 quantiser with its dither history, 16-bit candidate).
+extern "C" bool k1_emotiscope_test_transmit(const float* rgbf,uint8_t* rgb8,uint16_t* rgb16){
+  using namespace emotiscope;
+  std::memcpy(leds,rgbf,sizeof(leds));
+  transmit_leds();
+  if(!frame_output_valid)return false;
+  for(unsigned i=0;i<NUM_LEDS;++i){
+    rgb8[3*i]=raw_led_data[3*i+1];rgb8[3*i+1]=raw_led_data[3*i];rgb8[3*i+2]=raw_led_data[3*i+2];
+  }
+  std::memcpy(rgb16,raw_led_data16,sizeof(raw_led_data16));
+  return true;
+}
 #endif
 extern "C" bool k1_emotiscope_push_pcm64(const float* samples,uint32_t now_us){
   using namespace emotiscope;
@@ -259,6 +279,9 @@ extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
     rgb[3*i+2]=raw_led_data[3*i+2];
   }
   return true;
+}
+extern "C" void k1_emotiscope_last_rgb16(uint16_t* rgb16){
+  if(rgb16)std::memcpy(rgb16,emotiscope::raw_led_data16,sizeof(emotiscope::raw_led_data16));
 }
 extern "C" void k1_emotiscope_snapshot(K1EmotiscopeSnapshot* out){
   using namespace emotiscope;

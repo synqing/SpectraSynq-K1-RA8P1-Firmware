@@ -65,6 +65,7 @@ void k1_emotiscope_test_set_raw_color(float color);
 float k1_emotiscope_test_lpf_drag(void);
 void k1_emotiscope_test_set_novelty_sample(float value);
 float k1_emotiscope_test_novelty_sample(void);
+bool k1_emotiscope_test_transmit(const float rgbf[384], uint8_t rgb8[384], uint16_t rgb16[384]);
 #endif
 /* Exactly 64 normalized mono samples at 12800 Hz. Rejects an entire invalid chunk.
  * now_us is the deterministic clock supplied to the hardware-independent engine. */
@@ -73,6 +74,11 @@ bool k1_emotiscope_push_pcm64(const float samples[64], uint32_t now_us);
  * GPU frame rate. Returns RGB8 (not GRB) after the donor's gamma and dithering.
  * No Titan palette, gamma, or global hardware brightness is applied here. */
 bool k1_emotiscope_render(uint32_t now_us, uint8_t rgb[384]);
+/* Output-precision candidate for the last successful render: the same validated
+ * post-gamma float frame that fed the RGB8 quantiser, rounded to 16 bits per
+ * channel (round(v*65535)), RGB order, no dither. Computed every frame beside the
+ * unchanged RGB8 reference so either path can be selected at a frame boundary. */
+void k1_emotiscope_last_rgb16(uint16_t rgb16[384]);
 void k1_emotiscope_snapshot(K1EmotiscopeSnapshot *out);
 const char *k1_emotiscope_mode_name(uint32_t mode);
 #ifdef __cplusplus
