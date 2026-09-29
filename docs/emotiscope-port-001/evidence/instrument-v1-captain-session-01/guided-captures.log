@@ -1,0 +1,5 @@
+07:08:38 ARMED Fader1 (try 1) - move only Fader1 now
+07:10:28 Fader1: FAIL - wrong/mixed identity, insufficient sweep, timeout or dropped evidence events=0 observed=[]
+07:10:28 ARMED Fader1 (try 2) - move only Fader1 now
+07:12:18 Fader1: FAIL - wrong/mixed identity, insufficient sweep, timeout or dropped evidence events=0 observed=[]
+07:12:18 ARMED Fader1 (try 3) - move only Fader1 now
