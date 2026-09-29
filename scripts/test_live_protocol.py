@@ -10,6 +10,22 @@ from pathlib import Path
 from verify_imports import ROOT
 
 NAMES = json.loads((ROOT / "docs/import-slices.json").read_text())["product"]
+# audio_pipeline.cpp calls publishTempoField. The product slice does not
+# list the publisher or the phase-track unit it calls, so the host link adds
+# those existing translation units and does not change the product slice.
+EXTRA_CPP = (
+    "core/audio/tempo_field_publisher.cpp",
+    "core/audio/tempo_phase_tracks.cpp",
+)
+
+
+def cpp_units(tree: Path) -> list[str]:
+    files = [str(tree / name) for name in NAMES if name.endswith(".cpp")]
+    present = {Path(path).name for path in files}
+    for name in EXTRA_CPP:
+        if Path(name).name not in present:
+            files.append(str(tree / name))
+    return files
 
 
 def main() -> int:
@@ -31,7 +47,7 @@ def main() -> int:
             str(ROOT / "platform/ra8p1/k1_live_runtime.cpp"),
             str(ROOT / "platform/ra8p1/k1_live_protocol.cpp"),
             str(ROOT / "src/k1/core/audio/k1_audio_hop.c"),
-            *[str(sources / name) for name in NAMES if name.endswith(".cpp")],
+            *cpp_units(sources),
             str(ROOT / "tests/host/test_live_protocol.cpp"),
             "-o",
             str(exe),
@@ -130,7 +146,7 @@ def main() -> int:
             "-I" + str(ROOT / "tests/target"),
             str(ROOT / "platform/ra8p1/k1_live_protocol.cpp"),
             str(ROOT / "platform/ra8p1/palette_runtime.cpp"),
-            *[str(sources / name) for name in NAMES if name.endswith(".cpp")],
+            *cpp_units(sources),
             str(ROOT / "src/k1/core/visual/frame_blend.cpp"),
             str(ROOT / "src/k1/core/visual/product_runtime_policy.cpp"),
             str(ROOT / "tests/host/test_r4_consumption.cpp"),

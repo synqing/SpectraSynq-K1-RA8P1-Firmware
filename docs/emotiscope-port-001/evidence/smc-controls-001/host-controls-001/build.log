@@ -1,0 +1,9 @@
+In file included from /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/emotiscope_port.cpp:78:
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/emotiscope_donor/leds.h:516:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  516 |     CRGBF temp_pixels[num_pixels];
+      |                       ^~~~~~~~~~
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/emotiscope_donor/leds.h:516:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/emotiscope_donor/leds.h:506:45: note: declared here
+  506 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {
+      |                                             ^
+1 warning generated.

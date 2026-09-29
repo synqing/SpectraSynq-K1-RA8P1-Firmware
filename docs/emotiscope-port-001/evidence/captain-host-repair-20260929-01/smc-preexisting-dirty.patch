@@ -1,0 +1,715 @@
+diff --git a/AGENTS.md b/AGENTS.md
+index ccf63b4..1aeb660 100644
+--- a/AGENTS.md
++++ b/AGENTS.md
+@@ -1,3 +1,35 @@
++THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
++
++<!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++**Captain directive — 27 September 2026; supersedes conflicting earlier operating instructions below.**
++
++Titan must boot with visual output ON and run continuous, autonomous, audio-reactive music visualisation whenever powered and the application is running. Normal output must not wait for a host, broker, camera, recording session, approval, or diagnostic window. Old boot-off requirements and automatic timed disarm at the end of diagnostic/camera/host sessions are superseded. A diagnostic timeout ends the diagnostic activity; it must not gate or stop normal music visualisation. Do not invent another permission gate for this already-authorised behaviour. Put this mandate first in every new Titan-facing agent instruction, plan and handover.
++
++Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
++<!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++
++<!-- BEGIN SMC-TITAN STANDING DEPLOYMENT AUTHORITY -->
++# SMC–Titan: repair, flash and verify — standing user instruction, 27 September 2026
++
++The operator explicitly requires implemented fixes to reach the physical Titan immediately after the relevant software checks pass. Do not return another “built, not flashed; approve this image?” handback within the scope below.
++
++**Required sequence:** targeted repair → relevant regression tests → ARM build → verify exact HEX/hash, board identity and build settings → programme through the existing E2 Lite/SWD workflow → read back identity/configuration → run the bounded physical test → report actual results. Complete that sequence in the executing session. A source edit or successful compilation is not a completed fix, and a flashed image is not yet proven working.
++
++**Standing authority:** this directive supplies ongoing permission for replacement diagnostic/repair firmware, programming and bounded bench runs in SMC-TITAN-CONTROL-001. It supersedes older per-image “ask Captain”, “offline only” and separate Permission A/B handback requirements for this lane. Record the replacement image's exact path/hash and the scope in the existing admission record; do not fabricate a hardware-PASS record or bypass native tool permissions. A new file hash alone does not require another permission request.
++
++**Scope:** only the existing SMC host worktree and Titan firmware worktree, and Titan UID `545433931bd25436593630352d068363`. Preserve the established P601/GPT6 and P604/GPT8 wiring, microphone DMA 1/2 and LED DMA 0/3 unless the user separately authorises a change. No edits or flashing in K1.Sliders, DualMCU, K1-System-R3 or the vendor BSP. Preserve mixer mappings and the prior Stage A evidence.
++
++**Programming:** use the existing `ra8p1-e2lite-router` E2 Lite/SWD procedure, probe target power OFF, 1 MHz, `-noquery -run`, permitted range `02000000,02C9F01F`. Quiesce and hand off the existing serial owner; do not kill unrelated processes, use GDB/serial ROM, erase the chip or overwrite configuration areas. Verify the candidate before writing and full UID/build/schema/emit state afterwards.
++
++**Bench bounds:** boot with emission OFF, retain mode 8 and the current limited control profile. Diagnostic/light runs: maximum brightness 24/255, maximum 120 seconds each, audio running, first-fault capture retained. Stop and disarm immediately on fault, audio discontinuity, identity mismatch or loss of control. If software cannot guarantee off, report it immediately and ask the operator to remove LED power. Transmission disabled is not independent proof of optical darkness. Do not re-arm the same fault-latched image or auto-restore the old emit-on archive. No cold power-cycle/reconnect reliability experiment under this scope.
++
++**Stopping rule:** stop deployment for failed required checks, mismatched/unknown target or HEX, unavailable hardware/native permission, a genuine unsafe condition, an out-of-scope change, or a later explicit user HOLD. State the concrete obstacle and continue independent repair work. Do not stop merely to obtain another in-scope image approval; do not weaken checks or relabel failure to avoid a stop.
++
++**Operator:** do not request slider movement during unattended driver diagnosis. Cue slider 7 only with healthy output and recording active. Preserve distinctions between accepted values, renderer use, completed transfers and observed light. Report “installed and tested” with the actual result, or the exact technical obstacle—not “ready for permission”.
++
++**Persistence:** read this rule after handoff/context loss, before preparing a candidate or applying historical instructions. Do not reactivate superseded permission gates. A later user HOLD immediately overrides standing authority. No automatic background flashing task is created by this document.
++<!-- END SMC-TITAN STANDING DEPLOYMENT AUTHORITY -->
++
+ # SMC-Mixer — agent instructions
+ 
+ ## Project identity
+diff --git a/docs/execution/SMC-TITAN-CONTROL-001-GATES.md b/docs/execution/SMC-TITAN-CONTROL-001-GATES.md
+index 251e067..584f581 100644
+--- a/docs/execution/SMC-TITAN-CONTROL-001-GATES.md
++++ b/docs/execution/SMC-TITAN-CONTROL-001-GATES.md
+@@ -2,6 +2,17 @@
+ abstract: "Admission gates for SMC-TITAN-CONTROL-001 hardware writes. Offline host tests may run; Titan CDC/LED/programming stays held."
+ ---
+ 
++THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
++
++<!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++**Captain directive — 27 September 2026; supersedes conflicting earlier operating instructions below.**
++
++Titan must boot with visual output ON and run continuous, autonomous, audio-reactive music visualisation whenever powered and the application is running. Normal output must not wait for a host, broker, camera, recording session, approval, or diagnostic window. Old boot-off requirements and automatic timed disarm at the end of diagnostic/camera/host sessions are superseded. A diagnostic timeout ends the diagnostic activity; it must not gate or stop normal music visualisation. Do not invent another permission gate for this already-authorised behaviour. Put this mandate first in every new Titan-facing agent instruction, plan and handover.
++
++Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
++<!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++
++
+ # SMC-TITAN-CONTROL-001 — hardware gates
+ 
+ Offline implementation in the isolated worktrees is allowed. The following were **not** run and remain **NOT_TESTED**.
+diff --git a/docs/execution/SMC-TITAN-CONTROL-001.md b/docs/execution/SMC-TITAN-CONTROL-001.md
+index fc0dd85..950232d 100644
+--- a/docs/execution/SMC-TITAN-CONTROL-001.md
++++ b/docs/execution/SMC-TITAN-CONTROL-001.md
+@@ -1,3 +1,13 @@
++THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
++
++<!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++**Captain directive — 27 September 2026; supersedes conflicting earlier operating instructions below.**
++
++Titan must boot with visual output ON and run continuous, autonomous, audio-reactive music visualisation whenever powered and the application is running. Normal output must not wait for a host, broker, camera, recording session, approval, or diagnostic window. Old boot-off requirements and automatic timed disarm at the end of diagnostic/camera/host sessions are superseded. A diagnostic timeout ends the diagnostic activity; it must not gate or stop normal music visualisation. Do not invent another permission gate for this already-authorised behaviour. Put this mandate first in every new Titan-facing agent instruction, plan and handover.
++
++Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
++<!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++
+ # SMC-TITAN-CONTROL-001 — Commercial SMC-Mixer to Titan live tuning
+ 
+ Prepared 25 September 2026, Australia/Perth. Status: physical MIDI reception VERIFIED; implementation brief, not a claim that Titan control is implemented.
+diff --git a/host/titan_control/README.md b/host/titan_control/README.md
+index ba3147e..7e99c18 100644
+--- a/host/titan_control/README.md
++++ b/host/titan_control/README.md
+@@ -2,6 +2,17 @@
+ abstract: "SMC-Mixer host adapter that maps the commercial mixer’s Master-port pitchwheel faders onto Titan live visual scalars through a restricted local IPC patch, never the whole-config setter."
+ ---
+ 
++THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
++
++<!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++**Captain directive — 27 September 2026; supersedes conflicting earlier operating instructions below.**
++
++Titan must boot with visual output ON and run continuous, autonomous, audio-reactive music visualisation whenever powered and the application is running. Normal output must not wait for a host, broker, camera, recording session, approval, or diagnostic window. Old boot-off requirements and automatic timed disarm at the end of diagnostic/camera/host sessions are superseded. A diagnostic timeout ends the diagnostic activity; it must not gate or stop normal music visualisation. Do not invent another permission gate for this already-authorised behaviour. Put this mandate first in every new Titan-facing agent instruction, plan and handover.
++
++Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
++<!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++
++
+ # SMC Titan control host
+ 
+ Standalone host package for **SMC-TITAN-CONTROL-001**.
+diff --git a/host/titan_control/fixtures/README.md b/host/titan_control/fixtures/README.md
+index bb30d3d..b8c5c9a 100644
+--- a/host/titan_control/fixtures/README.md
++++ b/host/titan_control/fixtures/README.md
+@@ -1,3 +1,13 @@
++THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
++
++<!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++**Captain directive — 27 September 2026; supersedes conflicting earlier operating instructions below.**
++
++Titan must boot with visual output ON and run continuous, autonomous, audio-reactive music visualisation whenever powered and the application is running. Normal output must not wait for a host, broker, camera, recording session, approval, or diagnostic window. Old boot-off requirements and automatic timed disarm at the end of diagnostic/camera/host sessions are superseded. A diagnostic timeout ends the diagnostic activity; it must not gate or stop normal music visualisation. Do not invent another permission gate for this already-authorised behaviour. Put this mandate first in every new Titan-facing agent instruction, plan and handover.
++
++Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
++<!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
++
+ Fixtures for host tests. The admitted physical capture lives at
+ `docs/evidence/SMC-TITAN-CONTROL-001/20260925-232658/` in this worktree
+ (SHA-256 `5b071a9a42408fd83f6f059f899d195131b536da4e8c1014ec000231efc508eb`).
+diff --git a/host/titan_control/profiles/smc-mixer-master-v1.json b/host/titan_control/profiles/smc-mixer-master-v1.json
+index a3eb853..f349999 100644
+--- a/host/titan_control/profiles/smc-mixer-master-v1.json
++++ b/host/titan_control/profiles/smc-mixer-master-v1.json
+@@ -9,8 +9,9 @@
+   ],
+   "rejected_port_substrings": ["D3", "D2"],
+   "fader": {
+-    "type": "pitchwheel",
++    "type": "pitchwheel_or_cc_40_47",
+     "channels": [0, 1, 2, 3, 4, 5, 6, 7],
++    "cc_map": {"base": 40, "last": 47, "midi_channel": 0, "observed": "2026-09-26 H1 slider 7 = CC 46 0..127 on Master"},
+     "raw14": "pitch + 8192",
+     "grid": 128,
+     "raw14_min": 0,
+diff --git a/host/titan_control/smc_titan_control/adapter.py b/host/titan_control/smc_titan_control/adapter.py
+index 48ea4f5..e3ff4f7 100644
+--- a/host/titan_control/smc_titan_control/adapter.py
++++ b/host/titan_control/smc_titan_control/adapter.py
+@@ -18,7 +18,8 @@ FLOAT32_REL = 1e-6
+ STALE_ERRORS = {"stale"}
+ IDENTITY_ERRORS = {
+     "stale_session", "ADMISSION_HOLD", "hold", "schema_mismatch", "schema_missing",
+-    "identity", "identity_changed", "continuity_lost", "observe_only",
++    "identity", "identity_changed", "continuity_lost", "observe_only", "wrong_boot",
++    "missing_boot_id",
+ }
+ QUARANTINE_ERRORS = {"quarantined"}
+ CONNECTION_ERRORS = (ConnectionError, ConnectionResetError, BrokenPipeError, TimeoutError, OSError)
+@@ -66,6 +67,7 @@ class Adapter:
+         self.in_flight: dict[str, Any] | None = None
+         self.connection_state = "disconnected"
+         self._resyncing = False
++        self.boot_id = 0
+ 
+     def attach(self) -> dict[str, Any]:
+         self.ready = False
+@@ -81,6 +83,11 @@ class Adapter:
+             self.blocked = "identity"
+             self.connection_state = "disconnected"
+             return self.hello
++        if bound.get("boot_id") is not None:
++            try:
++                self.boot_id = int(bound["boot_id"])
++            except (TypeError, ValueError):
++                self.boot_id = 0
+         cfg = self.client.get_config()
+         if not cfg.get("ok"):
+             self.blocked = "config"
+@@ -283,7 +290,8 @@ class Adapter:
+             "revision": self.revision,
+         }
+         try:
+-            reply = self.client.patch(self.revision, fields, request_id=request_id)
++            reply = self.client.patch(self.revision, fields, request_id=request_id,
++                                      boot_id=self.boot_id)
+         except AdmissionHold as exc:
+             self.last_error = str(exc)
+             self.in_flight["outcome"] = "cancelled"
+@@ -368,6 +376,15 @@ class Adapter:
+             self.ready = False
+             self.blocked = "emit_state"
+             return {"ok": False, "error": "emit_state"}
++        if config.get("boot_id") is not None:
++            try:
++                self.boot_id = int(config["boot_id"])
++            except (TypeError, ValueError):
++                self.boot_id = 0
++        if self.boot_id == 0:
++            self.ready = False
++            self.blocked = "boot_id"
++            return {"ok": False, "error": "boot_id"}
+         mode = int(config.get("mode_a") or 0)
+         auto = auto_colour_from_visual(visual)
+         previous_mode = self.mode_a
+@@ -435,10 +452,19 @@ class Adapter:
+             self._invalidate_identity("config")
+             return False
+         new_rev = int(config.get("revision") or 0)
++        new_boot = 0
++        try:
++            new_boot = int(config.get("boot_id") or 0)
++        except (TypeError, ValueError):
++            new_boot = 0
+         if previous_session is not None and new_rev < int(self.revision or 0):
+             self._apply_config(config, keep_pickup=False, cancel_pending=True)
+             self._invalidate_identity("continuity_lost")
+             return False
++        if self.boot_id and new_boot and new_boot != int(self.boot_id):
++            self._apply_config(config, keep_pickup=False, cancel_pending=True)
++            self._invalidate_identity("wrong_boot")
++            return False
+         new_mode = int(config.get("mode_a") or 0)
+         same_session = self.client.session == previous_session
+         same_mode = previous_mode is not None and new_mode == previous_mode
+diff --git a/host/titan_control/smc_titan_control/broker_client.py b/host/titan_control/smc_titan_control/broker_client.py
+index 03088b3..ae8e1cd 100644
+--- a/host/titan_control/smc_titan_control/broker_client.py
++++ b/host/titan_control/smc_titan_control/broker_client.py
+@@ -20,6 +20,11 @@ class AdmissionHold(RuntimeError):
+     pass
+ 
+ 
++# A lost reply must not be sent again. Firmware dedup is the backstop, not a
++# reason to retry a write. Reads may try twice.
++SINGLE_ATTEMPT_OPS = frozenset({"patch", "performance", "selection", "emotiscope_patch"})
++
++
+ class InProcessBroker:
+     """Test double: schema-checked visual patch, no serial, no whole-config setter."""
+ 
+@@ -61,6 +66,7 @@ class InProcessBroker:
+         self.ghost_ok = False
+         self.wrong_applied = False
+         self.last_patch_request_id = 0
++        self.boot_id = 1
+         self.identity = {
+             "uid": "545433931bd25436593630352d068363",
+             "build": "test-build",
+@@ -75,7 +81,9 @@ class InProcessBroker:
+             self.set_config_calls += 1
+             raise WholeConfigForbidden(op)
+         if op == "hello":
+-            return {"ok": True, "session": self.session, "bound": self.identity, "admitted": False}
++            bound = dict(self.identity)
++            bound["boot_id"] = self.boot_id
++            return {"ok": True, "session": self.session, "bound": bound, "admitted": False}
+         if op == "get_config":
+             if payload.get("session") != self.session:
+                 return {"ok": False, "error": "stale_session"}
+@@ -95,6 +103,7 @@ class InProcessBroker:
+             "visual_a": dict(self.visual_a),
+             "visual_b": dict(self.visual_b),
+             "last_patch_request_id": self.last_patch_request_id,
++            "boot_id": self.boot_id,
+         }
+ 
+     def _patch(self, payload: dict[str, Any]) -> dict[str, Any]:
+@@ -105,6 +114,14 @@ class InProcessBroker:
+             return {"ok": False, "error": "request_id_required"}
+         self.seen_request_ids.append(int(request_id))
+         fields = payload.get("fields") or {}
++        if int(payload.get("boot_id") or 0) != int(self.boot_id):
++            return {
++                "ok": False,
++                "error": "wrong_boot",
++                "status": 6,
++                "request_id": int(request_id),
++                "session": self.session,
++            }
+         if self.force_stale or int(payload.get("revision", -1)) != self.revision:
+             return {
+                 "ok": False,
+@@ -202,7 +219,7 @@ class UnixBroker:
+             raise WholeConfigForbidden("client refused whole-config setter")
+         line = (json.dumps(payload) + "\n").encode()
+         last_error: OSError | None = None
+-        attempts = 1 if payload.get("op") == "patch" else 2
++        attempts = 1 if payload.get("op") in SINGLE_ATTEMPT_OPS else 2
+         for attempt in range(attempts):
+             try:
+                 sock = self._ensure()
+@@ -249,7 +266,14 @@ class BrokerClient:
+             raise ConnectionResetError(reply.get("detail") or "broker_unavailable")
+         return reply
+ 
+-    def patch(self, revision: int, fields: dict[str, float], request_id: int | None = None) -> dict[str, Any]:
++    def snapshot(self) -> dict[str, Any]:
++        reply = self.transport.request({"op": "snapshot", "session": self.session})
++        if reply.get("error") == "broker_unavailable":
++            raise ConnectionResetError(reply.get("detail") or "broker_unavailable")
++        return reply
++
++    def patch(self, revision: int, fields: dict[str, float], request_id: int | None = None,
++              boot_id: int | None = None) -> dict[str, Any]:
+         if not fields:
+             return {"ok": False, "error": "empty_patch"}
+         rid = int(request_id if request_id is not None else self.next_request_id())
+@@ -258,6 +282,38 @@ class BrokerClient:
+             "session": self.session,
+             "revision": revision,
+             "request_id": rid,
++            "boot_id": int(boot_id or 0),
++            "fields": fields,
++        })
++        if reply.get("error") == "ADMISSION_HOLD":
++            raise AdmissionHold("hardware writes are gated")
++        if reply.get("error") == "broker_unavailable":
++            raise ConnectionResetError(reply.get("detail") or "broker_unavailable")
++        return reply
++
++    def emotiscope_get(self, boot_id: int, request_id: int | None = None) -> dict[str, Any]:
++        rid = int(request_id if request_id is not None else self.next_request_id())
++        reply = self.transport.request({
++            "op": "emotiscope_get",
++            "session": self.session,
++            "request_id": rid,
++            "boot_id": int(boot_id),
++        })
++        if reply.get("error") == "broker_unavailable":
++            raise ConnectionResetError(reply.get("detail") or "broker_unavailable")
++        return reply
++
++    def emotiscope_patch(self, boot_id: int, revision: int, fields: dict[str, Any],
++                         request_id: int | None = None) -> dict[str, Any]:
++        if not isinstance(fields, dict):
++            return {"ok": False, "error": "empty_patch"}
++        rid = int(request_id if request_id is not None else self.next_request_id())
++        reply = self.transport.request({
++            "op": "emotiscope_patch",
++            "session": self.session,
++            "request_id": rid,
++            "boot_id": int(boot_id),
++            "revision": int(revision),
+             "fields": fields,
+         })
+         if reply.get("error") == "ADMISSION_HOLD":
+diff --git a/host/titan_control/smc_titan_control/cli.py b/host/titan_control/smc_titan_control/cli.py
+index 8bf0039..f26ea3f 100644
+--- a/host/titan_control/smc_titan_control/cli.py
++++ b/host/titan_control/smc_titan_control/cli.py
+@@ -29,6 +29,19 @@ def build_parser() -> argparse.ArgumentParser:
+     live.add_argument("--socket", type=Path, required=True)
+     live.add_argument("--port", default=PRODUCTION_PORT)
+     live.add_argument("--hz", type=float, default=25.0)
++    live.add_argument("--strategy", choices=["qualified", "performance", "emotiscope"], default="qualified")
++    live.add_argument("--bindings", type=Path, help="Individually verified Performance MIDI bindings JSON")
++    live.add_argument("--scenes", type=Path, default=Path.home()/".config/spectrasynq/smc-performance-scenes.json")
++    live.add_argument("--assignments", type=Path, default=Path.home()/".config/spectrasynq/smc-assignments-v1.json")
++    live.add_argument("--emotiscope-scenes", type=Path,
++                      default=Path.home()/".config/spectrasynq/smc-emotiscope-scenes.json")
++    live.add_argument("--emotiscope-assignments", type=Path,
++                      default=Path.home()/".config/spectrasynq/smc-emotiscope-assignments-v1.json")
++    live.add_argument("--dashboard-port", type=int, default=8776)
++    live.add_argument("--status-port", type=int, default=8766)
++    listen = sub.add_parser("listen", help="receive-only Master input; no MIDI output, no Titan")
++    listen.add_argument("--out", type=Path, required=True)
++    listen.add_argument("--seconds", type=float, default=None)
+     return parser
+ 
+ 
+@@ -66,6 +79,18 @@ def main(argv: list[str] | None = None) -> int:
+     if args.cmd == "help-offline":
+         parser.print_help()
+         return 0
++    if args.cmd == "listen":
++        from .listen import run_listen
++
++        path = run_listen(args.out, seconds=args.seconds)
++        sys.stderr.write(f"LISTEN_STOPPED {path}\n")
++        return 0
++    if args.cmd == "live" and args.strategy == "emotiscope":
++        from .emotiscope_live import run_emotiscope
++        return run_emotiscope(args)
++    if args.cmd == "live" and args.strategy == "performance":
++        from .performance_live import run_performance
++        return run_performance(args)
+     if args.cmd == "live":
+         from .live_loop import RateLoop
+         from .live_midi import open_live_input, pump
+diff --git a/host/titan_control/smc_titan_control/live_midi.py b/host/titan_control/smc_titan_control/live_midi.py
+index 1965751..57b5728 100644
+--- a/host/titan_control/smc_titan_control/live_midi.py
++++ b/host/titan_control/smc_titan_control/live_midi.py
+@@ -1,7 +1,9 @@
+ """Explicit live MIDI open. Import of this module does not open a device."""
+ from __future__ import annotations
+ 
++from collections import OrderedDict, deque
+ from collections.abc import Callable, Iterator
++import threading
+ from typing import Any
+ 
+ from .ingress import select_production_port
+@@ -14,7 +16,99 @@ def open_live_input(port_name: str = PRODUCTION_PORT, available: list[str] | Non
+     mido.set_backend("mido.backends.rtmidi")
+     names = available if available is not None else mido.get_input_names()
+     selected = select_production_port(list(names), port_name)
+-    return mido.open_input(selected)
++    inbox = BoundedMidiInput()
++    port = mido.open_input(selected, callback=inbox.receive)
++    inbox.port = port
++    ignore = getattr(port, "ignore_types", None)
++    if callable(ignore):
++        ignore(sysex=False, timing=False, active_sensing=False)
++    return inbox
++
++
++class BoundedMidiInput:
++    """Callback publishes immutable messages; the owner drains one finite batch.
++
++    Absolute controls retain extrema and the latest value for soft pickup.
++    Other messages retain FIFO order
++    up to a fixed cap; every overflow is counted. No broker or serial work occurs
++    on the MIDI callback thread.
++    """
++    absolute_capacity = 128
++    other_capacity = 32
++
++    def __init__(self):
++        self.port = None
++        self._lock = threading.Lock()
++        self._absolute = OrderedDict()
++        self._other = deque()
++        self.received = self.coalesced = self.dropped = self.high_water = 0
++        self._closed = False
++
++    def receive(self, msg):
++        absolute = msg.type in {"pitchwheel", "control_change"}
++        key = (msg.type, getattr(msg, "channel", 0), getattr(msg, "control", None))
++        with self._lock:
++            if self._closed:
++                return
++            self.received += 1
++            if msg.type == "sysex" and len(msg.data) > 256:
++                self.dropped += 1
++                return
++            if absolute:
++                if key in self._absolute:
++                    self.coalesced += 1
++                elif len(self._absolute) == self.absolute_capacity:
++                    self._absolute.popitem(last=False)
++                    self.dropped += 1
++                record = (self.received, msg.copy())
++                previous = self._absolute.get(key)
++                value = lambda item: getattr(item[1], "pitch", getattr(item[1], "value", 0))
++                candidates = [record] if previous is None else [*previous, record]
++                self._absolute[key] = (min(candidates, key=value), max(candidates, key=value), record)
++                self._absolute.move_to_end(key)
++            else:
++                if len(self._other) == self.other_capacity:
++                    self._other.popleft()
++                    self.dropped += 1
++                self._other.append((self.received, msg.copy()))
++            self.high_water = max(self.high_water, 3*len(self._absolute)+len(self._other))
++
++    def iter_pending(self):
++        with self._lock:
++            records = {seq: msg for group in self._absolute.values() for seq, msg in group}
++            records.update(self._other)
++            batch = [records[seq] for seq in sorted(records)]
++            self._absolute.clear()
++            self._other.clear()
++        return iter(batch)
++
++    def metrics(self):
++        with self._lock:
++            return dict(received=self.received, coalesced=self.coalesced,
++                        dropped=self.dropped, high_water=self.high_water,
++                        depth=3*len(self._absolute)+len(self._other),
++                        capacity=3*self.absolute_capacity+self.other_capacity)
++
++    def close(self):
++        with self._lock:
++            self._closed = True
++            self._absolute.clear()
++            self._other.clear()
++        if self.port is not None:
++            self.port.close()
++
++
++def close_live_input(port) -> None:
++    out = getattr(port, "_smc_output", None)
++    if out is not None:
++        try:
++            out.close()
++        except Exception:
++            pass
++    try:
++        port.close()
++    except Exception:
++        pass
+ 
+ 
+ def iter_live(port, decode=decode_event) -> Iterator[dict[str, Any]]:
+@@ -35,6 +129,13 @@ def iter_live(port, decode=decode_event) -> Iterator[dict[str, Any]]:
+         event = decode(row)
+         if event is not None:
+             yield event
++            continue
++        yield {
++            "kind": "raw",
++            "type": msg.type,
++            "bytes": list(msg.bytes()),
++            "port": PRODUCTION_PORT,
++        }
+ 
+ 
+ def pump(port, on_event: Callable[[dict[str, Any]], None]) -> int:
+diff --git a/host/titan_control/smc_titan_control/mapping.py b/host/titan_control/smc_titan_control/mapping.py
+index aa52754..49bbb2b 100644
+--- a/host/titan_control/smc_titan_control/mapping.py
++++ b/host/titan_control/smc_titan_control/mapping.py
+@@ -18,29 +18,34 @@ class Mapper:
+         self.mode = int(mode)
+         self.auto_colour_shift = bool(auto_colour_shift)
+ 
++    def _map_absolute(self, event: dict[str, Any]) -> dict[str, Any] | None:
++        binding = binding_for(self.profile, "pitchwheel", int(event["channel"]))
++        if binding is None:
++            return None
++        if not enabled_for_mode(binding["target"], self.mode,
++                                auto_colour_shift=self.auto_colour_shift):
++            return None
++        lo, hi = binding["range"]
++        physical = float(event["physical"])
++        requested = lo + physical * (hi - lo)
++        if binding.get("uses_ceiling"):
++            ceiling = float((self.profile.get("intensity_ceiling") or {}).get("value", 1.0))
++            requested = min(requested, ceiling)
++        return {
++            "target": binding["target"],
++            "raw": event["raw14"],
++            "physical": physical,
++            "requested": requested,
++            "kind": "absolute",
++            "role": binding.get("role"),
++            "channel": int(event["channel"]),
++        }
++
+     def map_event(self, event: dict[str, Any]) -> dict[str, Any] | None:
+         if event.get("type") == "pitchwheel":
+-            binding = binding_for(self.profile, "pitchwheel", int(event["channel"]))
+-            if binding is None:
+-                return None
+-            if not enabled_for_mode(binding["target"], self.mode,
+-                                    auto_colour_shift=self.auto_colour_shift):
+-                return None
+-            lo, hi = binding["range"]
+-            physical = float(event["physical"])
+-            requested = lo + physical * (hi - lo)
+-            if binding.get("uses_ceiling"):
+-                ceiling = float((self.profile.get("intensity_ceiling") or {}).get("value", 1.0))
+-                requested = min(requested, ceiling)
+-            return {
+-                "target": binding["target"],
+-                "raw": event["raw14"],
+-                "physical": physical,
+-                "requested": requested,
+-                "kind": "absolute",
+-                "role": binding.get("role"),
+-                "channel": int(event["channel"]),
+-            }
++            return self._map_absolute(event)
++        if event.get("type") == "control_change" and event.get("raw14") is not None:
++            return self._map_absolute(event)
+         if event.get("type") == "control_change":
+             if is_unbound_cc(self.profile, int(event["cc"])):
+                 raise UnboundControl(f"cc {event['cc']} is unbound")
+diff --git a/host/titan_control/smc_titan_control/midi_decode.py b/host/titan_control/smc_titan_control/midi_decode.py
+index f54863a..c856a31 100644
+--- a/host/titan_control/smc_titan_control/midi_decode.py
++++ b/host/titan_control/smc_titan_control/midi_decode.py
+@@ -7,6 +7,10 @@ PRODUCTION_PORT = "SINCO SMC-Mixer-Master"
+ EXCLUDED_PORTS = ("SINCO SMC-Mixer-Private", "SMC-Mixer Bluetooth")
+ RAW14_MAX = 16256
+ GRID = 128
++# Live 2026-09-26 H1: slider 7 arrived as CC 46 on channel 0, 0..127.
++# CC 40-47 = sliders 1-8. Pitchwheel remains valid when the mixer emits it.
++FADER_CC_BASE = 40
++FADER_CC_LAST = 47
+ 
+ 
+ class MidiDecodeError(ValueError):
+@@ -60,12 +64,29 @@ def decode_event(row: Mapping[str, Any]) -> dict[str, Any] | None:
+             "port": row.get("port"),
+         }
+     if kind == "control_change":
++        cc = int(decoded["control"])
++        channel = int(decoded["channel"])
++        value = int(decoded["value"])
++        if channel == 0 and FADER_CC_BASE <= cc <= FADER_CC_LAST:
++            if value < 0 or value > 127:
++                raise MidiDecodeError(f"fader CC {cc} value {value} outside 0..127")
++            raw14 = validate_grid(value * GRID)
++            return {
++                "kind": "absolute",
++                "type": "control_change",
++                "channel": cc - FADER_CC_BASE,
++                "cc": cc,
++                "value": value,
++                "raw14": raw14,
++                "physical": normalised(raw14),
++                "port": row.get("port"),
++            }
+         return {
+             "kind": "cc",
+             "type": "control_change",
+-            "channel": int(decoded["channel"]),
+-            "cc": int(decoded["control"]),
+-            "value": int(decoded["value"]),
++            "channel": channel,
++            "cc": cc,
++            "value": value,
+             "port": row.get("port"),
+         }
+     if kind == "note_on":
+diff --git a/host/titan_control/tests/test_negatives.py b/host/titan_control/tests/test_negatives.py
+index b1dd1cf..3b28864 100644
+--- a/host/titan_control/tests/test_negatives.py
++++ b/host/titan_control/tests/test_negatives.py
+@@ -64,7 +64,7 @@ class NegativeTests(unittest.TestCase):
+     def test_forbidden_field(self):
+         broker = InProcessBroker(revision=1, mode_a=8)
+         reply = broker.request({"op": "patch", "session": broker.session, "request_id": 1,
+-                                "revision": 1, "fields": {"emit_on": 1}})
++                                "revision": 1, "boot_id": 1, "fields": {"emit_on": 1}})
+         self.assertFalse(reply["ok"])
+         self.assertEqual(broker.emit_on, 0)
+ 
+@@ -75,6 +75,7 @@ class NegativeTests(unittest.TestCase):
+             "session": broker.session,
+             "request_id": 1,
+             "revision": 1,
++            "boot_id": 1,
+             "fields": {"visual_a.hue_position": 0.2, "visual_a.chroma": 2.0},
+         })
+         self.assertFalse(reply["ok"])
+@@ -138,7 +139,8 @@ class NegativeTests(unittest.TestCase):
+     def test_stale_revision(self):
+         broker = InProcessBroker(revision=9, mode_a=8)
+         reply = broker.request({"op": "patch", "session": broker.session, "request_id": 1,
+-                                "revision": 1, "fields": {"visual_a.vp_waveform_shift_rate": 40.0}})
++                                "revision": 1, "boot_id": 1,
++                                "fields": {"visual_a.vp_waveform_shift_rate": 40.0}})
+         self.assertEqual(reply["error"], "stale")
+         self.assertEqual(broker.visual_a["hue_position"], 0.0)
+ 
+diff --git a/host/titan_control/tests/test_no_hw_io.py b/host/titan_control/tests/test_no_hw_io.py
+index faca338..e87fdad 100644
+--- a/host/titan_control/tests/test_no_hw_io.py
++++ b/host/titan_control/tests/test_no_hw_io.py
+@@ -46,13 +46,26 @@ class NoHardwareImportTests(unittest.TestCase):
+     def test_package_does_not_import_midi_or_serial_at_module_level(self):
+         for path in PKG.rglob("*.py"):
+             tree = ast.parse(path.read_text())
+-            allowed = LIVE_MIDI_FUNCS if path.name == "live_midi.py" else set()
++            if path.name == "live_midi.py":
++                allowed = LIVE_MIDI_FUNCS
++            elif path.name == "surface_viewer.py":
++                allowed = {"midi_loop"}
++            elif path.name == "performance_live.py":
++                allowed = {"run_performance"}
++            elif path.name == "emotiscope_live.py":
++                allowed = {"run_emotiscope"}
++            elif path.name == "listen.py":
++                allowed = {"run_listen"}
++            else:
++                allowed = set()
+             hits = _banned_at_module_level(tree, allowed)
+             self.assertFalse(hits, msg=f"{path}: {hits}")
+ 
+     def test_import_help_and_replay_do_not_load_serial_or_mido(self):
+         before = set(sys.modules)
+         import smc_titan_control  # noqa: F401
++        import smc_titan_control.performance_live  # noqa: F401; no MIDI import/open
++        import smc_titan_control.emotiscope_live  # noqa: F401; MIDI import stays inside run_emotiscope
+         from smc_titan_control.cli import build_parser, replay
+ 
+         parser = build_parser()
+diff --git a/host/titan_control/tests/test_r2_path.py b/host/titan_control/tests/test_r2_path.py
+index 35d8dfb..9ed3a29 100644
+--- a/host/titan_control/tests/test_r2_path.py
++++ b/host/titan_control/tests/test_r2_path.py
+@@ -74,6 +74,8 @@ class ProtocolDevice:
+             if sub != proto.CFG_PATCH:
+                 return {"ok": False, "status": 3, "body": b""}
+             patch = proto.unpack_patch(payload)
++            if int(patch.get("boot_id") or 0) != int(self.cfg.get("boot_id") or 0):
++                return {"ok": False, "status": 6, "body": b""}
+             if int(patch["revision"]) != int(self.cfg["revision"]):
+                 return {"ok": False, "status": 5, "body": b""}
+             if self.stale_body_once:
+diff --git a/host/titan_control/tests/test_review_regressions.py b/host/titan_control/tests/test_review_regressions.py
+index fd476a8..ed2be72 100644
+--- a/host/titan_control/tests/test_review_regressions.py
++++ b/host/titan_control/tests/test_review_regressions.py
+@@ -87,6 +87,17 @@ class ReviewRegressions(unittest.TestCase):
+         adapter.flush()
+         self.assertEqual(broker.seen_request_ids, [1, 2])
+ 
++    def test_wrong_boot_cancels_without_apply(self):
++        adapter, broker = _ready_broker()
++        _gesture(adapter, 0.0)
++        _gesture(adapter, 1.0)
++        broker.boot_id = int(adapter.boot_id) + 1
++        applied = adapter.flush()
++        self.assertEqual(applied, [])
++        self.assertEqual(broker.visual_a["vp_waveform_shift_rate"], 0.0)
++        self.assertEqual(adapter.last_error, "wrong_boot")
++        self.assertFalse(adapter.ready)
++
+     def test_mode32_does_not_claim_eight_controls(self):
+         broker = InProcessBroker(revision=2, mode_a=32)
+         adapter = Adapter(BrokerClient(broker), load_profile())

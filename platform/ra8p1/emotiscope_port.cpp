@@ -159,6 +159,70 @@ extern "C" bool k1_emotiscope_set_config(const K1EmotiscopeConfig* input){
 extern "C" void k1_emotiscope_get_config(K1EmotiscopeConfig* out){
   if(out)std::memcpy(out,&emotiscope::configuration,sizeof(*out));
 }
+static bool emotiscope_unit_float(float value){
+  return std::isfinite(value) && value>=0.0f && value<=1.0f;
+}
+extern "C" bool k1_emotiscope_patch(const K1EmotiscopePatch* patch,uint32_t* changed,uint32_t* mode_transition){
+  using namespace emotiscope;
+  if(changed)*changed=0;
+  if(mode_transition)*mode_transition=0;
+  if(!initialized || !patch || (patch->mask & ~0x3FFFu))return false;
+  K1EmotiscopeConfig next;
+  std::memcpy(&next,&configuration,sizeof(next));
+  const uint32_t mask=patch->mask;
+  if(mask&1u && !emotiscope_unit_float(patch->brightness))return false;
+  if(mask&2u && !emotiscope_unit_float(patch->softness))return false;
+  if(mask&4u && !emotiscope_unit_float(patch->color))return false;
+  if(mask&8u && !emotiscope_unit_float(patch->warmth))return false;
+  if(mask&16u && !emotiscope_unit_float(patch->color_range))return false;
+  if(mask&32u && !emotiscope_unit_float(patch->speed))return false;
+  if(mask&64u && !emotiscope_unit_float(patch->saturation))return false;
+  if(mask&128u && !emotiscope_unit_float(patch->background))return false;
+  if(mask&256u && (patch->current_mode<0 || patch->current_mode>6))return false;
+  const uint8_t flags[]={patch->mirror_mode,patch->screensaver,patch->temporal_dithering,
+    patch->auto_color_cycle,patch->reverse_color_range};
+  for(unsigned i=0;i<5;++i) if((mask&(1u<<(9+i))) && flags[i]>1u) return false;
+  if(mask&1u) next.brightness=patch->brightness;
+  if(mask&2u) next.softness=patch->softness;
+  if(mask&4u) next.color=patch->color;
+  if(mask&8u) next.warmth=patch->warmth;
+  if(mask&16u) next.color_range=patch->color_range;
+  if(mask&32u) next.speed=patch->speed;
+  if(mask&64u) next.saturation=patch->saturation;
+  if(mask&128u) next.background=patch->background;
+  if(mask&256u) next.current_mode=patch->current_mode;
+  if(mask&512u) next.mirror_mode=patch->mirror_mode!=0;
+  if(mask&1024u) next.screensaver=patch->screensaver!=0;
+  if(mask&2048u) next.temporal_dithering=patch->temporal_dithering!=0;
+  if(mask&4096u) next.auto_color_cycle=patch->auto_color_cycle!=0;
+  if(mask&8192u) next.reverse_color_range=patch->reverse_color_range!=0;
+  const bool mode_changed=(mask&256u) && configuration.current_mode!=next.current_mode;
+  const bool any=std::memcmp(&configuration,&next,sizeof(next))!=0;
+  if(!any)return true;
+  std::memcpy(&configuration,&next,sizeof(configuration));
+  if(mode_changed)lpf_drag=1.0f;
+  if(changed)*changed=1u;
+  if(mode_transition)*mode_transition=mode_changed?1u:0u;
+  return true;
+}
+extern "C" float k1_emotiscope_effective_hue(void){
+  const float color=emotiscope::configuration.color;
+  if(!std::isfinite(color))return 0.0f;
+  float wrapped=color-std::floor(color);
+  if(wrapped<0.0f)wrapped+=1.0f;
+  if(wrapped>=1.0f)wrapped=0.0f;
+  return wrapped;
+}
+#ifdef K1_EMOTISCOPE_TEST_SEAM
+extern "C" void k1_emotiscope_test_set_raw_color(float color){
+  emotiscope::configuration.color=color;
+}
+extern "C" float k1_emotiscope_test_lpf_drag(void){return emotiscope::lpf_drag;}
+extern "C" void k1_emotiscope_test_set_novelty_sample(float value){
+  emotiscope::novelty_curve[10]=value;
+}
+extern "C" float k1_emotiscope_test_novelty_sample(void){return emotiscope::novelty_curve[10];}
+#endif
 extern "C" bool k1_emotiscope_push_pcm64(const float* samples,uint32_t now_us){
   using namespace emotiscope;
   if(!initialized||!samples){++rejected_audio_chunks;return false;}

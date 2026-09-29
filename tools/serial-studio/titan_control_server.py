@@ -12,10 +12,17 @@ import time
 from pathlib import Path
 from typing import Callable
 
+import emotiscope_control as donor
 import live_protocol as proto
 
-ALLOWED_OPS = frozenset({"hello", "get_config", "patch", "performance", "selection", "snapshot"})
-ALLOWED_WRITE_OPS = frozenset({"patch", "performance", "selection", "get_config", "snapshot"})
+ALLOWED_OPS = frozenset({
+    "hello", "get_config", "patch", "performance", "selection", "snapshot",
+    "emotiscope_get", "emotiscope_patch",
+})
+ALLOWED_WRITE_OPS = frozenset({
+    "patch", "performance", "selection", "get_config", "snapshot",
+    "emotiscope_get", "emotiscope_patch",
+})
 APPROVAL_FILES = ("accepted-checkpoint.json", "accepted-candidate.json")
 FORBIDDEN_CONFIG_SUBS = frozenset(
     {
@@ -106,7 +113,7 @@ def hardware_writes_admitted(evidence: Path, bound: dict | None = None) -> tuple
         return False, "ops_type"
     if any(op not in ALLOWED_WRITE_OPS for op in ops):
         return False, "ops_denied"
-    if "patch" not in ops:
+    if "patch" not in ops and "emotiscope_patch" not in ops:
         return False, "ops_denied"
     scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
     if scoped is not None:
@@ -165,6 +172,7 @@ class RestrictedControlPlane:
         self.forbidden_attempts = 0
         self.hw_writes = 0
         self.last_config: dict | None = None
+        self.last_donor: dict | None = None
         self._io = threading.Lock()
         self._outstanding = 0
 
@@ -180,6 +188,10 @@ class RestrictedControlPlane:
                 return self._get_config(request)
             if op == "snapshot":
                 return self._snapshot(request)
+            if op == "emotiscope_get":
+                return self._emotiscope_get(request)
+            if op == "emotiscope_patch":
+                return self._emotiscope_patch(request, conn_id)
             return self._patch(request, conn_id)
         except RestrictedControlError as exc:
             return {"ok": False, "error": exc.code, "detail": exc.detail}
@@ -188,6 +200,7 @@ class RestrictedControlPlane:
         self.session.bound = bound or self.session.bound
         self.session.rotate()
         self.last_config = None
+        self.last_donor = None
 
     def _hello(self, conn_id: str | None) -> dict:
         if conn_id:
@@ -317,6 +330,8 @@ class RestrictedControlPlane:
         rec = load_approval_record(self.evidence)
         if request.get("op") in {"performance", "selection"} and (rec is None or request["op"] not in rec.get("ops", [])):
             return {"ok": False, "error": "ops_denied", "admit_reason": "performance_not_admitted"}
+        if request.get("op") == "patch" and (rec is None or "patch" not in rec.get("ops", [])):
+            return {"ok": False, "error": "ops_denied", "admit_reason": "legacy_patch_not_admitted"}
         scoped = None
         if rec is not None:
             scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
@@ -372,6 +387,198 @@ class RestrictedControlPlane:
             "last_patch_request_id": cfg.get("last_patch_request_id"),
             "boot_id": cfg.get("boot_id"),
         }
+
+    def _donor_ids(self, request: dict) -> tuple[int, int, int] | dict:
+        request_id = request.get("request_id")
+        boot_id = request.get("boot_id")
+        revision = request.get("revision", 0)
+        if request_id is None:
+            return {"ok": False, "error": "request_id_required"}
+        if boot_id is None:
+            return {
+                "ok": False,
+                "error": "missing_boot_id",
+                "request_id": int(request_id) if isinstance(request_id, int) else request_id,
+                "session": self.session.token,
+            }
+        try:
+            return int(request_id), int(boot_id), int(revision)
+        except (TypeError, ValueError):
+            return {"ok": False, "error": "forbidden_or_invalid_field"}
+
+    def _donor_reply(self, got: dict, request_id: int, wrote: bool) -> dict:
+        body = got.get("body") or b""
+        state = _decode_donor_body(body) if isinstance(body, (bytes, bytearray)) else None
+        status = int(got.get("status") or 0)
+        if got.get("ok") and status == 0 and state is not None:
+            self.last_donor = state
+            if wrote:
+                self.hw_writes += 1
+            return {
+                "ok": True,
+                "state": state,
+                "revision": state["revision"],
+                "boot_id": state["boot_id"],
+                "request_id": request_id,
+                "accepted_request_id": state["accepted_request_id"],
+                "rendered_request_id": state["rendered_request_id"],
+                "emitted_request_id": state["emitted_request_id"],
+                "dedup": state["dedup"],
+                "changed": state["changed"],
+                "mode_transition": state["mode_transition"],
+                "session": self.session.token,
+                "status": 0,
+            }
+        error = _DONOR_STATUS.get(status, "patch_rejected")
+        if state is None and status == 0:
+            error = "donor_framing"
+        reply = {
+            "ok": False,
+            "error": error,
+            "status": status,
+            "request_id": request_id,
+            "session": self.session.token,
+        }
+        if state is not None:
+            self.last_donor = state
+            reply["state"] = state
+            reply["revision"] = state["revision"]
+            reply["boot_id"] = state["boot_id"]
+        return reply
+
+    def _emotiscope_get(self, request: dict) -> dict:
+        err = self._require_session(request)
+        if err:
+            return {"ok": False, "error": err}
+        ids = self._donor_ids(request)
+        if isinstance(ids, dict):
+            return ids
+        request_id, boot_id, _revision = ids
+        try:
+            wire = donor.encode_get(request_id, boot_id)
+        except (ValueError, TypeError, OverflowError) as exc:
+            self.forbidden_attempts += 1
+            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
+        if self.transact is None:
+            if self.last_donor is None:
+                return {"ok": False, "error": "ADMISSION_HOLD"}
+            return {"ok": True, "state": self.last_donor, "session": self.session.token, "cached": True}
+        got = self._transact(25, wire)
+        return self._donor_reply(got, request_id, wrote=False)
+
+    def _emotiscope_patch(self, request: dict, conn_id: str | None) -> dict:
+        err = self._require_session(request)
+        if err:
+            return {"ok": False, "error": err}
+        if conn_id and self.session.writer_id not in (None, conn_id):
+            return {"ok": False, "error": "writer_busy"}
+        if conn_id and self.session.writer_id is None:
+            self.session.writer_id = conn_id
+        fields = request.get("fields")
+        if not isinstance(fields, dict) or len(fields) > 16:
+            return {"ok": False, "error": "empty_patch" if not isinstance(fields, dict) else "too_many_fields"}
+        ids = self._donor_ids(request)
+        if isinstance(ids, dict):
+            return ids
+        request_id, boot_id, revision = ids
+        try:
+            wire = donor.encode_patch(request_id, boot_id, revision, fields)
+        except (ValueError, TypeError, OverflowError, KeyError) as exc:
+            self.forbidden_attempts += 1
+            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
+        if donor.PATCH_SUB != int.from_bytes(wire[:4], "little"):
+            self.forbidden_attempts += 1
+            return {"ok": False, "error": "would_emit_whole_config"}
+        if (self.evidence / "quiesce.flag").exists():
+            return {
+                "ok": False,
+                "error": "hold",
+                "request_id": request_id,
+                "session": self.session.token,
+                "queued_cleared": True,
+            }
+        admitted, reason = hardware_writes_admitted(self.evidence, self.session.bound)
+        if self.transact is None or not admitted:
+            return {
+                "ok": False,
+                "error": "ADMISSION_HOLD",
+                "admit_reason": reason,
+                "request_id": request_id,
+                "session": self.session.token,
+                "queued_cleared": False,
+            }
+        rec = load_approval_record(self.evidence)
+        if rec is None or "emotiscope_patch" not in rec.get("ops", []):
+            return {"ok": False, "error": "ops_denied", "admit_reason": "emotiscope_patch_not_admitted"}
+        scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
+        if scoped is not None and set(fields) - set(scoped):
+            return {
+                "ok": False,
+                "error": "ops_denied",
+                "admit_reason": "field_scope",
+                "request_id": request_id,
+                "session": self.session.token,
+            }
+        got = self._transact(25, wire)
+        return self._donor_reply(got, request_id, wrote=True)
+
+
+def donor_public_state(state: dict) -> dict:
+    flags = int(state["flags"])
+    applicability = int(state["applicability"])
+    return {
+        "boot_id": state["boot_id"],
+        "revision": state["revision"],
+        "request_id": state["request_id"],
+        "brightness": state["brightness"],
+        "softness": state["softness"],
+        "color": state["color"],
+        "effective_hue": state["effective_hue"],
+        "warmth": state["warmth"],
+        "color_range": state["color_range"],
+        "speed": state["speed"],
+        "saturation": state["saturation"],
+        "background": state["background"],
+        "mode": state["mode"],
+        "mirror_mode": bool(flags & 1),
+        "screensaver": bool(flags & 2),
+        "temporal_dithering": bool(flags & 4),
+        "auto_color_cycle": bool(flags & 8),
+        "reverse_color_range": bool(flags & 16),
+        "emission_enabled": bool(flags & 32),
+        "hardware_output_brightness": state["output_brightness"],
+        "applicability": applicability,
+        "speed_applicable": bool(applicability & (1 << 5)),
+        "reverse_applicable": bool(applicability & (1 << 13)),
+        "accepted_request_id": state["accepted_request_id"],
+        "rendered_request_id": state["rendered_request_id"],
+        "emitted_request_id": state["emitted_request_id"],
+        "rendered_frame": state["rendered_frame"],
+        "last_status": state["last_status"],
+        "dedup": state["dedup"],
+        "changed": state["changed"],
+        "mode_transition": state["mode_transition"],
+        "schema_sha256": state["schema"].hex(),
+    }
+
+
+_DONOR_STATUS = {
+    3: "invalid",
+    5: "stale",
+    6: "wrong_boot",
+    7: "request_conflict",
+    9: "reconcile",
+    10: "busy",
+}
+
+
+def _decode_donor_body(body: bytes) -> dict | None:
+    if len(body) != donor.STATE_BYTES:
+        return None
+    state = donor.decode_state(body)
+    if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * 20:
+        return None
+    return donor_public_state(state)
 
 
 def _visual_get(cfg: dict, name: str):

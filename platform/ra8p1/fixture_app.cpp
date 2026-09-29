@@ -38,6 +38,7 @@
 #include "palette_runtime.h"
 #ifdef K1_EMOTISCOPE_PORT
 #include "emotiscope_port.h"
+#include "emotiscope_control.h"
 #endif
 #include "palette_clock.h"
 #include "hd_pixel16.h"
@@ -77,7 +78,11 @@ std::uint32_t live_cfg_revision = 0;
 // Single foreground producer and RT owner; USB RX remains backpressured until
 // the immutable command is applied and its response is transmitted.
 enum class ControlPhase : std::uint8_t { Empty, Queued, Applied };
-enum class ControlKind : std::uint8_t { Palette, Patch, Performance, PerformanceScene, PerformanceAudition, PerformanceSelection };
+enum class ControlKind : std::uint8_t { Palette, Patch, Performance, PerformanceScene, PerformanceAudition, PerformanceSelection,
+#ifdef K1_EMOTISCOPE_PORT
+  Donor
+#endif
+};
 k1::titan::PerformanceRamp performance_ramp;
 k1::titan::PerformanceAudition performance_auditions[16];
 auto& performance_audition=performance_auditions[0]; // level lease, retained test name
@@ -90,8 +95,15 @@ struct PendingControl {
   std::uint32_t base_revision = 0;
   std::uint32_t request_id = 0;
   std::uint32_t status = 0;
+#ifdef K1_EMOTISCOPE_PORT
+  k1::emotiscope::DonorIntent donor{};
+  std::uint8_t donor_response[k1::emotiscope::kDonorStateBytes]{};
+#endif
 };
 PendingControl pending_control;
+#ifdef K1_EMOTISCOPE_PORT
+k1::emotiscope::DonorDedup donor_dedup;
+#endif
 std::uint32_t control_queued = 0, control_applied = 0;
 std::uint32_t control_overlap = 0, readonly_started_pair = 0;
 bool realtime_owner_active = false;
@@ -1291,6 +1303,54 @@ std::size_t control_palette_status(char* out, std::size_t capacity) {
 #endif
 }
 #endif
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+void donor_queue_config(std::uint32_t size) {
+  if (pending_control.phase != ControlPhase::Empty || realtime_owner_active) {
+    error(10);
+    return;
+  }
+  k1::emotiscope::DonorIntent intent{};
+  const std::uint32_t status = k1::emotiscope::donorParse(rx + 32, size, &intent);
+  if (status != 0U) {
+    error(status);
+    return;
+  }
+  pending_control.kind = ControlKind::Donor;
+  pending_control.donor = intent;
+  pending_control.request_id = intent.request_id;
+  pending_control.status = 0;
+  ++control_queued;
+  pending_control.phase = ControlPhase::Queued;
+}
+void donor_apply_pending() {
+  k1::emotiscope::DonorObserved observed{};
+  observed.boot_id = live_cfg.boot_id;
+  observed.revision = live_cfg_revision;
+  observed.hardware_brightness = palettes.config().brightness;
+  observed.emission = palettes.emitEnabled() ? 1U : 0U;
+  observed.accepted_request_id = live_render_receipt.accepted_request_id;
+  observed.rendered_request_id = live_render_receipt.rendered_request_id;
+  observed.emitted_request_id = live_render_receipt.emitted_request_id;
+  observed.rendered_frame = live_render_frames;
+  live_hex32(kTitanLiveSchemaSha256, observed.schema_sha);
+  k1::emotiscope::DonorApplyResult result{};
+  k1::emotiscope::donorApply(&donor_dedup, pending_control.donor, observed, &result);
+  pending_control.status = result.status;
+  std::memcpy(pending_control.donor_response, result.response, k1::emotiscope::kDonorStateBytes);
+  if (result.brightness_changed) palettes.setHardwareBrightness(result.hardware_brightness);
+  if (result.emission_changed && palettes.setEmissionEnabled(result.emission != 0U))
+    pair_begin_black_shutdown();
+  if (result.mode_changed) palettes.noteDonorMode(static_cast<std::uint32_t>(result.mode));
+  if (result.revision_changed) {
+    live_cfg_revision = result.revision;
+    live_cfg.revision = result.revision;
+    k1::titan::liveNotePatchAccepted(&live_render_receipt, pending_control.donor.request_id,
+                                    result.revision);
+    live_runtime.setRenderReceipt(live_render_receipt);
+  }
+  if (result.status != 0U) ++rejected;
+}
+#endif
 void execute() {
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
   struct LifecycleWitness {
@@ -1318,9 +1378,8 @@ void execute() {
 #endif
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
-#ifdef K1_EMOTISCOPE_PORT
-  // The donor has its own controls. Do not acknowledge old Titan performance
-  // mutations that cannot affect this render engine.
+#if defined(K1_EMOTISCOPE_PORT) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
+  // Pair-owner builds replace this reject with the donor GET/PATCH queue.
   if (command == k1::titan::kLiveConfigOpcode) { error(3); return; }
 #endif
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
@@ -1366,6 +1425,9 @@ void execute() {
     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
   } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U || size == 40U)) {
+#ifdef K1_EMOTISCOPE_PORT
+    error(3); return;
+#endif
 #ifdef K1_RESIDENT_SCHEDULE
     if (k1_fixture_schedule_active()) { error(10); return; }
 #endif
@@ -1450,7 +1512,11 @@ void execute() {
         reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), after);
     if (!n) error(8); else respond(0, 0, trace.data, n);
   } else if (command == k1::titan::kLiveConfigOpcode) {
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+    donor_queue_config(size);
+#else
     live_handle_config(size);
+#endif
 #endif
   } else if (command == k1::titan::kPaletteFrameOpcode && size == 4U) {
     const auto channel = get32(rx+32);
@@ -1489,11 +1555,7 @@ void execute() {
       "\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true"
 #ifdef K1_LIVE_RUNTIME
       ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"boot_id\":%lu,\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":"
-#ifdef K1_EMOTISCOPE_PORT
-      "false"
-#else
       "true"
-#endif
       ",\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":"
 #ifdef K1_EMOTISCOPE_PORT
       "false"
@@ -1504,7 +1566,9 @@ void execute() {
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       ",\"pair_fixture\":true"
 #ifdef K1_EMOTISCOPE_PORT
-      ",\"emotiscope\":true,\"donor_mode_config_opcode\":16,"
+      ",\"emotiscope\":true,\"donor_mode_config_opcode\":25,"
+      "\"donor_get_sub\":1162674433,\"donor_patch_sub\":1162674434,"
+      "\"palette_configure_rejected\":true,"
       "\"legacy_performance_controls\":false,\"spectrum_bins\":64,"
       "\"chroma_origin\":\"D#/Eb\",\"render_hz\":100"
 #endif
@@ -1900,6 +1964,10 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   struct OwnerExit { ~OwnerExit() { realtime_owner_active = false; } } owner_exit;
   if (pending_control.phase == ControlPhase::Queued &&
       !k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+#ifdef K1_EMOTISCOPE_PORT
+    if (pending_control.kind != ControlKind::Donor) pending_control.status = 3;
+    else donor_apply_pending();
+#else
     if (pending_control.kind == ControlKind::Palette) {
       performance_ramp.cancel();
       for(auto& lease:performance_auditions)lease.active=false;
@@ -1940,11 +2008,12 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
                                       pending_control.request_id, live_cfg.revision);
       live_runtime.setRenderReceipt(live_render_receipt);
     }
+#endif
     ++control_applied;
     pending_control.phase = ControlPhase::Applied;
   }
 #endif
-#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR) && !defined(K1_EMOTISCOPE_PORT)
   // Device-owned timeout restores a momentary gesture even if the host dies.
   // It runs only in this owner and never writes a DMA-owned frame.
   if (!k1_ws281x_gpt_dma_hw_pair_transmitting()) {
@@ -2053,6 +2122,14 @@ extern "C" void k1_fixture_control_service(void) {
     if (fill && !tx_size && pending_control.phase == ControlPhase::Empty) error(9);
   }
   if (pending_control.phase != ControlPhase::Applied || tx_size) return;
+#ifdef K1_EMOTISCOPE_PORT
+  if (pending_control.kind == ControlKind::Donor) {
+    respond(pending_control.status, 0,
+            reinterpret_cast<const char*>(pending_control.donor_response),
+            k1::emotiscope::kDonorStateBytes);
+  } else if (pending_control.status) error(pending_control.status);
+  else error(3);
+#else
   if (pending_control.status) error(pending_control.status);
   else {
     const auto n = pending_control.kind == ControlKind::Palette
@@ -2061,6 +2138,7 @@ extern "C" void k1_fixture_control_service(void) {
                                       sizeof(trace.data), live_cfg);
     if (!n) error(8); else respond(0, 0, trace.data, n);
   }
+#endif
   pending_control.phase = ControlPhase::Empty;
 #endif
 }

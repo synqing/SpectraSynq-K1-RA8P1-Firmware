@@ -10,6 +10,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
+import emotiscope_control as donor  # noqa: E402
 import live_protocol as proto  # noqa: E402
 from titan_control_server import (  # noqa: E402
     ControlServer,
@@ -302,6 +303,231 @@ def test_one_connection_many_requests(tmp_path):
         server.close()
 
 
+def _donor_state(request_id, boot_id=0x11, revision=4, brightness=0.5, mode=1, flags=39, output=100, accepted=4):
+    import struct
+    body = bytearray(donor.STATE_BYTES)
+    def pu(off, value):
+        struct.pack_into("<I", body, off, int(value) & 0xFFFFFFFF)
+    def pf(off, value):
+        struct.pack_into("<f", body, off, float(value))
+    pu(0, donor.STATE_MAGIC)
+    pu(4, 1)
+    pu(8, 1)
+    pu(12, boot_id)
+    pu(16, revision)
+    pu(20, request_id)
+    pf(24, brightness)
+    pf(28, 0.25)
+    pf(32, 0.33)
+    pf(56, 0.33)
+    struct.pack_into("<i", body, 60, mode)
+    pu(64, flags)
+    pu(68, output)
+    pu(72, 0xDFDF)
+    pu(76, accepted)
+    return bytes(body)
+
+
+def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["patch","emotiscope_patch"]}\n'
+        % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    fake = FakeTransport()
+    plane = RestrictedControlPlane(transact=fake.transact, evidence=evidence, bound=_bound())
+    hello = plane.handle({"op": "hello"})
+    legacy = plane.handle({
+        "op": "patch",
+        "session": hello["session"],
+        "request_id": 7,
+        "revision": 3,
+        "boot_id": 1,
+        "fields": {"visual_a.vp_waveform_shift_rate": 40.0},
+    })
+    assert legacy["ok"] is True
+    assert proto._u32(fake.ops[-1][1], 0) == proto.CFG_PATCH
+    calls = []
+
+    def donor_transact(op, payload):
+        calls.append((op, bytes(payload)))
+        return {"ok": True, "status": 0, "body": _donor_state(3, accepted=3, revision=9, brightness=0.5)}
+
+    plane.transact = donor_transact
+    scene = {name: 0.5 for name in (
+        "brightness", "softness", "color", "warmth", "color_range", "speed", "saturation", "background")}
+    scene.update({
+        "current_mode": 1,
+        "mirror_mode": 1,
+        "screensaver": 1,
+        "temporal_dithering": 1,
+        "auto_color_cycle": 0,
+        "reverse_color_range": 0,
+        "hardware_output_brightness": 100,
+    })
+    got = plane.handle({
+        "op": "emotiscope_patch",
+        "session": hello["session"],
+        "request_id": 3,
+        "revision": 8,
+        "boot_id": 0x11,
+        "fields": scene,
+    })
+    assert got["ok"] is True
+    assert got["state"]["brightness"] == 0.5
+    assert got["state"]["hardware_output_brightness"] == 100
+    assert got["state"]["emission_enabled"] is True
+    assert calls[0][0] == 25
+    assert calls[0][1] == donor.encode_patch(3, 0x11, 8, scene)
+    assert proto._u32(calls[0][1], 0) == donor.PATCH_SUB
+    assert len(calls[0][1]) == 24 + 15 * 8
+
+
+def test_donor_patch_rejected_by_legacy_only_approval(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["patch"]}\n' % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    calls = []
+    plane = RestrictedControlPlane(
+        transact=lambda op, payload: calls.append(op) or {"ok": True, "status": 0, "body": b""},
+        evidence=evidence,
+        bound=_bound(),
+    )
+    hello = plane.handle({"op": "hello"})
+    got = plane.handle({
+        "op": "emotiscope_patch",
+        "session": hello["session"],
+        "request_id": 1,
+        "revision": 0,
+        "boot_id": 1,
+        "fields": {"brightness": 0.5},
+    })
+    assert got["ok"] is False
+    assert got["error"] == "ops_denied"
+    assert calls == []
+
+
+def test_legacy_patch_rejected_by_donor_only_approval(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n' % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    assert hardware_writes_admitted(evidence, _bound()) == (True, "ok")
+    calls = []
+    plane = RestrictedControlPlane(
+        transact=lambda op, payload: calls.append(op) or {"ok": True, "status": 0, "body": b""},
+        evidence=evidence,
+        bound=_bound(),
+    )
+    hello = plane.handle({"op": "hello"})
+    got = plane.handle({
+        "op": "patch",
+        "session": hello["session"],
+        "request_id": 1,
+        "revision": 0,
+        "boot_id": 1,
+        "fields": {"visual_a.hue_position": 0.2},
+    })
+    assert got["ok"] is False
+    assert got["admit_reason"] == "legacy_patch_not_admitted"
+    assert calls == []
+
+
+def test_donor_invalid_values_do_not_transact(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n' % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    calls = []
+    plane = RestrictedControlPlane(
+        transact=lambda op, payload: calls.append(payload) or {"ok": False, "status": 3, "body": b""},
+        evidence=evidence,
+        bound=_bound(),
+    )
+    hello = plane.handle({"op": "hello"})
+    base = {"op": "emotiscope_patch", "session": hello["session"], "request_id": 4, "revision": 1, "boot_id": 2}
+    for fields in ({"current_mode": 7}, {"current_mode": 8}, {"brightness": float("nan")},
+                   {"hardware_output_brightness": 256}, {"mirror_mode": 2}):
+        got = plane.handle({**base, "fields": fields})
+        assert got["ok"] is False
+        assert got["error"] == "forbidden_or_invalid_field"
+    zero = plane.handle({**base, "request_id": 0, "fields": {"brightness": 0.5}})
+    assert zero["ok"] is False
+    assert calls == []
+
+
+def test_approval_without_either_write_capability_denied(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["get_config"]}\n' % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    ok, reason = hardware_writes_admitted(evidence, _bound())
+    assert ok is False
+    assert reason == "ops_denied"
+
+
+def test_donor_get_uses_get_discriminator(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    calls = []
+
+    def transact(op, payload):
+        calls.append((op, bytes(payload)))
+        return {"ok": True, "status": 0, "body": _donor_state(9, revision=5)}
+
+    plane = RestrictedControlPlane(transact=transact, evidence=evidence, bound=_bound())
+    hello = plane.handle({"op": "hello"})
+    got = plane.handle({
+        "op": "emotiscope_get",
+        "session": hello["session"],
+        "request_id": 9,
+        "boot_id": 0x11,
+    })
+    assert got["ok"] is True
+    assert got["state"]["revision"] == 5
+    assert calls == [(25, donor.encode_get(9, 0x11))]
+    assert proto._u32(calls[0][1], 0) == donor.GET_SUB
+
+
+def test_donor_conflict_returns_state_without_counting_a_write(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n' % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    plane = RestrictedControlPlane(
+        transact=lambda op, payload: {"ok": False, "status": 7, "body": _donor_state(1, revision=3, brightness=0.25)},
+        evidence=evidence,
+        bound=_bound(),
+    )
+    hello = plane.handle({"op": "hello"})
+    before = plane.hw_writes
+    got = plane.handle({
+        "op": "emotiscope_patch",
+        "session": hello["session"],
+        "request_id": 2,
+        "revision": 3,
+        "boot_id": 0x11,
+        "fields": {"brightness": 0.2},
+    })
+    assert got["ok"] is False
+    assert got["error"] == "request_conflict"
+    assert got["state"]["brightness"] == 0.25
+    assert plane.hw_writes == before
+
+
 if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as d:
         root = Path(d)
@@ -320,4 +546,11 @@ if __name__ == "__main__":
         test_second_server_refuses_live_socket(root / "busy")
         test_one_connection_many_requests(root / "persist")
         test_schema_required_when_approval_names_it(root / "schema")
+        test_legacy_patch_still_subcommand_8_and_donor_is_separate(root / "donor-separate")
+        test_donor_patch_rejected_by_legacy_only_approval(root / "donor-legacy-only")
+        test_legacy_patch_rejected_by_donor_only_approval(root / "legacy-donor-only")
+        test_donor_invalid_values_do_not_transact(root / "donor-invalid")
+        test_approval_without_either_write_capability_denied(root / "neither-write")
+        test_donor_get_uses_get_discriminator(root / "donor-get")
+        test_donor_conflict_returns_state_without_counting_a_write(root / "donor-conflict")
     print("TITAN_CONTROL_SERVER_PASS")

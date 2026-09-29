@@ -66,7 +66,8 @@ inline bool livePathConsumesAcceptedRevision(const char* path) noexcept {
   if (path == nullptr) {
     return false;
   }
-  return std::strcmp(path, "effect") == 0 || std::strcmp(path, "hold") == 0;
+  return std::strcmp(path, "effect") == 0 || std::strcmp(path, "hold") == 0 ||
+         std::strcmp(path, "emotiscope") == 0 || std::strcmp(path, "emotiscope_history") == 0;
 }
 
 void liveNotePatchAccepted(LiveRenderReceipt* receipt, std::uint32_t request_id,

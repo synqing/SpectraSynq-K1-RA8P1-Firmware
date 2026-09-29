@@ -1,0 +1,24 @@
+[
+  {
+    "track": "sonic-samba",
+    "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/visual-recovery-may22-donor/sonic-samba-12800.pcm",
+    "source_sha256": "da21f20cac1d30626c133905d658a27945128db70423354bb018cff23df6c1d9",
+    "wav": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/audio-windows-001/sonic-samba-20-44s.wav",
+    "wav_sha256": "32b74fc59786a9696303415a011fa4c5fc39975032e969a36cd09ea6f118fe22",
+    "start_s": 20,
+    "duration_s": 24,
+    "rate": 12800,
+    "normalisation": "none; existing validated PCM"
+  },
+  {
+    "track": "carte-blanche",
+    "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/visual-recovery-may22-donor/carte-blanche-12800.pcm",
+    "source_sha256": "76528921abaddd8bf2eaeea75ad3b6babd3b64dcf34b7faf6be5b195773fd6a7",
+    "wav": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/audio-windows-001/carte-blanche-20-44s.wav",
+    "wav_sha256": "e71125d79fb6cad3ada264ee2753975aebf6fefcf870281318d84cd04432f932",
+    "start_s": 20,
+    "duration_s": 24,
+    "rate": 12800,
+    "normalisation": "none; existing validated PCM"
+  }
+]

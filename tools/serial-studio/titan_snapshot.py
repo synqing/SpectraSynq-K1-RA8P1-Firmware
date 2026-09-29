@@ -17,21 +17,33 @@ from titan_decode import (
     decode,
 )
 
-CONTRACT_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.xover(\d+)$")
+XOVER_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.xover(\d+)$")
+EMOTISCOPE_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.emotiscope$")
+CONTRACT_RE = XOVER_RE
 EXPECTED_UID = "545433931bd25436593630352d068363"
 STALE_MS = 2000
 
 
 def parse_contract(text: str) -> dict | None:
-    match = CONTRACT_RE.match(text or "")
-    if not match:
-        return None
-    return {
-        "admitted_rate_hz": int(match.group(1)),
-        "hop_samples": int(match.group(2)),
-        "bins": int(match.group(3)),
-        "xover": int(match.group(4)),
-    }
+    match = XOVER_RE.match(text or "")
+    if match:
+        return {
+            "admitted_rate_hz": int(match.group(1)),
+            "hop_samples": int(match.group(2)),
+            "bins": int(match.group(3)),
+            "xover": int(match.group(4)),
+            "family": "xover",
+        }
+    match = EMOTISCOPE_RE.match(text or "")
+    if match:
+        return {
+            "admitted_rate_hz": int(match.group(1)),
+            "hop_samples": int(match.group(2)),
+            "bins": int(match.group(3)),
+            "xover": None,
+            "family": "emotiscope",
+        }
+    return None
 
 
 def identity_identified(info: dict, expected_uid: str = EXPECTED_UID) -> tuple[bool, str]:

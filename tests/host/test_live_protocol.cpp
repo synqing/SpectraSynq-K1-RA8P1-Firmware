@@ -51,6 +51,8 @@ int main() {
   assert(receipt.pending_request_id == 0);
   assert(k1::titan::livePathConsumesAcceptedRevision("effect"));
   assert(k1::titan::livePathConsumesAcceptedRevision("hold"));
+  assert(k1::titan::livePathConsumesAcceptedRevision("emotiscope"));
+  assert(k1::titan::livePathConsumesAcceptedRevision("emotiscope_history"));
   assert(!k1::titan::livePathConsumesAcceptedRevision("preview"));
   assert(!k1::titan::livePathConsumesAcceptedRevision("dwell"));
   assert(!k1::titan::livePathConsumesAcceptedRevision("no_audio"));

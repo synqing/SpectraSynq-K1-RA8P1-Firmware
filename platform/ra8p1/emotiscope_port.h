@@ -47,6 +47,25 @@ bool k1_emotiscope_init(uint32_t random_seed);
 void k1_emotiscope_default_config(K1EmotiscopeConfig *out);
 bool k1_emotiscope_set_config(const K1EmotiscopeConfig *configuration);
 void k1_emotiscope_get_config(K1EmotiscopeConfig *out);
+/* Masked update. Bits are field_id-1 for fields 1..14 only. Validates supplied
+ * fields and leaves every clear field untouched, including an auto-color phase
+ * that has walked above 1. An explicit color write stores a normalized hue and
+ * replaces that phase. A real mode change sets the donor fade once. */
+typedef struct {
+  uint32_t mask;
+  float brightness, softness, color, warmth, color_range, speed, saturation, background;
+  int32_t current_mode;
+  uint8_t mirror_mode, screensaver, temporal_dithering, auto_color_cycle, reverse_color_range;
+} K1EmotiscopePatch;
+bool k1_emotiscope_patch(const K1EmotiscopePatch *patch, uint32_t *changed, uint32_t *mode_transition);
+/* Fractional part of the stored color phase, in [0,1). Not written back. */
+float k1_emotiscope_effective_hue(void);
+#ifdef K1_EMOTISCOPE_TEST_SEAM
+void k1_emotiscope_test_set_raw_color(float color);
+float k1_emotiscope_test_lpf_drag(void);
+void k1_emotiscope_test_set_novelty_sample(float value);
+float k1_emotiscope_test_novelty_sample(void);
+#endif
 /* Exactly 64 normalized mono samples at 12800 Hz. Rejects an entire invalid chunk.
  * now_us is the deterministic clock supplied to the hardware-independent engine. */
 bool k1_emotiscope_push_pcm64(const float samples[64], uint32_t now_us);

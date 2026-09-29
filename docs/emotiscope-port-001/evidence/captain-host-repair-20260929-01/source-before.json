@@ -1,0 +1,8 @@
+{
+  "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/smc_titan_control/emotiscope_engine.py": "36b0569e31194ed9660beb6a6937954bc7b108d8db2f2468de30a199f0e15efc",
+  "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/smc_titan_control/emotiscope_live.py": "1053ec9cf484dab4b480c437b074bb5b043954a2962661a82e2a7b910c130007",
+  "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/smc_titan_control/ble_monitor.py": "d556500a6b6c3290294ca7c12d261fcda166dc67a8528a349b933dbdde5a9446",
+  "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/tests/test_emotiscope_strategy.py": "5725bfea3ad1dca40dad25bc973bd4687279941a9e9461a7e7b94b7355db7a5f",
+  "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tools/serial-studio/titan_snapshot.py": "fe6245d9b2da387e4175a36983e58718b0aa5fcabe984138eda134e88dbbfe3f",
+  "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/scripts/test_live_protocol.py": "7b3df804ce644dc07d27fc74ce20f24e40fd75b4e52c86db6b708be20e37f807"
+}

@@ -100,6 +100,9 @@ class PaletteRuntime {
   PaletteRuntime(const PaletteRuntime&) = delete;
   PaletteRuntime& operator=(const PaletteRuntime&) = delete;
   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
+  void setHardwareBrightness(std::uint32_t brightness) noexcept;
+  bool setEmissionEnabled(bool enabled) noexcept;
+  void noteDonorMode(std::uint32_t mode) noexcept;
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
   void selectPerformanceMode(std::uint32_t mode) noexcept;

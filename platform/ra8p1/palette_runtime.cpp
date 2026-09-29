@@ -208,6 +208,20 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   wide_valid_[0] = wide_valid_[1] = false;
   return true;
 }
+void PaletteRuntime::setHardwareBrightness(std::uint32_t brightness) noexcept {
+  if (brightness <= 255U) config_.brightness = brightness;
+}
+bool PaletteRuntime::setEmissionEnabled(bool enabled) noexcept {
+  const bool was = emitEnabled();
+  if (enabled) config_.flags |= 4U;
+  else config_.flags &= ~4U;
+  return was && !enabled;
+}
+void PaletteRuntime::noteDonorMode(std::uint32_t mode) noexcept {
+  if (mode > 6U) return;
+  config_.mode_a = config_.mode_b = mode;
+  a_.controls().mode_id = b_.controls().mode_id = static_cast<std::uint16_t>(mode);
+}
 void PaletteRuntime::selectPerformancePalette(std::uint32_t id, std::uint64_t now_us) noexcept {
   // Caller validates the curated ID; preserve audio and owner timing.
   if (id >= kProductPaletteCount || config_.output_channel != 0U) return;
@@ -450,7 +464,7 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
       "{\"version\":1,\"engine\":\"emotiscope_v1.1\",\"mode_count\":7,"
       "\"modes\":[\"Analog\",\"Spectrum\",\"Octave\",\"Metronome\","
       "\"Spectronome\",\"Hype\",\"Bloom\"],\"palette_count\":0,"
-      "\"configure_opcode\":16,\"configure_version\":1,"
+      "\"configure_opcode\":25,\"configure_version\":1,\"palette_configure_rejected\":true,"
       "\"mode_a_equals_mode_b\":true,\"palettes_must_be_zero\":true}");
   return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;
 #else

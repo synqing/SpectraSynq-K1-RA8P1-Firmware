@@ -30,6 +30,7 @@ from titan_snapshot import (  # noqa: E402
     identity_ok,
     snapshot,
 )
+import emotiscope_control as donor_wire  # noqa: E402
 import live_protocol as proto  # noqa: E402
 from titan_control_server import (  # noqa: E402
     ControlServer,
@@ -511,7 +512,7 @@ class Broker:
             raise RuntimeError("no transport")
         with self._sched:
             if op == 25 and payload and len(payload) >= 4:
-                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12):
+                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12, donor_wire.PATCH_SUB):
                     if self.quiesced():
                         raise RestrictedControlError("paused", "quiesce.flag")
                     if not self.control_enabled:

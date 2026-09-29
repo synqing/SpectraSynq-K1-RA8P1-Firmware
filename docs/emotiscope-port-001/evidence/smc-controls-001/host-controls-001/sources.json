@@ -1,0 +1,15 @@
+{
+  "kind": "host-controls-proof",
+  "not_a_programme_receipt": true,
+  "command": "python3 scripts/test_emotiscope_controls.py --output /tmp/emotiscope-controls-proof-003",
+  "files": {
+    "platform/ra8p1/emotiscope_control.h": "bd9cae43ef50854c00129643c220c4337c76b2d19f9a63b8ba6deae537dcef9a",
+    "platform/ra8p1/emotiscope_port.cpp": "83a23ceb1a6b505064885aed217b0666c8c76c3c37027d33292c617081a3577f",
+    "platform/ra8p1/emotiscope_port.h": "d226f24e64fce8a9192e367f755df73acc7e035ac0c2277744011768b6784f0e",
+    "platform/ra8p1/fixture_app.cpp": "6536ce7a04cb0e347611bd598ef7da5ba61564380a41e5be8fb3987b5dc1e194",
+    "tools/serial-studio/emotiscope_control.py": "f6d337d33b36361ef18d263ac8955295c9349f302609d742ac1e308d50febc5b",
+    "tests/host/test_emotiscope_controls.cpp": "dc0923a50115dec4129a32328a2cc18061f81c4e52872c43b129f9b9eea463e6",
+    "scripts/test_emotiscope_controls.py": "1382391cc61d77be355d43ff9b805933cf91bbb173067f12c4b0a7987b379664",
+    "docs/contracts/titan-emotiscope-v1.json": "5f3c9fa627067bf3357bdb142b4d4efcb8d16211164431864826af9102286f60"
+  }
+}

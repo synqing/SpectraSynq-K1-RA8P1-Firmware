@@ -1,0 +1,14 @@
+.............................F..                                         [100%]
+=================================== FAILURES ===================================
+_____________ test_full_configured_mixer_routes_unique_identities ______________
+
+system = (<tests.test_performance.Device object at 0x109967350>, <smc_titan_control.mapped_performance.MappedPerformance object....PerformanceInput object at 0x10993c7e0>, <smc_titan_control.assignment_store.AssignmentManager object at 0x1098c1a90>)
+
+    def test_full_configured_mixer_routes_unique_identities(system):
+>       import mido
+E       ModuleNotFoundError: No module named 'mido'
+
+host/titan_control/tests/test_assignments.py:203: ModuleNotFoundError
+=========================== short test summary info ============================
+FAILED host/titan_control/tests/test_assignments.py::test_full_configured_mixer_routes_unique_identities
+1 failed, 31 passed in 2.57s

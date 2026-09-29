@@ -1,0 +1,30 @@
+{
+  "behavioral_exit": 0,
+  "corpus_exit": 0,
+  "crc_matches_zlib": true,
+  "golden_matches_frozen": true,
+  "default_state": {
+    "brightness": 1.0,
+    "mode": 1,
+    "flags": 39,
+    "applicability": 57311,
+    "output_brightness": 100,
+    "effective_hue": 0.33000001311302185,
+    "saturation": 0.75
+  },
+  "raw_color_state": {
+    "color": 1.399999976158142,
+    "effective_hue": 0.3999999761581421
+  },
+  "corpus_failures": [],
+  "default_ok": true,
+  "raw_ok": true,
+  "source_witness": {
+    "early_reject_without_pair_owner": true,
+    "donor_queue_on_opcode_25": true,
+    "opcode_16_rejected_under_donor_profile": true,
+    "performance_ramp_excluded": true,
+    "production_build_omits_test_seam": true
+  },
+  "pass": true
+}

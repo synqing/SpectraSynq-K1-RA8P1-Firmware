@@ -4,6 +4,7 @@ import struct
 import threading
 from types import SimpleNamespace
 import pytest
+import emotiscope_control as donor
 import live_protocol as p
 from titan_control_server import RestrictedControlPlane, RestrictedControlError
 from titan_broker import Broker
@@ -54,6 +55,20 @@ def test_final_broker_boundary_rechecks_admission(sub):
                          _sched=threading.Lock(),quiesced=lambda:True)
     with pytest.raises(RestrictedControlError,match='paused'):
         Broker.transact(fake,25,struct.pack('<I',sub))
+
+
+def test_donor_patch_is_gated_and_get_is_not():
+    calls=[]
+    def transport_transact(op, payload=b'', timeout=2.0):
+        calls.append((op, bytes(payload)))
+        return {'ok': True, 'status': 0, 'body': b''}
+    paused=SimpleNamespace(transport=SimpleNamespace(transact=transport_transact),
+                           _sched=threading.Lock(), quiesced=lambda: True)
+    with pytest.raises(RestrictedControlError, match='paused'):
+        Broker.transact(paused, 25, donor.encode_patch(1, 0x11, 0, {'brightness': 0.5}))
+    assert calls == []
+    Broker.transact(paused, 25, donor.encode_get(4, 0x11))
+    assert calls == [(25, donor.encode_get(4, 0x11))]
 
 
 def test_selection_codec_and_finite_modes():

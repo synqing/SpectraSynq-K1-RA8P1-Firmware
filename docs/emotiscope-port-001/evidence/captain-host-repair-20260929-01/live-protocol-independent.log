@@ -1,0 +1,11 @@
+clang++: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang++: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+LIVE_PROTOCOL_HOST_PASS snap=1184 events=256 timing=120 schema=229c40d80d70915acd2ef5645bbd687477889b40f807ec847c2d2a384130fb10
+status=0 ch=1 req=99 a=0.110000 b=0.370000 emit=0
+LIVE_PROTOCOL_PY_PASS 229c40d80d70915acd2ef5645bbd687477889b40f807ec847c2d2a384130fb10
+R4_CONSUMPTION_PREVIEW_PASS
+R4_CONSUMPTION_EFFECT_PASS
+R4_CONSUMPTION_DWELL_PASS
+R4_CONSUMPTION_PENDING_PASS
+R4_CONSUMPTION_PASS
+LIVE_BOOT_IDENTITY_HOST_PASS first=1 second=2 crossed=16777216

@@ -1,0 +1,14 @@
+{
+  "uid": "545433931bd25436593630352d068363",
+  "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+  "schema_sha256": "5f3c9fa627067bf3357bdb142b4d4efcb8d16211164431864826af9102286f60",
+  "ops": [
+    "emotiscope_get",
+    "emotiscope_patch"
+  ],
+  "scope": "Admits donor GET and PATCH for the programmed Emotiscope controls image. This is not a hardware pass and not an optical result.",
+  "hex_sha256": "73ad9be5401110a06f1e7f728bf592c34c4e6170d147b1c4faaaf7831cf30071",
+  "elf_sha256": "ed997e83fee4da3cde1f23fe6acdc49e41e184cd01e71f68e274d9ba3790849f",
+  "receipt": "docs/emotiscope-port-001/evidence/arm-smc-controls-001/receipt.json",
+  "programme": "docs/emotiscope-port-001/evidence/smc-controls-001/programme-001/receipt.json"
+}

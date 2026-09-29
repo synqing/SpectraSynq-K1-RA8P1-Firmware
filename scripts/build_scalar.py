@@ -104,7 +104,8 @@ EMOTISCOPE_DONOR_COMMIT = '7f86939bd7c16c4a6dd5789813e9d551246ed134'
 EMOTISCOPE_MANIFEST = ROOT / 'docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.json'
 EMOTISCOPE_CLOCK_DELTA = ROOT / 'docs/emotiscope-port-001/CLOCK-PORT-DELTA.json'
 EMOTISCOPE_PLATFORM_FILES = ['emotiscope_port.h', 'emotiscope_port.cpp',
-                            'emotiscope_quantize.inc', 'emotiscope_output.h']
+                            'emotiscope_quantize.inc', 'emotiscope_output.h',
+                            'emotiscope_control.h']
 EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
 
 def emotiscope_inputs():
