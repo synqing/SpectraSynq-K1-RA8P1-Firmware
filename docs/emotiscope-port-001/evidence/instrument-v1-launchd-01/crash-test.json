@@ -1,0 +1,3733 @@
+{
+ "result": {
+  "old_pid": 50960,
+  "new_pid": 56097,
+  "broker_back_s": 0.01,
+  "controller_ready_again_s": 42.11,
+  "controller_reported_loss": true,
+  "loss_messages": [
+   "None",
+   "[Errno 61] Connection refused"
+  ]
+ },
+ "samples": [
+  {
+   "t": 1790720290.297861,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "521",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 50960
+  },
+  {
+   "t": 1790720290.812008,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "523",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 50960
+  },
+  {
+   "t": 1790720291.327522,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "526",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 50960
+  },
+  {
+   "t": 1790720291.840325,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "528",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 50960
+  },
+  {
+   "tag": "kill",
+   "t": 1790720292.354773,
+   "rc": 0,
+   "pid": 50960
+  },
+  {
+   "t": 1790720292.363095,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 55119
+  },
+  {
+   "t": 1790720292.873355,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.52,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720293.385074,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 1.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720293.896414,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 1.54,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720294.4074728,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 2.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720294.923648,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 2.57,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720295.4344199,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 3.08,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720295.948967,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 3.59,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720296.467511,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 4.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720296.982213,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 4.62,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720297.495382,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 5.14,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720298.010874,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 5.65,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720298.530109,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 6.17,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720299.0421739,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 6.68,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720299.554206,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 7.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720300.069515,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 7.71,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720300.587533,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 8.23,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720301.100606,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 8.74,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720301.6150122,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 9.26,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720302.130294,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 9.77,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720302.645111,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 10.29,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720303.154902,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 10.8,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720303.671541,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 11.31,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720304.182671,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 11.83,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720304.696395,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 12.34,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720305.209866,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 12.85,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720305.721718,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 13.36,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720306.233421,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 13.88,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720306.743072,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 14.39,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720307.26436,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 14.91,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720307.7780359,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 15.42,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720308.288251,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 15.93,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720308.8011289,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 16.44,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720309.310731,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 16.95,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720309.824973,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 17.47,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720310.3398342,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 17.98,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720310.850223,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 18.49,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720311.3631349,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 19.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720311.875644,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 19.52,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720312.3879092,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 20.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720312.904118,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 20.55,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720313.41329,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 21.06,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 55626
+  },
+  {
+   "t": 1790720313.922076,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 21.56,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720314.4331892,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 22.08,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720314.947791,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 22.59,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720315.462954,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 23.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720315.979413,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 23.62,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720316.492558,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 24.14,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720317.003927,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 24.65,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720317.524503,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 25.17,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720318.0406861,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 25.68,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720318.5538938,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 26.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720319.0692182,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 26.71,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720319.580069,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 27.22,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720320.0928571,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 27.74,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720320.606325,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 28.25,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720321.119104,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 28.76,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720321.6300569,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 29.27,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720322.1426308,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 29.79,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720322.656192,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 30.3,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720323.1695092,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 30.81,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720323.6801322,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 31.32,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 55853
+  },
+  {
+   "t": 1790720324.1950011,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 31.84,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720324.709183,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 32.35,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720325.2220092,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 32.86,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720325.733703,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 33.38,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720326.2456572,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 33.89,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720326.7576761,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 34.4,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720327.268975,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 34.91,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720327.7839859,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 35.43,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720328.2991402,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 35.94,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720328.814429,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 36.46,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720329.3299258,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 36.97,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720329.842906,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 37.49,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720330.3555431,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 38.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720330.868501,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 38.51,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720331.3803022,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 39.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720331.895736,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 39.54,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720332.406416,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 40.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720332.920755,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 40.56,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720333.4341528,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 41.08,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": null
+  },
+  {
+   "t": 1790720333.947383,
+   "controller": {
+    "ready": false,
+    "transport_ready": false,
+    "transport_error": "[Errno 61] Connection refused",
+    "last_error": "transport epoch changed; reconciling",
+    "loop_healthy": true,
+    "mode": 0,
+    "mode_name": "Analog",
+    "output_brightness": 255,
+    "emission_enabled": true,
+    "accepted_request_id": 1073818557,
+    "rendered_request_id": 1073818557,
+    "emitted_request_id": 1073818557,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 41.59,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 6380873,
+    "latched_frames": 3190492,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "531",
+    "capture_rate_hz": 41419.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720334.461292,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4141,
+    "latched_frames": 2074,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "2",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720334.472436,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.14,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4141,
+    "latched_frames": 2074,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "2",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720334.986651,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4141,
+    "latched_frames": 2074,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "5",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720335.497658,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2074,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "7",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720336.00677,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2074,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "10",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720336.519966,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2280,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "12",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720337.036834,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2280,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "14",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720337.548861,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2280,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "17",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720338.0616472,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2280,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "19",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720338.576992,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2280,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "22",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  },
+  {
+   "t": 1790720339.091816,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 0,
+    "rendered_request_id": 0,
+    "emitted_request_id": 0,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.19,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "device_progress": 4358,
+    "latched_frames": 2280,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "24",
+    "capture_rate_hz": 41403.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "poll_error",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 56097
+  }
+ ]
+}

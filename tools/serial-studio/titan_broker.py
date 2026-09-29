@@ -403,6 +403,8 @@ class Broker:
         self.poll_i = 0
         self.last_info_sequence = None
         self.stop = False
+        self.device_path = None
+        self.device_lost = None
         self.serial_opens = 0
         self.hw_writes = 0
         self.rtt = []
@@ -425,6 +427,7 @@ class Broker:
         if usb["lsof"]:
             raise RuntimeError(f"CDC already owned: {usb['lsof']}")
         self.lock_handle = cdc_lock.acquire(usb["device"], OWNER)
+        self.device_path = usb["device"]
         if self.backend is None:
             self.port = open_serial(usb["device"], self.lock_handle)
             self.serial_opens += 1
@@ -599,6 +602,12 @@ class Broker:
         except Exception as exc:
             self.errors.append(str(exc))
             self.recorder.put({"kind": "poll_error", "op": op, "error": str(exc)})
+            # A vanished USB node never recovers on this handle. Exit so the
+            # supervisor restarts a fresh attach once Titan re-enumerates.
+            if self.device_path and not os.path.exists(self.device_path):
+                self.device_lost = {"device": self.device_path, "error": str(exc)}
+                self.recorder.put({"kind": "device_lost", **self.device_lost})
+                self.stop = True
             return
         self.rtt.append(time.monotonic() - started)
         if not got["ok"]:
@@ -962,6 +971,9 @@ def cmd_run(args) -> int:
             (evidence / "pre-open-ownership.json").write_text(json.dumps(usb, indent=2) + "\n")
             broker.attach(usb)
         broker.loop()
+        if broker.device_lost:
+            (evidence / "device-lost.json").write_text(json.dumps(broker.device_lost) + "\n")
+            return 75
         if broker.recorder.failed:
             (evidence / "recorder-failed.json").write_text(json.dumps({"dropped": broker.recorder.dropped}) + "\n")
             return 2

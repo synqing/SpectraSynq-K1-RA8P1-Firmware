@@ -1,0 +1,22 @@
+2026-09-30T06:16:21.3N probe before
+{"t": 1790720181.4920871, "controller": {"ready": true, "transport_ready": true, "transport_error": null, "last_error": null, "loop_healthy": true, "mode": 0, "mode_name": "Analog", "output_brightness": 255, "emission_enabled": true, "accepted_request_id": 1073818557, "rendered_request_id": 1073818557, "emitted_request_id": 1073818557, "faders_armed": false, "endpoint": "SMC-Mixer Bluetooth"}, "broker_log_age_s": 0.15, "target": {"uid": "545433931bd25436593630352d068363", "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb", "device_progress": 6370665, "latched_frames": 3185387, "led_faults": 0, "connection_epoch": 1, "sequence": "62620", "capture_rate_hz": 41419.0}, "kinds": ["mtime_age_s", "snapshot", "telemetry", "wire"]}
+2026-09-30T06:16:21.3N controller pid=79233 SIGINT
+2026-09-30T06:16:22.3N controller exited
+2026-09-30T06:16:22.3N broker stop: {"stopped": true, "pid": 32626}
+2026-09-30T06:16:22.3N bootstrap broker
+2026-09-30T06:16:22.3N rc=0
+2026-09-30T06:16:24.3N bootstrap mixer
+2026-09-30T06:16:24.3N rc=0
+2026-09-30T06:16:27.3N probe after
+{"t": 1790720187.1153128, "controller": {"ready": true, "transport_ready": true, "transport_error": null, "last_error": null, "loop_healthy": true, "mode": 0, "mode_name": "Analog", "output_brightness": 255, "emission_enabled": true, "accepted_request_id": 1073818557, "rendered_request_id": 1073818557, "emitted_request_id": 1073818557, "faders_armed": false, "endpoint": "SMC-Mixer Bluetooth"}, "broker_log_age_s": 0.05, "target": {"uid": "545433931bd25436593630352d068363", "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb", "device_progress": 6371809, "latched_frames": 3185958, "led_faults": 0, "connection_epoch": 1, "sequence": "22", "capture_rate_hz": 41419.0}, "kinds": ["bind", "mtime_age_s", "snapshot", "telemetry", "wire"]}
+	state = running
+	pid = 50960
+	last exit code = (never exited)
+		state = active
+		state = active
+	state = running
+	pid = 51027
+	last exit code = (never exited)
+		state = active
+		state = active
+	job state = running
