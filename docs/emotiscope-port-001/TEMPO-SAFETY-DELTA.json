@@ -1,0 +1,20 @@
+{
+  "file": "platform/ra8p1/emotiscope_donor/tempo.h",
+  "original_sha256": "1d51915799c72ba050cd62f82f5411e08e7e04dd255be0081e531cb1a428e3ee",
+  "ported_sha256": "fc06fa9a40233a16187577949340d964dae2caed17111fb70ee18b26b8e9f055",
+  "change": "Full-length tempo-window indices start at zero, not -1, for novelty and VU arrays. No filter/coefficient/bin/scheduling change.",
+  "validation": {
+    "independent_original_donor_asan": "out/emotiscope-reference-bounds-001/result.json",
+    "port_ap_parity_and_sanitizers": "out/emotiscope-ap-parity-001/result.json",
+    "port_test_result_sha256": "7d730bb0689315b1b6410d4e47bd1b785a23e3abf09442655a40b9f32830488b",
+    "original_underflow_restored_exit": -6,
+    "omitted_goertzel_exit": 3,
+    "post_clock_repair_ap_parity_and_sanitizers": "out/emotiscope-ap-parity-002/result.json",
+    "post_clock_repair_result_sha256": "64159c332995896b836ef55dda414fa2e713c02c2dc34b3b098cd0200aad7bf6"
+  },
+  "subsequent_tempo_change": {
+    "owner": "visual port agent",
+    "change": "Wrap-safe novelty deadline comparison, separately tested by visual port agent",
+    "current_sha256": "a07bc922809121473726291f0c02c27dd1906b03a66936ba6b3189517758946f"
+  }
+}

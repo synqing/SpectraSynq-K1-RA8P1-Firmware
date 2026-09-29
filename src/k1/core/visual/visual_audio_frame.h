@@ -36,6 +36,8 @@ struct VisualAudioFrameView final {
   // Scoped to this render call, pointing only at the runtime's committed copy.
   // A persistent consumer must own a bounded copy; reads never advance AP.
   const contract::TempoFieldV1* tempo_field = nullptr;
+  // Optional pre-AGC magnitudes, same committed publication as audio.
+  const std::array<float, contract::kSpectrumBinCount>* visual_magnitudes = nullptr;
 };
 
 }  // namespace k1::core::visual

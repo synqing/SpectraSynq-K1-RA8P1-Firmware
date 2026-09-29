@@ -34,6 +34,17 @@ void k1_live_clock_init(k1_live_clock_t *clock, uint32_t clock_hz, uint32_t orig
 int k1_live_clock_bind_hz(k1_live_clock_t *clock, uint32_t clock_hz);
 int k1_live_clock_sample(k1_live_clock_t *clock, uint32_t cycles, k1_live_clock_sample_t *out);
 
+/* One instant observed on both clocks. Capture is absolute DWT microseconds.
+   Live is the runtime clock that starts at zero. */
+typedef struct k1_live_clock_link {
+  uint64_t capture_origin_us;
+  uint64_t live_origin_us;
+  int bound;
+} k1_live_clock_link_t;
+
+uint64_t k1_live_clock_capture_to_live(const k1_live_clock_link_t *link,
+                                       uint64_t capture_us, int *ok);
+
 #ifdef __cplusplus
 }
 #endif

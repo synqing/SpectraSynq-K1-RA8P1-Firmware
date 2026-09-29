@@ -668,11 +668,11 @@ static int start_owned_generation(uint32_t profile, uint32_t generation)
     }
     bits_a0 = meta_a0.bits;
     bits_a1 = meta_a1.bits;
-    if (bits_a0 != 3840u || bits_a1 != 3840u) {
+    if (bits_a0 != K1_WS281X_PAIR_LANE_BYTES * 8u || bits_a1 != K1_WS281X_PAIR_LANE_BYTES * 8u) {
         return K1_WS281X_SUBMIT_INVALID;
     }
     dma_count = bits_a0 - 3u;
-    if (dma_count != 3837u) {
+    if (dma_count != K1_WS281X_PAIR_LANE_BYTES * 8u - 3u) {
         return K1_WS281X_SUBMIT_INVALID;
     }
     reset_cycles = gpt_to_cpu((uint32_t)(((uint64_t)timing.reset_us * 1000ull *
@@ -891,8 +891,23 @@ int k1_ws281x_gpt_dma_hw_pair_poll(void)
 #endif
     if (owned && pair_state == K1_WS281X_PAIR_EMITTING &&
         (uint32_t)(now - emit_started) > timeout_cycles) {
-        set_fault(0u, K1_WS281X_FAULT_TIMEOUT);
-        return (int)pair_state;
+        /* This bounds missing transfer receipts, not main-loop scheduling.
+           Both lanes may already have stopped correctly while AP/USB work
+           delayed this poll. Never fault a completed transfer for that delay.
+           Make the decision atomic against DMA/stop callbacks; retain the
+           existing per-lane reset-low wait below, even after a late callback. */
+        const uint32_t mask = __get_PRIMASK();
+        __disable_irq();
+        if (owned && pair_state == K1_WS281X_PAIR_EMITTING &&
+            !(dma_complete[0] && dma_complete[1] && hw_stopped[0] &&
+              hw_stopped[1] && waveform_complete[0] && waveform_complete[1])) {
+            capture_dma_count_fault(0u, K1_WS281X_PAIR_FAULT_SITE_TIMEOUT);
+            set_fault(0u, K1_WS281X_FAULT_TIMEOUT);
+        }
+        __set_PRIMASK(mask);
+        if (pair_state == K1_WS281X_PAIR_FAULT) {
+            return (int)pair_state;
+        }
     }
     if (owned && waveform_complete[0] && waveform_complete[1]) {
         if (dma_complete[0] && dma_complete[1] && hw_stopped[0] &&
@@ -944,7 +959,7 @@ int k1_ws281x_gpt_dma_hw_pair_poll(void)
                             crc ^= owned_a0[i];
                             crc *= 16777619u;
                         }
-                        for (i = 0u; i < 80u; i++) {
+                        for (i = 0u; i < K1_WS281X_PAIR_LANE_BYTES / 6u; i++) {
                             const uint32_t g =
                                 ((uint32_t)owned_a0[i * 6u] << 8) |
                                 owned_a0[i * 6u + 1u];
@@ -1069,7 +1084,11 @@ const char *k1_ws281x_gpt_dma_hw_pair_backend(void)
         return "ws2816_gpt_pair_uninitialised";
     }
     if (first_fault == K1_WS281X_FAULT_NONE) {
+#ifdef K1_EMOTISCOPE_PORT
+        return "ws2816_gpt_pair_p601_p604";
+#else
         return "ws2816_gpt_pair_p601_p603";
+#endif
     }
     return "ws2816_gpt_pair_fault";
 }

@@ -10,8 +10,8 @@ static void k1_test_poll_after_clock(void);
 #include "../platform/ra8p1/ws281x_gpt_dma_pair.c"
 #include "../platform/ra8p1/ws281x_gpt_dma.c"
 
-static uint8_t lane0[480];
-static uint8_t lane1[480];
+static uint8_t lane0[K1_WS281X_PAIR_LANE_BYTES];
+static uint8_t lane1[K1_WS281X_PAIR_LANE_BYTES];
 static int occupied;
 static void (*poll_clock_hook)(void);
 static void k1_test_poll_after_clock(void) { if (poll_clock_hook) poll_clock_hook(); }
@@ -54,7 +54,7 @@ static void fresh(void)
 static void submit(uint32_t generation)
 {
     assert(k1_ws281x_gpt_dma_hw_pair_init());
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u,
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u,
                                             generation) == 0);
     assert(gpt6_ctrl.p_reg->GTCCR[0] == duty_a0[0]);
     assert(gpt6_ctrl.p_reg->GTCCR[2] == duty_a0[1]);
@@ -65,8 +65,8 @@ static void submit(uint32_t generation)
     assert(gpt7_ctrl.p_reg->GTCCR[5] == duty_a1[2]);
     assert(gpt6_ctrl.p_reg->GTBER == 0x1A0000u);
     assert(gpt7_ctrl.p_reg->GTBER == 0x1A0000u);
-    assert(dmac0_ctrl.p_reg->DMCRA == 3837);
-    assert(dmac3_ctrl.p_reg->DMCRA == 3837);
+    assert(dmac0_ctrl.p_reg->DMCRA == (K1_WS281X_PAIR_LANE_BYTES*8u-3u));
+    assert(dmac3_ctrl.p_reg->DMCRA == (K1_WS281X_PAIR_LANE_BYTES*8u-3u));
     assert(dmac0_ctrl.p_reg->DMSAR == (uint32_t)(uintptr_t)&duty_a0[3]);
     assert(dmac3_ctrl.p_reg->DMSAR == (uint32_t)(uintptr_t)&duty_a1[3]);
     assert(dmac0_ctrl.p_reg->DMDAR ==
@@ -240,7 +240,7 @@ static void test_reset_wrap_and_pending(void)
     fresh();
     DWT->CYCCNT = UINT32_MAX - 200u;
     submit(801u);
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 802u)
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 802u)
            == K1_WS281X_SUBMIT_BUSY);
     done_dma();
     poll_clock_hook = interrupted_poll;
@@ -300,8 +300,71 @@ static void test_one_lane_cannot_admit_reset(void)
     assert(completions == 1u && reset_witness.admissions == 1u);
 }
 
+
+/* Completed hardware must not expire just because main-loop service is late.
+   Reproduces the field latch: both DMA/stop receipts present, timeout fault. */
+static void test_completed_transfer_late_poll(void)
+{
+    const uint32_t origins[] = {100u, UINT32_MAX - 1000u};
+    for (unsigned i = 0; i < 2; ++i) {
+        fresh();
+        DWT->CYCCNT = origins[i];
+        submit(900u);
+        DWT->CYCCNT = emit_started + timeout_cycles / 2u;
+        done_dma();
+        stop_both();
+        DWT->CYCCNT = emit_started + timeout_cycles + cpu_hz / 20u;
+        assert(k1_ws281x_gpt_dma_hw_pair_poll() == K1_WS281X_PAIR_READY);
+        assert(completions == 1u && completed_generation == 900u);
+        assert(first_fault == 0u && errors == 0u && !owned);
+        assert(reset_witness.min_cycles >= reset_cycles);
+    }
+}
+
+static void test_late_stop_interrupt_preserves_reset(void)
+{
+    fresh();
+    submit(901u);
+    done_dma();
+    DWT->CYCCNT = emit_started + timeout_cycles + 1u;
+    poll_clock_hook = interrupted_poll;
+    (void)k1_ws281x_gpt_dma_hw_pair_poll();
+    assert(first_fault == 0u && completions == 0u && owned);
+    DWT->CYCCNT = reset_started[1] + reset_cycles - 1u;
+    (void)k1_ws281x_gpt_dma_hw_pair_poll();
+    assert(first_fault == 0u && completions == 0u);
+    DWT->CYCCNT += 1u;
+    assert(k1_ws281x_gpt_dma_hw_pair_poll() == K1_WS281X_PAIR_READY);
+    assert(completions == 1u && reset_witness.min_cycles == reset_cycles);
+}
+
+static void test_missing_completion_still_times_out(void)
+{
+    for (unsigned missing = 0u; missing < 6u; ++missing) {
+        fresh();
+        submit(902u + missing);
+        done_dma();
+        stop_both();
+        if (missing < 2u) dma_complete[missing] = 0u;
+        else if (missing < 4u) hw_stopped[missing - 2u] = 0u;
+        else waveform_complete[missing - 4u] = 0u;
+        DWT->CYCCNT = emit_started + timeout_cycles + 1u;
+        assert(k1_ws281x_gpt_dma_hw_pair_poll() == K1_WS281X_PAIR_FAULT);
+        assert(first_fault == K1_WS281X_FAULT_TIMEOUT && completions == 0u);
+        assert(pair_first_fault.valid && pair_first_fault.site == K1_WS281X_PAIR_FAULT_SITE_TIMEOUT);
+        assert(pair_first_fault.generation == 902u + missing);
+        assert(irq_mask == 0u);
+        assert(!owned && !pending_valid);
+        assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, sizeof(lane0), lane1,
+               sizeof(lane1), 3u, 999u) == K1_WS281X_SUBMIT_UNAVAILABLE);
+    }
+}
+
 int main(void)
 {
+    test_completed_transfer_late_poll();
+    test_late_stop_interrupt_preserves_reset();
+    test_missing_completion_still_times_out();
     test_reset_interrupt_race();
     test_reset_wrap_and_pending();
     test_start_witness_expires_after_idle();
@@ -315,7 +378,7 @@ int main(void)
     memcpy(frozen_a, duty_a0, sizeof(duty_a0));
     memcpy(frozen_b, duty_a1, sizeof(duty_a1));
     lane0[0] = 0xff;
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 12u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 12u) ==
            K1_WS281X_SUBMIT_BUSY);
     assert(memcmp(duty_a0, frozen_a, sizeof(duty_a0)) == 0);
     assert(memcmp(duty_a1, frozen_b, sizeof(duty_a1)) == 0);
@@ -340,9 +403,9 @@ int main(void)
 
     fresh();
     submit(21u);
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 479, lane1, 480, 3u, 22u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, (K1_WS281X_PAIR_LANE_BYTES-1), lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 22u) ==
            K1_WS281X_SUBMIT_INVALID);
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 1u, 22u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 1u, 22u) ==
            K1_WS281X_SUBMIT_INVALID);
     done_dma();
     stop_both();
@@ -444,13 +507,13 @@ int main(void)
     submit(46u);
     lane0[1] = 0x11;
     lane1[1] = 0x22;
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 47u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 47u) ==
            K1_WS281X_SUBMIT_BUSY);
     assert(pending_valid == 1u);
     assert(pending_generation == 47u);
     lane0[1] = 0xAA;
     lane1[1] = 0xBB;
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 48u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 48u) ==
            K1_WS281X_SUBMIT_BUSY);
     assert(pending_generation == 48u);
     assert(pending_a0[1] == 0xAA && pending_a1[1] == 0xBB);
@@ -556,7 +619,7 @@ int main(void)
     /* Pending replacement then B remaining count 1: first fault preserved, no complete. */
     fresh();
     submit(65u);
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 66u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 66u) ==
            K1_WS281X_SUBMIT_BUSY);
     dma_channel_regs[K1_WS281X_GPT_DMA_CHANNEL].DMCRA = 0;
     dmac0_done(NULL);
@@ -652,11 +715,11 @@ int main(void)
     submit(74u);
     memset(lane0, 0x11, sizeof(lane0));
     memset(lane1, 0x22, sizeof(lane1));
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 75u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 75u) ==
            K1_WS281X_SUBMIT_BUSY);
     memset(lane0, 0, sizeof(lane0));
     memset(lane1, 0, sizeof(lane1));
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 76u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 76u) ==
            K1_WS281X_SUBMIT_BUSY);
     assert(pending_generation == 76u);
     assert(pending_a0[0] == 0 && pending_a1[0] == 0);
@@ -702,7 +765,7 @@ int main(void)
     gpt_regs[6].GTCR = 0u;
     gpt_regs[8].GTCR = R_GPT0_GTCR_CST_Msk;
     assert(k1_ws281x_gpt_dma_hw_pair_transmitting());
-    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, 480, lane1, 480, 3u, 802u) ==
+    assert(k1_ws281x_gpt_dma_hw_pair_submit(lane0, K1_WS281X_PAIR_LANE_BYTES, lane1, K1_WS281X_PAIR_LANE_BYTES, 3u, 802u) ==
            K1_WS281X_SUBMIT_BUSY);
     done_dma();
     stop_both();

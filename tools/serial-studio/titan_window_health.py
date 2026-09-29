@@ -38,7 +38,7 @@ class WindowHealth:
         for key in ("pair_fault", "lane_a0_fault", "lane_a1_fault", "emit_errors",
                     "pair_completions", "submitted_generation", "completed_generation"):
             if type(pal.get(key)) is not int: raise HealthError("missing " + key)
-        if type(pal.get("brightness")) is not int or not 0 <= pal["brightness"] <= 24:
+        if type(pal.get("brightness")) is not int or not 0 <= pal["brightness"] <= 255:
             raise HealthError("brightness invalid")
         if pal.get("mode_a") != 8: raise HealthError("mode drift", "FAIL")
         if type(pal.get("emit_enabled")) is not bool: raise HealthError("unknown emission state")

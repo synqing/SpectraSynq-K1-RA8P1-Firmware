@@ -33,8 +33,10 @@ bool stagePaired(const PairedFrame16& f,PairedOrientation o,std::uint8_t* a,std:
 void PairedWaveScene::reset(std::uint64_t time) noexcept {
   time_us_=publication_us_=last_attack_us_=time;sequence_=onset_=0;
   phase_=next_body_distance_=0;energy_=envelope_=timbre_=previous_energy_=0;colour_position_=.3F;
+  pending_accent_delay_=settings_.edge_delay_s;
   lorenz_x_=-8;lorenz_y_=-9;lorenz_z_=25;formation_=deposit_clock_=impact_=0;
   knots_={};frame_={};telemetry_={};initialised_=true;have_sequence_=have_attack_=false;
+  have_rhythm_epoch_=false;rhythm_epoch_=0;
 }
 
 bool PairedWaveScene::configure(const PairedWaveSettings& s,std::uint64_t time) noexcept {
@@ -43,7 +45,40 @@ bool PairedWaveScene::configure(const PairedWaveSettings& s,std::uint64_t time) 
      !bounded(s.spread_px2_s,0,10)||!bounded(s.half_life_s,.2F,8)||
      !bounded(s.gap_s,.05F,2)||!bounded(s.return_strength,0,.45F)||
      s.palette_id>=kProductPaletteCount||!advance(time)) return false;
-  settings_=s;return true;
+  settings_=s;pending_accent_delay_=s.edge_delay_s;return true;
+}
+
+float PairedWaveScene::accentDelay(const VisualAudioFrameView& view,std::uint64_t deposit_us) noexcept {
+  // Canonical phase is the wall-time flywheel at reference_wall_ms. It is not
+  // a media-frame projection (media_projection_valid stays false upstream).
+  // Project it only across source_frame_ms, the same frame-millisecond clock.
+  if(!settings_.beat_handoff) return settings_.edge_delay_s;
+  const auto* field=view.tempo_field;
+  if(!field||!field->enabled||!field->valid||!field->availability_valid||field->warming||
+     field->silence||!field->phase_authority||!field->canonical.locked)
+    return settings_.edge_delay_s;
+  if(have_rhythm_epoch_&&field->epoch!=rhythm_epoch_) {
+    rhythm_epoch_=field->epoch; return settings_.edge_delay_s;
+  }
+  const float bpm=field->canonical.running_bpm>0.F?field->canonical.running_bpm:field->canonical.target_bpm;
+  const float phase=field->canonical.phase01;
+  if(!std::isfinite(bpm)||bpm<40.F||bpm>240.F||!std::isfinite(phase)||phase<0.F||phase>=1.F)
+    return settings_.edge_delay_s;
+  if(field->available_us&&view.source_publication_us) {
+    const auto gap=field->available_us>view.source_publication_us
+      ?field->available_us-view.source_publication_us:view.source_publication_us-field->available_us;
+    if(gap>200000) return settings_.edge_delay_s;
+  }
+  if(field->available_us&&deposit_us+200000<field->available_us) return settings_.edge_delay_s;
+  const auto elapsed=static_cast<std::int32_t>(view.audio.source_frame_ms-field->canonical.reference_wall_ms);
+  if(elapsed<0||elapsed>2000) return settings_.edge_delay_s;
+  double projected=static_cast<double>(phase)+(static_cast<double>(elapsed)/1000.0)*(static_cast<double>(bpm)/60.0);
+  projected-=std::floor(projected);
+  if(projected<0.0) projected+=1.0;
+  if(projected>=1.0) projected=0.0;
+  rhythm_epoch_=field->epoch; have_rhythm_epoch_=true;
+  const float until_beat=static_cast<float>((1.0-projected)*(60.0/static_cast<double>(bpm)));
+  return std::min(settings_.edge_delay_s,until_beat);
 }
 
 bool PairedWaveScene::deposit(float strength,bool accent) noexcept {
@@ -55,7 +90,12 @@ bool PairedWaveScene::deposit(float strength,bool accent) noexcept {
     auto& knot=knots_[i];knot=Knot{};knot.active=true;knot.accent=accent;
     knot.amplitude=unit(strength);
     knot.width=settings_.width_px*(.75F+.45F*timbre_+.25F*formation_)*(accent?.35F:1.F);
-    knot.launch_width=knot.width;knot.delay=settings_.edge_delay_s;
+    knot.launch_width=knot.width;
+    knot.delay=accent?pending_accent_delay_:settings_.edge_delay_s;
+    if(accent) {
+      telemetry_.last_accent_delay_s=knot.delay;
+      if(knot.delay+5e-4F<settings_.edge_delay_s)++telemetry_.beat_timed_accents;
+    }
     knot.top_leads=lorenz_x_<0;knot.edge_balance=unit(.5F+lorenz_x_/36.F);
     knot.top=ribbonPalette(settings_.palette_id,colour_position_);
     knot.bottom=ribbonPalette(settings_.palette_id,std::min(.86F,colour_position_+.30F));
@@ -177,7 +217,12 @@ void PairedWaveScene::consume(const VisualAudioFrameView& view,std::uint64_t tim
   // owns the additional attack contrast even on loud input; no max() floor
   // can silently override it. Only this new deposit changes brightness.
   impact_=(.35F+.65F*energy_)*(.25F+.75F*settings_.articulation);
+  const auto timed_before=telemetry_.beat_timed_accents;
+  pending_accent_delay_=accentDelay(view,time);
   if(deposit(impact_,true)) {
+    if(telemetry_.beat_timed_accents!=timed_before&&!telemetry_.have_first_beat_timed_us) {
+      telemetry_.have_first_beat_timed_us=true; telemetry_.first_beat_timed_us=time;
+    }
     last_attack_us_=time;have_attack_=true;
     ++telemetry_.attacks_admitted;++telemetry_.attacks;
   } else {++telemetry_.attacks_omitted;++telemetry_.omitted;}

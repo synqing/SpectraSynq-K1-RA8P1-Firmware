@@ -36,6 +36,9 @@
 #include "titan_led2_phy.h"
 #ifdef K1_PALETTE_RUNTIME
 #include "palette_runtime.h"
+#ifdef K1_EMOTISCOPE_PORT
+#include "emotiscope_port.h"
+#endif
 #include "palette_clock.h"
 #include "hd_pixel16.h"
 #include "core/visual/audio_focus.h"
@@ -424,6 +427,10 @@ void palette_gpt_poll() {
 }
 #endif
 void palette_step(bool emit) {
+#ifdef K1_EMOTISCOPE_PORT
+  // AP and VP share one monotonic clock, sampled at actual execution time.
+  palette_time_us = live_runtime.nowUs();
+#endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   palette_pair_poll();
   if (pair_black_drain) {
@@ -441,10 +448,15 @@ void palette_step(bool emit) {
       live ? live->tempo : trajectory.output.tempo,
       live_runtime.waveform(),
       live ? live->features.publish_time_us : 0U,
-      live ? &live->tempo_field : nullptr};
+      live ? &live->tempo_field : nullptr,
+      live ? &live->visual_magnitudes : nullptr};
   // Freshness is a MIR flag, not a licence to starve the plate.
+  const std::uint32_t vp_begin = k1_cycle_count();
   const bool rendered=palettes.step(palette_time_us, (live && live->valid) ? &view : nullptr);
   if (rendered) {
+    // Render cost, excluding asynchronous LED transmission. Previously this
+    // reported zero because the existing timing setter was never called.
+    live_runtime.setVpCycles(k1_cycle_count() - vp_begin);
     live_render_frames += 1U;
     if (k1::titan::livePathConsumesAcceptedRevision(palettes.visualPath())) {
       k1::titan::liveNoteRendererConsumed(&live_render_receipt, live_runtime.hopsConsumed(),
@@ -455,7 +467,8 @@ void palette_step(bool emit) {
 #else
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
-      trajectory.output.features.publish_time_us, &trajectory.output.tempo_field};
+      trajectory.output.features.publish_time_us, &trajectory.output.tempo_field,
+      &trajectory.output.visual_magnitudes};
   const bool rendered=palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr);
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
@@ -482,34 +495,34 @@ void palette_step(bool emit) {
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
     const auto& config = palettes.config();
     const auto& selected = palettes.channel(config.output_channel);
-    snapshot_word(0, 1U); snapshot_word(1, ++palette_wire_sequence);
+    constexpr unsigned lane_bytes=480U,native_bytes=480U,lane_pixels=80U,version=1U;
+    static_assert(K1_WS281X_PAIR_LANE_BYTES == lane_bytes,
+                  "One continuous 160-pixel strip requires 80 pixels per DIN");
+    snapshot_word(0, version); snapshot_word(1, ++palette_wire_sequence);
     snapshot_word(2, config.output_channel); snapshot_word(3, config.brightness);
-    snapshot_word(4, 2U); snapshot_word(5, 80U);
+    snapshot_word(4, 2U); snapshot_word(5, lane_pixels);
     snapshot_word(6, 48U); snapshot_word(7, 3U);
-    snapshot_word(8, selected.controls().mode_id);
-    snapshot_word(9, selected.controls().palette_id);
-    snapshot_word(10, config.flags); snapshot_word(11, k1::titan::kPalettePeriodUs);
-    snapshot_word(14, static_cast<std::uint32_t>(palette_time_us));
-    snapshot_word(15, static_cast<std::uint32_t>(palette_time_us >> 32U));
-    static_assert(sizeof(k1::core::Pixel8) == 3U);
-    std::memcpy(palette_wire_snapshot+64U, selected.frame().data(), 480U);
-    auto* wire_a0 = palette_wire_snapshot + 64U + 480U;
-    auto* wire_a1 = palette_wire_snapshot + 64U + 480U + 480U;
-    {
-      k1::core::visual::Pixel16 wide[k1::core::visual::kPixelsPerChannel]{};
-      const auto frame = selected.frame();
-      for (unsigned i = 0; i < k1::core::visual::kPixelsPerChannel; ++i) {
-        // Staging bridge from the Pixel8 renderer. This is REPLICATE8 into the
-        // wide buffer so the Pixel16 pack path can run; it is not a TRUE16
-        // colour claim. Authored 0x12AB patterns must use stageWideFrame.
-        wide[i] = k1::titan::liftPixel8(frame[i]);
-      }
-      (void)palettes.stageWideFrame(config.output_channel, wide,
-                                    k1::core::visual::kPixelsPerChannel);
-    }
-    const auto size0 = palettes.packBenchGrb48Lane(wire_a0, 480U, 0U);
-    const auto size1 = palettes.packBenchGrb48Lane(wire_a1, 480U, 1U);
-    if (size0 == 480U && size1 == 480U && !fixture_hold) {
+    snapshot_word(8, selected.controls().mode_id);snapshot_word(9,selected.controls().palette_id);
+    snapshot_word(10, config.flags);snapshot_word(11,k1::titan::kPalettePeriodUs);
+    snapshot_word(14,static_cast<std::uint32_t>(palette_time_us));
+    snapshot_word(15,static_cast<std::uint32_t>(palette_time_us>>32U));
+    static_assert(sizeof(k1::core::Pixel8)==3U);
+    std::memcpy(palette_wire_snapshot+64U,selected.frame().data(),480U);
+#ifdef K1_EMOTISCOPE_PORT
+    // The native donor output has already been mapped and staged.
+    if (false)
+#elif defined(K1_DUAL_EDGE_DONOR)
+    // Donor mode has already staged the selected complete TRUE16 scene.
+    if(config.mode_a!=8U || config.mode_b!=8U)
+#endif
+    { k1::core::visual::Pixel16 wide[160]{};const auto frame=selected.frame();
+      for(unsigned i=0;i<160U;++i) wide[i]=k1::titan::liftPixel8(frame[i]);
+      (void)palettes.stageWideFrame(config.output_channel,wide,160U); }
+    auto* wire_a0=palette_wire_snapshot+64U+native_bytes;
+    auto* wire_a1=wire_a0+lane_bytes;
+    const auto size0=palettes.packBenchGrb48Lane(wire_a0,lane_bytes,0U);
+    const auto size1=palettes.packBenchGrb48Lane(wire_a1,lane_bytes,1U);
+    if(size0==lane_bytes && size1==lane_bytes && !fixture_hold) {
       const std::uint32_t generation = ++palette_pair_generation;
       snapshot_word(12, generation);
       snapshot_word(13, generation);
@@ -998,7 +1011,7 @@ void live_handle_config(std::uint32_t size) {
     if (expected!=live_cfg_revision) { error(5); return; }
     if (!rid || !k1::titan::performanceMode(mode) ||
         !k1::titan::performancePalette(palette) || live_cfg.output_channel!=0U ||
-        live_cfg.brightness>24U) { error(3); return; }
+        live_cfg.brightness>255U) { error(3); return; }
     if (pending_control.phase != ControlPhase::Empty) { error(10); return; }
     auto candidate=live_cfg;
     candidate.mode_a=candidate.mode_b=mode; candidate.palette_a=palette;
@@ -1305,6 +1318,11 @@ void execute() {
 #endif
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+#ifdef K1_EMOTISCOPE_PORT
+  // The donor has its own controls. Do not acknowledge old Titan performance
+  // mutations that cannot affect this render engine.
+  if (command == k1::titan::kLiveConfigOpcode) { error(3); return; }
+#endif
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
   // Live control admits observation and queued palette/scalar changes only.
   // Intrusive GPIO, PDM and pair fixtures remain in dedicated offline builds.
@@ -1361,8 +1379,12 @@ void execute() {
         size >= 36U ? get32(p+32) : 0U, size == 40U ? get32(p+36) : 4000U};
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
     if (pending_control.phase != ControlPhase::Empty) { error(10); return; }
-    if (config.brightness > 24U || config.mode_a != config.mode_b ||
+    if (config.brightness > 255U || config.mode_a != config.mode_b ||
+#ifdef K1_EMOTISCOPE_PORT
+        config.mode_a > 6U) {
+#else
         ((config.flags & 4U) && !k1::titan::performanceMode(config.mode_a))) {
+#endif
       error(3); return;
     }
     pending_control.palette = config;
@@ -1458,11 +1480,34 @@ void execute() {
     const char* u55_opened="false";
 #endif
     const int n=std::snprintf(trace.data,sizeof(trace.data),
-      "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\"sr24000.hop180.bins80.xover40\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true"
+      "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\""
+#ifdef K1_EMOTISCOPE_PORT
+      "sr12800.hop64.bins64.emotiscope"
+#else
+      "sr24000.hop180.bins80.xover40"
+#endif
+      "\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true"
 #ifdef K1_LIVE_RUNTIME
-      ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"boot_id\":%lu,\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":true,\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":true"
+      ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"boot_id\":%lu,\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":"
+#ifdef K1_EMOTISCOPE_PORT
+      "false"
+#else
+      "true"
+#endif
+      ",\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":"
+#ifdef K1_EMOTISCOPE_PORT
+      "false"
+#else
+      "true"
+#endif
+      ""
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       ",\"pair_fixture\":true"
+#ifdef K1_EMOTISCOPE_PORT
+      ",\"emotiscope\":true,\"donor_mode_config_opcode\":16,"
+      "\"legacy_performance_controls\":false,\"spectrum_bins\":64,"
+      "\"chroma_origin\":\"D#/Eb\",\"render_hz\":100"
+#endif
 #endif
       "}"
 #endif
@@ -1722,6 +1767,9 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   k1_ws2816_set_clock(hz);
+#ifdef K1_EMOTISCOPE_PORT
+  (void)k1_emotiscope_init(0x4b31454dU);
+#endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   (void)k1_ws281x_gpt_dma_hw_pair_init();
 #elif defined(K1_PALETTE_GPT_DMA)
@@ -1744,7 +1792,7 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
 #ifdef K1_PALETTE_MORPH
   config.version = 3U; config.transition_ms = 1500U;
   config.palette_a = 33U; config.palette_b = 43U;
-  config.brightness = 24U;
+  config.brightness = k1::titan::kDefaultPaletteBrightness;
 #endif
 #ifdef K1_PALETTE_WS2816
   // Keep the selected showcase/morph defaults above across normal RESET.
@@ -1752,12 +1800,25 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   config.palette_a = 33U; config.palette_b = 43U; config.brightness = 128U;
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
-  config.palette_a = 33U; config.palette_b = 43U; config.brightness = 24U;
+  config.palette_a = 33U; config.palette_b = 43U; config.brightness = k1::titan::kDefaultPaletteBrightness;
 #if !defined(K1_LIVE_EMIT) || (defined(K1_LIVE_BOOT_EMIT) && !K1_LIVE_BOOT_EMIT)
   config.flags = 1U; /* active, physical emit off until host/INFO */
 #endif
 #endif
+#ifdef K1_EMOTISCOPE_PORT
+  config.version = 1U; config.transition_ms = 0U; config.travel_ms = 4000U;
+  config.mode_a = config.mode_b = 1U; // Original donor default: Spectrum.
+  config.palette_a = config.palette_b = 0U;
+  config.output_channel = 0U; config.flags = 5U;
+  config.brightness = k1::titan::kDefaultPaletteBrightness;
+#endif
   palettes.configure(config, 0U);
+#ifdef K1_DUAL_EDGE_DONOR
+  // Explicit physical audition defaults, not the low-drive historical snapshot.
+  palettes.channel(0).controls().mood = 0.35F;
+  palettes.channel(0).controls().vp_bloom_alpha = 0.99F;
+  palettes.channel(1).controls().chroma = 0.033325F;
+#endif
 #endif
 #endif
 #ifdef K1_LIVE_RUNTIME
@@ -1777,7 +1838,7 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   live_cfg.palette_b = 43U;
   live_cfg.brightness = 128U;
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
-  live_cfg.brightness = 24U;
+  live_cfg.brightness = k1::titan::kDefaultPaletteBrightness;
 #if !defined(K1_LIVE_EMIT) || (defined(K1_LIVE_BOOT_EMIT) && !K1_LIVE_BOOT_EMIT)
   live_cfg.flags = 1U;
   live_cfg.emit_on = 0;
@@ -1909,18 +1970,30 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
     }
   }
 #endif
+#ifndef K1_EMOTISCOPE_PORT
   palette_step(true);
+#endif
 #ifdef K1_RESIDENT_SCHEDULE
   if (k1_fixture_schedule_active()) return;
 #endif
 #ifdef K1_PDM_TARGET
   {
 #ifdef K1_LIVE_RUNTIME
+#ifdef K1_EMOTISCOPE_PORT
+    // At most three 5 ms donor chunks per pass. Service the paired DMA between
+    // chunks; do not turn catch-up into an unbounded renderer starvation loop.
+    for (unsigned catchup = 0; catchup < 3U; ++catchup) {
+#endif
     const auto hop_status = live_runtime.serviceOneHop();
     if (hop_status == k1::titan::LiveHopStatus::Discontinuity ||
         hop_status == k1::titan::LiveHopStatus::Fault) {
       palettes.resetAudioState();
     }
+#ifdef K1_EMOTISCOPE_PORT
+    palette_pair_poll();
+    if (hop_status != k1::titan::LiveHopStatus::Ok) break;
+    }
+#endif
     live_runtime.setCaptureMeta(k1_pdm_target_first_capture_start_us(),
                                 k1_pdm_target_last_capture_end_us(),
                                 k1_pdm_target_asrc_starved(),

@@ -100,6 +100,51 @@ PCM1808_DONOR_HEADERS = [
     'k1_pcm1808_unpack.h', 'k1_resample_48k_to_12k8.h',
 ]
 PCM1808_SOURCE_CONTRACT = ROOT / 'docs/pcm1808-source-contract.json'
+EMOTISCOPE_DONOR_COMMIT = '7f86939bd7c16c4a6dd5789813e9d551246ed134'
+EMOTISCOPE_MANIFEST = ROOT / 'docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.json'
+EMOTISCOPE_CLOCK_DELTA = ROOT / 'docs/emotiscope-port-001/CLOCK-PORT-DELTA.json'
+EMOTISCOPE_PLATFORM_FILES = ['emotiscope_port.h', 'emotiscope_port.cpp',
+                            'emotiscope_quantize.inc', 'emotiscope_output.h']
+EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
+
+def emotiscope_inputs():
+    """Bind the frozen donor and every actual adaptation, without importing ESP IO."""
+    platform = ROOT / 'platform/ra8p1'
+    manifest = json.loads(EMOTISCOPE_MANIFEST.read_text())
+    assert manifest['commit'] == EMOTISCOPE_DONOR_COMMIT, 'Emotiscope donor commit changed'
+    assert manifest['native_pixels'] == 128, 'Emotiscope native geometry changed'
+    material = [EMOTISCOPE_MANIFEST, EMOTISCOPE_CLOCK_DELTA] + [platform / name for name in EMOTISCOPE_PLATFORM_FILES]
+    donor = platform / 'emotiscope_donor'
+    shims = platform / 'emotiscope_shims'
+    for directory in (donor, shims):
+        assert directory.is_dir(), f'missing Emotiscope source directory: {directory}'
+        material += sorted(p for p in directory.rglob('*') if p.is_file())
+    assert all(p.is_file() for p in material), 'required Emotiscope wrapper source missing'
+    changes = {}
+    for name, original in manifest['files'].items():
+        path = donor / name
+        assert path.is_file(), f'frozen Emotiscope donor source missing: {name}'
+        current = hashlib.sha256(path.read_bytes()).hexdigest()
+        if current != original:
+            changes[name] = {'before_sha256': original, 'after_sha256': current}
+    return material, {
+        'donor_commit': manifest['commit'],
+        'manifest_sha256': hashlib.sha256(EMOTISCOPE_MANIFEST.read_bytes()).hexdigest(),
+        'clock_port_delta_sha256': hashlib.sha256(EMOTISCOPE_CLOCK_DELTA.read_bytes()).hexdigest(),
+        'modified_donor_sources': changes,
+    }
+
+def render_live_schema_include(data: bytes, source: str) -> str:
+    """Generate the existing wire schema symbols from exact profile JSON bytes."""
+    digest = hashlib.sha256(data).hexdigest()
+    lines = [f'/* generated from {source} - do not edit by hand */', '#pragma once',
+             f'static const unsigned char kTitanLiveSchemaJson[{len(data)}] = {{']
+    for start in range(0, len(data), 16):
+        row = ', '.join(f'{byte:3d}' for byte in data[start:start + 16])
+        lines.append('    ' + row + (',' if start + 16 < len(data) else ''))
+    lines.extend(['};', f'static const unsigned kTitanLiveSchemaLen = {len(data)};',
+                  f'static const char kTitanLiveSchemaSha256[] = "{digest}";', ''])
+    return '\n'.join(lines)
 
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
@@ -380,6 +425,9 @@ def main():
     parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
     parser.add_argument('--palette-ws2816-gpt-pair',action='store_true',
                         help='concurrent GPT6/P601 + GPT8/P604 WS2816 pair; exclusive of single-lane GPT and GPIO WS2816')
+    parser.add_argument('--dual-edge-donor',action='store_true',help='live May Bloom/Waveform adaptation on the continuous 160-pixel strip')
+    parser.add_argument('--emotiscope-port',action='store_true',
+                        help='complete Emotiscope v1.1_build AP/VP: 12800 Hz/64 samples, native 128 pixels mapped to continuous 160')
     parser.add_argument('--tempo-field',action='store_true',
                         help='admit only the hash-pinned TempoField portable adaptation')
     parser.add_argument('--tempo-acf-slice',action='store_true',
@@ -397,6 +445,19 @@ def main():
     args=parser.parse_args()
     if args.debug and args.debug_info:
         parser.error('--debug-info keeps the selected optimisation; --debug is the separate -O0 build')
+    if args.emotiscope_port:
+        if args.dual_edge_donor:
+            parser.error('--emotiscope-port and --dual-edge-donor are mutually exclusive')
+        if not (args.palette_ws2816_gpt_pair and args.live_runtime and args.live_emit and args.pdm_target):
+            parser.error('--emotiscope-port requires live emit, onboard PDM and the paired GPT backend')
+        if args.dmac_lane_map != 'led-first':
+            parser.error('--emotiscope-port preserves microphone DMA1/2 and LED DMA0/3: use --dmac-lane-map led-first')
+        if args.tempo_acf_slice or args.resident_controls or args.stage_profile:
+            parser.error('--emotiscope-port does not run the legacy K1 AP timing overlays')
+        if not args.live_defaults:
+            parser.error('--emotiscope-port requires an explicit hash-bound boot-on live-defaults file')
+    if args.dual_edge_donor and not (args.palette_ws2816_gpt_pair and args.live_runtime and args.live_emit):
+        parser.error('--dual-edge-donor requires live emit and the paired GPT backend')
     gpt_output = bool(args.palette_gpt_dma) or bool(args.palette_ws2816_gpt_pair)
     if args.palette_gpt_dma and args.palette_ws2816_gpt_pair:
         parser.error('--palette-gpt-dma and --palette-ws2816-gpt-pair are mutually exclusive')
@@ -483,19 +544,49 @@ def main():
             material += [ROOT/'platform/ra8p1/pcm1808'/name for name in PCM1808_DONOR_HEADERS]
             material.append(PCM1808_SOURCE_CONTRACT)
         if args.live_runtime:
-            material += [ROOT/'platform/ra8p1'/name for name in LIVE_RUNTIME_FILES]
+            material += [ROOT/'platform/ra8p1'/name for name in LIVE_RUNTIME_FILES
+                         if not (args.emotiscope_port and name == 'k1_live_schema.inc')]
             material += [ROOT/'src/k1'/name for name in (
                 'core/audio/k1_audio_hop.h', 'core/audio/k1_audio_hop.c')]
-            material.append(ROOT/'docs/contracts/titan-live-v1.json')
-            schema = (ROOT/'docs/contracts/titan-live-v1.json').read_bytes()
+            schema_path = ROOT / ('docs/contracts/titan-emotiscope-v1.json' if args.emotiscope_port
+                                  else 'docs/contracts/titan-live-v1.json')
+            material.append(schema_path)
+            schema = schema_path.read_bytes()
             digest = hashlib.sha256(schema).hexdigest()
-            inc = (ROOT/'platform/ra8p1/k1_live_schema.inc').read_text()
-            if digest not in inc:
-                raise RuntimeError('k1_live_schema.inc does not match titan-live-v1.json')
+            if args.emotiscope_port:
+                # Generate only in the disposable stage; preserve the original
+                # source include and its legacy profile verification.
+                schema_include = render_live_schema_include(schema, str(schema_path.relative_to(ROOT)))
+            else:
+                inc = (ROOT/'platform/ra8p1/k1_live_schema.inc').read_text()
+                if digest not in inc:
+                    raise RuntimeError('k1_live_schema.inc does not match titan-live-v1.json')
+            receipt['live_schema'] = {
+                'source': str(schema_path.relative_to(ROOT)),
+                'sha256': digest, 'bytes': len(schema)}
             if args.live_defaults:
                 if not args.live_defaults.is_file():
                     raise RuntimeError('live defaults missing')
                 material.append(args.live_defaults)
+        if args.dual_edge_donor:
+            material += [ROOT/'platform/ra8p1/k1_dual_edge_donor.cpp',ROOT/'platform/ra8p1/k1_dual_edge_donor.h']
+            material += [p for p in (ROOT/'platform/ra8p1/donor_fixed').rglob('*') if p.is_file()]
+        if args.emotiscope_port:
+            port_material, port_provenance = emotiscope_inputs()
+            material += port_material
+            receipt['emotiscope_port'] = dict(
+                enabled=True, **port_provenance,
+                contract='sr12800.hop64.bins64.emotiscope',
+                audio_sample_rate_hz=12800, audio_hop_samples=64,
+                audio_hop_period_us=5000, spectrum_bins=64, tempo_bins=96,
+                native_pixels=128, logical_pixels=160, pixels_per_din=80,
+                physical_strips=1, mapping='DIN-A=0..79; DIN-B=80..159; one continuous scene',
+                spatial_adapter='endpoint- and centre-preserving nearest-neighbour native 128 to 160',
+                source_precision='donor_post_gamma_temporal_dither_rgb8_to_rgb16',
+                render_period_us=10000, render_cadence='explicit port choice, not historical S3 parity',
+                initial_donor_mode='Spectrum (1)', legacy_k1_ap_vp='retained compatibility source; bypassed by live port',
+                target_timing='NOT_MEASURED', physical_appearance='NOT_TESTED',
+                cxxflags=EMOTISCOPE_CXXFLAGS)
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
@@ -510,15 +601,15 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
-        receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
                        palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,
                        dmac_priority=args.dmac_priority,
                        dmac_lane_map=args.dmac_lane_map,
                        tempo_placement=args.tempo_placement,
-                       product_output_chain=bool(args.palette_runtime),
+                       product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),
                        live_runtime=args.live_runtime,
                        live_emit=args.live_emit,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
@@ -589,6 +680,8 @@ def main():
             raise RuntimeError('DMAC channel collision in compiler defines: ' + ' '.join(defines))
         if args.palette_gpt_dma: defines.append('-DK1_PALETTE_GPT_DMA=1')
         if args.palette_ws2816_gpt_pair: defines.append('-DK1_PALETTE_WS2816_GPT_PAIR=1')
+        if args.dual_edge_donor: defines.append('-DK1_DUAL_EDGE_DONOR=1')
+        if args.emotiscope_port: defines.append('-DK1_EMOTISCOPE_PORT=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
@@ -618,6 +711,17 @@ def main():
                 raise RuntimeError('boot-on defaults require live emitter capability')
             defines.append(f'-DK1_LIVE_BOOT_EMIT={1 if emit_default == "on" else 0}')
             receipt['live_emit_default']=emit_default
+            brightness=defaults.get('brightness')
+            if type(brightness) is not int or not 100 <= brightness <= 255:
+                raise RuntimeError('live boot brightness must be an integer in 100..255 (user mandate)')
+            defines.append(f'-DK1_LIVE_BOOT_BRIGHTNESS={brightness}u')
+            receipt['live_boot_brightness']=brightness
+            if args.emotiscope_port:
+                if emit_default != 'on':
+                    raise RuntimeError('Emotiscope port must restore autonomous emission on application return')
+                if boot_mode != 1 or defaults.get('mode_b') != 1:
+                    raise RuntimeError('initial Emotiscope profile must select donor Spectrum mode 1 on both controls')
+                receipt['emotiscope_port']['global_gain'] = f'{brightness}/255 once in final hardware packer'
         def _define_value(name):
             prefix = f'-D{name}='
             for item in defines:
@@ -694,10 +798,44 @@ def main():
                                          "src += ws281x_diagnostic + Glob('pcm1808_target.c')"))
         if args.palette_runtime:
             for name in PALETTE_PLATFORM_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+        if args.dual_edge_donor:
+            for name in ('k1_dual_edge_donor.cpp','k1_dual_edge_donor.h'):
+                shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+            shutil.copytree(ROOT/'platform/ra8p1/donor_fixed',stage/'src/donor_fixed')
+            receipt['dual_edge_donor']={'enabled':True,'pixels_per_din':80,'physical_strips':1,'logical_pixels':160,'mapping':'DIN-A=0..79; DIN-B=80..159; same selected scene','renderer':'selected donor scene (Bloom default; Waveform-Fast alternate)','global_gain':str(receipt.get('live_boot_brightness',100))+'/255 once in packer','period_us':16667,'historical_reconstruction':False}
+        if args.emotiscope_port:
+            for name in EMOTISCOPE_PLATFORM_FILES:
+                shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
+            for name in ('emotiscope_donor', 'emotiscope_shims'):
+                shutil.copytree(ROOT/'platform/ra8p1'/name, stage/'src'/name)
+            scon = stage/'src/SConscript'
+            text = scon.read_text()
+            marker = "CPPPATH=[cwd, "
+            assert text.count(marker) == 1, 'Emotiscope include insertion point changed'
+            text = text.replace(marker, "CPPPATH=[cwd, os.path.join(cwd, 'emotiscope_shims'), os.path.join(cwd, 'emotiscope_donor'), ")
+            marker = "LOCAL_CXXFLAGS=' "
+            assert text.count(marker) == 1, 'Emotiscope C++ flag insertion point changed'
+            text = text.replace(marker, marker + EMOTISCOPE_CXXFLAGS + ' ')
+            scon.write_text(text)
+            receipt['emotiscope_port']['staged_sconscript_sha256'] = hashlib.sha256(scon.read_bytes()).hexdigest()
+            receipt['emotiscope_port']['k1_compatibility_source_pin'] = PIN
+            # A concurrent source edit must not produce an image with stale identity.
+            for path in port_material:
+                if path in (EMOTISCOPE_MANIFEST, EMOTISCOPE_CLOCK_DELTA):
+                    continue
+                staged = stage/'src'/path.relative_to(ROOT/'platform/ra8p1')
+                expected = receipt['sources'][str(path.relative_to(ROOT))]
+                assert hashlib.sha256(staged.read_bytes()).hexdigest() == expected, f'Emotiscope staging race: {path}'
         if args.palette_morph:
             for name in PALETTE_MORPH_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.live_runtime:
-            for name in LIVE_RUNTIME_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+            for name in LIVE_RUNTIME_FILES:
+                if args.emotiscope_port and name == 'k1_live_schema.inc':
+                    (stage/'src'/name).write_text(schema_include)
+                    receipt['live_schema']['generated_include_sha256'] = hashlib.sha256(
+                        (stage/'src'/name).read_bytes()).hexdigest()
+                else:
+                    shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
         for header in (ROOT/'tests/target').glob('*.h'): shutil.copy2(header,stage/'src'/header.name)
         if args.resident_controls:
             shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
@@ -746,7 +884,7 @@ def main():
             p4_stage=stage/'src/p4'; p4_stage.mkdir()
             for name in ['kernels.c','kernels.h']: shutil.copy2(args.p4_source/name,p4_stage/name)
             (p4_stage/'SConscript').write_text("from building import *\ncwd=GetCurrentDir()\nobjs=DefineGroup('Generic P4 kernels',Glob('*.c'),depend=[],CPPPATH=[cwd])\nReturn('objs')\n")
-        (stage/'src/build_identity.h').write_text(f'#define K1_BUILD_ID "{identity}"\n#define K1_SOURCE_PIN "{PIN}"\n')
+        (stage/'src/build_identity.h').write_text(f'#define K1_BUILD_ID "{identity}"\n#define K1_SOURCE_PIN "{receipt["source_pin"]}"\n')
         for name in names:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
@@ -767,6 +905,7 @@ def main():
                 'dualmcu_pin':PIN,
                 'byte_identical':False,
                 'files':PRODUCT_OUTPUT_CHAIN_FILES,
+                'executed_by_live_owner':not args.emotiscope_port,
             }
         if args.palette_morph:
             receipt['palette_derivative_sources']=apply_palette_overlay(stage/'src/k1')
@@ -798,8 +937,37 @@ def main():
         (args.output/'attributes.txt').write_text(attrs)
         # Scalar VFP s/d registers allowed. Q-register MVE and tail predication are not.
         assert_scalar_generated_code(dump,attrs)
-        for symbol in ['AudioPipeline::process','renderProductChannel','k1_fixture_consume','k1_fixture_initialise']:
-            assert symbol in dump, f'missing executed K1 symbol {symbol}'
+        active_symbols = (['k1_emotiscope_init', 'k1_emotiscope_push_pcm64', 'k1_emotiscope_render',
+                           'k1_emotiscope_status', 'LiveAudioRuntime::consume', 'PaletteRuntime::step']
+                          if args.emotiscope_port else
+                          ['AudioPipeline::process', 'renderProductChannel', 'k1_fixture_consume', 'k1_fixture_initialise'])
+        for symbol in active_symbols:
+            assert symbol in dump, f'missing selected runtime symbol {symbol}'
+        if args.emotiscope_port:
+            donor_object = stage/'build/src/emotiscope_port.o'
+            undefined = command([TOOLCHAIN/'arm-none-eabi-nm', '-u', '-C', donor_object])
+            (args.output/'emotiscope-object-undefined.txt').write_text(undefined)
+            assert not re.search(r'\b(?:malloc|calloc|realloc|free|heap_caps_malloc|heap_caps_free)\b|operator new',
+                                 undefined), 'Emotiscope object directly references an allocator'
+            receipt['emotiscope_port']['allocator_check'] = {
+                'direct_allocator_references': False,
+                'scope': 'undefined symbols in the donor wrapper object; not a target allocation trace'}
+            # Presence alone is not an execution claim. Require the compiled live
+            # owner to call the donor and to omit the old AP invocation.
+            consume = re.search(r'^[0-9a-f]+ <[^\n]*LiveAudioRuntime::consume[^\n]*>:\n(.*?)(?=^[0-9a-f]+ <|\Z)',
+                                dump, re.MULTILINE | re.DOTALL)
+            assert consume, 'compiled live consumer missing'
+            assert 'k1_emotiscope_push_pcm64' in consume.group(1), 'live consumer does not call Emotiscope AP'
+            assert 'AudioPipeline::process' not in consume.group(1), 'legacy K1 AP remains active in live consumer'
+            step = re.search(r'^[0-9a-f]+ <[^\n]*PaletteRuntime::step[^\n]*>:\n(.*?)(?=^[0-9a-f]+ <|\Z)',
+                             dump, re.MULTILINE | re.DOTALL)
+            assert step and 'k1_emotiscope_render' in step.group(1), 'palette owner does not call Emotiscope VP'
+            assert 'renderProductChannel' not in step.group(1), 'legacy K1 VP remains active in palette owner'
+            receipt['emotiscope_port']['compiled_live_callchain'] = {
+                'consumer_calls_donor_ap': True, 'consumer_calls_legacy_ap': False,
+                'palette_calls_donor_vp': True, 'palette_calls_legacy_vp': False,
+                'scope': 'compiled owner function call sites; not target timing or optical proof'}
+
         if not args.palette_gpt_dma and not args.palette_ws2816_gpt_pair:
             assert 'k1_ws281x_diag_emit' in dump, 'GPIO diagnostic emitter was dropped'
         if args.palette_runtime:
@@ -835,7 +1003,9 @@ def main():
                            'elc':['GPT_C','GPT_D']},
                 'profile':3,
                 'gtstr_mask':'GPT6|GPT8',
-                'source_precision':'rgb8_to_grb48',
+                'source_precision':('donor_post_gamma_temporal_dither_rgb8_to_rgb16' if args.emotiscope_port
+                                    else 'donor_q15_16_to_rgb16' if args.dual_edge_donor else 'rgb8_to_grb48'),
+                'pixels_per_din':80,
             }
         if args.palette_gpt_dma:
             for symbol in ['k1_ws281x_gpt_dma_hw_submit', 'k1_ws281x_gpt_dma_hw_snapshot', 'dmac_int_isr', 'gpt_counter_overflow_isr']:
@@ -865,17 +1035,20 @@ def main():
                 'data_pin':'P502',
                 'clock_pin':'P812',
                 'acoustic_identity':'unproven',
-                'profile':'ap_40k_asrc24',
+                'profile':'ap_measured_source_asrc12k8_emotiscope' if args.emotiscope_port else 'ap_40k_asrc24',
                 'sample_rate_hz':40000,
-                'working_source_sample_rate_hz':24000,
+                'working_source_sample_rate_hz':12800 if args.emotiscope_port else 24000,
+                'analysis_hop_samples':64 if args.emotiscope_port else 180,
+                'analysis_hop_period_us':5000 if args.emotiscope_port else 7500,
+                'analysis_contract_version':2 if args.emotiscope_port else 1,
                 'sample_rate_parity':False,
-                'admitted_to_24k_ap':True,
+                'admitted_to_24k_ap':not args.emotiscope_port,
                 'slot_elements':296,
                 'slot_duration_us':7500,
                 'dma_interrupt_threshold_samples':8,
                 'dma_completion_isr':'k1_pdm_target_dmac_isr',
                 'stock_pdm_rxi_dmac_isr':'not_used',
-                'slot_count':2,
+                'slot_count':4,
                 'lane_count':2,
                 'programme_lane':{'microphone':'U14','select':'LOW','pdm_channel':2,
                                   'edge':'RISE','dma_channel':1 if args.dmac_lane_map == 'led-first' else 0,
@@ -892,6 +1065,8 @@ def main():
                 'dmac_lane_map':args.dmac_lane_map,
                 'led_dma_channel':0 if args.dmac_lane_map == 'led-first' else 2,
                 'product_12k8_admitted':False,
+                'emotiscope_12k8_compiled':bool(args.emotiscope_port),
+                'physical_capture_admission':'NOT_RUN' if args.emotiscope_port else 'unchanged',
             }
         if args.live_runtime:
             for symbol in ['LiveAudioRuntime::consume','LiveAudioRuntime::serviceOneHop',
@@ -902,6 +1077,8 @@ def main():
             assert 'capture_ap_hop_ready' not in symbols, 'pending-hop mailbox still linked'
             receipt['live_runtime']={
                 'owner':'LiveAudioRuntime',
+                'analysis_engine':'Emotiscope v1.1_build' if args.emotiscope_port else 'K1 AudioPipeline',
+                'contract':'sr12800.hop64.bins64.emotiscope' if args.emotiscope_port else 'sr24000.hop180.bins80.xover40',
                 'mailbox':'removed',
                 'emit_default':receipt.get('live_emit_default', 'on' if args.live_emit else 'off'),
                 'emit_capable':bool(args.live_emit),
@@ -937,6 +1114,16 @@ def main():
         if args.resident_controls:
             receipt['tempo_placement_evidence']['size']=receipt['size']
         receipt['artifacts']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in args.output.iterdir() if p.is_file()}
+        if args.emotiscope_port:
+            for path in material:
+                if not path.is_file():
+                    raise RuntimeError(f'build input disappeared: {path}')
+                try:
+                    key = str(path.relative_to(ROOT))
+                except ValueError:
+                    key = 'external/live_defaults.json' if path == args.live_defaults else None
+                if key in receipt['sources']:
+                    assert hashlib.sha256(path.read_bytes()).hexdigest() == receipt['sources'][key], f'source changed during Emotiscope build: {path}'
         receipt['pass']=True
         print(json.dumps(dict(build_id=identity,size=receipt['size'],**{'pass':True}),indent=2))
     except Exception as error:

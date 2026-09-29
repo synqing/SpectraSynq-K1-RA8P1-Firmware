@@ -10,7 +10,7 @@ def row():
         epoch=1,pid=1,quiesced=False,topic_mono=dict(identity=10,pdm=10,palette=10),
         palette=dict(pair_fault=0,lane_a0_fault=0,lane_a1_fault=0,emit_errors=0,
             pair_completions=30,submitted_generation=31,completed_generation=30,
-            brightness=24,mode_a=8,emit_enabled=True,lane_a0_dma=0,lane_a1_dma=0),
+            brightness=100,mode_a=8,emit_enabled=True,lane_a0_dma=0,lane_a1_dma=0),
         pdm=dict(ap_hops=100,rate_locked=1,running=True,asrc_starved=0,pair_skew_drops=0,
             pair_epoch_drops=0,push_rejected=0,stale_discards=0,
             lanes=[dict(error_callbacks=0,overflow_events=0,drop_events=0,recovery_count=0) for _ in range(2)]))
@@ -53,3 +53,9 @@ def test_positive_fault_not_hidden_by_missing_identity():
     r=row();r['identity']={};r['palette']['pair_fault']=1
     with pytest.raises(HealthError) as e:WindowHealth('u','b','s').check(r,10)
     assert e.value.verdict=='FAIL'
+
+
+def test_out_of_range_brightness_rejected():
+    r=row();r['palette']['brightness']=256
+    with pytest.raises(HealthError,match='brightness invalid'):
+        WindowHealth('u','b','s').check(r,10)

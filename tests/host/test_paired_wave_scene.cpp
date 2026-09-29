@@ -203,4 +203,134 @@ int main() {
   assert(edited.configure(edit,300000));
   const auto after_edit=edited.render(300000);
   assert(std::memcmp(&before_edit,&after_edit,sizeof(before_edit))==0);
+
+  auto eligible=[&](float phase, std::uint32_t wall, bool locked=true) {
+    k1::contract::TempoFieldV1 field{};
+    field.enabled=true; field.valid=true; field.availability_valid=true; field.available_us=0;
+    field.warming=false; field.silence=false; field.phase_authority=true; field.epoch=1;
+    field.canonical.locked=locked; field.canonical.running_bpm=120.F; field.canonical.phase01=phase;
+    field.canonical.reference_wall_ms=wall;
+    return field;
+  };
+  auto attack=[&](PairedWaveScene& scene, const k1::contract::TempoFieldV1* field,
+                  std::uint64_t at, std::uint32_t onset, std::uint32_t wall) {
+    k1::contract::AudioFeaturesV1 input{};
+    input.validity_flags=k1::contract::kValidBaseSnapshot|k1::contract::kValidOnsetV2;
+    input.event_flags=0; input.sequence=onset; input.onset_event_id=onset; input.vu_level=1.F;
+    input.source_frame_ms=wall;
+    k1::core::audio::TempoTrackerEvent rhythm{}; VisualWaveformHistory history{};
+    scene.consume({input,rhythm,history,at,field},at);
+  };
+  auto follower_at=[&](bool handoff, const k1::contract::TempoFieldV1* field, std::uint64_t at) {
+    PairedWaveScene scene; PairedWaveSettings setting; setting.edge_delay_s=.18F; setting.beat_handoff=handoff;
+    assert(scene.configure(setting,0));
+    const auto wall=field?field->canonical.reference_wall_ms:0U;
+    attack(scene,field,0,1,wall);
+    return energy(scene.render(at).bottom);
+  };
+  const auto imminent=eligible(.9F,0);
+  assert(follower_at(false,&imminent,60000)==0); // Off matches revision 006.
+  assert(follower_at(true,nullptr,60000)==0);
+  k1::contract::TempoFieldV1 unlocked=imminent; unlocked.canonical.locked=false;
+  assert(follower_at(true,&unlocked,60000)==0);
+  assert(follower_at(true,&imminent,60000)>0);
+  assert(follower_at(true,&imminent,0)==0);
+  {
+    PairedWaveScene counted; PairedWaveSettings setting; setting.edge_delay_s=.18F; setting.beat_handoff=true;
+    assert(counted.configure(setting,0));
+    attack(counted,&imminent,0,1,0);
+    assert(counted.telemetry().beat_timed_accents==1);
+    assert(counted.telemetry().last_accent_delay_s>.04F&&counted.telemetry().last_accent_delay_s<.06F);
+    assert(energy(counted.render(0).top)>0);
+  }
+  {
+    const auto far=eligible(.1F,0);
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true;
+    assert(scene.configure(setting,0));
+    attack(scene,&far,0,1,0);
+    assert(scene.telemetry().beat_timed_accents==0);
+    assert(std::abs(scene.telemetry().last_accent_delay_s-.18F)<1e-4F);
+  }
+  {
+    auto shifted=eligible(.9F,1000);
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true;
+    assert(scene.configure(setting,0));
+    attack(scene,&shifted,0,1,1020);
+    const auto delay=scene.telemetry().last_accent_delay_s;
+    assert(scene.telemetry().beat_timed_accents==1);
+    assert(delay>.025F&&delay<.04F);
+  }
+  {
+    auto ahead=eligible(.9F,1000);
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true;
+    assert(scene.configure(setting,0));
+    attack(scene,&ahead,0,1,900);
+    assert(scene.telemetry().beat_timed_accents==0);
+  }
+  {
+    auto stale=eligible(.9F,0);
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true;
+    assert(scene.configure(setting,0));
+    attack(scene,&stale,0,1,2500);
+    assert(scene.telemetry().beat_timed_accents==0);
+  }
+  {
+    auto mismatched=eligible(.9F,0); mismatched.available_us=500000; mismatched.availability_valid=true;
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true;
+    assert(scene.configure(setting,0));
+    k1::contract::AudioFeaturesV1 input{};
+    input.validity_flags=k1::contract::kValidBaseSnapshot|k1::contract::kValidOnsetV2;
+    input.event_flags=0; input.sequence=1; input.onset_event_id=1; input.vu_level=1.F;
+    k1::core::audio::TempoTrackerEvent rhythm{}; VisualWaveformHistory history{};
+    scene.consume({input,rhythm,history,0,&mismatched},0);
+    assert(scene.telemetry().beat_timed_accents==0);
+  }
+  {
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true; setting.edge_delay_s=.18F;
+    assert(scene.configure(setting,0));
+    attack(scene,&imminent,0,1,0);
+    const auto kept=scene.render(60000);
+    assert(energy(kept.bottom)>0);
+    auto dropped=imminent; dropped.canonical.locked=false;
+    attack(scene,&dropped,30000,1,30);
+    assert(std::memcmp(&kept,&scene.render(60000),sizeof(kept))==0);
+    auto next_epoch=imminent; next_epoch.epoch=2;
+    attack(scene,&next_epoch,200000,2,200);
+    assert(scene.telemetry().beat_timed_accents==1);
+    assert(std::abs(scene.telemetry().last_accent_delay_s-.18F)<1e-4F);
+    attack(scene,&next_epoch,400000,3,400);
+    assert(scene.telemetry().beat_timed_accents==2);
+  }
+  {
+    PairedWaveScene scene; PairedWaveSettings setting; setting.beat_handoff=true; setting.edge_delay_s=.18F;
+    assert(scene.configure(setting,0));
+    const std::uint64_t at=24000000;
+    k1::contract::AudioFeaturesV1 quiet{};
+    quiet.validity_flags=k1::contract::kValidBaseSnapshot; quiet.event_flags=k1::contract::kEventSilence;
+    quiet.sequence=1; quiet.vu_level=0;
+    k1::core::audio::TempoTrackerEvent rhythm{}; VisualWaveformHistory history{};
+    scene.consume({quiet,rhythm,history,at,nullptr},at);
+    auto field=eligible(.9F,24000);
+    attack(scene,&field,at,2,24000);
+    const auto now=scene.render(at);
+    const auto later=scene.render(at+60000);
+    assert(energy(now.bottom)>0&&energy(now.top)==0);
+    assert(energy(later.top)>0);
+  }
+  {
+    PairedWaveScene warm; PairedWaveSettings config; config.beat_handoff=true;
+    assert(warm.configure(config,0));
+    for(unsigned hop=0; hop<=800; ++hop) {
+      const std::uint64_t now=std::uint64_t(hop)*25000;
+      auto field=eligible(.9F,static_cast<std::uint32_t>(now/1000));
+      k1::contract::AudioFeaturesV1 input{};
+      input.validity_flags=k1::contract::kValidBaseSnapshot|k1::contract::kValidOnsetV2;
+      input.event_flags=0; input.vu_level=1; input.sequence=hop+1; input.onset_event_age_ms=0;
+      input.onset_event_id=(hop&&hop%6==0)?hop:0; input.source_frame_ms=static_cast<std::uint32_t>(now/1000);
+      k1::core::audio::TempoTrackerEvent rhythm{}; VisualWaveformHistory history{};
+      warm.consume({input,rhythm,history,now,&field},now);
+    }
+    assert(warm.telemetry().attacks_admitted==134);
+    assert(warm.telemetry().attacks_omitted==0);
+  }
 }

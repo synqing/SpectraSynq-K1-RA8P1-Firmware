@@ -368,7 +368,7 @@ def pack_config(cfg: dict) -> bytes:
                      int(cfg.get("mode_a", 32)),
                      int(cfg.get("mode_b", 0)),
                      int(cfg.get("flags", 1)),
-                     int(cfg.get("brightness", 24)),
+                     int(cfg.get("brightness", 100)),
                      int(cfg.get("output_channel", 0)),
                      int(cfg.get("transition_ms", 0)),
                      int(cfg.get("travel_ms", 4000)))

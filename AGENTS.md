@@ -1,3 +1,26 @@
+<!-- BEGIN EMOTISCOPE PORT PIVOT 2026-09-29 -->
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
+Latest user assignment, 29 September 2026 13:57 Australia/Perth: park the current Titan AP/VP and attempt a complete known-working firmware port from /Users/spectrasynq/Workspace_Management/Software/Emotiscope.HIL.
+This isolated worktree is authorised for that port: feat/titan-emotiscope-port-001. The older effects worktree and its original assignments remain parked and preserved, not completed.
+The new runtime uses Emotiscope v1.1_build AP and VP together; the legacy K1 analysis/effects do not compute or drive the new show. Keep hardware capture/clock/USB identity and P601/GPT6 DMA0 plus P604/GPT8 DMA3, micDMA1/2.
+Keep a single continuous160 logical output, split80+80, one brightness100/255 scale at output, emission autonomous on boot/applicationreturn. Original Emotiscope128 finalpixels map to160 in an explicit output adapter; do not set NUM_LEDS160 and index64-bin arrays outofbounds.
+The donor source is read-only. Copied source, exact provenance and bounded defined-behaviour repairs live in this worktree. ESP32 deployment instructions, donor Wi-Fi/HIL overhead permissions, older24/255 and boot-off requirements do not apply to Titan.
+Existing standing authority covers this in-scope repair/port deployment after actual checks and image/UID matching via E2Lite powerOFF. No blanket approval pause. Failed required checks or uncertain hardware identity still stop affected writes.
+Read docs/emotiscope-port-001/EXECUTION.md. Preserve old contracts and receipts; this new experiment does not close them.
+<!-- END EMOTISCOPE PORT PIVOT 2026-09-29 -->
+
+<!-- BEGIN DEFAULT BRIGHTNESS MANDATE 2026-09-29 -->
+**Latest user directive, 29 September 2026:** Normal default LED brightness must
+remain **100/255 minimum**. Current boot and audition default is **100/255**.
+This supersedes all earlier 24/255 brightness ceilings and default instructions
+in this workspace, skills and historical handovers. Do not silently restore24
+when arming emission, changing mode, reconnecting a host or rebuilding firmware.
+Explicit operator dimming and emission-off controls remain available; this is a
+minimum DEFAULT, not a prohibition on requested dimming or fault shutdown.
+Preserve the corrected continuous160 / DIN80+80 mapping and autonomous music.
+Evidence: docs/effects-language-001/evidence/captain-brightness100-20260929-01/.
+<!-- END DEFAULT BRIGHTNESS MANDATE 2026-09-29 -->
+
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
 
 <!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
@@ -7,6 +30,10 @@ Titan must boot with visual output ON and run continuous, autonomous, audio-reac
 
 Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
 <!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
+
+<!-- BEGIN TRANCE-EDM PLAYBACK ONLY 2026-09-29 -->
+**Captain directive — 29 September 2026.** Song-0 is banned. Do not play it, mux it, serve it, or ask Captain to listen to it. Demonstration, reconstruction, comparison and review audio must be trance or EDM only. Retained local excerpts: Armin van Buuren — Sonic Samba (Rising Star Remix), Veracocha — Carte Blanche (Mixed), and held-out Gareth Emery — Dopex. Dopex stays out of estimator tuning. Synthetic clicks, silence and a named test tone may be used for an engineering check, not as a review soundtrack. Historical song-0 frame files may remain on disk; they are not the review. Ledger: `~/.claude/memory/spectrasynq/L1/CANONICAL_DECISIONS.md` §11.
+<!-- END TRANCE-EDM PLAYBACK ONLY 2026-09-29 -->
 
 <!-- BEGIN SMC-TITAN STANDING DEPLOYMENT AUTHORITY -->
 # SMC–Titan: repair, flash and verify — standing user instruction, 27 September 2026
@@ -63,3 +90,26 @@ Programming success proves the exact bytes were verified on the identified targe
 ## Centre-origin mandate — user instruction, 2026-09-10
 
 All exposed VP motion must originate at the centre and travel outward, or originate at the edges and travel inward. Native centre is pixels 79/80 of 160; the current 128-pixel bench centre is 63/64. Apply this to previews and new effects as well as musical modes. Verify mirror geometry and travel direction separately; mirror symmetry alone does not prove motion origin. Preserve the pinned reference and identify any required behavioural correction explicitly.
+
+<!-- BEGIN TITAN PHYSICAL EFFECTS DEVELOPMENT 2026-09-29 -->
+**User directive29September2026:** Captain is to implement and deploy effects directly
+on Titan for physical visual inspection. HTML presentations are not the appearance
+review gate. Complete relevant software checks, exact-image identity/programming and
+live readback in the same execution. Retain brightness24/255, UID, pins/DMA and probe
+powerOFF. Preserve autonomous music on application return. Current physical audition
+and compatible geometry are recorded in docs/effects-language-001/CAPTAIN-PHYSICAL-20260929.md.
+<!-- END TITAN PHYSICAL EFFECTS DEVELOPMENT 2026-09-29 -->
+
+<!-- BEGIN CURRENT WS2816 STRIP GEOMETRY 2026-09-29 -->
+**User correction, 29 September 2026:** The attached WS2816 strip is one continuous
+160-pixel visual surface. Physical LEDs 1–80 use DIN-A (P601/GPT6); LEDs 81–160
+use DIN-B (P604/GPT8). Render the complete 160-pixel selected scene, with centre
+between logical indices 79/80, then split its packed GRB48 bytes at pixel 80.
+Each DIN receives 80 pixels / 480 bytes. Do not render separate scenes per DIN,
+restart the spatial coordinate at the split, mirror each half independently, or
+let a renderer flag change transfer length. Increasing logical order is retained
+on both halves, as in the K1 Main RPL WS2816 reference. The earlier two160-pixel
+DIN interpretation is rejected for this connected setup. Product dual-edge160
+geometry is a different configuration and does not turn these two DINs into two
+complete edges. Current repair: docs/effects-language-001/evidence/captain-continuous160-20260929-01/.
+<!-- END CURRENT WS2816 STRIP GEOMETRY 2026-09-29 -->

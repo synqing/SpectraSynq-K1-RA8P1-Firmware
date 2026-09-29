@@ -698,7 +698,7 @@ class Broker:
         return flags
 
     def apply_emit(self, enable: bool) -> dict:
-        """Arm or disarm physical output via opcode 16 flags bit 2. Brightness stays 24."""
+        """Arm or disarm physical output via opcode 16 flags bit 2. Preserve the current brightness."""
         if self.transport is None:
             raise RuntimeError("no transport")
         if 16 not in self.transport.allowed:
@@ -741,7 +741,7 @@ class Broker:
             int(pal["mode_a"]),
             int(pal["mode_b"]),
             flags,
-            24,
+            int(pal["brightness"]),
             int(pal.get("output_channel") or 0),
             int(pal.get("transition_ms") or 1500),
             int(pal.get("travel_ms") or 4000),

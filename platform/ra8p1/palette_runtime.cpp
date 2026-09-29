@@ -1,5 +1,13 @@
+#include <algorithm>
 #include "palette_runtime.h"
+#ifdef K1_EMOTISCOPE_PORT
+#include "emotiscope_port.h"
+#include "emotiscope_output.h"
+#endif
 #include "core/visual/product_effect_renderer.h"
+#ifdef K1_DUAL_EDGE_DONOR
+#include "k1_dual_edge_donor.h"
+#endif
 #include "core/visual/product_output_treatment.h"
 #include "core/visual/product_palette.h"
 #include "core/visual/ws2816_pack.h"
@@ -17,8 +25,11 @@ using namespace core;
 using namespace core::visual;
 namespace {
 bool supportedMode(std::uint32_t mode) noexcept {
+#ifdef K1_EMOTISCOPE_PORT
+  return mode <= 6U; // Donor active modes, from Analog through Bloom.
+#endif
   if (mode == 0U || mode == kDiagnosticBounceMode) return true;
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
   if (isCentreEffect(mode)) return true;
 #endif
   constexpr unsigned modes[]{3,7,8,9,11,12,13,14,15,16,18,19,20,21,22,23,24,25,26,27,28,29,32};
@@ -42,7 +53,7 @@ void preview(ChannelRenderState& channel, std::uint64_t now_us, bool inward) noe
   for (unsigned i = 0; i < kPixelsPerChannel; ++i) {
     const unsigned radial = i < 80U ? 79U-i : i-80U;
     const unsigned position = (inward ? 79U-radial : radial) * 255U / 79U;
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
     channel.frame()[i] = channel.controls().palette_transition->fast(
         static_cast<std::uint8_t>(position + 256U - offset));
 #else
@@ -102,7 +113,7 @@ void diagnosticBounce(ChannelRenderState& channel, std::uint64_t now_us) noexcep
       if (index >= 128U) continue;
       const unsigned radial = index < 64U ? 63U - index : index - 64U;
       const auto pal = static_cast<std::uint8_t>(radial * 255U / 63U);
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
       const auto colour = channel.controls().palette_transition
                               ? channel.controls().palette_transition->fast(pal)
                               : sampleProductPaletteFastLed16(channel.controls().palette_id, pal);
@@ -121,7 +132,14 @@ void diagnosticBounce(ChannelRenderState& channel, std::uint64_t now_us) noexcep
 }
 }
 bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us) noexcept {
-#ifdef K1_PALETTE_MORPH
+#ifdef K1_EMOTISCOPE_PORT
+  // This profile owns one complete donor scene. Old Titan palette/performance
+  // fields are not silently interpreted as donor controls.
+  const bool version_ok = config.version == 1U && config.transition_ms == 0U &&
+      config.travel_ms == 4000U && config.palette_a == 0U && config.palette_b == 0U &&
+      config.mode_a == config.mode_b && config.mode_a <= 6U &&
+      config.output_channel == 0U && (config.flags & ~5U) == 0U;
+#elif defined(K1_PALETTE_MORPH)
   const bool version_ok = ((config.version == 1U && config.transition_ms == 0U) ||
       (config.version == 2U && config.transition_ms <= PaletteTransition::kMaximumDurationMs))
       ? config.travel_ms == 4000U
@@ -142,6 +160,12 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
       !supportedMode(config.mode_b) || (config.flags & ~(config.version == 3U ? 31U : 7U)) ||
       config.brightness > 255U || config.output_channel > 1U)
     return false;
+#ifdef K1_EMOTISCOPE_PORT
+  K1EmotiscopeConfig donor{};
+  k1_emotiscope_get_config(&donor);
+  donor.current_mode = static_cast<std::int32_t>(config.mode_a);
+  if (!k1_emotiscope_set_config(&donor)) return false;
+#endif
   const bool cut = config.mode_a != config_.mode_a || config.mode_b != config_.mode_b;
   const bool palette_cut =
       config.palette_a != config_.palette_a || config.palette_b != config_.palette_b;
@@ -163,7 +187,7 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   // Physical brightness is applied once by the bench adapter, after treatment.
   ca.brightness = cb.brightness = 255U;
   ca.photons_id = cb.photons_id = 65535U;
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
   ca.palette_transition = &transitions_[0];
   cb.palette_transition = &transitions_[1];
   transitions_[0].select(ca.palette_id, config.transition_ms, now_us);
@@ -191,7 +215,7 @@ void PaletteRuntime::selectPerformancePalette(std::uint32_t id, std::uint64_t no
     a_.effectState().waveform_k1_dot = {};
   config_.palette_a = id;
   a_.controls().palette_id = static_cast<std::uint16_t>(id);
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
   transitions_[0].select(a_.controls().palette_id, config_.transition_ms, now_us);
 #else
   (void)now_us;
@@ -213,6 +237,9 @@ void PaletteRuntime::selectPerformanceMode(std::uint32_t mode) noexcept {
   wide_valid_[0] = wide_valid_[1] = false;
 }
 void PaletteRuntime::resetAudioState() noexcept {
+#ifdef K1_DUAL_EDGE_DONOR
+  invalidateDualEdgeDonorAudio();
+#endif
   last_live_us_ = 0U;
   last_live_valid_ = false;
   last_publication_us_ = 0U;
@@ -234,7 +261,7 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       : 0U;
   a_.controls().palette_id = static_cast<std::uint16_t>((config_.palette_a + cycle) % kProductPaletteCount);
   b_.controls().palette_id = static_cast<std::uint16_t>((config_.palette_b + cycle) % kProductPaletteCount);
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
   if (config_.flags & 16U) {
     const auto stage = unsigned((now_us-cycle_start_us_)/12000000U % kCentreEffectCount);
     a_.controls().mode_id = kCentreEffectFirst + (config_.mode_a-kCentreEffectFirst+stage)%kCentreEffectCount;
@@ -247,6 +274,42 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       : static_cast<float>(now_us - last_us_) / 1000000.0F;
   last_us_ = now_us;
   waiting_for_audio_ = false;
+#ifdef K1_EMOTISCOPE_PORT
+  std::uint8_t rgb[K1_EMOTISCOPE_PIXELS * 3U]{};
+  if (!k1_emotiscope_render(static_cast<std::uint32_t>(now_us), rgb)) return false;
+  for (unsigned i = 0; i < kPixelsPerChannel; ++i) {
+    const unsigned p = emotiscopeSourceIndex(i) * 3U;
+    const Pixel8 pixel{rgb[p], rgb[p+1U], rgb[p+2U]};
+    a_.frame()[i] = b_.frame()[i] = pixel;
+    wide_[0][i] = wide_[1][i] = emotiscopeWirePixel(rgb, i);
+  }
+  wide_valid_[0] = wide_valid_[1] = true;
+  last_publication_us_ = audio ? audio->source_publication_us : 0U;
+  last_musical_ = audio != nullptr;
+  waiting_for_audio_ = audio == nullptr;
+  visual_path_ = audio ? "emotiscope" : "emotiscope_history";
+  if (audio) {
+    last_peak_milli_ = std::uint32_t(std::clamp(audio->audio.peak_scaled,0.0F,1.0F)*10000);
+    last_vu_milli_ = std::uint32_t(std::clamp(audio->audio.vu_level,0.0F,1.0F)*10000);
+  }
+  ++effect_frames_; ++frames_;
+  return true;
+#endif
+#ifdef K1_DUAL_EDGE_DONOR
+  // The dedicated mode8 physical audition consumes the actual live AP. The
+  // retained packet scene and HTML reconstruction are not in this image.
+  if(config_.mode_a == 8U && config_.mode_b == 8U) {
+    renderDualEdgeDonor(now_us,audio,a_,b_,wide_[0],wide_[1]);
+    wide_valid_[0]=wide_valid_[1]=true;
+    last_publication_us_=audio?audio->source_publication_us:0U;
+    last_musical_=audio&&k1MusicalPresence(audio->audio);
+    visual_path_=audio?"effect":"no_audio";
+    waiting_for_audio_=audio==nullptr;
+    if(audio) { last_peak_milli_=std::uint32_t(std::clamp(audio->audio.peak_scaled,0.0F,1.0F)*10000);
+      last_vu_milli_=std::uint32_t(std::clamp(audio->audio.vu_level,0.0F,1.0F)*10000); }
+    ++effect_frames_;++frames_;return true;
+  }
+#endif
   unsigned channel_index = 0U;
   for (auto* channel : {&a_, &b_}) {
     if (channel->controls().mode_id == 0U) {
@@ -256,7 +319,7 @@ bool PaletteRuntime::step(std::uint64_t now_us,
       diagnosticBounce(*channel, now_us);
       if (channel_index == 0U) visual_path_ = "bounce";
     }
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
     else if (isCentreEffect(channel->controls().mode_id)) {
       const auto age = now_us-cycle_start_us_;
       const float t = float(age % 12000000U)/800000.0F;
@@ -381,6 +444,16 @@ std::size_t PaletteRuntime::packBenchGrb(std::uint8_t* out, std::size_t capacity
   return std::size_t(pixels) * 3U;
 }
 std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const noexcept {
+#ifdef K1_EMOTISCOPE_PORT
+  if (!out || !capacity) return 0U;
+  const int n = std::snprintf(out, capacity,
+      "{\"version\":1,\"engine\":\"emotiscope_v1.1\",\"mode_count\":7,"
+      "\"modes\":[\"Analog\",\"Spectrum\",\"Octave\",\"Metronome\","
+      "\"Spectronome\",\"Hype\",\"Bloom\"],\"palette_count\":0,"
+      "\"configure_opcode\":16,\"configure_version\":1,"
+      "\"mode_a_equals_mode_b\":true,\"palettes_must_be_zero\":true}");
+  return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;
+#else
   if (!out || capacity == 0U) return 0U;
   const int head = std::snprintf(out, capacity, "{\"version\":1,\"count\":%u,\"palettes\":[", unsigned(kProductPaletteCount));
   if (head < 0 || std::size_t(head) >= capacity) return 0U;
@@ -395,6 +468,7 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
   if (capacity - used < 3U) return 0U;
   std::memcpy(out + used, "]}", 3U);
   return used + 2U;
+#endif
 }
 bool PaletteRuntime::stageWideFrame(unsigned channel_index,
                                     const Pixel16* pixels,
@@ -409,20 +483,24 @@ bool PaletteRuntime::stageWideFrame(unsigned channel_index,
 std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
                                              std::size_t capacity,
                                              unsigned lane) const noexcept {
-  if (!out || capacity < kPackedBytesPerLane || lane > 1U) return 0U;
+  // Select one complete visual scene, then split at logical pixels 79/80.
+  // DIN identity is not visual-channel identity (K1 Main RPL WS2816 layout).
+  constexpr unsigned pixels_per_lane=kPixelsPerHalf;
+  constexpr unsigned bytes_per_lane=kPackedBytesPerLane;
+  if (!out || capacity < bytes_per_lane || lane > 1U) return 0U;
   const unsigned channel_index = config_.output_channel;
   if (channel_index > 1U || !wide_valid_[channel_index]) return 0U;
-  // Pack authored Pixel16 channels. RGB8×257 is not TRUE16 and is not used
-  // here. Brightness scales 16-bit values in place; low bytes survive.
+  // Brightness is applied exactly once to the wire channels. The Emotiscope
+  // profile supplies RGB8 expanded by 257; other profiles may author TRUE16.
   const auto* source = wide_[channel_index];
-  for (unsigned i = 0; i < kPixelsPerHalf; ++i) {
+  for (unsigned i = 0; i < pixels_per_lane; ++i) {
     const auto pixel = source[lane * kPixelsPerHalf + i];
     packPixel(Pixel16{scale16(pixel.red, config_.brightness),
                       scale16(pixel.green, config_.brightness),
                       scale16(pixel.blue, config_.brightness)},
               out + i * kPackedBytesPerPixel);
   }
-  return kPackedBytesPerLane;
+  return bytes_per_lane;
 }
 std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const noexcept {
   if (!out || capacity == 0U) return 0U;
@@ -436,7 +514,18 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"frames\":%llu,\"skipped_releases\":%llu,\"emitted\":%llu,\"emit_errors\":%llu,"
       "\"last_emit_cycles\":%lu,\"maximum_emit_cycles\":%lu,"
       "\"frame_a_crc\":%lu,\"frame_b_crc\":%lu,\"native_pixels_per_channel\":160,"
-#ifdef K1_PALETTE_WS2816_GPT_PAIR
+#if defined(K1_EMOTISCOPE_PORT)
+      "\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,"
+      "\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,"
+      "\"physical_lanes\":2,\"source_precision\":\"donor_rgb8_dither_expanded16\","
+      "\"renderer\":\"emotiscope_v1.1\",\"donor_pixels\":128,\"physical_strips\":1,"
+      "\"wire_snapshot_version\":1,\"legacy_performance_controls\":false,"
+#elif defined(K1_DUAL_EDGE_DONOR)
+      "\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,"
+      "\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,"
+      "\"physical_lanes\":2,\"source_precision\":\"donor_q15_16_to_rgb16\","
+      "\"renderer\":\"donor_selected_scene\",\"physical_strips\":1,\"wire_snapshot_version\":1,"
+#elif defined(K1_PALETTE_WS2816_GPT_PAIR)
       "\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,"
       "\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,"
       "\"physical_lanes\":2,\"source_precision\":\"pixel16_channel\","
@@ -448,7 +537,7 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"bench_pixels\":128,\"wire_profile\":1,\"wire_bits_per_pixel\":24,"
 #endif
       "\"host_pixel_stream_required\":false"
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
       ",\"morph_supported\":true,\"transition_ms\":%lu,\"transition_a_q16\":%u,"
       "\"transition_b_q16\":%u,\"contributors_a\":%u,\"contributors_b\":%u,"
       "\"centre_effects_supported\":true,\"direction\":\"%s\",\"travel_ms\":%lu,"
@@ -457,19 +546,28 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       ",\"morph_supported\":false"
 #endif
       "}",
-      unsigned(kProductPaletteCount), active() ? "true" : "false",
+#ifdef K1_EMOTISCOPE_PORT
+      0U,
+#else
+      unsigned(kProductPaletteCount),
+#endif
+      active() ? "true" : "false",
       (config_.flags & 2U) ? "true" : "false", emitEnabled() ? "true" : "false",
       configuredPaletteBackend(), runtimePaletteOutputBackend(emitEnabled()),
       waiting_for_audio_ ? "true" : "false", unsigned(a_.controls().palette_id),
-      unsigned(b_.controls().palette_id), productPalette(a_.controls().palette_id).name,
-      productPalette(b_.controls().palette_id).name,
+      unsigned(b_.controls().palette_id),
+#ifdef K1_EMOTISCOPE_PORT
+      k1_emotiscope_mode_name(config_.mode_a), k1_emotiscope_mode_name(config_.mode_b),
+#else
+      productPalette(a_.controls().palette_id).name, productPalette(b_.controls().palette_id).name,
+#endif
       (unsigned long)a_.controls().mode_id, (unsigned long)b_.controls().mode_id,
       (unsigned long)config_.brightness, (unsigned long)config_.output_channel,
       (unsigned long)kPalettePeriodUs, (unsigned long long)frames_, (unsigned long long)skipped_,
       (unsigned long long)emitted_, (unsigned long long)emit_errors_,
       (unsigned long)last_emit_cycles_, (unsigned long)maximum_emit_cycles_,
       (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
-#ifdef K1_PALETTE_MORPH
+#if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),
       transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors(),
       (config_.flags & 8U) ? "edges_in" : "centre_out", (unsigned long)config_.travel_ms,

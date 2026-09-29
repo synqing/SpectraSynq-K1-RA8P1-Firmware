@@ -3,7 +3,11 @@
 #include <cstdint>
 
 #include "core/audio/audio_pipeline.h"
+#ifndef K1_EMOTISCOPE_PORT
 #include "core/audio/gdft_goertzel.h"
+#else
+#include "emotiscope_port.h"
+#endif
 #include "core/visual/visual_audio_frame.h"
 #include "k1/core/audio/k1_audio_hop.h"
 #include "k1_live_clock.h"
@@ -11,7 +15,11 @@
 
 namespace k1::titan {
 
+#ifdef K1_EMOTISCOPE_PORT
+inline constexpr std::uint32_t kLiveWarmupHops = 64U;
+#else
 inline constexpr std::uint32_t kLiveWarmupHops = 23U;
+#endif
 inline constexpr std::uint64_t kLiveFeatureStaleUs = 30000U;
 inline constexpr std::uint32_t kLiveMirOpcode = 21U;
 
@@ -97,20 +105,28 @@ class LiveAudioRuntime final {
                            const k1_audio_hop_t& hop,
                            std::uint64_t ap_finish_us) noexcept;
 
+#ifndef K1_EMOTISCOPE_PORT
   core::audio::AudioPipeline pipeline_{};
+#else
+  K1EmotiscopeStatus donor_status_{};
+  float pcm_rms_ = 0.0F;
+#endif
   bool tempo_field_enabled_ = true;
   bool tempo_phase_enabled_ = true;
   std::uint64_t field_stamp_generation_ = 0;
   std::uint64_t field_stamp_epoch_ = 0;
   std::uint32_t field_stamp_configuration_ = 0;
   std::uint64_t field_stamp_available_us_ = 0;
+#ifndef K1_EMOTISCOPE_PORT
   core::audio::GdftSampleWindow window_{};
+#endif
   core::visual::VisualWaveformHistory waveform_{};
   k1_audio_hop_t hop_{};
   k1_audio_hop_t last_hop_{};
   core::audio::AudioPipelineOutput private_{};
   core::audio::AudioPipelineOutput committed_{};
   k1_live_clock_t clock_{};
+  k1_live_clock_link_t capture_link_{};
   std::uint64_t last_epoch_ = 0;
   std::uint64_t last_sequence_ = 0;
   std::uint64_t generation_ = 0;

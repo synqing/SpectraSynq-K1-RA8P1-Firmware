@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-09-29T06:36:02.021880+00:00",
+  "source_mismatches": [],
+  "build_id": "ea0f7086df9f15e002b49e8381f80dd68fc0d55ac1536d39a1c2942a72deccbc",
+  "hex_sha256": "ddfdb965e8ced357c9e28bb6a963ae59b7caef49939de35bce6b17405c6a0122",
+  "elf_sha256": "dd774af32921b007edca574aa2c136dfb53ef21850ab629da12605c474b84fd5",
+  "host_observations": {
+    "out/emotiscope-ap-parity-002/result.json": {
+      "observed_success": true,
+      "receipt_sha256": "64159c332995896b836ef55dda414fa2e713c02c2dc34b3b098cd0200aad7bf6"
+    },
+    "out/emotiscope-visual-verification-003/result.json": {
+      "observed_success": true,
+      "receipt_sha256": "b846bfd06bae2d3ad3b9c8b2841a7f7447be723df318a41f4a14c2b30a2591ab"
+    },
+    "out/emotiscope-output-001/result.json": {
+      "observed_success": true,
+      "receipt_sha256": "f158c79863c299cb87eb2cdbb707877d13ce37537e3e7374ed9084d4a524f7c5"
+    }
+  },
+  "target_uid_last_read": "545433931bd25436593630352d068363",
+  "resident_last_read": "45c2f206de041289adc97ab03ad0172c01ab492f2b7095eb86c97d4c592fd0c6",
+  "target_timing": "requires exact image measurement",
+  "optical_acceptance": "operator pending"
+}

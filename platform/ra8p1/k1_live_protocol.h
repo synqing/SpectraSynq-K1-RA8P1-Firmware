@@ -333,7 +333,7 @@ struct LiveConfigBlob final {
   std::uint32_t mode_a = 32;
   std::uint32_t mode_b = 0;
   std::uint32_t flags = 1;
-  std::uint32_t brightness = 24;
+  std::uint32_t brightness = 100; // Normal default floor; explicit dim/off remains possible.
   std::uint32_t output_channel = 0;
   std::uint32_t transition_ms = 0;
   std::uint32_t travel_ms = 4000;

@@ -1,6 +1,34 @@
 #include "k1_asrc_24k.h"
 
 #include <string.h>
+#ifdef K1_EMOTISCOPE_PORT
+#include <math.h>
+#endif
+
+#ifdef K1_EMOTISCOPE_PORT
+static void k1_asrc24_filter_design(k1_asrc24_t *st)
+{
+    const float pi = 3.14159265358979323846f;
+    const float cutoff = 5200.0f / (float)st->source_hz;
+    float sum = 0.0f;
+    uint32_t tap;
+    for (tap = 0u; tap < K1_ASRC24_FILTER_TAPS; ++tap) {
+        const int32_t distance = (int32_t)tap -
+                                 (int32_t)K1_ASRC24_FILTER_DELAY_SAMPLES;
+        const float ideal = distance == 0
+            ? 2.0f * cutoff
+            : sinf(2.0f * pi * cutoff * (float)distance) /
+              (pi * (float)distance);
+        const float window = 0.54f - 0.46f *
+            cosf(2.0f * pi * (float)tap /
+                 (float)(K1_ASRC24_FILTER_TAPS - 1u));
+        st->filter_coefficients[tap] = ideal * window;
+        sum += st->filter_coefficients[tap];
+    }
+    for (tap = 0u; tap < K1_ASRC24_FILTER_TAPS; ++tap)
+        st->filter_coefficients[tap] /= sum;
+}
+#endif
 
 void k1_asrc24_reset(k1_asrc24_t *st, uint32_t epoch, uint32_t source_hz)
 {
@@ -14,11 +42,14 @@ void k1_asrc24_reset(k1_asrc24_t *st, uint32_t epoch, uint32_t source_hz)
     } else {
         st->source_hz = source_hz;
     }
+#ifdef K1_EMOTISCOPE_PORT
+    k1_asrc24_filter_design(st);
+#endif
 }
 
 uint32_t k1_asrc24_phase_increment_q16(uint32_t source_hz)
 {
-    /* increment = source_hz / 24000 in Q16. Nominal 40000/24000 = 5/3. */
+    /* Source samples per output sample in Q16, for the selected profile. */
     return (uint32_t)(((uint64_t)source_hz << 16) / K1_ASRC24_OUT_HZ);
 }
 
@@ -31,6 +62,9 @@ int k1_asrc24_set_rate(k1_asrc24_t *st, uint32_t source_hz)
         return k1_asrc24_err_rate;
     }
     st->source_hz = source_hz;
+#ifdef K1_EMOTISCOPE_PORT
+    k1_asrc24_filter_design(st);
+#endif
     return k1_asrc24_ok;
 }
 
@@ -46,10 +80,10 @@ uint32_t k1_asrc24_required_for_pull180(const k1_asrc24_t *st)
     }
     inc = k1_asrc24_phase_increment_q16(st->source_hz);
     last_required = st->src_index +
-                    ((uint64_t)st->frac_q16 + 179ull * (uint64_t)inc) / 65536ull +
+                    ((uint64_t)st->frac_q16 + (uint64_t)(K1_ASRC24_OUT_FRAMES - 1u) * inc) / 65536ull +
                     2ull;
     consume_count = st->src_index +
-                    ((uint64_t)st->frac_q16 + 180ull * (uint64_t)inc) / 65536ull;
+                    ((uint64_t)st->frac_q16 + (uint64_t)K1_ASRC24_OUT_FRAMES * inc) / 65536ull;
     required = last_required > consume_count ? last_required : consume_count;
     if (required > 0xffffffffull) {
         return 0xffffffffu;
@@ -102,7 +136,23 @@ int k1_asrc24_push(k1_asrc24_t *st, const int16_t *src, uint32_t count)
         return k1_asrc24_err_arg;
     }
     for (i = 0; i < count; ++i) {
+#ifdef K1_EMOTISCOPE_PORT
+        uint32_t tap;
+        uint32_t cursor = st->filter_write_pos;
+        float filtered = 0.0f;
+        st->filter_history[cursor] = src[i];
+        for (tap = 0u; tap < K1_ASRC24_FILTER_TAPS; ++tap) {
+            filtered += st->filter_coefficients[tap] *
+                        (float)st->filter_history[cursor];
+            cursor = cursor == 0u ? K1_ASRC24_FILTER_TAPS - 1u : cursor - 1u;
+        }
+        st->filter_write_pos =
+            (st->filter_write_pos + 1u) % K1_ASRC24_FILTER_TAPS;
+        st->ring[st->write_pos] = sat16((int32_t)
+            (filtered + (filtered >= 0.0f ? 0.5f : -0.5f)));
+#else
         st->ring[st->write_pos] = src[i];
+#endif
         st->write_pos = (st->write_pos + 1u) % K1_ASRC24_RING;
         st->filled += 1u;
     }
@@ -131,8 +181,8 @@ int k1_asrc24_pull180(k1_asrc24_t *st, int16_t out180[K1_ASRC24_OUT_FRAMES])
     inc = k1_asrc24_phase_increment_q16(st->source_hz);
     s = st->src_index;
     f = st->frac_q16;
-    last_required = s + ((f + 179ull * (uint64_t)inc) / 65536ull) + 2ull;
-    consume_count = s + ((f + 180ull * (uint64_t)inc) / 65536ull);
+    last_required = s + ((f + (uint64_t)(K1_ASRC24_OUT_FRAMES - 1u) * inc) / 65536ull) + 2ull;
+    consume_count = s + ((f + (uint64_t)K1_ASRC24_OUT_FRAMES * inc) / 65536ull);
     required = last_required > consume_count ? last_required : consume_count;
     if ((uint64_t)st->filled < required) {
         return k1_asrc24_err_not_ready;

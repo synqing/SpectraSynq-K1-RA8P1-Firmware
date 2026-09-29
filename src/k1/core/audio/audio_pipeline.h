@@ -44,6 +44,9 @@ struct AudioPipelineOutput final {
     bool predicted_next_beat_valid = false;
     std::uint32_t gdft_overflow_count = 0;
     bool valid = false;
+    // Internal visual sidecar: post-filter magnitudes before AGC/clipping.
+    // Owned and committed with this publication; AudioFeaturesV1 is unchanged.
+    std::array<float, kGdftBinCount> visual_magnitudes{};
 };
 
 // Single-owner RT1062 AP composition. AudioFeaturesV1 remains the local

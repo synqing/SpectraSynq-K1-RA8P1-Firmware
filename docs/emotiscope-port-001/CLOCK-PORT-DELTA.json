@@ -1,0 +1,20 @@
+{
+  "reason": "Preserve donor millis chronology across uint32 microsecond wrap; prevent early/missed novelty updates at wrapped deadlines.",
+  "observed_before": "Two deadline mismatches plus forty millis mismatches in focused near-wrap test. No 71-minute total freeze was demonstrated.",
+  "changes": [
+    "guarded M_PI compatibility constant for ARM newlib",
+    "64-bit elapsed clock extension for millis(), uint32 micros preserved",
+    "reject backward clock calls whose unsigned delta is at least 2^31 us",
+    "wrap-safe uint32 novelty deadline comparison, same 20ms interval and one-update-per-call policy"
+  ],
+  "pre_edit_sha256": {
+    "emotiscope_port.h": "7e930c78e320c8aab82a0d3ce6b49e4c011b7160c66789ea8e9c9cb1d1e1d1ff",
+    "emotiscope_port.cpp": "05e1f83fbe0326b860a3a97d637899dda51087f64d9dd7e9a6b7b60c2d25160c",
+    "emotiscope_donor/tempo.h": "fc06fa9a40233a16187577949340d964dae2caed17111fb70ee18b26b8e9f055"
+  },
+  "post_edit_sha256": {
+    "emotiscope_port.h": "53f317ce9dbc857cef13a2c75e8df6a30c195ed9c56d26a46f487ac034a12bb6",
+    "emotiscope_port.cpp": "ad593908618d945aad60f5fbdcf97fc559edc0a17d6da4e10dc8f485ade41da6",
+    "emotiscope_donor/tempo.h": "a07bc922809121473726291f0c02c27dd1906b03a66936ba6b3189517758946f"
+  }
+}

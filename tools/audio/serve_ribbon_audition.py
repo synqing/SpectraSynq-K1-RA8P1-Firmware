@@ -14,17 +14,19 @@ from build_ribbon_replay import ROOT, build, sha
 FIXTURES=ROOT/'tests/fixtures/tempo_field/v1/pcm'
 ALLOWED=['synthetic','song-0','sparse_reentry','clear120','dense','fractional12743','half_time','silence','syncopation','tempo_step']
 DEFAULTS=dict(velocity=64,spread=.12,lifetime=1.6,width=2,spacing=.70,gap=.32,
-              return_strength=.24,injection=1.6,persistence=0,palette=33,recolour=0,knee=0,liveiness=.5,pair_width=7,pair_velocity=40,pair_delay=.18,pair_articulation=.7,pair_spread=0,pair_lifetime=2.8,pair_gap=.32,pair_return=.22)
+              return_strength=.24,injection=1.6,persistence=0,palette=33,recolour=0,knee=0,liveiness=.5,pair_width=7,pair_velocity=40,pair_delay=.18,pair_articulation=.7,pair_spread=0,pair_lifetime=2.8,pair_gap=.32,pair_return=.22,pair_beat=0)
 RANGES=dict(velocity=(4,240),spread=(0,30),lifetime=(.1,12),width=(.5,10),spacing=(.08,3),gap=(.05,2),
  return_strength=(0,.45),injection=(0,3),persistence=(0,.15),palette=(0,43),recolour=(0,1),knee=(0,1),liveiness=(0,1),
- pair_width=(3,14),pair_velocity=(4,80),pair_delay=(0,.5),pair_articulation=(0,1),pair_spread=(0,10),pair_lifetime=(.2,8),pair_gap=(.05,2),pair_return=(0,.45))
+ pair_width=(3,14),pair_velocity=(4,80),pair_delay=(0,.5),pair_articulation=(0,1),pair_spread=(0,10),pair_lifetime=(.2,8),pair_gap=(.05,2),pair_return=(0,.45),pair_beat=(0,1))
 LOCK=threading.Lock()
 
-def validate_build(exe):
+def validate_build(exe, allow_source_drift=False):
     receipt=json.loads((exe.parent/'build-receipt.json').read_text())
     if sha(exe)!=receipt['executable_sha256']:raise ValueError('Executable differs from its build receipt')
     for name,digest in receipt['sources'].items():
-        if sha(ROOT/name)!=digest:raise ValueError('Rebuild required: source changed: '+name)
+        if sha(ROOT/name)!=digest:
+            if allow_source_drift: return
+            raise ValueError('Rebuild required: source changed: '+name)
 
 def export(exe, folder, request):
     fixture=request.get('fixture','song-0')
@@ -36,7 +38,7 @@ def export(exe, folder, request):
     for name,value in settings.items():
         lo,hi=RANGES[name]
         if type(value) not in (int,float) or not lo<=value<=hi:raise ValueError('Invalid parameter: '+name)
-        if name in ('palette','recolour','knee') and int(value)!=value:raise ValueError('Integer required: '+name)
+        if name in ('palette','recolour','knee','pair_beat') and int(value)!=value:raise ValueError('Integer required: '+name)
     pcm=FIXTURES/(fixture+'.pcm')
     identity=dict(fixture=fixture,input_sha256=sha(pcm) if fixture!='synthetic' else 'declared-six-studies-v1',
                   settings=settings,executable_sha256=sha(exe))
@@ -61,9 +63,10 @@ def export(exe, folder, request):
 def main():
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--output',type=Path,required=True)
     parser.add_argument('--build',type=Path);parser.add_argument('--port',type=int,default=8769)
+    parser.add_argument('--allow-source-drift',action='store_true')
     args=parser.parse_args();folder=args.output.resolve();folder.mkdir(parents=True,exist_ok=True)
     exe=args.build.resolve() if args.build else build(folder/'build')
-    validate_build(exe)
+    validate_build(exe, args.allow_source_drift)
     class Handler(BaseHTTPRequestHandler):
         def response(self,data,kind='application/json',status=200):
             self.send_response(status);self.send_header('Content-Type',kind);self.send_header('Content-Length',str(len(data)))
@@ -100,7 +103,7 @@ def main():
             try:
                 size=int(self.headers.get('Content-Length',0))
                 if not 0<size<8192:raise ValueError('Request size')
-                validate_build(exe)
+                validate_build(exe, args.allow_source_drift)
                 result=export(exe,folder,json.loads(self.rfile.read(size)))
                 self.response(json.dumps(result).encode())
             except Exception as error:self.response(json.dumps(dict(error=str(error))).encode(),status=400)

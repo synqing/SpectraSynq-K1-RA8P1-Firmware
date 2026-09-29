@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "profile": "titan-emotiscope-spectrum-001",
+  "reviewed": "2026-09-29",
+  "mode_a": 1,
+  "mode_b": 1,
+  "flags": 5,
+  "emit_default": "on",
+  "automatic_catalogue_cycle": false,
+  "brightness": 100,
+  "palette_a": 0,
+  "palette_b": 0,
+  "transition_ms": 0,
+  "travel_ms": 4000,
+  "first_control": "donor mode via opcode16 version1",
+  "notes": "Complete Emotiscope v1.1 AP/VP, native Spectrum defaults, autonomous emission, 100/255 hardware gain once, one continuous160 split80/80 on P601/P604."
+}

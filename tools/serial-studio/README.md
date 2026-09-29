@@ -1,3 +1,15 @@
+<!-- BEGIN DEFAULT BRIGHTNESS MANDATE 2026-09-29 -->
+**Latest user directive, 29 September 2026:** Normal default LED brightness must
+remain **100/255 minimum**. Current boot and audition default is **100/255**.
+This supersedes all earlier 24/255 brightness ceilings and default instructions
+in this workspace, skills and historical handovers. Do not silently restore24
+when arming emission, changing mode, reconnecting a host or rebuilding firmware.
+Explicit operator dimming and emission-off controls remain available; this is a
+minimum DEFAULT, not a prohibition on requested dimming or fault shutdown.
+Preserve the corrected continuous160 / DIN80+80 mapping and autonomous music.
+Evidence: docs/effects-language-001/evidence/captain-brightness100-20260929-01/.
+<!-- END DEFAULT BRIGHTNESS MANDATE 2026-09-29 -->
+
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
 
 <!-- BEGIN TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->

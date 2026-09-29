@@ -1,0 +1,706 @@
+{
+  "protocol_version": 1,
+  "max_response_body": 4096,
+  "endian": "little",
+  "event_ring": 256,
+  "event_record_bytes": 192,
+  "event_read_max": 20,
+  "timing_ring": 1024,
+  "timing_record_bytes": 56,
+  "timing_read_max": 64,
+  "history_header_bytes": 64,
+  "snapshot_opcode": 23,
+  "events_opcode": 24,
+  "config_opcode": 25,
+  "timing_opcode": 26,
+  "legacy_mir_json_opcode": 21,
+  "history_flags": {
+    "EMPTY": 1,
+    "GAP": 2,
+    "EXPIRED_CURSOR": 4
+  },
+  "snapshot_flags": {
+    "VALID": 1,
+    "WARMING": 2,
+    "STALE": 4,
+    "LIVE_ORIGIN": 8,
+    "EMIT_ON": 16,
+    "PHYSICAL_TS": 32
+  },
+  "snapshot_bytes": 1184,
+  "schema_version": 1,
+  "schema_id": "titan-emotiscope-v1",
+  "runtime_kind": "live",
+  "contract": "sr12800.hop64.bins64.emotiscope",
+  "capture_contract_version": 2,
+  "binary_layout": "Existing Titan live snapshot/event/timing version 1, unchanged byte offsets. This schema supplies profile-specific semantics; the schema SHA-256 must match before decoding.",
+  "ap_rate_hz": 12800,
+  "hop_samples": 64,
+  "media_time_rate_hz": 48000,
+  "media_ticks_per_hop": 240,
+  "spectrum_bins": 64,
+  "spectrum_wire_slots": 80,
+  "spectrum_padding": {
+    "first_slot": 64,
+    "slots": 16,
+    "value": 0
+  },
+  "spectrum_values": "Native donor spectrogram magnitudes, not K1 magnitudes and not interpolated bins.",
+  "spectrum_frequencies_hz": [
+    77.78175,
+    82.40689,
+    87.30706,
+    92.49861,
+    97.99886,
+    103.8262,
+    110.0,
+    116.5409,
+    123.4708,
+    130.8128,
+    138.5913,
+    146.8324,
+    155.5635,
+    164.8138,
+    174.6141,
+    184.9972,
+    195.9977,
+    207.6523,
+    220.0,
+    233.0819,
+    246.9417,
+    261.6256,
+    277.1826,
+    293.6648,
+    311.127,
+    329.6276,
+    349.2282,
+    369.9944,
+    391.9954,
+    415.3047,
+    440.0,
+    466.1638,
+    493.8833,
+    523.2511,
+    554.3653,
+    587.3295,
+    622.254,
+    659.2551,
+    698.4565,
+    739.9888,
+    783.9909,
+    830.6094,
+    880.0,
+    932.3275,
+    987.7666,
+    1046.502,
+    1108.731,
+    1174.659,
+    1244.508,
+    1318.51,
+    1396.913,
+    1479.978,
+    1567.982,
+    1661.219,
+    1760.0,
+    1864.655,
+    1975.533,
+    2093.005,
+    2217.461,
+    2349.318,
+    2489.016,
+    2637.02,
+    2793.825,
+    2959.956
+  ],
+  "chroma_bins": 12,
+  "chroma_origin": "D#/Eb",
+  "chroma_labels": [
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+    "C",
+    "C#",
+    "D"
+  ],
+  "chroma_values": "Unrotated donor get_chromagram output: spectrogram_smooth bins 0..59 folded modulo 12 and normalized by the donor. Bin 0 corresponds to 77.78175 Hz (D#/Eb2).",
+  "enabled_modes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "mode_ordinals": 7,
+  "mode_names": {
+    "0": "Analog",
+    "1": "Spectrum",
+    "2": "Octave",
+    "3": "Metronome",
+    "4": "Spectronome",
+    "5": "Hype",
+    "6": "Bloom"
+  },
+  "palette_count": 1,
+  "palette_ids": [
+    0
+  ],
+  "palette_semantics": "ID 0 is a transport placeholder. The donor owns colour; no Titan palette catalogue is applied.",
+  "stale_publication_us": 30000,
+  "stale_source_test_us": 0,
+  "warmup_hops": 64,
+  "warmup_us": 320000,
+  "deadline_us": 5000,
+  "deadline_semantics": "Nominal 5 ms audio period. AP/VP cycles and measured hop intervals are observations, not a claimed target deadline admission. publication_deadline_misses counts transitions into stale publication, not every AP execution exceeding 5 ms.",
+  "render_period_us": 10000,
+  "render_schedule": "100 Hz is the declared port schedule, not a recovered historical donor frame rate.",
+  "capabilities": {
+    "snapshot": true,
+    "events": true,
+    "timing": true,
+    "legacy_mir_json": true,
+    "config": false,
+    "stale_source_test": false,
+    "mode_control": true,
+    "beat_lock": false,
+    "onset_events": false,
+    "saliency": false,
+    "chord": false,
+    "pitch_hz": false
+  },
+  "config_subcommands": {},
+  "disabled_config": {
+    "opcode": 25,
+    "all_subcommands_rejected": true,
+    "status": 3,
+    "reason": "Legacy K1 focus/performance/PATCH/config/schema commands do not control this donor. GET_SCHEMA is also unavailable through opcode 25; bind the local schema file to the INFO/snapshot schema hash."
+  },
+  "mode_control": {
+    "opcode": 16,
+    "version": 1,
+    "request_bytes": 32,
+    "word_type": "u32 little-endian",
+    "fields": {
+      "version": {
+        "offset": 0,
+        "required": 1
+      },
+      "palette_a": {
+        "offset": 4,
+        "required": 0
+      },
+      "palette_b": {
+        "offset": 8,
+        "required": 0
+      },
+      "mode_a": {
+        "offset": 12,
+        "min": 0,
+        "max": 6
+      },
+      "mode_b": {
+        "offset": 16,
+        "constraint": "equals mode_a"
+      },
+      "flags": {
+        "offset": 20,
+        "allowed_mask": 5
+      },
+      "brightness": {
+        "offset": 24,
+        "min": 0,
+        "max": 255
+      },
+      "output_channel": {
+        "offset": 28,
+        "required": 0
+      }
+    },
+    "flags": {
+      "ACTIVE": 1,
+      "EMIT_ON": 4
+    },
+    "owner": "Queued through the existing idle RT owner; response follows application or rejection.",
+    "scope": "Selects one complete donor scene. Both mode fields must agree. Brightness is the final hardware gain; it does not modify donor brightness.",
+    "unavailable": "Version 2/3 transition/travel controls, automatic palette cycling, independent channels and legacy performance scalars.",
+    "source": "platform/ra8p1/fixture_app.cpp and PaletteRuntime::configure"
+  },
+  "boot_defaults": {
+    "mode": 1,
+    "palette": 0,
+    "flags": 5,
+    "brightness": 100,
+    "output_channel": 0,
+    "autonomous_output": true
+  },
+  "brightness_authority": "Normal boot/default brightness is at least 100/255. Explicit operator dimming/off remains available.",
+  "snapshot_layout": {
+    "flags": {
+      "offset": 6,
+      "type": "u16"
+    },
+    "publication_generation": {
+      "offset": 8,
+      "type": "u64"
+    },
+    "stream_epoch": {
+      "offset": 16,
+      "type": "u64"
+    },
+    "hop_sequence": {
+      "offset": 24,
+      "type": "u64"
+    },
+    "capture_time_us": {
+      "offset": 32,
+      "type": "u64"
+    },
+    "publish_time_us": {
+      "offset": 40,
+      "type": "u64"
+    },
+    "analysis_end_exclusive": {
+      "offset": 48,
+      "type": "u64"
+    },
+    "media_time_48k": {
+      "offset": 56,
+      "type": "u64"
+    },
+    "musical_pulse": {
+      "offset": 64,
+      "type": "u64"
+    },
+    "musical_phase_q32": {
+      "offset": 72,
+      "type": "u32"
+    },
+    "tempo_bpm": {
+      "offset": 76,
+      "type": "f32"
+    },
+    "beat_phase": {
+      "offset": 80,
+      "type": "f32"
+    },
+    "beat_confidence": {
+      "offset": 84,
+      "type": "f32"
+    },
+    "predicted_next_beat_us": {
+      "offset": 88,
+      "type": "u64"
+    },
+    "peak_scaled": {
+      "offset": 96,
+      "type": "f32"
+    },
+    "vu_level": {
+      "offset": 100,
+      "type": "f32"
+    },
+    "bass_energy": {
+      "offset": 104,
+      "type": "f32"
+    },
+    "mid_energy": {
+      "offset": 108,
+      "type": "f32"
+    },
+    "high_energy": {
+      "offset": 112,
+      "type": "f32"
+    },
+    "onset_strength": {
+      "offset": 116,
+      "type": "f32"
+    },
+    "flux": {
+      "offset": 120,
+      "type": "f32"
+    },
+    "centroid_hz": {
+      "offset": 124,
+      "type": "f32"
+    },
+    "rolloff_hz": {
+      "offset": 128,
+      "type": "f32"
+    },
+    "bandwidth_hz": {
+      "offset": 132,
+      "type": "f32"
+    },
+    "rms": {
+      "offset": 136,
+      "type": "f32"
+    },
+    "crest": {
+      "offset": 140,
+      "type": "f32"
+    },
+    "zcr": {
+      "offset": 144,
+      "type": "f32"
+    },
+    "hfc": {
+      "offset": 148,
+      "type": "f32"
+    },
+    "compactness": {
+      "offset": 152,
+      "type": "f32"
+    },
+    "chroma": {
+      "offset": 156,
+      "type": "f32",
+      "count": 12
+    },
+    "spectrum": {
+      "offset": 204,
+      "type": "f32",
+      "count": 80
+    },
+    "bass_onset": {
+      "offset": 524,
+      "type": "f32"
+    },
+    "kick": {
+      "offset": 528,
+      "type": "f32"
+    },
+    "snare": {
+      "offset": 532,
+      "type": "f32"
+    },
+    "hihat": {
+      "offset": 536,
+      "type": "f32"
+    },
+    "transient": {
+      "offset": 540,
+      "type": "f32"
+    },
+    "saliency": {
+      "offset": 544,
+      "type": "f32"
+    },
+    "harmonic_ratio": {
+      "offset": 548,
+      "type": "f32"
+    },
+    "inharmonicity": {
+      "offset": 552,
+      "type": "f32"
+    },
+    "pitch_hz": {
+      "offset": 556,
+      "type": "f32"
+    },
+    "pitch_confidence": {
+      "offset": 560,
+      "type": "f32"
+    },
+    "mode_id": {
+      "offset": 596,
+      "type": "u16"
+    },
+    "palette_id": {
+      "offset": 598,
+      "type": "u16"
+    },
+    "gain_q8": {
+      "offset": 600,
+      "type": "u16"
+    },
+    "warmup_hops": {
+      "offset": 602,
+      "type": "u16"
+    },
+    "config_revision": {
+      "offset": 604,
+      "type": "u32"
+    },
+    "hops_consumed": {
+      "offset": 608,
+      "type": "u32"
+    },
+    "hops_rejected": {
+      "offset": 612,
+      "type": "u32"
+    },
+    "last_invalidate_reason": {
+      "offset": 616,
+      "type": "u32"
+    },
+    "asrc_starved": {
+      "offset": 620,
+      "type": "u32"
+    },
+    "measured_hz": {
+      "offset": 624,
+      "type": "u32"
+    },
+    "deadline_us": {
+      "offset": 628,
+      "type": "u32"
+    },
+    "ap_cycles": {
+      "offset": 632,
+      "type": "u32"
+    },
+    "vp_cycles": {
+      "offset": 636,
+      "type": "u32"
+    },
+    "hop_dt_us": {
+      "offset": 640,
+      "type": "u32"
+    },
+    "event_mask": {
+      "offset": 644,
+      "type": "u32"
+    },
+    "event_write_seq": {
+      "offset": 648,
+      "type": "u64"
+    },
+    "timing_write_seq": {
+      "offset": 656,
+      "type": "u64"
+    },
+    "freshness_us": {
+      "offset": 664,
+      "type": "u32"
+    },
+    "live_origin": {
+      "offset": 668,
+      "type": "u8"
+    },
+    "physical_ts_valid": {
+      "offset": 669,
+      "type": "u8"
+    },
+    "emit_on": {
+      "offset": 670,
+      "type": "u8"
+    },
+    "capture_start_us": {
+      "offset": 672,
+      "type": "u64"
+    },
+    "capture_end_us": {
+      "offset": 680,
+      "type": "u64"
+    },
+    "injection_start_us": {
+      "offset": 688,
+      "type": "u64"
+    },
+    "injection_end_us": {
+      "offset": 696,
+      "type": "u64"
+    },
+    "stale_entry_us": {
+      "offset": 704,
+      "type": "u64"
+    },
+    "epoch_transition_us": {
+      "offset": 712,
+      "type": "u64"
+    },
+    "warmup_complete_us": {
+      "offset": 720,
+      "type": "u64"
+    },
+    "uid": {
+      "offset": 728,
+      "type": "u8",
+      "count": 16
+    },
+    "build_sha256": {
+      "offset": 744,
+      "type": "u8",
+      "count": 32
+    },
+    "schema_sha256": {
+      "offset": 776,
+      "type": "u8",
+      "count": 32
+    },
+    "publication_deadline_misses": {
+      "offset": 808,
+      "type": "u32"
+    },
+    "last_rendered_request_id": {
+      "offset": 812,
+      "type": "u32"
+    },
+    "last_rendered_revision": {
+      "offset": 816,
+      "type": "u32"
+    },
+    "last_rendered_frame": {
+      "offset": 820,
+      "type": "u32"
+    },
+    "last_rendered_hop": {
+      "offset": 824,
+      "type": "u32"
+    },
+    "superseded_request_id": {
+      "offset": 828,
+      "type": "u32"
+    },
+    "accepted_request_id": {
+      "offset": 832,
+      "type": "u32"
+    },
+    "accepted_revision": {
+      "offset": 836,
+      "type": "u32"
+    },
+    "last_emitted_request_id": {
+      "offset": 840,
+      "type": "u32"
+    },
+    "last_rendered_publication_us": {
+      "offset": 844,
+      "type": "u64"
+    }
+  },
+  "snapshot_field_semantics": {
+    "valid": "64 fresh chunks since boot or the latest audio gap. Host/control/render activity does not establish valid audio.",
+    "warming": "Fewer than 64 fresh accepted chunks.",
+    "capture_time_us": "DMA-based capture estimate transformed into the live clock; includes declared ASRC filter delay. No physical acoustic timestamp claim.",
+    "publish_time_us": "Actual donor AP completion timestamp in the live clock.",
+    "analysis_end_exclusive": "End sample index in the current 12.8 kHz stream epoch.",
+    "media_time_48k": "hop_sequence multiplied by 240.",
+    "peak_scaled": "Maximum absolute normalized PCM sample in the latest accepted 64-sample chunk.",
+    "vu_level": "Native donor smoothed VU, not raw RMS.",
+    "rms": "RMS of the normalized input samples in the latest accepted chunk.",
+    "crest": "Latest chunk peak divided by latest chunk RMS, with a zero guard.",
+    "spectrum": "64 native values followed by 16 zero slots.",
+    "chroma": "12 native D#/Eb-origin chromagram values.",
+    "ap_cycles": "Measured donor push and compact status-copy cost. Does not include raw capture or ASRC work.",
+    "vp_cycles": "Measured platform render slice, as supplied by the fixture.",
+    "measured_hz": "Measured raw capture source rate, not the 12.8 kHz analysis rate.",
+    "event_mask": "Always zero; retained event rows are per-hop observations, not detected attacks.",
+    "legacy_request_receipts": "PATCH/performance request receipts are unsupported because opcode 25 is disabled.",
+    "zero_means_unsupported": "Fields listed in unsupported_zero_fields must not be interpreted as negative detections or measured silence."
+  },
+  "unsupported_zero_fields": [
+    "musical_pulse",
+    "musical_phase_q32",
+    "tempo_bpm",
+    "beat_phase",
+    "beat_confidence",
+    "predicted_next_beat_us",
+    "bass_energy",
+    "mid_energy",
+    "high_energy",
+    "onset_strength",
+    "flux",
+    "centroid_hz",
+    "rolloff_hz",
+    "bandwidth_hz",
+    "zcr",
+    "hfc",
+    "compactness",
+    "bass_onset",
+    "kick",
+    "snare",
+    "hihat",
+    "transient",
+    "saliency",
+    "harmonic_ratio",
+    "inharmonicity",
+    "pitch_hz",
+    "pitch_confidence",
+    "event_mask",
+    "injection_start_us",
+    "injection_end_us"
+  ],
+  "event_type_mask": {},
+  "event_semantics": {
+    "event_mask": 0,
+    "spectrum_peak_bin": "Index 0..63 of the largest native donor spectrum magnitude. An all-zero frame may return 0; no confidence/validity claim.",
+    "chroma_peak": "Index 0..11 in D#/Eb ordering. An all-zero frame may return 0; no pitch-lock claim.",
+    "musical_events": "Unsupported legacy onset/beat/drum/saliency fields remain zero."
+  },
+  "mir_json": {
+    "opcode": 21,
+    "version": 2,
+    "contract": "sr12800.hop64.bins64.emotiscope",
+    "donor_dominant_tempo_bpm": "Largest donor tempo-bin candidate; not a locked or independently qualified beat estimate.",
+    "donor_tempo_confidence": "Native donor tempo statistic; not K1 confidence.",
+    "beat_locked": false,
+    "physical_timestamp_valid": false
+  },
+  "audio_gap_policy": "Call the donor gap adapter once, clear PCM capture history, mark publication invalid and mute new AP deposits during 64 fresh chunks. Preserve existing VP/tempo/LPF/dither/configuration histories; do not initialize the engine again. Loss counters remain visible; this does not recover lost audio.",
+  "output": {
+    "donor_pixels": 128,
+    "logical_pixels": 160,
+    "geometry": "One continuous logical strip. DIN-A receives logical 0..79; DIN-B receives 80..159.",
+    "source_precision": "Donor post-gamma, post-temporal-dither RGB8. Interpolation/16-bit packing does not create native donor colour precision.",
+    "adapter": "Centre-symmetric spatial interpolation 128 to 160, expansion to 16-bit channels, one final global brightness/255 scaling, GRB48 packing.",
+    "pins": {
+      "DIN-A": "P601/GPT6, DMA0",
+      "DIN-B": "P604/GPT8, DMA3"
+    },
+    "microphone_dma": [
+      1,
+      2
+    ]
+  },
+  "donor": {
+    "repository": "Emotiscope.HIL",
+    "variant": "v1.1_build",
+    "commit": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+    "manifest": "docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.json",
+    "ap_order": [
+      "calculate_magnitudes",
+      "get_chromagram",
+      "run_vu",
+      "update_tempo"
+    ],
+    "vp_order": [
+      "run_gpu",
+      "native RGB8 output",
+      "Titan geometry/brightness/GRB48 adapter"
+    ],
+    "native_defaults": {
+      "brightness": 1.0,
+      "softness": 0.25,
+      "color": 0.33,
+      "warmth": 0.0,
+      "color_range": 0.0,
+      "speed": 0.5,
+      "saturation": 0.75,
+      "background": 0.25,
+      "current_mode": 1,
+      "mirror_mode": true,
+      "screensaver": true,
+      "temporal_dithering": true,
+      "auto_color_cycle": false,
+      "reverse_color_range": false
+    },
+    "excluded_platform_services": [
+      "ESP I2S microphone conditioning",
+      "ESP LED transport",
+      "network",
+      "NVS",
+      "web dashboard",
+      "continuous HIL CSV export",
+      "physical touch"
+    ]
+  },
+  "note": "AudioFeaturesV1 is an internal timestamp/VU carrier only. Legacy spectrum/chroma/onset validity flags are not asserted and the old K1 AP/VP does not drive this profile. Binary packet sizes stay compatible, semantics are selected by this schema identity. Host conformance does not establish target timing, uninterrupted capture or appearance acceptance."
+}

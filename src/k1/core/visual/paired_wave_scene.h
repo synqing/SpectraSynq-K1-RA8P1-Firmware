@@ -20,6 +20,8 @@ struct PairedWaveSettings final {
   float return_strength=.22F;
   float articulation=.7F;
   std::uint16_t palette_id=33;
+  // Off reproduces revision 006. On may shorten a new accent's edge handoff.
+  bool beat_handoff=false;
 };
 struct PairedWaveTelemetry final {
   float envelope=0, transport_px=0, limiter_gain=1;
@@ -28,6 +30,12 @@ struct PairedWaveTelemetry final {
   unsigned attacks_attempted=0, attacks_admitted=0, attacks_omitted=0, attacks_refractory=0;
   unsigned bodies_admitted=0, bodies_omitted=0;
   bool audio_available=false, frame_valid=true;
+  // Last accent's stored handoff. beat_timed_accents counts only deposits
+  // whose delay was shortened to meet a beat inside the authored window.
+  float last_accent_delay_s=.18F;
+  unsigned beat_timed_accents=0;
+  bool have_first_beat_timed_us=false;
+  std::uint64_t first_beat_timed_us=0;
 };
 // One scene owns a retained stream of centre-deposited material. Lorenz state
 // shapes formation and relative edge emphasis; it never teleports positions.
@@ -48,6 +56,7 @@ class PairedWaveScene final {
   };
   bool advance(std::uint64_t) noexcept;
   bool deposit(float strength, bool accent) noexcept;
+  float accentDelay(const VisualAudioFrameView& view, std::uint64_t deposit_us) noexcept;
   void formBody(float level) noexcept;
   void step(float dt, bool fresh) noexcept;
   PairedWaveSettings settings_{};
@@ -59,7 +68,9 @@ class PairedWaveScene final {
   double phase_=0, next_body_distance_=0;
   float energy_=0,envelope_=0,timbre_=0,colour_position_=.3F,previous_energy_=0;
   float lorenz_x_=-8.F,lorenz_y_=-9.F,lorenz_z_=25.F;
-  float formation_=0,deposit_clock_=0,impact_=0;
+  float formation_=0,deposit_clock_=0,impact_=0,pending_accent_delay_=.18F;
   bool initialised_=false,have_sequence_=false,have_attack_=false;
+  bool have_rhythm_epoch_=false;
+  std::uint64_t rhythm_epoch_=0;
 };
 } // namespace k1::core::visual

@@ -72,6 +72,7 @@ AudioPipelineOutput AudioPipeline::process(
     GdftPostprocessFrame gdft{};
     processGdftPostprocess(
         raw, gdft_configuration_, input.gdft, gdft_state_, gdft);
+    output.visual_magnitudes = gdft.magnitude_final;
 
     auto& features = output.features;
     features.sequence = input.sequence;

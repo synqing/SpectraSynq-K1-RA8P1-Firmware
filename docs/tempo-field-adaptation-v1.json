@@ -9,11 +9,11 @@
   "adapted": {
     "core/audio/audio_pipeline.cpp": {
       "base_sha256": "fcce06cf9f723b5c313870aed880fe23365f312791142d015b15c8013681d7bb",
-      "candidate_sha256": "5b0863c4cc2aafa7400c768438efeabc92d4d3b35574a05073d13f55bd00650f"
+      "candidate_sha256": "45b822016a3216d8cb8fb23738e09c02d943f73d19df6113d280cef4f8a83229"
     },
     "core/audio/audio_pipeline.h": {
       "base_sha256": "2206ebb60ec0ec30d2a5c3e7c96b65114a0afd3b6e58c8cb231de6f71bf48189",
-      "candidate_sha256": "336e3fac3f0c187258b10843391948e32f922a4021f1228ae16947adc1bbabb4"
+      "candidate_sha256": "fb93bd99ecc101fd2eaeeee894c6420e306546c611dc1a40e28fb998517d57af"
     },
     "core/audio/tempo_tracker.cpp": {
       "base_sha256": "76d49284b69702c2544617a11b6830133ea411d0cc0fc5f82a19a51ddb12e5ea",
@@ -25,7 +25,7 @@
     },
     "core/visual/visual_audio_frame.h": {
       "base_sha256": "9a7d13c40045c2ebfd37fc5a7104be3d28ff48796543d879e1412099bde0505e",
-      "candidate_sha256": "b930f6646025eaee6b13d94e806053513a9f6fbd362ca48c4850d3666f21a44b"
+      "candidate_sha256": "203310469d165f8f9086cf89536395f794f7a3ad319b3cfe8fc2624c3b04cce3"
     }
   },
   "local": {
@@ -39,5 +39,11 @@
     "scripts/tempo_acf_slice_overlay.py": "05c27bb025aa680bb5718b7349b97f3778a949bcfc453020ed448215e3056cef",
     "src/k1/core/audio/tempo_acf_slice.cpp": "ed2028926c9160370516b356b1c77c99cb91f3247d738f52d0ed7c3ba50a504e",
     "src/k1/core/audio/tempo_acf_slice.h": "ed9bf10f286f1ff5b5769fac7004e204eed9ebd3c397cb255ac1105d16b7dd09"
+  },
+  "visual_sidecar_revision": {
+    "date": "2026-09-29",
+    "purpose": "Copy pre-AGC magnitudes into the immutable committed visual publication; repair donor pitch ratios lost in the legacy clipped spectrum. Existing AudioFeaturesV1, onset and tempo algorithms unchanged.",
+    "evidence": "docs/effects-language-001/evidence/captain-donor-response-20260929-01/host-replay/final-receipt.json",
+    "source_review": "Three-file additive sidecar; fixed import allowlist, pinned base hashes and strict verifier unchanged."
   }
 }

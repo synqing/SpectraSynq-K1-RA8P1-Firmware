@@ -10,6 +10,13 @@
 #endif
 
 namespace k1::titan {
+#ifndef K1_LIVE_BOOT_BRIGHTNESS
+#define K1_LIVE_BOOT_BRIGHTNESS 100U
+#endif
+// User directive 29 September 2026: normal boot default is at least 100/255.
+inline constexpr std::uint32_t kDefaultPaletteBrightness = K1_LIVE_BOOT_BRIGHTNESS;
+static_assert(kDefaultPaletteBrightness >= 100U && kDefaultPaletteBrightness <= 255U);
+
 inline constexpr std::uint32_t kPaletteCatalogueOpcode = 15U;
 inline constexpr std::uint32_t kPaletteConfigureOpcode = 16U;
 inline constexpr std::uint32_t kPaletteStatusOpcode = 17U;
@@ -24,8 +31,12 @@ inline constexpr std::uint32_t kPaletteWireSnapshotOpcode = 19U; // WS2816 only;
 #if defined(K1_PALETTE_WS2816_GPT_PAIR) && defined(K1_PALETTE_WS2816)
 #error "K1_PALETTE_WS2816_GPT_PAIR and K1_PALETTE_WS2816 are mutually exclusive"
 #endif
-#ifdef K1_PALETTE_WS2816
-// Two sequential 80-pixel GRB48 transfers need more than an 8.333 ms slot.
+#if defined(K1_EMOTISCOPE_PORT)
+inline constexpr std::uint32_t kPalettePeriodUs = 10000U;
+#elif defined(K1_DUAL_EDGE_DONOR) || defined(K1_PALETTE_WS2816)
+// Keep the donor audition at 60 Hz. Its two DINs now emit 80 pixels each
+// concurrently; donor selection does not imply two physical strips. The
+// legacy GPIO backend sends two 80-pixel segments sequentially.
 inline constexpr std::uint32_t kPalettePeriodUs = 16667U;
 #else
 inline constexpr std::uint32_t kPalettePeriodUs = 8333U;
@@ -79,7 +90,7 @@ struct PaletteConfig {
   std::uint32_t version = 1U;
   std::uint32_t palette_a = 0U, palette_b = 1U;
   std::uint32_t mode_a = 0U, mode_b = 0U; // 0 = preview; 64 = palette bounce.
-  std::uint32_t flags = 0U, brightness = 24U, output_channel = 0U;
+  std::uint32_t flags = 0U, brightness = kDefaultPaletteBrightness, output_channel = 0U;
   std::uint32_t transition_ms = 0U; // Versions 2/3; 0 is an immediate cut.
   std::uint32_t travel_ms = 4000U; // Version 3: centre-to-edge travel duration.
 };

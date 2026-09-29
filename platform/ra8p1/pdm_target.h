@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/* 40 kHz capture + measured-rate ASRC into unchanged 24 kHz/180 AP.
+/* 40 kHz capture + measured-rate ASRC (legacy 24 kHz/180 or Emotiscope 12.8 kHz/64).
    16 kHz diagnostic remains a historical image; do not reflash it to
    repeat that pass. BSP sincdec 124 was 16 kHz at 2 MHz; 49 is 40 kHz. */
 #define K1_PDM_TARGET_SAMPLE_RATE_HZ 40000u
@@ -25,7 +25,13 @@ extern "C" {
 #if (K1_PDM_TARGET_SINCDEC_40K == 49u) && (K1_PDM_TARGET_SINCRNG_40K == 5u)
 #error "SINCRNG 5 is Table 50.7 M=125; M=50 cannot keep that window"
 #endif
+#ifdef K1_EMOTISCOPE_PORT
+#define K1_PDM_TARGET_PROFILE "emotiscope_40k_asrc12800"
+#define K1_PDM_TARGET_AUDIO_CONTRACT_VERSION 2u
+#else
 #define K1_PDM_TARGET_PROFILE "ap_40k_asrc24"
+#define K1_PDM_TARGET_AUDIO_CONTRACT_VERSION K1_AUDIO_HOP_CONTRACT_VERSION
+#endif
 #define K1_PDM_TARGET_LANE_COUNT 2u
 
 /* Titan Mini HW V1.0 onboard LMD2718T261-OA1 (U13/U14), shared P502/P812.
@@ -88,7 +94,7 @@ uint32_t k1_pdm_target_gain_clip_neg(void);
 uint32_t k1_pdm_target_measured_hz(void);
 uint32_t k1_pdm_target_rate_locked(void);
 k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out);
-int k1_pdm_target_pull_ap_hop(int16_t out180[180]);
+int k1_pdm_target_pull_ap_hop(int16_t out180[K1_ASRC24_OUT_FRAMES]);
 uint32_t k1_pdm_target_asrc_consumed(void);
 uint32_t k1_pdm_target_asrc_discarded(void);
 uint32_t k1_pdm_target_push_rejected(void);

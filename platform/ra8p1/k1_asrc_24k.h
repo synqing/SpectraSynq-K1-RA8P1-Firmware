@@ -7,12 +7,22 @@
 extern "C" {
 #endif
 
-/* Measured-rate mono ASRC into the qualified AP: 180 samples at 24 kHz.
-   Nominal source is 40 kHz (increment 5/3). Host tests cover 36–44 kHz.
-   Legacy 16 kHz → 12.8 kHz stereo remains k1_rate_adapt. */
+/* Measured-rate mono hardware adapter. The default legacy profile is
+   180 samples at 24 kHz. The isolated Emotiscope profile converts the measured
+   PDM source DIRECTLY to 64 samples at 12.8 kHz, with an antialias FIR.
+   Source support remains 36--44 kHz; the ring and loss accounting are shared.
+   Historical function names are retained to avoid changing the legacy ABI. */
 
+#ifdef K1_EMOTISCOPE_PORT
+#define K1_ASRC24_OUT_HZ 12800u
+#define K1_ASRC24_OUT_FRAMES 64u
+#define K1_ASRC24_FILTER_TAPS 95u
+#define K1_ASRC24_FILTER_DELAY_SAMPLES 47u
+#else
 #define K1_ASRC24_OUT_HZ 24000u
 #define K1_ASRC24_OUT_FRAMES 180u
+#define K1_ASRC24_FILTER_DELAY_SAMPLES 0u
+#endif
 #define K1_ASRC24_NOMINAL_IN_HZ 40000u
 #define K1_ASRC24_MIN_IN_HZ 36000u
 #define K1_ASRC24_MAX_IN_HZ 44000u
@@ -42,6 +52,13 @@ typedef struct {
   uint32_t push_rejected;
   uint32_t consumed_samples;
   uint32_t discarded_samples;
+#ifdef K1_EMOTISCOPE_PORT
+  /* Causal, unity-DC, Hamming-windowed sinc; coefficients follow measured
+     source rate. No allocation, queue enlargement, or second resampling. */
+  float filter_coefficients[K1_ASRC24_FILTER_TAPS];
+  int16_t filter_history[K1_ASRC24_FILTER_TAPS];
+  uint32_t filter_write_pos;
+#endif
 } k1_asrc24_t;
 
 void k1_asrc24_reset(k1_asrc24_t *st, uint32_t epoch, uint32_t source_hz);
