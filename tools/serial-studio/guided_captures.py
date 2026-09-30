@@ -37,20 +37,15 @@ def run(label, token):
     for attempt in range(1, 4):
         post("/api/qualification", {"action": "begin", "control": label}, token)
         say(f"ARMED {label} (try {attempt}) - move only {label} now")
-        values, start = set(), time.time()
-        seen_before = {json.dumps(m) for m in get("/api/status").get("recent") or []}
+        # Finish once the gesture has started and the mixer then goes quiet for
+        # 1.5 s. The controller validates identity and sweep on the full raw capture.
+        start, last_events, last_change = time.time(), 0, None
+        minimum = 3 if kind == "absolute" else 2
         while time.time() - start < 110:
-            for m in get("/api/status").get("recent") or []:
-                key = json.dumps(m)
-                if key in seen_before:
-                    continue
-                seen_before.add(key)
-                if (m["channel"], m["cc"]) == (ch, cc):
-                    values.add(m["value"])
-            done = (min(values) <= 16 and max(values) >= 111) if kind == "absolute" and values \
-                else {0, 127} <= values
-            if done:
-                time.sleep(0.6)  # let the tail of the gesture land
+            events = (get("/api/status").get("qualification") or {}).get("events") or 0
+            if events != last_events:
+                last_events, last_change = events, time.time()
+            if last_change and events >= minimum and time.time() - last_change >= 1.5:
                 break
             time.sleep(0.15)
         result = post("/api/qualification", {"action": "finish"}, token)
