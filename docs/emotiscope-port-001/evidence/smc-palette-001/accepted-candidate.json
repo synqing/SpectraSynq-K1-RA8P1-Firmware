@@ -1,0 +1,14 @@
+{
+  "uid": "545433931bd25436593630352d068363",
+  "build": "5cbd964d1494bc9480333206b367006326e8e3fad44df6a86f81a0dd3985cbef",
+  "schema_sha256": "e40f6598e57c9493de6f3e6d19935d404d9f5cdbb35c064770fe365ad476a0bb",
+  "ops": [
+    "emotiscope_get",
+    "emotiscope_patch"
+  ],
+  "scope": "Admits donor GET and PATCH, including output_precision and the palette field, for the programmed Emotiscope palette image. Boot palette 0 (native) and precision 0. Not a hardware pass, not an optical result.",
+  "hex_sha256": "3e89dd282aff0d0c2b464299f756043175beb3a76ef7907bb5a87bf5154a2813",
+  "elf_sha256": "5004027784351cffcaefcf2b64b4b5fbb84c57c8803badd142bf10e893f833ed",
+  "receipt": "docs/emotiscope-port-001/evidence/arm-palette-001/receipt.json",
+  "programme": "docs/emotiscope-port-001/evidence/programme-palette-001/receipt.json"
+}

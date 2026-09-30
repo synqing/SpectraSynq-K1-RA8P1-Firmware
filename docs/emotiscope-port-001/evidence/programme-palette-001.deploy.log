@@ -1,0 +1,16 @@
+2026-10-01T00:51:57 build 5cbd964d1494bc9480333206b367006326e8e3fad44df6a86f81a0dd3985cbef schema e40f6598e57c9493de6f3e6d19935d404d9f5cdbb35c064770fe365ad476a0bb admission 48bd78946abf6ced37e25b396236827d44680a524e5df45d5baefed7660e9023
+2026-10-01T00:51:57 bootout broker
+2026-10-01T00:51:57 programme (Titan show stops ~25 s)
+2026-10-01T00:52:16 programme rc=0
+2026-10-01T00:52:26 identity: MATCH
+/Users/spectrasynq/Library/LaunchAgents/com.spectrasynq.titan-broker.plist: OK
+2026-10-01T00:52:26 bootstrap broker
+launchd   : titan-broker=running/pid 43211, titan-mixer=running/pid 89470
+titan usb : present
+target    : build 5cbd964d1494 uid 545433931bd25436593630352d068363 frames/s 100.0 led_faults 0 (broker log age 0.0 s)
+show      : Spectrum output 100/255 emission ON precision 0 ready True faders_armed False
+writes    : No write this session
+captures  : {'active': False, 'label': None, 'qualified': []}
+VERDICT   : ACTION NEEDED
+  - com.spectrasynq.titan-mixer is running OLD code (emotiscope_store.py changed after it started) -> launchctl kickstart -k gui/$(id -u)/com.spectrasynq.titan-mixer
+2026-10-01T00:52:34 done. The mixer controller re-attaches by itself; kickstart it only if its code changed.

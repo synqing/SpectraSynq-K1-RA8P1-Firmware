@@ -2,7 +2,15 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current image, supervision and A/B — 30 September 2026 (Dependable Instrument v1)
+## Current image: K1 palettes restored — 30 September 2026
+
+Resident: build `5cbd964d1494bc9480333206b367006326e8e3fad44df6a86f81a0dd3985cbef`, HEX `3e89dd282aff0d0c2b464299f756043175beb3a76ef7907bb5a87bf5154a2813`, ELF `5004027784351cffcaefcf2b64b4b5fbb84c57c8803badd142bf10e893f833ed`, schema `e40f6598e57c9493de6f3e6d19935d404d9f5cdbb35c064770fe365ad476a0bb`, same UID, pins, DMA and 80+80 split. Build `evidence/arm-palette-001`, programme `evidence/programme-palette-001`, admission `evidence/smc-palette-001/accepted-candidate.json` (sha `48bd7894…`, used by the broker LaunchAgent).
+
+Why: the Emotiscope port had dropped the K1 44-palette catalogue, so every mode could only use the donor's plain HSV hues. The donor `hsv()` call is now routed through `sampleProductPaletteHd` when a palette is selected. New PATCH field 18 `palette` (0–44, GET state offset 140): 0 = native Emotiscope colour (byte-identical to before), 1–44 = the K1 product palettes. Colour range spreads how much of the palette shows; saturation still blends toward grey. Boot palette 0. Round trip 0→1→0 accepted and rendered on the board. Host: Knob 2 sweeps all 44, Up/Down step one, the surface page shows the palette name. Output check `palette25-changes-wire`: 140,890 of 960,000 bytes differ from palette 0.
+
+The show stopped for about 25 s during programming and resumed on application start.
+
+## Previous image, supervision and A/B — 30 September 2026 (Dependable Instrument v1) — superseded above
 
 Resident since 06:57 AWST: build `c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74`, HEX `5337d52473a599eb42faa3acbf237dcdce1b1756b8d814c1d572a5fecdb10448`, ELF `89582d0013d8da2ec064cf8bbf61aac1b47fce7f02782c565213ca1411bfaf20`, schema `407d24207fa2a7f14c9ccf34ed601bc94bab1e873fc47be3e83850c1c1924688`, UID `545433931bd25436593630352d068363`. Boots Spectrum, 100/255, emission on, `output_precision` 0. Same P601/GPT6/DMA0, P604/GPT8/DMA3, mic DMA1/2 and 80+80 split. Build `evidence/arm-precision-001`, programme `evidence/programme-precision-001`, admission `evidence/smc-precision-001/accepted-candidate.json` (sha `3d494442…`).
 
