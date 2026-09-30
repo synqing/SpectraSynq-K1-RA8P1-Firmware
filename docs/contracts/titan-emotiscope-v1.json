@@ -192,7 +192,7 @@
     "state_magic": 1162695508,
     "engine_id": 1,
     "version": 1,
-    "patch_max_bytes": 160,
+    "patch_max_bytes": 168,
     "fields": {
       "brightness": {"id": 1, "kind": "f32", "min": 0, "max": 1, "default": 1.0},
       "softness": {"id": 2, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
@@ -210,7 +210,8 @@
       "reverse_color_range": {"id": 14, "kind": "bool", "default": false, "applicable_when": "color_range > 0"},
       "hardware_output_brightness": {"id": 15, "kind": "u32", "min": 0, "max": 255, "default": 100},
       "emission_enabled": {"id": 16, "kind": "bool", "default": true},
-      "output_precision": {"id": 17, "kind": "bool", "default": false, "state_flag_bit": 6, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire", "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"}, "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."}
+      "output_precision": {"id": 17, "kind": "bool", "default": false, "state_flag_bit": 6, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire", "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"}, "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."},
+      "palette": {"id": 18, "kind": "u32", "default": 0, "range": [0, 44], "state_offset": 140, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "native donor HSV colour", "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"}, "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."}
     },
     "statuses": {
       "ok": 0,

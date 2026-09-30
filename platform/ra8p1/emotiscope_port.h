@@ -79,6 +79,14 @@ bool k1_emotiscope_render(uint32_t now_us, uint8_t rgb[384]);
  * channel (round(v*65535)), RGB order, no dither. Computed every frame beside the
  * unchanged RGB8 reference so either path can be selected at a frame boundary. */
 void k1_emotiscope_last_rgb16(uint16_t rgb16[384]);
+/* Palette selection: 0 = native donor HSV colour; 1..44 = K1 product palette
+ * (catalogue id-1). Applies to every donor mode from the next rendered frame. */
+enum { K1_EMOTISCOPE_PALETTES=44 };
+/* Palette colour at phase [0,1) as RGB 0..1 (same scale as donor hsv output). */
+typedef void (*K1PaletteSampler)(uint32_t catalogue_id, float phase, float rgb[3]);
+void k1_emotiscope_set_palette_sampler(K1PaletteSampler sampler);
+bool k1_emotiscope_set_palette(uint32_t id);
+uint32_t k1_emotiscope_palette(void);
 void k1_emotiscope_snapshot(K1EmotiscopeSnapshot *out);
 const char *k1_emotiscope_mode_name(uint32_t mode);
 #ifdef __cplusplus

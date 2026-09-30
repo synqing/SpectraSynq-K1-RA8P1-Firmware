@@ -20,6 +20,14 @@
 #include <cstdio>
 #include <cstring>
 
+#ifdef K1_EMOTISCOPE_PORT
+static_assert(K1_EMOTISCOPE_PALETTES == k1::core::visual::kProductPaletteCount,
+              "Emotiscope palette range must match the K1 catalogue");
+static void emotiscopePaletteSample(std::uint32_t id, float phase, float rgb[3]) {
+  const auto c = k1::core::visual::sampleProductPaletteHd(static_cast<std::uint16_t>(id), phase, 1.0F);
+  rgb[0] = c.red; rgb[1] = c.green; rgb[2] = c.blue;
+}
+#endif
 namespace k1::titan {
 using namespace core;
 using namespace core::visual;
@@ -289,6 +297,9 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   last_us_ = now_us;
   waiting_for_audio_ = false;
 #ifdef K1_EMOTISCOPE_PORT
+  // Palette colour source for the donor's hsv(); registered here because this
+  // unit links the K1 product palette catalogue. Idempotent.
+  k1_emotiscope_set_palette_sampler(&emotiscopePaletteSample);
   std::uint8_t rgb[K1_EMOTISCOPE_PIXELS * 3U]{};
   if (!k1_emotiscope_render(static_cast<std::uint32_t>(now_us), rgb)) return false;
   // Both precisions are computed every frame; the selection is read once here,

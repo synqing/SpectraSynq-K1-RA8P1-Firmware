@@ -126,6 +126,14 @@ def corpus(codec):
     add(codec.raw_patch(61, 0x11, 6, 1 << 16, [(17, codec.KIND_F32, half_bits)]), parse=3)
     add(codec.encode_patch(14, 0x11, 6, {"output_precision": 0}),
         parse=0, apply=0, revision=7, changed=1, dedup=0, flags=24, accepted_request_id=14)
+    # Palette: field 18 u32 0..44 (0 native), owner-held, state offset 140.
+    add(codec.encode_patch(15, 0x11, 7, {"palette": 24}),
+        parse=0, apply=0, revision=8, changed=1, dedup=0, palette=24, flags=24, accepted_request_id=15)
+    add(codec.encode_get(16, 0x11), parse=0, apply=0, revision=8, changed=0, palette=24, request_id=16)
+    add(codec.raw_patch(62, 0x11, 8, 1 << 17, [(18, codec.KIND_U32, 45)]), parse=3)
+    add(codec.raw_patch(63, 0x11, 8, 1 << 18, [(19, codec.KIND_U32, 1)]), parse=3)
+    add(codec.encode_patch(17, 0x11, 8, {"palette": 0}),
+        parse=0, apply=0, revision=9, changed=1, dedup=0, palette=0, accepted_request_id=17)
     return steps
 
 
@@ -179,7 +187,7 @@ def check_lines(codec, steps, lines):
                     failures.append({"i": index, "field": key, "got": got_value, "want": want})
             elif got_value != want:
                 failures.append({"i": index, "field": key, "got": got_value, "want": want})
-        if state["magic"] != codec.STATE_MAGIC or state["reserved"] != b"\x00" * 20:
+        if state["magic"] != codec.STATE_MAGIC or state["reserved"] != b"\x00" * 16:
             failures.append({"i": index, "error": "framing"})
     return failures
 

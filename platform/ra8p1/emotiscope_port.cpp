@@ -75,7 +75,24 @@ void save_config_delayed(){}
 void save_noise_spectrum(){}
 void watch_gpu_fps(){}
 #include "emotiscope_donor/utilities.h"
+// Palette adaptation: every donor mode colours through hsv(). The donor definition is
+// renamed (source untouched) and wrapped: palette 0 = native donor HSV; 1..44 = K1
+// product palette (id-1) sampled at the same hue phase, saturation/value applied as the
+// donor does. Background colours computed inside leds.h keep native HSV.
+static volatile uint32_t k1_palette_select=0;
+static K1PaletteSampler k1_palette_sampler=nullptr;  // registered by the runtime that links the K1 palettes
+#define hsv donor_hsv
 #include "emotiscope_donor/leds.h"
+#undef hsv
+CRGBF hsv(float h,float s,float v){
+  const uint32_t p=k1_palette_select;
+  const K1PaletteSampler sample=k1_palette_sampler;
+  if(p==0u||p>K1_EMOTISCOPE_PALETTES||!sample)return donor_hsv(h,s,v);
+  float c[3]={0.0f,0.0f,0.0f};
+  sample(p-1u,h,c);
+  const float l=0.2126f*c[0]+0.7152f*c[1]+0.0722f*c[2];
+  return CRGBF{(l+(c[0]-l)*s)*v,(l+(c[1]-l)*s)*v,(l+(c[2]-l)*s)*v};
+}
 #include "emotiscope_donor/ui.h"
 #include "emotiscope_donor/goertzel.h"
 #include "emotiscope_donor/vu.h"
@@ -280,6 +297,14 @@ extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
   }
   return true;
 }
+extern "C" bool k1_emotiscope_set_palette(uint32_t id){
+  if(id>K1_EMOTISCOPE_PALETTES)return false;
+  emotiscope::k1_palette_select=id;return true;
+}
+extern "C" void k1_emotiscope_set_palette_sampler(K1PaletteSampler sampler){
+  emotiscope::k1_palette_sampler=sampler;
+}
+extern "C" uint32_t k1_emotiscope_palette(void){return emotiscope::k1_palette_select;}
 extern "C" void k1_emotiscope_last_rgb16(uint16_t* rgb16){
   if(rgb16)std::memcpy(rgb16,emotiscope::raw_led_data16,sizeof(emotiscope::raw_led_data16));
 }

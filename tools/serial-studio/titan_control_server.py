@@ -547,6 +547,7 @@ def donor_public_state(state: dict) -> dict:
         "reverse_color_range": bool(flags & 16),
         "emission_enabled": bool(flags & 32),
         "output_precision": 1 if flags & donor.FLAG_OUTPUT_PRECISION else 0,
+        "palette": state.get("palette", 0),
         "hardware_output_brightness": state["output_brightness"],
         "applicability": applicability,
         "speed_applicable": bool(applicability & (1 << 5)),
@@ -577,7 +578,7 @@ def _decode_donor_body(body: bytes) -> dict | None:
     if len(body) != donor.STATE_BYTES:
         return None
     state = donor.decode_state(body)
-    if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * 20:
+    if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * 16:
         return None
     return donor_public_state(state)
 

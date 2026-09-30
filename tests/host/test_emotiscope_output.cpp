@@ -120,7 +120,8 @@ static void marker_case() {
 }
 static void generate(const std::string& kind,const char* path) {
     const bool candidate=kind=="runtime16" || kind=="direct16";
-    const bool integrated=kind=="runtime" || kind=="runtime16";
+    const bool paletted=kind=="runtimeP";
+    const bool integrated=kind=="runtime" || kind=="runtime16" || paletted;
     require(integrated || kind=="direct" || kind=="direct16","unknown output generator");
     std::ofstream file(path,std::ios::binary);
     require(bool(file),"cannot open evidence buffer output");
@@ -129,6 +130,8 @@ static void generate(const std::string& kind,const char* path) {
         require(runtime.configure(config(),0),"runtime configure failed");
         require(runtime.outputPrecision()==0u,"boot output precision is not the reference");
         if (candidate) runtime.setOutputPrecision(1u);
+        if (paletted) require(k1_emotiscope_set_palette(25u) && k1_emotiscope_palette()==25u,"palette select failed");
+        require(!k1_emotiscope_set_palette(45u),"out-of-range palette accepted");
         // These old product controls must have no effect on the donor scene.
         for(unsigned ch=0;ch<2;++ch) {
             auto& c=runtime.channel(ch).controls();

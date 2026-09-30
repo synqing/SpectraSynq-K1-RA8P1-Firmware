@@ -55,7 +55,9 @@ def main():
              str(harness),
              str(platform/"palette_runtime.cpp"),str(platform/"emotiscope_port.cpp"),
              str(root/"src/k1/core/visual/channel_render_state.cpp"),
-             str(root/"src/k1/core/visual/audio_focus.cpp"),"-o",str(binary)]
+             str(root/"src/k1/core/visual/audio_focus.cpp"),
+             str(root/"src/k1/core/visual/product_palette.cpp"),
+             str(root/"src/k1/core/visual/product_palette_data.cpp"),"-o",str(binary)]
         result,_=run(name+"-compile",cmd)
         if result.returncode: raise RuntimeError("Compile failed for "+name)
         return binary
@@ -167,6 +169,17 @@ def main():
             "max_abs_wire_difference_16bit":max(diffs),
             "fraction_values_differing":sum(1 for d in diffs if d)/len(diffs),
             "dim_fade":json.loads(f.stdout)}
+
+        # (4) Palette hook reaches the wire: palette 25 output must differ from native.
+        pal_path = out/"runtime-palette25-grb48.bin"
+        pr,_ = run("runtimeP",[binary,"runtimeP",pal_path])
+        if pr.returncode: raise RuntimeError("Palette generation failed")
+        pal = pal_path.read_bytes()
+        differing = sum(1 for x,y in zip(pal,packed) if x!=y)
+        pal_ok = len(pal)==len(packed) and differing > len(packed)//20
+        records["cases"].append({"name":"palette25-changes-wire","exit":0 if pal_ok else 3,
+                                 "bytes_differing_from_native":differing,"wire_bytes":len(packed)})
+        success &= pal_ok
 
         for name in ["candidate-truncates","candidate-double-gain"]:
             mutant=out/name

@@ -72,6 +72,7 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
   if (result.brightness_changed) observed->hardware_brightness = result.hardware_brightness;
   if (result.emission_changed) observed->emission = result.emission;
   if (result.output_precision_changed) observed->output_precision = result.output_precision;
+  if (result.palette_changed) observed->palette = result.palette;
 }
 
 static ec::DonorApplyResult apply_bytes(ec::DonorDedup* dedup, ec::DonorObserved* observed,
@@ -460,11 +461,11 @@ static int behavioral() {
     CHECK(ec::donorParse(get, 16u, &intent) == 0u);
     ec::donorApply(&dedup, intent, observed, &got);
     CHECK((ec::donorGetU32(got.response + 64) & 64u) == 0u);
-    // Value 2, field 18, and a bit-17 mask are all rejected.
+    // Value 2, field 19, and wrong kinds are all rejected.
     const Entry two{17u, 2u, 2u};
     auto bad2 = build_patch(44u, observed.revision, 0x11u, &two, 1);
     CHECK(ec::donorParse(bad2.data(), std::uint32_t(bad2.size()), &intent) == ec::kDonorStatusInvalid);
-    const Entry f18{18u, 2u, 1u};
+    const Entry f18{19u, 4u, 1u};
     auto bad18 = build_patch(45u, observed.revision, 0x11u, &f18, 1);
     CHECK(ec::donorParse(bad18.data(), std::uint32_t(bad18.size()), &intent) == ec::kDonorStatusInvalid);
     // Wrong kind for field 17.
@@ -472,17 +473,17 @@ static int behavioral() {
     auto badk = build_patch(46u, observed.revision, 0x11u, &f17f, 1);
     CHECK(ec::donorParse(badk.data(), std::uint32_t(badk.size()), &intent) == ec::kDonorStatusInvalid);
     // All 17 fields fit in the 160-byte maximum.
-    Entry all[17];
-    for (int i = 0; i < 17; ++i) {
+    Entry all[18];
+    for (int i = 0; i < 18; ++i) {
       const std::uint16_t f = std::uint16_t(i + 1);
       const std::uint32_t kind = ec::donorFieldKind(f);
       all[i] = Entry{f, std::uint16_t(kind), kind == ec::kDonorKindF32 ? 0x3f000000u
-                                            : f == 9u ? 1u : f == 15u ? 100u : f == 16u ? 1u : 0u};
+                                            : f == 9u ? 1u : f == 15u ? 100u : f == 16u ? 1u : f == 18u ? 7u : 0u};
     }
-    auto full = build_patch(47u, observed.revision, 0x11u, all, 17);
-    CHECK(full.size() == 160u);
+    auto full = build_patch(47u, observed.revision, 0x11u, all, 18);
+    CHECK(full.size() == 168u);
     CHECK(ec::donorParse(full.data(), std::uint32_t(full.size()), &intent) == 0u);
-    CHECK(intent.mask == 0x1ffffu);
+    CHECK(intent.mask == 0x3ffffu);
     std::vector<std::uint8_t> oversize(full);
     oversize.push_back(0u);
     CHECK(ec::donorParse(oversize.data(), std::uint32_t(oversize.size()), &intent) == ec::kDonorStatusInvalid);
@@ -521,7 +522,7 @@ static int corpus(const char* path) {
   int index = 0;
   while (std::fgets(line, sizeof(line), file)) {
     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
-    std::uint8_t bytes[160];
+    std::uint8_t bytes[176];
     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
     if (size < 0) { std::fclose(file); return 2; }
     ec::DonorIntent intent{};

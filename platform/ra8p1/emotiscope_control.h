@@ -17,9 +17,12 @@ inline constexpr std::uint32_t kDonorStateBytes = 160u;
 inline constexpr std::uint32_t kDonorGetBytes = 16u;
 inline constexpr std::uint32_t kDonorPatchHeaderBytes = 24u;
 inline constexpr std::uint32_t kDonorEntryBytes = 8u;
-inline constexpr std::uint32_t kDonorPatchMaxBytes = 160u;
-inline constexpr std::uint32_t kDonorFieldCount = 17u;
-inline constexpr std::uint32_t kDonorFieldMask = 0x1ffffu;
+inline constexpr std::uint32_t kDonorPatchMaxBytes = 168u;
+inline constexpr std::uint32_t kDonorFieldCount = 18u;
+inline constexpr std::uint32_t kDonorFieldMask = 0x3ffffu;
+inline constexpr std::uint32_t kDonorFieldPalette = 18u;
+inline constexpr std::uint32_t kDonorPaletteMax = 44u;  // 0 native, 1..44 K1 palettes
+inline constexpr std::uint32_t kDonorStatePaletteOffset = 140u;
 inline constexpr std::uint32_t kDonorFieldOutputPrecision = 17u;
 inline constexpr std::uint32_t kDonorFlagOutputPrecision = 64u;
 inline constexpr std::uint32_t kDonorDedupLive = 32u;
@@ -87,7 +90,7 @@ inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
   if (field >= 1u && field <= 8u) return kDonorKindF32;
   if (field == 9u) return kDonorKindI32;
   if ((field >= 10u && field <= 14u) || field == 16u || field == 17u) return kDonorKindBool;
-  if (field == 15u) return kDonorKindU32;
+  if (field == 15u || field == 18u) return kDonorKindU32;
   return 0u;
 }
 
@@ -98,7 +101,7 @@ struct DonorIntent {
   float color_range = 0, speed = 0, saturation = 0, background = 0;
   std::int32_t mode = 0;
   std::uint8_t mirror = 0, screensaver = 0, dither = 0, auto_color = 0, reverse = 0;
-  std::uint32_t hardware_brightness = 0, emission = 0, output_precision = 0;
+  std::uint32_t hardware_brightness = 0, emission = 0, output_precision = 0, palette = 0;
 };
 
 struct DonorDedupSlot {
@@ -115,16 +118,16 @@ struct DonorDedup {
 
 struct DonorObserved {
   std::uint32_t boot_id = 0, revision = 0, hardware_brightness = 0, emission = 0;
-  std::uint32_t output_precision = 0;
+  std::uint32_t output_precision = 0, palette = 0;
   std::uint32_t accepted_request_id = 0, rendered_request_id = 0;
   std::uint32_t emitted_request_id = 0, rendered_frame = 0;
   std::uint8_t schema_sha[32]{};
 };
 struct DonorApplyResult {
   std::uint32_t status = 0, revision = 0, hardware_brightness = 0, emission = 0;
-  std::uint32_t output_precision = 0;
+  std::uint32_t output_precision = 0, palette = 0;
   std::uint8_t changed = 0, mode_transition = 0, revision_changed = 0;
-  std::uint8_t output_precision_changed = 0;
+  std::uint8_t output_precision_changed = 0, palette_changed = 0;
   std::uint8_t brightness_changed = 0, emission_changed = 0, emission_fell = 0;
   std::uint8_t mode_changed = 0;
   std::int32_t mode = 0;
@@ -180,6 +183,7 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
   donorPutU32(out + 100, changed);
   donorPutU32(out + 104, mode_transition);
   std::memcpy(out + 108, observed.schema_sha, 32);
+  donorPutU32(out + kDonorStatePaletteOffset, observed.palette);
 }
 
 inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, DonorIntent* out) noexcept {
@@ -249,6 +253,9 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
       const std::int32_t mode = static_cast<std::int32_t>(raw);
       if (mode < 0 || mode > 6) return kDonorStatusInvalid;
       out->mode = mode;
+    } else if (field == kDonorFieldPalette) {
+      if (raw > kDonorPaletteMax) return kDonorStatusInvalid;
+      out->palette = raw;
     } else {
       if (raw > 255u) return kDonorStatusInvalid;
       out->hardware_brightness = raw;
@@ -292,6 +299,7 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
   result->hardware_brightness = observed.hardware_brightness;
   result->emission = observed.emission;
   result->output_precision = observed.output_precision;
+  result->palette = observed.palette;
   auto finish = [&](std::uint32_t status, std::uint32_t dedup_code, std::uint32_t changed,
                     std::uint32_t mode_transition) {
     K1EmotiscopeConfig config{};
@@ -301,6 +309,7 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     encoded.hardware_brightness = result->hardware_brightness;
     encoded.emission = result->emission;
     encoded.output_precision = result->output_precision;
+    encoded.palette = result->palette;
     if (result->revision_changed) encoded.accepted_request_id = intent.request_id;
     donorEncodeState(result->response, config, encoded, intent.request_id, status, dedup_code,
                      changed, mode_transition);
@@ -370,6 +379,13 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
       if (intent.output_precision != observed.output_precision) {
         result->output_precision = intent.output_precision;
         result->output_precision_changed = 1u;
+        changed = 1u;
+      }
+    }
+    if (intent.mask & (1u << 17)) {
+      if (intent.palette != observed.palette) {
+        result->palette = intent.palette;
+        result->palette_changed = 1u;
         changed = 1u;
       }
     }

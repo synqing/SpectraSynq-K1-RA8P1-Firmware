@@ -15,9 +15,11 @@ STATE_BYTES = 160
 GET_BYTES = 16
 PATCH_HEADER = 24
 ENTRY_BYTES = 8
-PATCH_MAX = 160
-FIELD_COUNT = 17
-FIELD_MASK = 0x1FFFF
+PATCH_MAX = 168
+FIELD_COUNT = 18
+FIELD_MASK = 0x3FFFF
+PALETTE_MAX = 44  # 0 = native donor colour, 1..44 = K1 product palettes
+U32_MAX = {15: 255, 18: PALETTE_MAX}
 FLAG_OUTPUT_PRECISION = 64
 
 KIND_F32 = 1
@@ -45,6 +47,7 @@ FIELDS = {
     15: ("hardware_output_brightness", KIND_U32),
     16: ("emission_enabled", KIND_BOOL),
     17: ("output_precision", KIND_BOOL),
+    18: ("palette", KIND_U32),
 }
 NAMES = {name: field for field, (name, _kind) in FIELDS.items()}
 
@@ -100,7 +103,7 @@ def _raw_value(field: int, value):
         raw &= 0xFFFFFFFF
     elif kind == KIND_U32:
         raw = int(value)
-        if raw < 0 or raw > 255:
+        if raw < 0 or raw > U32_MAX[field]:
             raise ValueError(field)
     else:
         raise ValueError(field)
@@ -203,7 +206,7 @@ def parse(body: bytes):
             if value < 0 or value > 6:
                 return STATUS_INVALID, None
         else:
-            if raw > 255:
+            if raw > U32_MAX[field]:
                 return STATUS_INVALID, None
             value = int(raw)
         fields[field] = value
@@ -256,7 +259,8 @@ def decode_state(body: bytes) -> dict:
         "changed": u32(100),
         "mode_transition": u32(104),
         "schema": body[108:140],
-        "reserved": body[140:160],
+        "palette": u32(140),
+        "reserved": body[144:160],
     }
 
 
