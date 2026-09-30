@@ -33,3 +33,13 @@
 08:53:03 ARMED R8 (try 3) - move only R8 now
 08:54:53 R8: FAIL - wrong/mixed identity, insufficient sweep, timeout or dropped evidence events=0 observed=[]
 08:54:53 SUMMARY {'R8': False} qualified=['Fader1', 'Fader4', 'R5'] faders_armed=False
+08:57:11 ARMED R8 (try 1) - move only R8 now
+08:59:01 R8: FAIL - wrong/mixed identity, insufficient sweep, timeout or dropped evidence events=0 observed=[]
+08:59:01 ARMED R8 (try 2) - move only R8 now
+09:00:51 R8: FAIL - wrong/mixed identity, insufficient sweep, timeout or dropped evidence events=0 observed=[]
+09:00:51 ARMED R8 (try 3) - move only R8 now
+09:02:41 R8: FAIL - wrong/mixed identity, insufficient sweep, timeout or dropped evidence events=0 observed=[]
+09:02:41 SUMMARY {'R8': False} qualified=['Fader1', 'Fader4', 'R5'] faders_armed=False
+09:02:56 ARMED R8 (try 1) - move only R8 now
+09:03:04 R8: PASS - isolated labelled gesture captured events=2 observed=[[1, 43]]
+09:03:04 SUMMARY {'R8': True} qualified=['Fader1', 'Fader4', 'R5', 'R8'] faders_armed=True
