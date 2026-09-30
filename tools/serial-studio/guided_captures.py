@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Guided labelled captures through the live dashboard API (no MIDI/CDC access).
 
-Arms each label in order, watches the controller's recent MIDI for the complete
-gesture on that label's exact channel/CC (absolute: <=16 and >=111; button: 127
-and 0), then finishes. The controller validates the full raw capture itself; a
-failed capture is re-armed (3 tries). Prints one line per event.
-usage: guided_captures.py [LABEL ...]   default: Fader1 Fader4 R5 R8 Record
+Arms each label in order (110 s window, 3 tries), finishes 1.5 s after the mixer
+goes quiet, and lets the controller validate the full raw capture (only that
+label's channel/CC; faders need a full sweep, buttons a press+release). An armed
+capture holds all mixer writes, so any exit (incl. SIGTERM) cancels it.
+Prints one line per event.
+usage: guided_captures.py [LABEL ...]   default: Fader1 Fader4 R5 R8   |   guided_captures.py --cancel
 """
 import json, sys, time, urllib.request
 
@@ -57,9 +58,20 @@ def run(label, token):
 
 
 def main():
-    labels = sys.argv[1:] or ["Fader1", "Fader4", "R5", "R8", "Record"]
+    import signal
     token = get("/api/session")["token"]
-    results = {label: run(label, token) for label in labels}
+    if sys.argv[1:] == ["--cancel"]:
+        say(f"CANCEL {post('/api/qualification', {'action': 'cancel'}, token)}")
+        return
+    labels = sys.argv[1:] or ["Fader1", "Fader4", "R5", "R8"]
+    # An armed capture holds every mixer write; never leave one behind.
+    signal.signal(signal.SIGTERM, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt))
+    try:
+        results = {label: run(label, token) for label in labels}
+    finally:
+        if (get("/api/status").get("qualification") or {}).get("active"):
+            post("/api/qualification", {"action": "cancel"}, token)
+            say("capture cancelled on exit; mixer writes released")
     status = get("/api/status")
     say(f"SUMMARY {results} qualified={status['qualification']['qualified']} faders_armed={status['faders_armed']}")
 

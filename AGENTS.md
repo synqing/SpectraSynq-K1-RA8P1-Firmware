@@ -31,6 +31,11 @@ Titan must boot with visual output ON and run continuous, autonomous, audio-reac
 Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
 <!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
 
+## SMC-Mixer / Titan control: load the `smc-titan-mixer` skill first
+
+Before touching the mixer, broker, controller, dashboard, fader captures or a Titan deploy, load the `smc-titan-mixer` skill (`/Users/spectrasynq/Workspace_Management/Software/agent-skills/skills/smc-titan-mixer/SKILL.md`). First command: `python3 ~/.claude/skills/smc-titan-mixer/scripts/smc_titan.py health`. It covers launchd start/stop, symptom->fix, labelled captures, host deploy and `deploy_titan_image.sh` (flash + admission switch).
+
+
 <!-- BEGIN TRANCE-EDM PLAYBACK ONLY 2026-09-29 -->
 **Captain directive — 29 September 2026.** Song-0 is banned. Do not play it, mux it, serve it, or ask Captain to listen to it. Demonstration, reconstruction, comparison and review audio must be trance or EDM only. Retained local excerpts: Armin van Buuren — Sonic Samba (Rising Star Remix), Veracocha — Carte Blanche (Mixed), and held-out Gareth Emery — Dopex. Dopex stays out of estimator tuning. Synthetic clicks, silence and a named test tone may be used for an engineering check, not as a review soundtrack. Historical song-0 frame files may remain on disk; they are not the review. Ledger: `~/.claude/memory/spectrasynq/L1/CANONICAL_DECISIONS.md` §11.
 <!-- END TRANCE-EDM PLAYBACK ONLY 2026-09-29 -->
