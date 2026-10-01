@@ -181,6 +181,30 @@ def main():
                                  "bytes_differing_from_native":differing,"wire_bytes":len(packed)})
         success &= pal_ok
 
+        # (5) Palettes 1-44 draw as K1 did (independent oracle in the harness), and
+        # three planted faults must each be rejected.
+        kp,kitem = run("k1-palette-drawing",[binary,"k1palette"])
+        success &= kp.returncode==0
+        for name,old,new in [
+            ("palette-keeps-gamma","if(!k1_palette_active())donor_apply_gamma_correction();","donor_apply_gamma_correction();"),
+            ("palette-uses-colour-range",":configuration.color+progress;",":configuration.color+configuration.color_range*progress;"),
+            ("palette-linear-level","const float level=0.65f*v*v+0.35f*v;","const float level=v;")]:
+            mutant=out/name
+            mutant.mkdir()
+            for filename in ["palette_runtime.cpp","palette_runtime.h","emotiscope_port.cpp",
+                             "emotiscope_port.h","emotiscope_output.h","emotiscope_quantize.inc"]:
+                shutil.copy2(plat/filename,mutant/filename)
+            shutil.copytree(plat/"emotiscope_donor",mutant/"emotiscope_donor")
+            shutil.copytree(plat/"emotiscope_shims",mutant/"emotiscope_shims")
+            mp=mutant/"emotiscope_port.cpp";text=mp.read_text()
+            if text.count(old)!=1: raise RuntimeError("Cannot isolate "+name)
+            mp.write_text(text.replace(old,new))
+            exe=build(mutant,name+"-binary")
+            r,mitem=run(name,[exe,"k1palette"])
+            rejected=r.returncode!=0 and "OUTPUT_CONTRACT_FAILURE" in r.stderr
+            mitem["expected_rejection_observed"]=rejected
+            success &= rejected
+
         for name in ["candidate-truncates","candidate-double-gain"]:
             mutant=out/name
             mutant.mkdir()

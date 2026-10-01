@@ -77,21 +77,42 @@ void watch_gpu_fps(){}
 #include "emotiscope_donor/utilities.h"
 // Palette adaptation: every donor mode colours through hsv(). The donor definition is
 // renamed (source untouched) and wrapped: palette 0 = native donor HSV; 1..44 = K1
-// product palette (id-1) sampled at the same hue phase, saturation/value applied as the
-// donor does. Background colours computed inside leds.h keep native HSV.
+// product palette (id-1). See the K1 drawing rules below.
 static volatile uint32_t k1_palette_select=0;
 static K1PaletteSampler k1_palette_sampler=nullptr;  // registered by the runtime that links the K1 palettes
 #define hsv donor_hsv
+#define get_color_range_hue donor_get_color_range_hue
+#define apply_gamma_correction donor_apply_gamma_correction
 #include "emotiscope_donor/leds.h"
+#undef apply_gamma_correction
+#undef get_color_range_hue
 #undef hsv
+// Palettes 1-44 are drawn the way K1 drew them (K1 Spectrum, palette mode):
+// the whole palette spans the strip (Colour slides it, Colour range unused),
+// no saturation blend, level shaped 0.65v^2+0.35v (K1 SQUARE_ITER 1) and no
+// final x^2 gamma (K1 ENABLE_OUTPUT_GAMMA 0). Palette 0 is the donor, unchanged.
+// leds.h background keeps the donor hue slice (background defaults to 0).
+static inline bool k1_palette_active(){
+  const uint32_t p=k1_palette_select;
+  return p!=0u&&p<=K1_EMOTISCOPE_PALETTES&&k1_palette_sampler!=nullptr;
+}
+float get_color_range_hue(float progress){
+  if(!k1_palette_active())return donor_get_color_range_hue(progress);
+  return configuration.reverse_color_range?(1.0f-configuration.color)-progress
+                                          :configuration.color+progress;
+}
+void apply_gamma_correction(){
+  if(!k1_palette_active())donor_apply_gamma_correction();
+}
 CRGBF hsv(float h,float s,float v){
   const uint32_t p=k1_palette_select;
   const K1PaletteSampler sample=k1_palette_sampler;
   if(p==0u||p>K1_EMOTISCOPE_PALETTES||!sample)return donor_hsv(h,s,v);
+  (void)s;
   float c[3]={0.0f,0.0f,0.0f};
   sample(p-1u,h,c);
-  const float l=0.2126f*c[0]+0.7152f*c[1]+0.0722f*c[2];
-  return CRGBF{(l+(c[0]-l)*s)*v,(l+(c[1]-l)*s)*v,(l+(c[2]-l)*s)*v};
+  const float level=0.65f*v*v+0.35f*v;
+  return CRGBF{c[0]*level,c[1]*level,c[2]*level};
 }
 #include "emotiscope_donor/ui.h"
 #include "emotiscope_donor/goertzel.h"
@@ -246,6 +267,16 @@ extern "C" void k1_emotiscope_test_set_novelty_sample(float value){
   emotiscope::novelty_curve[10]=value;
 }
 extern "C" float k1_emotiscope_test_novelty_sample(void){return emotiscope::novelty_curve[10];}
+// One colour through the production colour path: hsv(get_color_range_hue(progress),
+// saturation, v), then the final gamma stage. pre = before gamma, post = after.
+extern "C" void k1_emotiscope_test_colour(float progress,float v,float pre[3],float post[3]){
+  using namespace emotiscope;
+  const CRGBF c=hsv(get_color_range_hue(progress),configuration.saturation,v);
+  pre[0]=c.r;pre[1]=c.g;pre[2]=c.b;
+  for(unsigned i=0;i<NUM_LEDS;++i)leds[i]=c;
+  apply_gamma_correction();
+  post[0]=leds[0].r;post[1]=leds[0].g;post[2]=leds[0].b;
+}
 // Push a known post-gamma float frame through the production output stage
 // (validation, RGB8 quantiser with its dither history, 16-bit candidate).
 extern "C" bool k1_emotiscope_test_transmit(const float* rgbf,uint8_t* rgb8,uint16_t* rgb16){

@@ -3,6 +3,7 @@
 #include "emotiscope_output.h"
 #include "palette_runtime.h"
 #include "hd_pixel16.h"
+#include "core/visual/product_palette.h"
 #include <array>
 #include <cmath>
 #include <cstdio>
@@ -231,6 +232,64 @@ static void fade_case() {
     std::cout<<"]}\n";
 }
 #endif
+
+// Independent oracle: K1 palette_manual_colour (lightshow_modes.h, HD path) over the
+// raw catalogue stops, and K1 GDFT palette mode: position = colour + strip progress,
+// level = 0.65v^2+0.35v (SQUARE_ITER 1), no saturation, no output gamma.
+static void k1_oracle(unsigned id,float h,float level,float out[3]) {
+    const auto& pal=k1::core::visual::productPalette(static_cast<std::uint16_t>(id));
+    h-=std::floor(h); if(h<0.0f)h+=1.0f;
+    unsigned i=0;
+    while(i+1<pal.stop_count && pal.stops[i+1].position/255.0f<h) ++i;
+    float c[3];
+    auto rgb=[&](unsigned k,float* o){o[0]=pal.stops[k].colour.red/255.0f;o[1]=pal.stops[k].colour.green/255.0f;o[2]=pal.stops[k].colour.blue/255.0f;};
+    if(i+1>=pal.stop_count || h<=pal.stops[0].position/255.0f) rgb(h<=pal.stops[0].position/255.0f?0:pal.stop_count-1,c);
+    else {
+        float a[3],b[3]; rgb(i,a); rgb(i+1,b);
+        const float span=(pal.stops[i+1].position-pal.stops[i].position)/255.0f;
+        float t=span>1e-6f?(h-pal.stops[i].position/255.0f)/span:0.0f; t=t<0?0:(t>1?1:t);
+        for(int j=0;j<3;++j) c[j]=a[j]+(b[j]-a[j])*t;
+    }
+    for(int j=0;j<3;++j) out[j]=c[j]*level;
+}
+static void k1palette_case() {
+    // Same sampler the runtime registers (palette_runtime.cpp); its wiring to the
+    // wire is covered by the runtimeP case. The oracle above does not use it.
+    k1_emotiscope_set_palette_sampler([](std::uint32_t id,float phase,float rgb[3]){
+        const auto c=k1::core::visual::sampleProductPaletteHd(static_cast<std::uint16_t>(id),phase,1.0F);
+        rgb[0]=c.red;rgb[1]=c.green;rgb[2]=c.blue;});
+    K1EmotiscopeConfig c{};
+    k1_emotiscope_default_config(&c);
+    c.current_mode=1;
+    unsigned checked=0; double worst=0.0;
+    for(bool reverse:{false,true}) for(float range:{0.0f,0.378f,1.0f}) {
+        c.color=0.583f; c.color_range=range; c.saturation=0.75f; c.reverse_color_range=reverse;
+        require(k1_emotiscope_set_config(&c),"config write failed");
+        for(unsigned id:{1u,25u,31u,44u}) {
+            require(k1_emotiscope_set_palette(id),"palette select failed");
+            for(int s=0;s<=20;++s) for(float v:{0.0f,0.25f,0.5f,1.0f}) {
+                const float progress=s/20.0f;
+                float pre[3],post[3],want[3];
+                k1_emotiscope_test_colour(progress,v,pre,post);
+                k1_oracle(id-1u,reverse?(1.0f-0.583f)-progress:0.583f+progress,0.65f*v*v+0.35f*v,want);
+                for(int j=0;j<3;++j){
+                    const double e=std::fabs(double(post[j])-want[j]); if(e>worst)worst=e;
+                    require(e<1e-5,"palette colour differs from K1 drawing");
+                    require(pre[j]==post[j],"palette colour was gamma-squared");
+                }
+                ++checked;
+            }
+        }
+        // Palette 0 keeps the donor: colour range still decides the hue, gamma still squares.
+        require(k1_emotiscope_set_palette(0u),"native select failed");
+        float a0[3],a1[3],b0[3],b1[3];
+        k1_emotiscope_test_colour(0.0f,0.8f,a0,a1); k1_emotiscope_test_colour(0.5f,0.8f,b0,b1);
+        for(int j=0;j<3;++j) require(std::fabs(a1[j]-a0[j]*a0[j])<1e-6f,"native palette lost its gamma");
+        const bool same=a0[0]==b0[0]&&a0[1]==b0[1]&&a0[2]==b0[2];
+        require(range==0.0f?same:!same,"native palette colour range behaviour changed");
+    }
+    std::cout<<"{\"k1_palette_pixels_checked\":"<<checked<<",\"worst_abs_error\":"<<worst<<"}\n";
+}
 int main(int argc,char** argv) {
     require(argc>=2,"usage: markers | fade | direct|direct16|runtime|runtime16 OUTPUT");
     require(k1_emotiscope_init(0x45e071u),"boot-once donor init failed");
@@ -238,6 +297,7 @@ int main(int argc,char** argv) {
     if(kind=="markers") marker_case();
 #ifdef K1_EMOTISCOPE_TEST_SEAM
     else if(kind=="fade") fade_case();
+    else if(kind=="k1palette") k1palette_case();
 #endif
     else { require(argc==3,"output file required"); generate(kind,argv[2]); }
     return 0;

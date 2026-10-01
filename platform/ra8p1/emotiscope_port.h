@@ -66,6 +66,7 @@ float k1_emotiscope_test_lpf_drag(void);
 void k1_emotiscope_test_set_novelty_sample(float value);
 float k1_emotiscope_test_novelty_sample(void);
 bool k1_emotiscope_test_transmit(const float rgbf[384], uint8_t rgb8[384], uint16_t rgb16[384]);
+void k1_emotiscope_test_colour(float progress, float v, float pre[3], float post[3]);
 #endif
 /* Exactly 64 normalized mono samples at 12800 Hz. Rejects an entire invalid chunk.
  * now_us is the deterministic clock supplied to the hardware-independent engine. */
