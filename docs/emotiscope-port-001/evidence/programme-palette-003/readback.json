@@ -1,0 +1,58 @@
+{
+ "launchd": {
+  "com.spectrasynq.titan-broker": {
+   "loaded": true,
+   "state": "running",
+   "runs": "1",
+   "pid": "36287",
+   "last exit code": "(never exited)"
+  },
+  "com.spectrasynq.titan-mixer": {
+   "loaded": true,
+   "state": "running",
+   "runs": "15",
+   "pid": "19909",
+   "last exit code": "0"
+  }
+ },
+ "titan_usb": true,
+ "target": {
+  "uid": "545433931bd25436593630352d068363",
+  "build": "becb0186f0a66fbb04b0e0f4a79c0480b8b963db0fe3f518a91af9bb2dd2b5c7",
+  "latched_frames": 1507,
+  "led_faults": 0
+ },
+ "broker_log_age_s": 0.0,
+ "frames_per_s": 100.0,
+ "controller": {
+  "ready": true,
+  "confirmed": true,
+  "blockers": [],
+  "mode_name": "Spectrum",
+  "output_brightness": 100,
+  "emission_enabled": true,
+  "output_precision": 0,
+  "faders_armed": true,
+  "write_state": {
+   "state": "idle",
+   "text": "No write this session",
+   "accepted": 0,
+   "rendered": 0,
+   "emitted": 0
+  },
+  "last_error": null
+ },
+ "captures": {
+  "active": false,
+  "label": null,
+  "qualified": [
+   "Fader1",
+   "Fader4",
+   "R5",
+   "R8"
+  ]
+ },
+ "problems": [
+  "com.spectrasynq.titan-mixer is running OLD code (emotiscope_engine.py changed after it started) -> launchctl kickstart -k gui/$(id -u)/com.spectrasynq.titan-mixer"
+ ]
+}

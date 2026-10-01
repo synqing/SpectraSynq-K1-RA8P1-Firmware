@@ -2,7 +2,17 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current image: palettes drawn the way K1 drew them — 1 October 2026
+## Current image: palette is the only colour source — 1 October 2026
+
+Resident since 17:09 AWST: build `becb0186f0a66fbb04b0e0f4a79c0480b8b963db0fe3f518a91af9bb2dd2b5c7`, HEX `8ecc9fba931ee2178cccf643efef8d132e144e764494614eeaf999f50e53c045`, ELF `97923cbb8ff0b7ea80548e775b68765475da87b583d5b08a2683016e62a2b6e3`, schema unchanged `e40f6598…`, same UID, pins, DMA and 80+80 split. Build `evidence/arm-palette-003`, programme `evidence/programme-palette-003`, admission `evidence/smc-palette-003/accepted-candidate.json` (broker LaunchAgent points here).
+
+Captain: "Palette colours NEED to be the primary colour producer." Audit of every control against palettes 1–44 found four leaks in the previous image: Colour offset the palette (seam where the palette end meets its start, and bass no longer at the palette start); Background added native Emotiscope HSV colours, unsquared since the gamma skip, so a 0.25 setting laid a ~6% rainbow wash over the palette; the screensaver drew fixed red/orange/green/blue dots; per-channel peak soft-clip shifted bright hues; Hype's second dot read Colour range.
+
+Now, palettes 1–44: palette position = strip position (bass = palette start), Reverse flips it, auto colour scrolls it (K1 auto shift); Colour, Colour range and Saturation inert. Background = the same palette at (0.25·b)², the donor's light level at the same setting. Screensaver dots at palette positions 1/8, 3/8, 5/8, 7/8. Peak soft-clip scales whole pixels. Hype's colour-range term pinned to half the palette during the mode draw only (same render thread; restored before background). Warmth (incandescent filter, default 0) still tints palettes when raised; brightness, softness, speed, mirror, dither, output and precision do not change colour. Palette 0 unchanged.
+
+Checks: `k1palette` 4,032 pixels plus background, peak, screensaver and Hype checks against the independent K1 oracle; 8 planted palette faults each rejected; palette 0 still byte-identical to the reference; `check_instrument.sh` PASS; receipt 194/194 match HEAD `93e4385`. Board: identity MATCH, 100 frames/s, 0 LED faults, palette 31 accepted and rendered. No LED-frame capture. Show stopped about 28 s (17:08:47–17:09:16).
+
+## Previous image: palettes drawn the way K1 drew them — 1 October 2026 — superseded above
 
 Resident since 16:48 AWST: build `05d016a7f1232ab389379d9c1bd9a1344e9ee5e292a569b8fca9affebe3b260c`, HEX `349916e714cea1806fd78d3a9b8a87f6b35214f80b239d944027622c50f816ab`, ELF `dadafbee814ea8b544326ab6c4985333162a4e89b5713870551f602459a475dc`, schema unchanged `e40f6598…`, same UID, pins, DMA (LED 0/3, mic 1/2) and 80+80 split. Build `evidence/arm-palette-002`, programme `evidence/programme-palette-002`, admission `evidence/smc-palette-002/accepted-candidate.json` (broker LaunchAgent points here).
 
