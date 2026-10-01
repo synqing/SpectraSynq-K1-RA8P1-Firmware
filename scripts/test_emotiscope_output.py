@@ -187,8 +187,13 @@ def main():
         success &= kp.returncode==0
         for name,old,new in [
             ("palette-keeps-gamma","if(!k1_palette_active())donor_apply_gamma_correction();","donor_apply_gamma_correction();"),
-            ("palette-uses-colour-range",":configuration.color+progress;",":configuration.color+configuration.color_range*progress;"),
-            ("palette-linear-level","const float level=0.65f*v*v+0.35f*v;","const float level=v;")]:
+            ("palette-uses-colour-range",":base+progress;",":base+configuration.color_range*progress;"),
+            ("palette-linear-level","const float level=0.65f*v*v+0.35f*v;","const float level=v;"),
+            ("palette-colour-shifts","const float base=configuration.auto_color_cycle?configuration.color:0.0f;","const float base=configuration.color;"),
+            ("background-native-hsv","if(!k1_palette_active()){donor_apply_background(background_level);return;}","{donor_apply_background(background_level);return;}"),
+            ("tonemap-per-channel","if(!k1_palette_active()){donor_apply_tonemapping();return;}","{donor_apply_tonemapping();return;}"),
+            ("screensaver-fixed-colours","if(!k1_palette_active()){donor_run_screensaver();return;}","{donor_run_screensaver();return;}"),
+            ("hype-range-unpinned","configuration.color_range=1.0f;k1_draw_scope=true;","k1_draw_scope=true;")]:
             mutant=out/name
             mutant.mkdir()
             for filename in ["palette_runtime.cpp","palette_runtime.h","emotiscope_port.cpp",

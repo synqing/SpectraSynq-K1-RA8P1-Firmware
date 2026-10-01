@@ -83,26 +83,86 @@ static K1PaletteSampler k1_palette_sampler=nullptr;  // registered by the runtim
 #define hsv donor_hsv
 #define get_color_range_hue donor_get_color_range_hue
 #define apply_gamma_correction donor_apply_gamma_correction
+#define clear_display donor_clear_display
+#define apply_background donor_apply_background
+#define apply_tonemapping donor_apply_tonemapping
 #include "emotiscope_donor/leds.h"
+#undef apply_tonemapping
+#undef apply_background
+#undef clear_display
 #undef apply_gamma_correction
 #undef get_color_range_hue
 #undef hsv
-// Palettes 1-44 are drawn the way K1 drew them (K1 Spectrum, palette mode):
-// the whole palette spans the strip (Colour slides it, Colour range unused),
-// no saturation blend, level shaped 0.65v^2+0.35v (K1 SQUARE_ITER 1) and no
-// final x^2 gamma (K1 ENABLE_OUTPUT_GAMMA 0). Palette 0 is the donor, unchanged.
-// leds.h background keeps the donor hue slice (background defaults to 0).
+// Palettes 1-44 are the only colour source, drawn the way K1 drew them (K1
+// Spectrum, palette mode): palette position = strip position (bass = palette
+// start), reversed by Reverse; auto colour scrolls it (K1 auto shift, using the
+// donor's drifting colour). Colour, Colour range and Saturation do not touch it.
+// Level 0.65v^2+0.35v (K1 SQUARE_ITER 1); no final x^2 gamma (K1
+// ENABLE_OUTPUT_GAMMA 0). Background and screensaver draw palette colours; peak
+// soft-clip scales whole pixels so hues hold. Palette 0 is the donor, unchanged.
 static inline bool k1_palette_active(){
   const uint32_t p=k1_palette_select;
   return p!=0u&&p<=K1_EMOTISCOPE_PALETTES&&k1_palette_sampler!=nullptr;
 }
 float get_color_range_hue(float progress){
   if(!k1_palette_active())return donor_get_color_range_hue(progress);
-  return configuration.reverse_color_range?(1.0f-configuration.color)-progress
-                                          :configuration.color+progress;
+  const float base=configuration.auto_color_cycle?configuration.color:0.0f;
+  return configuration.reverse_color_range?base+1.0f-progress:base+progress;
 }
 void apply_gamma_correction(){
   if(!k1_palette_active())donor_apply_gamma_correction();
+}
+// Hype offsets its second dot by 0.5*color_range. With a palette that offset is
+// pinned to half the palette for the duration of the mode draw only (same render
+// thread; restored before background, before any control read).
+static bool k1_draw_scope=false;
+static float k1_saved_color_range=0.0f;
+static void k1_draw_scope_end(){
+  if(k1_draw_scope){configuration.color_range=k1_saved_color_range;k1_draw_scope=false;}
+}
+void clear_display(float keep=0.0f){
+  donor_clear_display(keep);
+  if(k1_palette_active()&&!k1_draw_scope){
+    k1_saved_color_range=configuration.color_range;configuration.color_range=1.0f;k1_draw_scope=true;
+  }
+}
+static CRGBF k1_palette_colour(float position){
+  float c[3]={0.0f,0.0f,0.0f};
+  k1_palette_sampler(k1_palette_select-1u,position,c);
+  return CRGBF{c[0],c[1],c[2]};
+}
+void apply_background(float background_level){
+  k1_draw_scope_end();
+  if(!k1_palette_active()){donor_apply_background(background_level);return;}
+  if(light_modes[configuration.current_mode].type == LIGHT_MODE_TYPE_SYSTEM)return;
+  // Same light as the donor's background at the same setting: its (0.25b) was
+  // squared by the final gamma, which palettes skip.
+  const float level=(0.25f*background_level)*(0.25f*background_level);
+  if(!(level>0.0f))return;
+  if(!configuration.mirror_mode){
+    for(uint16_t i=0;i<NUM_LEDS;i++){
+      const CRGBF c=k1_palette_colour(get_color_range_hue(num_leds_float_lookup[i]));
+      leds[i].r+=c.r*level;leds[i].g+=c.g*level;leds[i].b+=c.b*level;
+    }
+  }else{
+    for(uint16_t i=0;i<(NUM_LEDS>>1);i++){
+      const CRGBF c=k1_palette_colour(get_color_range_hue(num_leds_float_lookup[i<<1]));
+      const uint16_t l=((NUM_LEDS>>1)-1)-i,r=(NUM_LEDS>>1)+i;
+      leds[l].r+=c.r*level;leds[l].g+=c.g*level;leds[l].b+=c.b*level;
+      leds[r].r+=c.r*level;leds[r].g+=c.g*level;leds[r].b+=c.b*level;
+    }
+  }
+}
+void apply_tonemapping(){
+  k1_draw_scope_end();
+  if(!k1_palette_active()){donor_apply_tonemapping();return;}
+  for(uint16_t i=0;i<NUM_LEDS;i++){
+    const float m=fmaxf(leds[i].r,fmaxf(leds[i].g,leds[i].b));
+    if(m>0.75f){
+      const float k=soft_clip_hdr(m)/m;
+      leds[i].r*=k;leds[i].g*=k;leds[i].b*=k;
+    }
+  }
 }
 CRGBF hsv(float h,float s,float v){
   const uint32_t p=k1_palette_select;
@@ -118,7 +178,35 @@ CRGBF hsv(float h,float s,float v){
 #include "emotiscope_donor/goertzel.h"
 #include "emotiscope_donor/vu.h"
 #include "emotiscope_donor/tempo.h"
+#define run_screensaver donor_run_screensaver
 #include "emotiscope_donor/screensaver.h"
+#undef run_screensaver
+// Donor screensaver with its four fixed colours replaced by palette colours.
+static CRGBF k1_screensaver_last[4];
+void run_screensaver(){
+  if(!k1_palette_active()){donor_run_screensaver();return;}
+  if(configuration.screensaver == false){ return; }
+  if(light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
+  float mag_sum=0;
+  for(uint16_t i=0;i<NUM_FREQS;i++)mag_sum+=frequencies_musical[i].magnitude;
+  if(mag_sum<screensaver_threshold){
+    if(inactive==false){inactive=true;inactive_start=t_now_ms;}
+  }else if(mag_sum>screensaver_threshold){inactive=false;}
+  if(device_touch_active==true||app_touch_active==true||slider_touch_active==true)inactive=false;
+  if(inactive==false){ if(screensaver_mix>0.0)screensaver_mix-=0.01; }
+  if(inactive==true){
+    if(t_now_ms-inactive_start>=SCREENSAVER_WAIT_MS){ if(screensaver_mix<1.0)screensaver_mix+=0.001; }
+  }
+  if(screensaver_mix>0.001){
+    scale_CRGBF_array_by_constant(leds,1.0-(screensaver_mix*screensaver_mix),NUM_LEDS);
+    const float push_val=0.005;
+    for(uint16_t i=0;i<4;i++){
+      k1_screensaver_last[i]=k1_palette_colour(0.125f+0.25f*i);
+      sine_positions[i]+=push_val+(0.0001*i);
+      draw_dot(leds,SCREENSAVER_1+i,k1_screensaver_last[i],sin(sine_positions[i])*(0.5*screensaver_mix)+0.5,screensaver_mix*screensaver_mix);
+    }
+  }
+}
 #include "emotiscope_donor/standby.h"
 // Arduino accepts aggregate parenthesized initialization in the unused presets
 // helper; this syntax bridge preserves the exact RGB values on C++17 compilers.
@@ -276,6 +364,27 @@ extern "C" void k1_emotiscope_test_colour(float progress,float v,float pre[3],fl
   for(unsigned i=0;i<NUM_LEDS;++i)leds[i]=c;
   apply_gamma_correction();
   post[0]=leds[0].r;post[1]=leds[0].g;post[2]=leds[0].b;
+}
+// Frame stages for palette checks. stage 0: background onto a black frame;
+// 1: tonemap the given frame; 2: screensaver at full mix, returns its 4 colours
+// in rgbf[0..11]; 3: colour range seen during a mode draw, then after background.
+extern "C" void k1_emotiscope_test_stage(int stage,float arg,float* rgbf){
+  using namespace emotiscope;
+  if(stage==0){
+    std::memset(leds,0,sizeof(leds));apply_background(arg);std::memcpy(rgbf,leds,sizeof(leds));
+  }else if(stage==1){
+    std::memcpy(leds,rgbf,sizeof(leds));apply_tonemapping();std::memcpy(rgbf,leds,sizeof(leds));
+  }else if(stage==2){
+    std::memset(leds,0,sizeof(leds));
+    for(auto& c:k1_screensaver_last)c=CRGBF{-1.0f,-1.0f,-1.0f};
+    const bool was=configuration.screensaver;configuration.screensaver=true;
+    screensaver_mix=1.0f;inactive=true;inactive_start=t_now_ms;
+    run_screensaver();configuration.screensaver=was;
+    for(unsigned i=0;i<4;++i){rgbf[3*i]=k1_screensaver_last[i].r;rgbf[3*i+1]=k1_screensaver_last[i].g;rgbf[3*i+2]=k1_screensaver_last[i].b;}
+  }else if(stage==3){
+    clear_display();rgbf[0]=configuration.color_range;
+    apply_background(0.0f);rgbf[1]=configuration.color_range;
+  }
 }
 // Push a known post-gamma float frame through the production output stage
 // (validation, RGB8 quantiser with its dither history, 16-bit candidate).

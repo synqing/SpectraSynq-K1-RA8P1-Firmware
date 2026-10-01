@@ -262,8 +262,10 @@ static void k1palette_case() {
     k1_emotiscope_default_config(&c);
     c.current_mode=1;
     unsigned checked=0; double worst=0.0;
-    for(bool reverse:{false,true}) for(float range:{0.0f,0.378f,1.0f}) {
+    for(bool autoc:{false,true}) for(bool reverse:{false,true}) for(float range:{0.0f,0.378f,1.0f}) {
         c.color=0.583f; c.color_range=range; c.saturation=0.75f; c.reverse_color_range=reverse;
+        c.auto_color_cycle=autoc;
+        const float base=autoc?0.583f:0.0f;  // Colour moves the palette only via auto colour
         require(k1_emotiscope_set_config(&c),"config write failed");
         for(unsigned id:{1u,25u,31u,44u}) {
             require(k1_emotiscope_set_palette(id),"palette select failed");
@@ -271,7 +273,7 @@ static void k1palette_case() {
                 const float progress=s/20.0f;
                 float pre[3],post[3],want[3];
                 k1_emotiscope_test_colour(progress,v,pre,post);
-                k1_oracle(id-1u,reverse?(1.0f-0.583f)-progress:0.583f+progress,0.65f*v*v+0.35f*v,want);
+                k1_oracle(id-1u,reverse?base+1.0f-progress:base+progress,0.65f*v*v+0.35f*v,want);
                 for(int j=0;j<3;++j){
                     const double e=std::fabs(double(post[j])-want[j]); if(e>worst)worst=e;
                     require(e<1e-5,"palette colour differs from K1 drawing");
@@ -288,6 +290,29 @@ static void k1palette_case() {
         const bool same=a0[0]==b0[0]&&a0[1]==b0[1]&&a0[2]==b0[2];
         require(range==0.0f?same:!same,"native palette colour range behaviour changed");
     }
+    // Background, peaks, screensaver and Hype with a palette on.
+    c.auto_color_cycle=false; c.reverse_color_range=false; c.mirror_mode=false; c.color_range=0.378f;
+    require(k1_emotiscope_set_config(&c),"config write failed");
+    require(k1_emotiscope_set_palette(31u),"palette select failed");
+    std::array<float,384> f{};
+    k1_emotiscope_test_stage(0,0.8f,f.data());
+    for(unsigned i=0;i<128;++i){
+        float want[3]; k1_oracle(30u,i/128.0f,0.04f,want);  // (0.25*0.8)^2
+        for(int j=0;j<3;++j) require(std::fabs(f[3*i+j]-want[j])<1e-5f,"background is not the palette at the same positions");
+    }
+    for(unsigned i=0;i<128;++i){f[3*i]=1.2f;f[3*i+1]=0.6f;f[3*i+2]=0.3f;}
+    k1_emotiscope_test_stage(1,0.0f,f.data());
+    require(f[0]<1.0f && std::fabs(f[1]/f[0]-0.5f)<1e-5f && std::fabs(f[2]/f[0]-0.25f)<1e-5f,"peak soft-clip changed the palette hue");
+    k1_emotiscope_test_stage(2,0.0f,f.data());
+    for(unsigned d=0;d<4;++d){
+        float want[3]; k1_oracle(30u,0.125f+0.25f*d,1.0f,want);
+        for(int j=0;j<3;++j) require(std::fabs(f[3*d+j]-want[j])<1e-5f,"screensaver colour is not from the palette");
+    }
+    k1_emotiscope_test_stage(3,0.0f,f.data());
+    require(f[0]==1.0f && std::fabs(f[1]-0.378f)<1e-6f,"Hype colour-range pin not scoped to the draw");
+    require(k1_emotiscope_set_palette(0u),"native select failed");
+    k1_emotiscope_test_stage(3,0.0f,f.data());
+    require(std::fabs(f[0]-0.378f)<1e-6f,"native palette colour range was overridden");
     std::cout<<"{\"k1_palette_pixels_checked\":"<<checked<<",\"worst_abs_error\":"<<worst<<"}\n";
 }
 int main(int argc,char** argv) {
