@@ -2,7 +2,17 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current image: K1 palettes restored — 30 September 2026
+## Current image: palettes drawn the way K1 drew them — 1 October 2026
+
+Resident since 16:48 AWST: build `05d016a7f1232ab389379d9c1bd9a1344e9ee5e292a569b8fca9affebe3b260c`, HEX `349916e714cea1806fd78d3a9b8a87f6b35214f80b239d944027622c50f816ab`, ELF `dadafbee814ea8b544326ab6c4985333162a4e89b5713870551f602459a475dc`, schema unchanged `e40f6598…`, same UID, pins, DMA (LED 0/3, mic 1/2) and 80+80 split. Build `evidence/arm-palette-002`, programme `evidence/programme-palette-002`, admission `evidence/smc-palette-002/accepted-candidate.json` (broker LaunchAgent points here).
+
+Why: the palette data was byte-identical to K1 (44/44 stop tables), but the Titan drew it differently: the donor's final x² gamma (K1 had `ENABLE_OUTPUT_GAMMA 0` since 20 May, "crushes midtones"), only a Colour-range slice of the palette, and a saturation grey blend. Modelled on the Captain's settings this halved the visible colours (9.9 → 4.8 per strip) and made half-loud passages 3.2× darker. Comparison page: https://claude.ai/artifact/X31AHA1nkSFMeUxt6qDaVG.
+
+Now, for palettes 1–44 only: palette position = Colour + strip position (reverse mirrors it), level = 0.65v²+0.35v (K1 SQUARE_ITER 1), no saturation blend, final gamma skipped. Palette 0 is the donor unchanged (precision-0 output still byte-identical to the reference). The leds.h background keeps the donor hue slice (background defaults to 0). Host: Colour range and Saturation show "No effect with a palette on".
+
+Checks: `k1palette` host case, 2,016 pixels against an independent K1 oracle, worst error 1.2e-7; planted faults (gamma kept, colour range used, linear level) each rejected; `scripts/check_instrument.sh` PASS; receipt sources 194/194 match HEAD `07f5bc2`. On the board: identity MATCH, 100 frames/s, 0 LED faults; palette 31 PATCH accepted and rendered. No LED-frame capture was taken (the wire snapshot needs the show stopped), so on-board colour is not separately measured. The show stopped about 18 s during programming.
+
+## Previous image: K1 palettes restored — 30 September 2026 — superseded above
 
 Resident: build `5cbd964d1494bc9480333206b367006326e8e3fad44df6a86f81a0dd3985cbef`, HEX `3e89dd282aff0d0c2b464299f756043175beb3a76ef7907bb5a87bf5154a2813`, ELF `5004027784351cffcaefcf2b64b4b5fbb84c57c8803badd142bf10e893f833ed`, schema `e40f6598e57c9493de6f3e6d19935d404d9f5cdbb35c064770fe365ad476a0bb`, same UID, pins, DMA and 80+80 split. Build `evidence/arm-palette-001`, programme `evidence/programme-palette-001`, admission `evidence/smc-palette-001/accepted-candidate.json` (sha `48bd7894…`, used by the broker LaunchAgent).
 

@@ -1,0 +1,14 @@
+{
+  "uid": "545433931bd25436593630352d068363",
+  "build": "05d016a7f1232ab389379d9c1bd9a1344e9ee5e292a569b8fca9affebe3b260c",
+  "schema_sha256": "e40f6598e57c9493de6f3e6d19935d404d9f5cdbb35c064770fe365ad476a0bb",
+  "ops": [
+    "emotiscope_get",
+    "emotiscope_patch"
+  ],
+  "scope": "Admits donor GET and PATCH for the K1-drawn palette image: palettes 1-44 span the strip with no grey blend, the K1 level curve and no final squaring; palette 0 unchanged. Boot palette 0, precision 0. Not a hardware pass, not an optical result.",
+  "hex_sha256": "349916e714cea1806fd78d3a9b8a87f6b35214f80b239d944027622c50f816ab",
+  "elf_sha256": "dadafbee814ea8b544326ab6c4985333162a4e89b5713870551f602459a475dc",
+  "receipt": "docs/emotiscope-port-001/evidence/arm-palette-002/receipt.json",
+  "programme": "docs/emotiscope-port-001/evidence/programme-palette-002/receipt.json"
+}

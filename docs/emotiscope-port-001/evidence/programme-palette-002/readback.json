@@ -1,0 +1,56 @@
+{
+ "launchd": {
+  "com.spectrasynq.titan-broker": {
+   "loaded": true,
+   "state": "running",
+   "runs": "1",
+   "pid": "15476",
+   "last exit code": "(never exited)"
+  },
+  "com.spectrasynq.titan-mixer": {
+   "loaded": true,
+   "state": "running",
+   "runs": "14",
+   "pid": "48543",
+   "last exit code": "0"
+  }
+ },
+ "titan_usb": true,
+ "target": {
+  "uid": "545433931bd25436593630352d068363",
+  "build": "05d016a7f1232ab389379d9c1bd9a1344e9ee5e292a569b8fca9affebe3b260c",
+  "latched_frames": 1506,
+  "led_faults": 0
+ },
+ "broker_log_age_s": 0.1,
+ "frames_per_s": 99.8,
+ "controller": {
+  "ready": true,
+  "confirmed": true,
+  "blockers": [],
+  "mode_name": "Spectrum",
+  "output_brightness": 100,
+  "emission_enabled": true,
+  "output_precision": 0,
+  "faders_armed": true,
+  "write_state": {
+   "state": "idle",
+   "text": "No write this session",
+   "accepted": 0,
+   "rendered": 0,
+   "emitted": 0
+  },
+  "last_error": null
+ },
+ "captures": {
+  "active": false,
+  "label": null,
+  "qualified": [
+   "Fader1",
+   "Fader4",
+   "R5",
+   "R8"
+  ]
+ },
+ "problems": []
+}

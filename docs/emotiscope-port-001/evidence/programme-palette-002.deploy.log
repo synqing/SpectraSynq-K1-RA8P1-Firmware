@@ -1,0 +1,15 @@
+2026-10-01T16:47:36 build 05d016a7f1232ab389379d9c1bd9a1344e9ee5e292a569b8fca9affebe3b260c schema e40f6598e57c9493de6f3e6d19935d404d9f5cdbb35c064770fe365ad476a0bb admission 6356875b90bbd688b8934086fcc513a68330efc5784cb98c42b9e696100b44da
+2026-10-01T16:47:36 bootout broker
+2026-10-01T16:47:37 programme (Titan show stops ~25 s)
+2026-10-01T16:47:55 programme rc=0
+2026-10-01T16:48:05 identity: MATCH
+/Users/spectrasynq/Library/LaunchAgents/com.spectrasynq.titan-broker.plist: OK
+2026-10-01T16:48:05 bootstrap broker
+launchd   : titan-broker=running/pid 15476, titan-mixer=running/pid 48543
+titan usb : present
+target    : build 05d016a7f123 uid 545433931bd25436593630352d068363 frames/s 99.8 led_faults 0 (broker log age 0.0 s)
+show      : Spectrum output 100/255 emission ON precision 0 ready True faders_armed True
+writes    : No write this session
+captures  : {'active': False, 'label': None, 'qualified': ['Fader1', 'Fader4', 'R5', 'R8']}
+VERDICT   : OK - visualising, controls usable
+2026-10-01T16:48:13 done. The mixer controller re-attaches by itself; kickstart it only if its code changed.
