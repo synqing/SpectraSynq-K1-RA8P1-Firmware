@@ -407,7 +407,7 @@ void update_auto_color(float elapsed_seconds){
 		if(light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
 		static float color_momentum = 0.0f;
 		static double tick_fraction = 0.0;
-		if (!isfinite(elapsed_seconds) || elapsed_seconds < 0.0f) return;
+		if (!std::isfinite(elapsed_seconds) || elapsed_seconds < 0.0f) return;
 		if(configuration.auto_color_cycle == true){
 			float novelty = novelty_curve_normalized[NOVELTY_HISTORY_LENGTH - 1] * 0.75f;
 			novelty = novelty*novelty*novelty*novelty*novelty*novelty;
@@ -438,7 +438,7 @@ void update_auto_color(float elapsed_seconds){
 }
 
 void apply_master_brightness(float elapsed_seconds){
-	if (!isfinite(elapsed_seconds) || elapsed_seconds < 0.0f) return;
+	if (!std::isfinite(elapsed_seconds) || elapsed_seconds < 0.0f) return;
 	static float master_brightness = 0.0;
 	if(t_now_ms >= 1000){
 		if(master_brightness < 1.0){
@@ -565,8 +565,8 @@ void apply_image_lpf(float cutoff_frequency, float elapsed_seconds) {
 	profile_function([&]() {
 		// Age this board's authored RGB history by actual elapsed render time.
 		// Invalid time/cutoff preserves history; a zero interval is identity.
-		if (!isfinite(elapsed_seconds) || elapsed_seconds < 0.0f ||
-		    !isfinite(cutoff_frequency) || cutoff_frequency < 0.0f) return;
+		if (!std::isfinite(elapsed_seconds) || elapsed_seconds < 0.0f ||
+		    !std::isfinite(cutoff_frequency) || cutoff_frequency < 0.0f) return;
 		float alpha = 1.0f - expf(-6.28318530718f * cutoff_frequency * elapsed_seconds);
 		float alpha_inv = 1.0 - alpha;
 

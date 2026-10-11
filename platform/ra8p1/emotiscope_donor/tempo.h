@@ -267,7 +267,7 @@ void update_tempo() {
 		normalize_novelty_curve();
 		static uint16_t calc_bin = 0;
 		// MAX_TEMPO_RANGE is the inclusive upper candidate fraction.
-		const float bounded_range = isfinite(MAX_TEMPO_RANGE)
+		const float bounded_range = std::isfinite(MAX_TEMPO_RANGE)
 			? fmaxf(0.0f, fminf(1.0f, MAX_TEMPO_RANGE)) : 1.0f;
 		const uint16_t max_bin = uint16_t((NUM_TEMPI - 1) * bounded_range);
 		if (calc_bin > max_bin) calc_bin = 0;
