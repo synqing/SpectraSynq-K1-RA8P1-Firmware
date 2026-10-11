@@ -2,7 +2,26 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current image: authored two-board scenes — 11 October 2026
+## Current image: continuous body/detail Bloom, single body-level envelope — 12 October 2026
+
+Resident build `4c94653ddc3d9d2a6a56500e1422d953a48c0be50b0486d7deaec55f6e3a43e4`,
+source `7ae880e`, same UID and schema. Body injection now receives one selected
+attack/release stage, removing the duplicated smoothing that softened short hits.
+The detail production output remains byte-identical under the retained input.
+No brightness, palette, routing or transport changes.
+
+SQ4 is running on both boards: continuous unlinked Bloom, body/detail strength 1,
+ML influence OFF in this comparison, master 100/255, board gains 0.25, secondary
+enabled, emission ON. Preset and physical controls were explicitly restored and
+read back after programming. The approved Sonic Samba passage ran on-device.
+Final identity and fault readback are retained; **physical quality is UNVERIFIED**.
+
+[Current correction, evidence and remaining physical comparison](CONTINUOUS-BLOOM-R2.md).
+The EiP product camera remains absent. Normal music output and completed source
+repairs do not depend on camera availability. The existing physical comparison
+criterion is still open; no replacement acceptance claim was made.
+
+## Historical image: authored two-board scenes — 11 October 2026 (superseded)
 
 Resident build `47bc25b5f69c9e27c90dfe089343412569825beef07bed1a4f94e47718ef28d4`,
 compiled from `eda9bf4` (all207 receipt inputs match). Host Surface source `0aa05f4`.

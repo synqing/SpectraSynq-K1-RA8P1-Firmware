@@ -1,4 +1,61 @@
-# Continuous body/detail Bloom — Revision 2 delivery record
+# Continuous body/detail Bloom — running correction and retained Revision 2 record
+
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC.
+
+## Current deployed correction — 12 October 2026, 04:09 Perth
+
+Source commit `7ae880ef05e13912bead58a73a520ad862507ca9`; resident build
+`4c94653ddc3d9d2a6a56500e1422d953a48c0be50b0486d7deaec55f6e3a43e4`.
+The body-level calculation now applies the selected attack/release once.
+Previously it multiplied VU by an already smoothed transient and smoothed that
+product again. The duplicated response weakened early material and could keep
+the injected level rising after a short transient ended. The correction feeds
+the raw transient target into the existing VU envelope. Spectral interpretation,
+detail, palette, history transport and physical output limits are retained.
+
+This is an implemented response correction; **physical appearance remains
+UNVERIFIED**. The intended visible consequence is more immediate body-led material
+from short musical hits. No preference or optical improvement is claimed.
+
+The new step/impulse regression failed on the retained code and passed after
+the correction. The existing donor-PCM-to-GRB48 run still passes fresh attack,
+silence, stale-input and independent-control checks. Detail output matches the
+retained production trace byte-for-byte; body output changes. Existing
+conditioning checks pass. All 207 ARM receipt inputs match the source commit.
+
+E2 Lite programming ran 04:09:06–04:09:31 Perth; application identity matched
+at 04:09:41. Programming interrupted the show; photon interruption duration was
+not measured. The first deployment invocation stopped before hardware access
+because the default Python 3.14 XML dependency was broken. The supported
+`TITAN_DEPLOY_PYTHON=/opt/homebrew/bin/python3.13` override passed its imports and
+completed the unchanged deployment procedure.
+
+SQ4 recall restored the full composition. Its documented exclusion of physical
+controls required a separate restoration of the pre-flash settings: both board
+gains 0.25, secondary enabled, master 100/255, emission ON, precision 0. All preset
+fields and physical settings were then read back. The approved 24-second Sonic
+Samba passage completed on the installed candidate. Four fresh existing
+bottom-submission records and both boards' state were retained; these do not
+constitute an optical comparison. Final readback identifies the new build,
+both configured outputs remain enabled, and reported LED faults are zero.
+
+Evidence: `../../_scratch/continuous-bloom-r3-single-attack/` contains
+`red.log`, `green.log`, `targeted-result.json`, `arm-001/receipt.json`,
+`candidate-admission.json`, `programme-001/receipt.json`,
+`post-recall-status.json`, `preset-restoration.json`, `live-audio-run.json`
+and `final-health.json`. The source changes are limited to
+`platform/ra8p1/musical_conditioning.h` and
+`harness/tests/test_continuous_bloom.cpp`.
+
+Current EiP inventory still contains no product camera. This blocks the physical
+comparison, not the completed source correction or normal autonomous output.
+Do not repeat the closed smoothing repair, reflash this same candidate, or expand
+profiling to fill that gap. Preserve this installed state and the retained image.
+Next physical operation remains the original matched plate comparison once the
+authorised product camera is connected and shows the actual K1 stack. All existing
+Revision 2 permissions, bans and unfulfilled physical criteria remain in force.
+
+## Retained Revision 2 delivery record — superseded running identity only
 
 12 October 2026, Perth. **Installed engineering candidate; physical delivery incomplete. Aesthetic preference PENDING.** This executes the 11 October Revision 2 order only. No new effects, choreography, analyser, ML targets or UI were added.
 
