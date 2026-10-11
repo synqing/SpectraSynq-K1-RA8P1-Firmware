@@ -475,14 +475,21 @@ class RestrictedControlPlane:
         if conn_id and self.session.writer_id is None:
             self.session.writer_id = conn_id
         fields = request.get("fields")
-        if not isinstance(fields, dict) or len(fields) > donor.FIELD_COUNT:
+        if not isinstance(fields, dict) or len(fields) > donor.TOP_FIELD_COUNT:
             return {"ok": False, "error": "empty_patch" if not isinstance(fields, dict) else "too_many_fields"}
         ids = self._donor_ids(request)
         if isinstance(ids, dict):
             return ids
         request_id, boot_id, revision = ids
+        observed = self.last_donor or {}
+        # Capability comes from this bound device's GET/reply, never the caller.
+        same_boot = observed.get("boot_id") == boot_id
         try:
-            wire = donor.encode_patch(request_id, boot_id, revision, fields)
+            wire = donor.encode_patch(
+                request_id, boot_id, revision, fields,
+                state_version=observed.get("version", 2) if same_boot else 2,
+                board_capabilities=observed.get("board_capabilities", 0) if same_boot else 0,
+            )
         except (ValueError, TypeError, OverflowError, KeyError) as exc:
             self.forbidden_attempts += 1
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
@@ -551,6 +558,12 @@ def donor_public_state(state: dict) -> dict:
         "output_intensity_supported": state.get("output_intensity_supported", False),
         "output_intensity_a": state.get("output_intensity_a"),
         "output_intensity_b": state.get("output_intensity_b"),
+        "board_capabilities": state.get("board_capabilities", 0),
+        "primary_intensity_supported": state.get("primary_intensity_supported", False),
+        "secondary_output_supported": state.get("secondary_output_supported", False),
+        "primary_intensity": state.get("primary_intensity"),
+        "secondary_intensity": state.get("secondary_intensity"),
+        "secondary_output_enabled": state.get("secondary_output_enabled"),
         "palette": state.get("palette", 0),
         "hardware_output_brightness": state["output_brightness"],
         "applicability": applicability,
@@ -579,13 +592,13 @@ _DONOR_STATUS = {
 
 
 def _decode_donor_body(body: bytes) -> dict | None:
-    if len(body) != donor.STATE_BYTES:
+    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES):
         return None
     try:
         state = donor.decode_state(body)
     except (ValueError, TypeError):
         return None
-    reserved_bytes = 8 if state["version"] == 2 else 16
+    reserved_bytes = 8 if state["version"] >= 2 else 16
     if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * reserved_bytes:
         return None
     return donor_public_state(state)

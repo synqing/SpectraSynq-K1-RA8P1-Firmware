@@ -104,6 +104,14 @@ class PaletteRuntime {
   // Physical DIN attenuation after global brightness; owner applies before packing.
   bool setOutputIntensity(unsigned lane, float intensity) noexcept;
   float outputIntensity(unsigned lane) const noexcept;
+#ifdef K1_TITAN_TOP_OUTPUT
+  bool setBoardIntensity(unsigned board, float intensity) noexcept;
+  float boardIntensity(unsigned board) const noexcept;
+  void setSecondaryOutputEnabled(bool enabled) noexcept { secondary_output_enabled_ = enabled; }
+  bool secondaryOutputEnabled() const noexcept { return secondary_output_enabled_; }
+  std::size_t packBoardGrb48Lane(std::uint8_t* destination, std::size_t capacity,
+                               unsigned board, unsigned lane) const noexcept;
+#endif
   bool setEmissionEnabled(bool enabled) noexcept;
   void noteDonorMode(std::uint32_t mode) noexcept;
   bool step(std::uint64_t now_us,
@@ -177,5 +185,10 @@ class PaletteRuntime {
   std::uint32_t output_precision_ = 0U;
   float output_intensity_[2]{1.0F, 1.0F};
   std::uint16_t output_intensity_q16_[2]{65535U, 65535U};
+#ifdef K1_TITAN_TOP_OUTPUT
+  float board_intensity_[2]{1.0F, 1.0F};
+  std::uint16_t board_intensity_q16_[2]{65535U, 65535U};
+  bool secondary_output_enabled_ = false;
+#endif
 };
 } // namespace k1::titan

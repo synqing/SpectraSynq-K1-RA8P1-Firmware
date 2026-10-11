@@ -28,6 +28,9 @@
 #include "ws281x_p601_loopback.h"
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
 #include "ws281x_gpt_dma_hw_pair.h"
+#ifdef K1_TITAN_TOP_OUTPUT
+#include "ws281x_gpt_dma_hw_top.h"
+#endif
 #include "pair_fixture_admit.h"
 #elif defined(K1_PALETTE_GPT_DMA)
 #include "ws281x_gpt_dma_hw.h"
@@ -342,7 +345,50 @@ bool pair_black_drain=false;
 bool pair_cannot_clear=false;
 std::uint32_t pair_black_generation=0;
 const std::uint8_t pair_black_lane[K1_WS281X_PAIR_LANE_BYTES]{};
+#ifdef K1_TITAN_TOP_OUTPUT
+bool secondary_initialised = false, secondary_black_pending = false;
+bool secondary_admit() {
+  if (!secondary_initialised) secondary_initialised = k1_ws281x_gpt_dma_hw_top_init() != 0;
+  return secondary_initialised;
+}
+std::uint32_t secondary_black_generation = 0;
+void secondary_request_black() {
+  if (secondary_initialised) {
+    secondary_black_pending = true;
+    secondary_black_generation = 0;
+  }
+}
+void secondary_poll() {
+  if (!secondary_initialised) return;
+  k1_ws281x_gpt_dma_hw_top_poll();
+  if (k1_ws281x_gpt_dma_hw_top_last_fault() != K1_WS281X_FAULT_NONE) {
+    palettes.setSecondaryOutputEnabled(false);
+    secondary_black_pending = false;
+    return; // Secondary failure never disarms primary music output.
+  }
+  if (!secondary_black_pending || k1_ws281x_gpt_dma_hw_top_busy()) return;
+  if (secondary_black_generation &&
+      k1_ws281x_gpt_dma_hw_top_completed_generation() == secondary_black_generation) {
+    secondary_black_pending = false;
+    return;
+  }
+  const auto generation = ++palette_pair_generation;
+  if (k1_ws281x_gpt_dma_hw_top_submit(pair_black_lane, K1_WS281X_PAIR_LANE_BYTES,
+      pair_black_lane, K1_WS281X_PAIR_LANE_BYTES, 3U, generation) == K1_WS281X_SUBMIT_ACCEPTED)
+    secondary_black_generation = generation;
+}
+#endif
+bool pair_any_transmitting() {
+  return k1_ws281x_gpt_dma_hw_pair_transmitting()
+#ifdef K1_TITAN_TOP_OUTPUT
+      || k1_ws281x_gpt_dma_hw_top_transmitting()
+#endif
+      ;
+}
 void pair_begin_black_shutdown() {
+#ifdef K1_TITAN_TOP_OUTPUT
+  secondary_request_black();
+#endif
   if (k1_ws281x_gpt_dma_hw_pair_last_fault() != K1_WS281X_FAULT_NONE) {
     pair_cannot_clear = true;
     pair_black_drain = false;
@@ -377,6 +423,9 @@ void pair_poll_black_drain() {
 }
 void palette_pair_poll() {
   k1_ws281x_gpt_dma_hw_pair_poll();
+#ifdef K1_TITAN_TOP_OUTPUT
+  secondary_poll();
+#endif
   const auto completed=k1_ws281x_gpt_dma_hw_pair_completions();
   const auto failed=k1_ws281x_gpt_dma_hw_pair_errors();
   if (completed!=palette_pair_frames) {
@@ -540,6 +589,15 @@ void palette_step(bool emit) {
       snapshot_word(13, generation);
       const int status = k1_ws281x_gpt_dma_hw_pair_submit(
           wire_a0, size0, wire_a1, size1, 3U, generation);
+#ifdef K1_TITAN_TOP_OUTPUT
+      if (palettes.secondaryOutputEnabled() && secondary_initialised && !secondary_black_pending) {
+        static std::uint8_t top_a0[K1_WS281X_PAIR_LANE_BYTES], top_a1[K1_WS281X_PAIR_LANE_BYTES];
+        if (palettes.packBoardGrb48Lane(top_a0, sizeof(top_a0), 1U, 0U) == sizeof(top_a0) &&
+            palettes.packBoardGrb48Lane(top_a1, sizeof(top_a1), 1U, 1U) == sizeof(top_a1))
+          (void)k1_ws281x_gpt_dma_hw_top_submit(top_a0, sizeof(top_a0), top_a1, sizeof(top_a1),
+                                             3U, generation);
+      }
+#endif
       if (status == K1_WS281X_SUBMIT_ACCEPTED) {
         palette_pair_pending = false;
 #ifdef K1_LIVE_RUNTIME
@@ -632,6 +690,9 @@ constexpr std::size_t kMaxRequestPayload=2048U;
 constexpr std::size_t kMaxRequestPayload=16U+K1_WS281X_DIAG_MAX_BYTES;
 #endif
 std::uint8_t rx[32U+kMaxRequestPayload], tx[20000], board_uid[16];
+#ifdef K1_EMOTISCOPE_PORT
+static_assert(kMaxRequestPayload >= k1::emotiscope::kDonorPatchMaxBytes);
+#endif
 std::size_t fill = 0, wanted = 32, tx_size = 0;
 std::uint32_t started = 0, clock_hz = 0, cpu_wait = 0, rejected = 0;
 bool initialised = false;
@@ -1289,13 +1350,39 @@ std::size_t control_palette_status(char* out, std::size_t capacity) {
   const auto n = palettes.statusJson(out, capacity);
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
   if (!n || n >= capacity || out[n-1] != '}') return 0;
+#ifdef K1_TITAN_TOP_OUTPUT
+  k1_ws281x_top_status_t top{};
+  k1_ws281x_gpt_dma_hw_top_status(&top);
+#endif
   const int extra = std::snprintf(out+n-1, capacity-n+1,
       ",\"control_queued\":%lu,\"control_applied\":%lu,\"control_queue_depth\":%u,"
-      "\"control_while_pair_active\":%lu,\"command_started_pair\":%lu,\"owner_reentry_rejected\":%lu}",
+      "\"control_while_pair_active\":%lu,\"command_started_pair\":%lu,\"owner_reentry_rejected\":%lu"
+#ifdef K1_TITAN_TOP_OUTPUT
+      ",\"secondary_output\":{\"initialised\":%lu,\"enabled\":%u,"
+      "\"submitted_generation\":%lu,\"completed_generation\":%lu,"
+      "\"completions\":%lu,\"errors\":%lu,\"fault\":%lu,\"pfs_p603\":%lu,\"pfs_p714\":%lu,"
+      "\"lanes\":[{\"fault\":%lu,\"dma_complete\":%lu,\"hw_stopped\":%lu,\"stop_generation\":%lu,\"stop_valid\":%lu},"
+      "{\"fault\":%lu,\"dma_complete\":%lu,\"hw_stopped\":%lu,\"stop_generation\":%lu,\"stop_valid\":%lu}]}"
+#endif
+      "}",
       (unsigned long)control_queued, (unsigned long)control_applied,
       pending_control.phase == ControlPhase::Queued ? 1U : 0U,
       (unsigned long)control_overlap, (unsigned long)readonly_started_pair,
-      (unsigned long)owner_reentry_rejected);
+      (unsigned long)owner_reentry_rejected
+#ifdef K1_TITAN_TOP_OUTPUT
+      , (unsigned long)top.initialised,
+      palettes.secondaryOutputEnabled() && top.fault == K1_WS281X_FAULT_NONE ? 1U : 0U,
+      (unsigned long)top.submitted_generation, (unsigned long)top.completed_generation,
+      (unsigned long)top.completions, (unsigned long)top.errors, (unsigned long)top.fault,
+      (unsigned long)top.pfs_p603, (unsigned long)top.pfs_p714,
+      (unsigned long)top.lane[0].fault, (unsigned long)top.lane[0].dma_complete,
+      (unsigned long)top.lane[0].hw_stopped, (unsigned long)top.lane[0].stop_generation,
+      (unsigned long)top.lane[0].stop_valid,
+      (unsigned long)top.lane[1].fault, (unsigned long)top.lane[1].dma_complete,
+      (unsigned long)top.lane[1].hw_stopped, (unsigned long)top.lane[1].stop_generation,
+      (unsigned long)top.lane[1].stop_valid
+#endif
+      );
   if (extra < 0 || std::size_t(extra) >= capacity-n+1) return 0;
   return n-1+std::size_t(extra);
 #else
@@ -1332,13 +1419,25 @@ void donor_apply_pending() {
   observed.palette = k1_emotiscope_palette();
   observed.output_intensity_a = palettes.outputIntensity(0U);
   observed.output_intensity_b = palettes.outputIntensity(1U);
+#ifdef K1_TITAN_TOP_OUTPUT
+  observed.primary_intensity = palettes.boardIntensity(0U);
+  observed.secondary_intensity = palettes.boardIntensity(1U);
+  observed.board_capabilities = 1U |
+      (k1_ws281x_gpt_dma_hw_top_last_fault() == K1_WS281X_FAULT_NONE ? 2U : 0U);
+  observed.secondary_output_enabled =
+      palettes.secondaryOutputEnabled() && (observed.board_capabilities & 2U) ? 1U : 0U;
+#endif
   observed.accepted_request_id = live_render_receipt.accepted_request_id;
   observed.rendered_request_id = live_render_receipt.rendered_request_id;
   observed.emitted_request_id = live_render_receipt.emitted_request_id;
   observed.rendered_frame = live_render_frames;
   live_hex32(kTitanLiveSchemaSha256, observed.schema_sha);
   k1::emotiscope::DonorApplyResult result{};
-  k1::emotiscope::donorApply(&donor_dedup, pending_control.donor, observed, &result);
+  k1::emotiscope::donorApply(&donor_dedup, pending_control.donor, observed, &result
+#ifdef K1_TITAN_TOP_OUTPUT
+      , secondary_admit
+#endif
+      );
   pending_control.status = result.status;
   std::memcpy(pending_control.donor_response, result.response, k1::emotiscope::kDonorStateBytes);
   if (result.brightness_changed) palettes.setHardwareBrightness(result.hardware_brightness);
@@ -1349,6 +1448,14 @@ void donor_apply_pending() {
   if (result.output_precision_changed) palettes.setOutputPrecision(result.output_precision);
   if (result.intensity_a_changed) palettes.setOutputIntensity(0U, result.output_intensity_a);
   if (result.intensity_b_changed) palettes.setOutputIntensity(1U, result.output_intensity_b);
+#ifdef K1_TITAN_TOP_OUTPUT
+  if (result.primary_intensity_changed) palettes.setBoardIntensity(0U, result.primary_intensity);
+  if (result.secondary_intensity_changed) palettes.setBoardIntensity(1U, result.secondary_intensity);
+  if (result.secondary_output_enabled_changed) {
+    palettes.setSecondaryOutputEnabled(result.secondary_output_enabled && secondary_initialised);
+    if (!palettes.secondaryOutputEnabled()) secondary_request_black();
+  }
+#endif
   // Realtime owner context; the donor reads it on the next rendered frame.
   if (result.palette_changed) k1_emotiscope_set_palette(result.palette);
   if (result.revision_changed) {
@@ -1941,7 +2048,7 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
 }
 extern "C" void k1_fixture_consume(const std::uint8_t* bytes,std::size_t count,std::uint32_t now) {
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
-  if (k1_ws281x_gpt_dma_hw_pair_transmitting()) { ++control_overlap; return; }
+  if (pair_any_transmitting()) { ++control_overlap; return; }
 #endif
   led_now=now;
   if(tx_size) return; // Single outstanding transaction; USB read arm enforces backpressure.
@@ -1973,7 +2080,7 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   realtime_owner_active = true;
   struct OwnerExit { ~OwnerExit() { realtime_owner_active = false; } } owner_exit;
   if (pending_control.phase == ControlPhase::Queued &&
-      !k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+      !pair_any_transmitting()) {
 #ifdef K1_EMOTISCOPE_PORT
     if (pending_control.kind != ControlKind::Donor) pending_control.status = 3;
     else donor_apply_pending();
@@ -2026,7 +2133,7 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR) && !defined(K1_EMOTISCOPE_PORT)
   // Device-owned timeout restores a momentary gesture even if the host dies.
   // It runs only in this owner and never writes a DMA-owned frame.
-  if (!k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+  if (!pair_any_transmitting()) {
     bool expired=false;
     for(unsigned i=0;i<16;++i) {
       auto& lease=performance_auditions[i];
@@ -2039,7 +2146,7 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
       performance_ramp.start(palette_time_us);live_render_receipt={};live_runtime.setRenderReceipt(live_render_receipt);
     }
   }
-  if (performance_ramp.active && !k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+  if (performance_ramp.active && !pair_any_transmitting()) {
     auto rendered = live_cfg;
     live_read_visual(rendered.visual_a, palettes.channel(0).controls());
     live_read_focus(rendered.focus_a, palettes.channel(0).audioFocus());
@@ -2124,7 +2231,7 @@ extern "C" bool k1_fixture_control_pending(void) {
 }
 extern "C" void k1_fixture_control_service(void) {
 #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
-  if (k1_ws281x_gpt_dma_hw_pair_transmitting()) { ++control_overlap; return; }
+  if (pair_any_transmitting()) { ++control_overlap; return; }
   if (control_timeout_pending) {
     control_timeout_pending = false;
     // A complete request has already reset fill. Never time it out again while
@@ -2154,7 +2261,7 @@ extern "C" void k1_fixture_control_service(void) {
 }
 extern "C" bool k1_fixture_usb_service_allowed(void) {
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
-  return !k1_ws281x_gpt_dma_hw_pair_transmitting();
+  return !pair_any_transmitting();
 #else
   return true;
 #endif

@@ -18,6 +18,12 @@ ENTRY_BYTES = 8
 PATCH_MAX = 184
 FIELD_COUNT = 20
 FIELD_MASK = 0xFFFFF
+TOP_STATE_BYTES = 176
+TOP_PATCH_MAX = 208
+TOP_FIELD_COUNT = 23
+TOP_FIELD_MASK = 0x7FFFFF
+CAP_PRIMARY_INTENSITY = 1
+CAP_SECONDARY_OUTPUT = 2
 PALETTE_MAX = 44  # 0 = native donor colour, 1..44 = K1 product palettes
 U32_MAX = {15: 255, 18: PALETTE_MAX}
 FLAG_OUTPUT_PRECISION = 64
@@ -50,6 +56,9 @@ FIELDS = {
     18: ("palette", KIND_U32),
     19: ("output_intensity_a", KIND_F32),
     20: ("output_intensity_b", KIND_F32),
+    21: ("primary_intensity", KIND_F32),
+    22: ("secondary_intensity", KIND_F32),
+    23: ("secondary_output_enabled", KIND_BOOL),
 }
 NAMES = {name: field for field, (name, _kind) in FIELDS.items()}
 
@@ -112,12 +121,19 @@ def _raw_value(field: int, value):
     return kind, raw
 
 
-def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: dict) -> bytes:
+def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: dict,
+                 *, state_version: int = 2, board_capabilities: int = 0) -> bytes:
     if int(request_id) == 0:
         raise ValueError("request_id")
     items = []
+    top_profile = state_version == 3
+    if board_capabilities & ~3 or (board_capabilities and not top_profile):
+        raise ValueError("board capabilities")
     for key, value in fields.items():
         field = key if isinstance(key, int) else NAMES[key]
+        required = CAP_PRIMARY_INTENSITY if field == 21 else CAP_SECONDARY_OUTPUT
+        if field > FIELD_COUNT and (not top_profile or not board_capabilities & required):
+            raise ValueError("unsupported board control")
         kind, raw = _raw_value(field, value)
         items.append((int(field), kind, raw))
     items.sort()
@@ -132,7 +148,7 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
         previous = field
         mask |= 1 << (field - 1)
         blob += struct.pack("<HHI", field, kind, raw)
-    if mask > FIELD_MASK or len(items) > FIELD_COUNT:
+    if mask > (TOP_FIELD_MASK if top_profile else FIELD_MASK) or len(items) > (TOP_FIELD_COUNT if top_profile else FIELD_COUNT):
         raise ValueError("mask")
     body = struct.pack(
         "<IIIIII",
@@ -143,7 +159,7 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
         mask,
         len(items),
     ) + bytes(blob)
-    if len(body) > PATCH_MAX:
+    if len(body) > (TOP_PATCH_MAX if top_profile else PATCH_MAX):
         raise ValueError("size")
     return body
 
@@ -164,7 +180,7 @@ def raw_patch(request_id: int, boot_id: int, expected_revision: int, mask: int, 
     ) + bytes(blob)
 
 
-def parse(body: bytes):
+def parse(body: bytes, *, state_version: int = 2):
     if len(body) < 4:
         return STATUS_INVALID, None
     sub = struct.unpack_from("<I", body, 0)[0]
@@ -177,10 +193,13 @@ def parse(body: bytes):
         if request == 0 or tail != 0:
             return STATUS_INVALID, None
         return STATUS_OK, {"sub": sub, "request_id": request, "boot_id": boot, "crc": crc32(body)}
-    if len(body) < PATCH_HEADER or len(body) > PATCH_MAX:
+    top_profile = state_version == 3
+    field_count = TOP_FIELD_COUNT if top_profile else FIELD_COUNT
+    field_mask = TOP_FIELD_MASK if top_profile else FIELD_MASK
+    if len(body) < PATCH_HEADER or len(body) > (TOP_PATCH_MAX if top_profile else PATCH_MAX):
         return STATUS_INVALID, None
     revision, request, boot, mask, count = struct.unpack_from("<IIIII", body, 4)
-    if request == 0 or (mask & ~FIELD_MASK) or count > FIELD_COUNT:
+    if request == 0 or (mask & ~field_mask) or count > field_count:
         return STATUS_INVALID, None
     if len(body) != PATCH_HEADER + count * ENTRY_BYTES or count != bin(mask).count("1"):
         return STATUS_INVALID, None
@@ -191,7 +210,7 @@ def parse(body: bytes):
         offset = PATCH_HEADER + index * ENTRY_BYTES
         field, kind = struct.unpack_from("<HH", body, offset)
         raw = struct.unpack_from("<I", body, offset + 4)[0]
-        if field < 1 or field > FIELD_COUNT or field <= previous or kind != field_kind(field):
+        if field < 1 or field > field_count or field <= previous or kind != field_kind(field):
             return STATUS_INVALID, None
         previous = field
         built |= 1 << (field - 1)
@@ -226,15 +245,18 @@ def parse(body: bytes):
 
 
 def decode_state(body: bytes) -> dict:
-    if len(body) != STATE_BYTES:
+    if len(body) not in (STATE_BYTES, TOP_STATE_BYTES):
         raise ValueError("state length %s" % len(body))
     def u32(offset):
         return struct.unpack_from("<I", body, offset)[0]
     def f32(offset):
         return struct.unpack_from("<f", body, offset)[0]
-    if u32(0) != STATE_MAGIC or u32(4) not in (1, 2):
+    version = u32(4)
+    if u32(0) != STATE_MAGIC or version not in (1, 2, 3):
         raise ValueError("unsupported state framing")
-    intensity_supported = u32(4) == 2
+    if len(body) != (TOP_STATE_BYTES if version == 3 else STATE_BYTES):
+        raise ValueError("state version length")
+    intensity_supported = version >= 2
     intensity_a = f32(144) if intensity_supported else None
     intensity_b = f32(148) if intensity_supported else None
     if intensity_supported and any(
@@ -242,7 +264,19 @@ def decode_state(body: bytes) -> dict:
         for value in (intensity_a, intensity_b)
     ):
         raise ValueError("invalid output intensity")
-    reserved = body[152:160] if intensity_supported else body[144:160]
+    board_capabilities = u32(164) if version == 3 else 0
+    if board_capabilities & ~3:
+        raise ValueError("unknown board capability")
+    primary_intensity = f32(152) if version == 3 else None
+    secondary_intensity = f32(156) if version == 3 else None
+    secondary_enabled = u32(160) if version == 3 else None
+    if version == 3:
+        if any(not math.isfinite(value) or not 0.0 <= value <= 1.0
+               for value in (primary_intensity, secondary_intensity)):
+            raise ValueError("invalid board intensity")
+        if secondary_enabled not in (0, 1) or (secondary_enabled and not board_capabilities & CAP_SECONDARY_OUTPUT):
+            raise ValueError("unsupported secondary output state")
+    reserved = body[168:176] if version == 3 else body[152:160] if intensity_supported else body[144:160]
     if any(reserved):
         raise ValueError("nonzero reserved state bytes")
     return {
@@ -278,6 +312,12 @@ def decode_state(body: bytes) -> dict:
         "output_intensity_supported": intensity_supported,
         "output_intensity_a": intensity_a,
         "output_intensity_b": intensity_b,
+        "board_capabilities": board_capabilities,
+        "primary_intensity_supported": bool(board_capabilities & CAP_PRIMARY_INTENSITY),
+        "secondary_output_supported": bool(board_capabilities & CAP_SECONDARY_OUTPUT),
+        "primary_intensity": primary_intensity if board_capabilities & CAP_PRIMARY_INTENSITY else None,
+        "secondary_intensity": secondary_intensity if board_capabilities & CAP_SECONDARY_OUTPUT else None,
+        "secondary_output_enabled": bool(secondary_enabled) if board_capabilities & CAP_SECONDARY_OUTPUT else None,
         "reserved": reserved,
     }
 

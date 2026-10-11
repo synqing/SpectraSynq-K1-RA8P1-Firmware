@@ -195,29 +195,187 @@
     "patch_max_bytes": 184,
     "patch_field_count": 20,
     "patch_field_mask": 1048575,
-    "state_layout": {"unchanged_offsets": "0..143", "output_intensity_a": {"offset": 144, "kind": "f32"}, "output_intensity_b": {"offset": 148, "kind": "f32"}, "reserved_zero": "152..159"},
-    "legacy_state_version": {"version": 1, "intensity_controls_supported": false, "decoded_intensities": null, "reserved_zero": "144..159"},
+    "state_layout": {
+      "unchanged_offsets": "0..143",
+      "output_intensity_a": {
+        "offset": 144,
+        "kind": "f32"
+      },
+      "output_intensity_b": {
+        "offset": 148,
+        "kind": "f32"
+      },
+      "reserved_zero": "152..159"
+    },
+    "legacy_state_version": {
+      "version": 1,
+      "intensity_controls_supported": false,
+      "decoded_intensities": null,
+      "reserved_zero": "144..159"
+    },
     "fields": {
-      "brightness": {"id": 1, "kind": "f32", "min": 0, "max": 1, "default": 1.0},
-      "softness": {"id": 2, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
-      "color": {"id": 3, "kind": "f32", "min": 0, "max": 1, "default": 0.33, "note": "Explicit write replaces the auto-color phase. Readback color may exceed 1 while auto-color is evolving. effective_hue is the fractional part and is not written back."},
-      "warmth": {"id": 4, "kind": "f32", "min": 0, "max": 1, "default": 0},
-      "color_range": {"id": 5, "kind": "f32", "min": 0, "max": 1, "default": 0},
-      "speed": {"id": 6, "kind": "f32", "min": 0, "max": 1, "default": 0.5, "applicable_when": "current_mode == Analog (0). Stored but ineffective in other modes, including this donor Bloom variant."},
-      "saturation": {"id": 7, "kind": "f32", "min": 0, "max": 1, "default": 0.75, "wire": "native raw. Host UI uses one sqrt transform."},
-      "background": {"id": 8, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
-      "current_mode": {"id": 9, "kind": "i32", "min": 0, "max": 6, "default": 1},
-      "mirror_mode": {"id": 10, "kind": "bool", "default": true},
-      "screensaver": {"id": 11, "kind": "bool", "default": true},
-      "temporal_dithering": {"id": 12, "kind": "bool", "default": true},
-      "auto_color_cycle": {"id": 13, "kind": "bool", "default": false},
-      "reverse_color_range": {"id": 14, "kind": "bool", "default": false, "applicable_when": "color_range > 0"},
-      "hardware_output_brightness": {"id": 15, "kind": "u32", "min": 0, "max": 255, "default": 100},
-      "emission_enabled": {"id": 16, "kind": "bool", "default": true},
-      "output_precision": {"id": 17, "kind": "bool", "default": false, "state_flag_bit": 6, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire", "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"}, "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."},
-      "palette": {"id": 18, "kind": "u32", "default": 0, "range": [0, 44], "state_offset": 140, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "native donor HSV colour", "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"}, "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."},
-      "output_intensity_a": {"id": 19, "kind": "f32", "min": 0, "max": 1, "finite": true, "default": 1.0, "state_offset": 144, "owner": "realtime frame boundary", "scene": false, "note": "Physical DIN-A logical pixels 0..79 only; shared scene and music motion remain unchanged. Cached Q16 gain rounded from value*65535, applied after hardware scale16 as (component*q16+32767)/65535; 1.0 is byte exact."},
-      "output_intensity_b": {"id": 20, "kind": "f32", "min": 0, "max": 1, "finite": true, "default": 1.0, "state_offset": 148, "owner": "realtime frame boundary", "scene": false, "note": "Physical DIN-B logical pixels 80..159 only; same independent output gain law as DIN-A. Boot defaults to 1.0; a patch to one lane preserves the other."}
+      "brightness": {
+        "id": 1,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 1.0
+      },
+      "softness": {
+        "id": 2,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.25
+      },
+      "color": {
+        "id": 3,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.33,
+        "note": "Explicit write replaces the auto-color phase. Readback color may exceed 1 while auto-color is evolving. effective_hue is the fractional part and is not written back."
+      },
+      "warmth": {
+        "id": 4,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0
+      },
+      "color_range": {
+        "id": 5,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0
+      },
+      "speed": {
+        "id": 6,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "applicable_when": "current_mode == Analog (0). Stored but ineffective in other modes, including this donor Bloom variant."
+      },
+      "saturation": {
+        "id": 7,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.75,
+        "wire": "native raw. Host UI uses one sqrt transform."
+      },
+      "background": {
+        "id": 8,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.25
+      },
+      "current_mode": {
+        "id": 9,
+        "kind": "i32",
+        "min": 0,
+        "max": 6,
+        "default": 1
+      },
+      "mirror_mode": {
+        "id": 10,
+        "kind": "bool",
+        "default": true
+      },
+      "screensaver": {
+        "id": 11,
+        "kind": "bool",
+        "default": true
+      },
+      "temporal_dithering": {
+        "id": 12,
+        "kind": "bool",
+        "default": true
+      },
+      "auto_color_cycle": {
+        "id": 13,
+        "kind": "bool",
+        "default": false
+      },
+      "reverse_color_range": {
+        "id": 14,
+        "kind": "bool",
+        "default": false,
+        "applicable_when": "color_range > 0"
+      },
+      "hardware_output_brightness": {
+        "id": 15,
+        "kind": "u32",
+        "min": 0,
+        "max": 255,
+        "default": 100
+      },
+      "emission_enabled": {
+        "id": 16,
+        "kind": "bool",
+        "default": true
+      },
+      "output_precision": {
+        "id": 17,
+        "kind": "bool",
+        "default": false,
+        "state_flag_bit": 6,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "defaults_restore": false,
+        "values": {
+          "0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire",
+          "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"
+        },
+        "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."
+      },
+      "palette": {
+        "id": 18,
+        "kind": "u32",
+        "default": 0,
+        "range": [
+          0,
+          44
+        ],
+        "state_offset": 140,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "defaults_restore": false,
+        "values": {
+          "0": "native donor HSV colour",
+          "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"
+        },
+        "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."
+      },
+      "output_intensity_a": {
+        "id": 19,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "finite": true,
+        "default": 1.0,
+        "state_offset": 144,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "note": "Physical DIN-A logical pixels 0..79 only; shared scene and music motion remain unchanged. Cached Q16 gain rounded from value*65535, applied after hardware scale16 as (component*q16+32767)/65535; 1.0 is byte exact.",
+        "scope": "BOTTOM/PRIMARY DIN-A logical pixels0..79 only"
+      },
+      "output_intensity_b": {
+        "id": 20,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "finite": true,
+        "default": 1.0,
+        "state_offset": 148,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "note": "Physical DIN-B logical pixels 80..159 only; same independent output gain law as DIN-A. Boot defaults to 1.0; a patch to one lane preserves the other.",
+        "scope": "BOTTOM/PRIMARY DIN-B logical pixels80..159 only"
+      }
     },
     "statuses": {
       "ok": 0,
@@ -228,6 +386,54 @@
       "reconcile": 9,
       "busy": 10,
       "reconcile_versus_timeout": "Owner reconcile status 9 includes the 160-byte state. Transport timeout status 9 has an empty body."
+    },
+    "optional_top_profile": {
+      "build_flag": "K1_TITAN_TOP_OUTPUT",
+      "version": 3,
+      "state_bytes": 176,
+      "patch_max_bytes": 208,
+      "patch_field_count": 23,
+      "patch_field_mask": 8388607,
+      "installed_v2_support": false,
+      "state_layout": {
+        "unchanged_offsets": "0..151",
+        "primary_intensity": 152,
+        "secondary_intensity": 156,
+        "secondary_output_enabled": 160,
+        "board_capabilities": 164,
+        "reserved_zero": "168..175"
+      },
+      "capability_bits": {
+        "0": "primary whole-board intensity is consumed",
+        "1": "secondary transport and whole-board intensity are consumed"
+      },
+      "profile_capabilities": 3,
+      "fields": {
+        "primary_intensity": {
+          "id": 21,
+          "kind": "f32",
+          "min": 0,
+          "max": 1,
+          "default": 1.0,
+          "scope": "BOTTOM/PRIMARY entire160-pixel board"
+        },
+        "secondary_intensity": {
+          "id": 22,
+          "kind": "f32",
+          "min": 0,
+          "max": 1,
+          "default": 1.0,
+          "scope": "TOP/SECONDARY entire160-pixel board"
+        },
+        "secondary_output_enabled": {
+          "id": 23,
+          "kind": "bool",
+          "default": false
+        }
+      },
+      "gain_order": "global hardware scale, whole-board Q16 attenuation, then bottom DIN-half Q16 attenuation; top ignores fields19/20",
+      "scene_semantics": "Both boards consume the same rendered160-pixel donor scene and shared audio analysis. Independent intensities do not imply independent scenes.",
+      "activation": "Optional build capability is distinct from electrical clearance, runtime enabled state and observed physical output. The existing v2 installed image does not support secondary output."
     }
   },
   "mode_control": {

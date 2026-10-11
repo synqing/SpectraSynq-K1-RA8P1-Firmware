@@ -403,6 +403,83 @@ def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):
     assert len(calls[0][1]) == 24 + 15 * 8
 
 
+def _top_state(request_id, capabilities=3):
+    import struct
+    body = bytearray(_donor_state(request_id))
+    body.extend(b"\0" * (donor.TOP_STATE_BYTES - len(body)))
+    struct.pack_into("<I", body, 4, 3)
+    struct.pack_into("<ffffII", body, 144, 1.0, 1.0, 1.0, 0.25,
+                     int(bool(capabilities & donor.CAP_SECONDARY_OUTPUT)), capabilities)
+    return bytes(body)
+
+
+def test_board_control_readback_rejects_malformed_profile():
+    import struct
+    state = _decode_donor_body(_top_state(1))
+    assert state["board_capabilities"] == 3
+    assert state["primary_intensity_supported"] is True
+    assert state["secondary_output_supported"] is True
+    assert state["primary_intensity"] == 1.0
+    assert state["secondary_intensity"] == 0.25
+    assert state["secondary_output_enabled"] is True
+    legacy = _decode_donor_body(_donor_state(2))
+    assert legacy["board_capabilities"] == 0
+    assert legacy["secondary_intensity"] is None
+    assert legacy["secondary_output_supported"] is False
+    for offset, value in ((164, 4), (168, 1), (160, 2)):
+        bad = bytearray(_top_state(1))
+        struct.pack_into("<I", bad, offset, value)
+        assert _decode_donor_body(bytes(bad)) is None
+    assert _decode_donor_body(_top_state(1)[:160]) is None
+
+
+def test_board_controls_require_observed_same_boot_capability(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n'
+        % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    calls = []
+    reply_body = _top_state(1)
+    def transact(op, wire):
+        calls.append((op, wire))
+        return {"ok": True, "status": 0, "body": reply_body}
+    plane = RestrictedControlPlane(transact=transact, evidence=evidence, bound=_bound())
+    hello = plane.handle({"op": "hello"})
+    request = {"op": "emotiscope_patch", "session": hello["session"],
+               "request_id": 5, "boot_id": 0x11, "revision": 4,
+               "fields": {"primary_intensity": 0.75, "secondary_intensity": 0.25,
+                          "secondary_output_enabled": True},
+               "state_version": 3, "board_capabilities": 3}
+    # Caller assertions cannot grant a device capability.
+    assert plane.handle(request)["ok"] is False
+    assert calls == []
+    get = {"op": "emotiscope_get", "session": hello["session"],
+           "request_id": 1, "boot_id": 0x11, "revision": 4}
+    assert plane.handle(get)["ok"] is True
+    calls.clear()
+    assert plane.handle(request)["ok"] is True
+    assert calls == [(25, donor.encode_patch(5, 0x11, 4, request["fields"],
+                                          state_version=3, board_capabilities=3))]
+    calls.clear()
+    assert plane.handle({**request, "boot_id": 0x12})["ok"] is False
+    assert calls == []
+    for reply_body in (_donor_state(1), _top_state(1, capabilities=1)):
+        assert plane.handle(get)["ok"] is True
+        calls.clear()
+        assert plane.handle(request)["ok"] is False
+        assert calls == []
+    reply_body = _top_state(1)
+    assert plane.handle(get)["ok"] is True
+    plane.on_reconnect(_bound())
+    new_hello = plane.handle({"op": "hello"})
+    calls.clear()
+    assert plane.handle({**request, "session": new_hello["session"]})["ok"] is False
+    assert calls == []
+
+
 def test_donor_patch_rejected_by_legacy_only_approval(tmp_path):
     evidence = Path(tmp_path)
     evidence.mkdir(parents=True, exist_ok=True)

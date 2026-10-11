@@ -514,6 +514,19 @@ bool PaletteRuntime::setOutputIntensity(unsigned lane, float intensity) noexcept
 float PaletteRuntime::outputIntensity(unsigned lane) const noexcept {
   return lane < 2U ? output_intensity_[lane] : 0.0F;
 }
+#ifdef K1_TITAN_TOP_OUTPUT
+bool PaletteRuntime::setBoardIntensity(unsigned board, float intensity) noexcept {
+  std::uint32_t bits = 0U;
+  std::memcpy(&bits, &intensity, sizeof(bits));
+  if (board > 1U || (bits > 0x3f800000U && bits != 0x80000000U)) return false;
+  board_intensity_[board] = intensity;
+  board_intensity_q16_[board] = static_cast<std::uint16_t>(intensity * 65535.0F + 0.5F);
+  return true;
+}
+float PaletteRuntime::boardIntensity(unsigned board) const noexcept {
+  return board < 2U ? board_intensity_[board] : 0.0F;
+}
+#endif
 bool PaletteRuntime::stageWideFrame(unsigned channel_index,
                                     const Pixel16* pixels,
                                     std::size_t count) noexcept {
@@ -527,6 +540,13 @@ bool PaletteRuntime::stageWideFrame(unsigned channel_index,
 std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
                                              std::size_t capacity,
                                              unsigned lane) const noexcept {
+#ifdef K1_TITAN_TOP_OUTPUT
+  return packBoardGrb48Lane(out, capacity, 0U, lane);
+}
+std::size_t PaletteRuntime::packBoardGrb48Lane(std::uint8_t* out, std::size_t capacity,
+                                             unsigned board, unsigned lane) const noexcept {
+  if (board > 1U) return 0U;
+#endif
   // Select one complete visual scene, then split at logical pixels 79/80.
   // DIN identity is not visual-channel identity (K1 Main RPL WS2816 layout).
   constexpr unsigned pixels_per_lane=kPixelsPerHalf;
@@ -537,9 +557,22 @@ std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
   // Brightness is applied exactly once to the wire channels. The Emotiscope
   // profile supplies RGB8 expanded by 257; other profiles may author TRUE16.
   const auto* source = wide_[channel_index];
-  const std::uint32_t gain = output_intensity_q16_[lane];
+  const std::uint32_t gain =
+#ifdef K1_TITAN_TOP_OUTPUT
+      board == 0U ? output_intensity_q16_[lane] : 65535U;
+  const std::uint32_t board_gain = board_intensity_q16_[board];
+#else
+      output_intensity_q16_[lane];
+#endif
   // Maximum numerator: 65535*65535+32767 = 4294868992, within uint32_t.
-  const auto attenuate = [gain](std::uint16_t component) noexcept {
+  const auto attenuate = [gain
+#ifdef K1_TITAN_TOP_OUTPUT
+      , board_gain
+#endif
+      ](std::uint16_t component) noexcept {
+#ifdef K1_TITAN_TOP_OUTPUT
+    component = static_cast<std::uint16_t>((std::uint32_t(component) * board_gain + 32767U) / 65535U);
+#endif
     return static_cast<std::uint16_t>((std::uint32_t(component) * gain + 32767U) / 65535U);
   };
   for (unsigned i = 0; i < pixels_per_lane; ++i) {

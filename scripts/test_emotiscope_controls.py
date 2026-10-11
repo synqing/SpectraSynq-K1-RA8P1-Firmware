@@ -182,6 +182,43 @@ def check_state_versions(codec):
             or state["output_intensity_a"] != 0.25 or state["output_intensity_b"] != 0.75
             or state["reserved"] != bytes(8)):
         raise RuntimeError("version-2 intensity offsets")
+    if state["primary_intensity"] is not None or state["secondary_intensity"] is not None or state["secondary_output_supported"]:
+        raise RuntimeError("installed v2 falsely advertises board controls")
+    top = bytearray(current) + bytearray(16)
+    struct.pack_into("<I", top, 4, 3)
+    struct.pack_into("<ffII", top, 152, 0.25, 0.75, 0, 3)
+    top_state = codec.decode_state(bytes(top))
+    if (top_state["primary_intensity"] != 0.25 or top_state["secondary_intensity"] != 0.75
+            or top_state["secondary_output_enabled"] is not False or top_state["board_capabilities"] != 3):
+        raise RuntimeError("optional v3 board offsets")
+    for offset, raw in ((152, 0x7FC00000), (156, 0x80000001), (160, 2), (164, 4), (168, 1)):
+        bad = bytearray(top)
+        struct.pack_into("<I", bad, offset, raw)
+        try:
+            codec.decode_state(bytes(bad))
+        except ValueError:
+            pass
+        else:
+            raise RuntimeError("malformed v3 board state accepted")
+    unsupported = bytearray(top)
+    struct.pack_into("<II", unsupported, 160, 1, 1)
+    try:
+        codec.decode_state(bytes(unsupported))
+    except ValueError:
+        pass
+    else:
+        raise RuntimeError("enabled secondary without capability")
+    for field in ("primary_intensity", "secondary_intensity", "secondary_output_enabled"):
+        try:
+            codec.encode_patch(1, 0x11, 0, {field: 1})
+        except ValueError:
+            pass
+        else:
+            raise RuntimeError("unconfirmed board control encoded")
+    packet = codec.encode_patch(1, 0x11, 0, {"primary_intensity": 0.25, "secondary_intensity": 0.75},
+                                state_version=3, board_capabilities=3)
+    if codec.parse(packet)[0] != 3 or codec.parse(packet, state_version=3)[0] != 0:
+        raise RuntimeError("profile-specific field acceptance")
     malformed = []
     for offset in (144, 148):
         for raw in (0x7FC00000, 0x7F800000, 0xFF800000, 0x3F800001, 0xBF000000, 0x80000001):
@@ -205,7 +242,7 @@ def check_state_versions(codec):
             except ValueError:
                 continue
             raise RuntimeError("invalid intensity encoded")
-    return {"legacy_unsupported": True, "version_2_offsets": True,
+    return {"legacy_unsupported": True, "version_2_offsets": True, "version_3_capabilities": True,
             "malformed_states_rejected": len(malformed), "invalid_patch_values_rejected": 8}
 
 
@@ -218,7 +255,7 @@ def check_python_parser(codec, steps):
     return mismatches
 
 
-def check_lines(codec, steps, lines):
+def check_lines(codec, steps, lines, top_output=False):
     failures = []
     bodies = []
     if len(lines) != len(steps):
@@ -240,7 +277,7 @@ def check_lines(codec, steps, lines):
             failures.append({"i": index, "apply": got["apply"], "want": expect["apply"]})
         body = bytes.fromhex(got["body"])
         bodies.append(body)
-        if len(body) != 160:
+        if len(body) != (176 if top_output else 160):
             failures.append({"i": index, "error": "body length", "n": len(body)})
             continue
         state = codec.decode_state(body)
@@ -259,9 +296,12 @@ def check_lines(codec, steps, lines):
                     failures.append({"i": index, "field": key, "got": got_value, "want": want})
             elif got_value != want:
                 failures.append({"i": index, "field": key, "got": got_value, "want": want})
-        if (state["magic"] != codec.STATE_MAGIC or state["version"] != 2
+        if (state["magic"] != codec.STATE_MAGIC or state["version"] != (3 if top_output else 2)
                 or state["output_intensity_supported"] is not True or state["reserved"] != b"\x00" * 8):
             failures.append({"i": index, "error": "framing"})
+        if top_output and (state["board_capabilities"] != 3 or state["primary_intensity"] != 1
+                           or state["secondary_intensity"] != 1 or state["secondary_output_enabled"] is not False):
+            failures.append({"i": index, "error": "default board controls changed by legacy packet"})
     return failures
 
 
@@ -275,6 +315,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--compiler", default="/usr/bin/clang++")
+    parser.add_argument("--top-output", action="store_true")
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[1]
     output = args.output.resolve()
@@ -300,6 +341,16 @@ def main():
         item = donor["fields"][name]
         if (item["id"], item["kind"], item["state_offset"], item["default"]) != (field, "f32", offset, 1.0):
             raise SystemExit("independent intensity contract field")
+    top_contract = donor["optional_top_profile"]
+    if (top_contract["version"], top_contract["state_bytes"], top_contract["patch_max_bytes"],
+            top_contract["patch_field_count"], top_contract["patch_field_mask"], top_contract["profile_capabilities"]) != (3, 176, 208, 23, 0x7FFFFF, 3):
+        raise SystemExit("optional top contract shape")
+    for name, field, offset, kind in (("primary_intensity", 21, 152, "f32"),
+                                     ("secondary_intensity", 22, 156, "f32"),
+                                     ("secondary_output_enabled", 23, 160, "bool")):
+        item = top_contract["fields"][name]
+        if (item["id"], item["kind"], top_contract["state_layout"][name]) != (field, kind, offset):
+            raise SystemExit("optional top contract field")
     witness = source_witness(root)
     if not all(witness.values()):
         (output / "source-witness.json").write_text(json.dumps(witness, indent=2))
@@ -323,6 +374,8 @@ def main():
         str(root / "platform/ra8p1/emotiscope_port.cpp"),
         "-o", str(binary),
     ]
+    if args.top_output:
+        command.insert(1, "-DK1_TITAN_TOP_OUTPUT")
     built = run(command, output / "build.log")
     if built.returncode != 0:
         raise SystemExit("build failed: " + str(output / "build.log"))
@@ -354,7 +407,7 @@ def main():
             close(state["brightness"], 1) and state["mode"] == 1 and state["flags"] == 39
             and state["applicability"] == 0xDFDF and state["output_brightness"] == 100
             and close(state["saturation"], 0.75) and close(state["effective_hue"], 0.33)
-            and state["version"] == 2 and state["output_intensity_supported"] is True
+            and state["version"] == (3 if args.top_output else 2) and state["output_intensity_supported"] is True
             and state["output_intensity_a"] == 1.0 and state["output_intensity_b"] == 1.0
         )
     if raw_line:
@@ -363,7 +416,7 @@ def main():
         wire["raw_ok"] = close(state["color"], 1.4) and close(state["effective_hue"], 0.4)
     if corpus_run.returncode == 0:
         lines = [line for line in corpus_run.stdout.splitlines() if line.startswith("{")]
-        wire["corpus_failures"] = check_lines(codec, steps, lines)
+        wire["corpus_failures"] = check_lines(codec, steps, lines, args.top_output)
     wire["source_witness"] = witness
     wire["pass"] = (
         behaved.returncode == 0 and corpus_run.returncode == 0 and wire["crc_matches_zlib"]

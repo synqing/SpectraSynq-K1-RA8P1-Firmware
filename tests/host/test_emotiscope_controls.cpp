@@ -75,6 +75,11 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
   if (result.palette_changed) observed->palette = result.palette;
   if (result.intensity_a_changed) observed->output_intensity_a = result.output_intensity_a;
   if (result.intensity_b_changed) observed->output_intensity_b = result.output_intensity_b;
+#ifdef K1_TITAN_TOP_OUTPUT
+  if (result.primary_intensity_changed) observed->primary_intensity = result.primary_intensity;
+  if (result.secondary_intensity_changed) observed->secondary_intensity = result.secondary_intensity;
+  if (result.secondary_output_enabled_changed) observed->secondary_output_enabled = result.secondary_output_enabled;
+#endif
 }
 
 static ec::DonorApplyResult apply_bytes(ec::DonorDedup* dedup, ec::DonorObserved* observed,
@@ -114,7 +119,7 @@ static ec::DonorObserved fresh_observed() {
 
 static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 0) == ec::kDonorStateMagic);
-  CHECK(ec::donorGetU32(body + 4) == 2u);
+  CHECK(ec::donorGetU32(body + 4) == ec::kDonorStateVersion);
   CHECK(ec::donorGetU32(body + 8) == 1u);
   CHECK(ec::donorGetU32(body + 12) == 0x11u);
   CHECK(ec::donorGetU32(body + 16) == 0u);
@@ -138,7 +143,14 @@ static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 140) == 0u);
   check_f("intensity A", ec::donorGetF32(body + 144), 1.0f);
   check_f("intensity B", ec::donorGetF32(body + 148), 1.0f);
+#ifdef K1_TITAN_TOP_OUTPUT
+  check_f("primary", ec::donorGetF32(body + 152), 1.0f);
+  check_f("secondary", ec::donorGetF32(body + 156), 1.0f);
+  CHECK(ec::donorGetU32(body + 160) == 0u && ec::donorGetU32(body + 164) == 3u);
+  for (unsigned i = 168; i < 176; ++i) CHECK(body[i] == 0u);
+#else
   for (unsigned i = 152; i < 160; ++i) CHECK(body[i] == 0u);
+#endif
 }
 
 static int behavioral() {
@@ -509,10 +521,10 @@ static int behavioral() {
     CHECK(gain_observed.revision == 1u);
     check_f("A gain", gain_observed.output_intensity_a, 0.25f);
     check_f("B preserved", gain_observed.output_intensity_b, 1.0f);
-    CHECK(ec::donorGetU32(gain.response + 4) == 2u);
+    CHECK(ec::donorGetU32(gain.response + 4) == ec::kDonorStateVersion);
     check_f("A response", ec::donorGetF32(gain.response + 144), 0.25f);
     check_f("B response", ec::donorGetF32(gain.response + 148), 1.0f);
-    for (unsigned i = 152; i < 160; ++i) CHECK(gain.response[i] == 0u);
+    for (unsigned i = ec::kDonorStateBytes - 8; i < ec::kDonorStateBytes; ++i) CHECK(gain.response[i] == 0u);
     const auto first_gain = gain;
     gain = apply_vec(&gain_dedup, &gain_observed, packet_a);
     CHECK(gain.status == 0u && !gain.intensity_a_changed && !gain.intensity_b_changed);
@@ -554,6 +566,76 @@ static int behavioral() {
     CHECK(std::memcmp(&scene_before, &scene_after, sizeof(scene_before)) == 0);
   }
 
+#ifdef K1_TITAN_TOP_OUTPUT
+  {
+    ec::DonorObserved board = fresh_observed();
+    ec::DonorDedup cache{};
+    const Entry primary{21u, 1u, 0x3e800000u};
+    auto response = apply_vec(&cache, &board, build_patch(900u, 0u, 0x11u, &primary, 1));
+    CHECK(response.status == 0u && response.primary_intensity_changed);
+    CHECK(board.primary_intensity == 0.25f && board.secondary_intensity == 1.0f);
+    const Entry secondary{22u, 1u, 0x3f400000u};
+    response = apply_vec(&cache, &board, build_patch(901u, board.revision, 0x11u, &secondary, 1));
+    CHECK(response.status == 0u && response.secondary_intensity_changed);
+    CHECK(board.primary_intensity == 0.25f && board.secondary_intensity == 0.75f);
+    CHECK(board.output_intensity_a == 1.0f && board.output_intensity_b == 1.0f);
+    auto replay = apply_vec(&cache, &board, build_patch(901u, board.revision - 1u, 0x11u, &secondary, 1));
+    CHECK(ec::donorGetU32(replay.response + 96) == 1u && !replay.secondary_intensity_changed);
+    K1EmotiscopeConfig before_board{}, after_board{};
+    k1_emotiscope_get_config(&before_board);
+    board.board_capabilities = 1u;
+    const Entry unsupported[]{ {1u, 1u, 0x3f7d70a4u}, {23u, 2u, 1u} };
+    const auto revision = board.revision;
+    response = apply_vec(&cache, &board, build_patch(902u, revision, 0x11u, unsupported, 2));
+    k1_emotiscope_get_config(&after_board);
+    CHECK(response.status == ec::kDonorStatusInvalid && board.revision == revision);
+    CHECK(std::memcmp(&before_board, &after_board, sizeof(before_board)) == 0);
+    CHECK(!board.secondary_output_enabled);
+    board.board_capabilities = 3u;
+    const auto failed_enable = build_patch(905u, board.revision, 0x11u, unsupported, 2);
+    ec::DonorIntent failed_intent{};
+    CHECK(ec::donorParse(failed_enable.data(), failed_enable.size(), &failed_intent) == 0u);
+    ec::donorApply(&cache, failed_intent, board, &response, +[]() { return false; });
+    k1_emotiscope_get_config(&after_board);
+    CHECK(response.status == ec::kDonorStatusInvalid && response.revision == revision);
+    CHECK(ec::donorGetU32(response.response + 164) == 1u && !response.secondary_output_enabled_changed);
+    CHECK(std::memcmp(&before_board, &after_board, sizeof(before_board)) == 0);
+    // Direct intents must reject invalid scene data before hardware admission.
+    ec::DonorIntent invalid_legacy = failed_intent;
+    invalid_legacy.request_id = 906u;
+    const std::uint32_t nan_bits = 0x7fc00000u;
+    std::memcpy(&invalid_legacy.brightness, &nan_bits, sizeof(nan_bits));
+    static unsigned admission_calls = 0;
+    admission_calls = 0;
+    ec::donorApply(&cache, invalid_legacy, board, &response,
+                  +[]() { ++admission_calls; return true; });
+    k1_emotiscope_get_config(&after_board);
+    CHECK(admission_calls == 0u);
+    CHECK(response.status == ec::kDonorStatusInvalid && response.revision == revision);
+    CHECK(!response.secondary_output_enabled_changed && response.secondary_output_enabled == 0u);
+    CHECK(std::memcmp(&before_board, &after_board, sizeof(before_board)) == 0);
+    for (const std::uint32_t raw : {0x7fc00000u, 0x7f800000u, 0xbf000000u, 0x3f800001u, 0x80000001u}) {
+      for (const std::uint16_t field : {std::uint16_t(21), std::uint16_t(22)}) {
+        const Entry invalid{field, 1u, raw};
+        ec::DonorIntent intent{};
+        const auto bytes = build_patch(903u, board.revision, 0x11u, &invalid, 1);
+        CHECK(ec::donorParse(bytes.data(), bytes.size(), &intent) == ec::kDonorStatusInvalid);
+      }
+    }
+    Entry full[23];
+    for (unsigned i = 0; i < 23; ++i) {
+      const auto field = std::uint16_t(i + 1);
+      const auto kind = ec::donorFieldKind(field);
+      full[i] = Entry{field, std::uint16_t(kind), kind == ec::kDonorKindF32 ? 0x3f000000u
+                        : field == 9u ? 1u : field == 15u ? 100u : 0u};
+    }
+    const auto maximum = build_patch(904u, board.revision, 0x11u, full, 23);
+    ec::DonorIntent full_intent{};
+    CHECK(maximum.size() == 208u);
+    CHECK(ec::donorParse(maximum.data(), maximum.size(), &full_intent) == 0u);
+    CHECK(full_intent.mask == 0x7fffffu);
+  }
+#endif
   std::printf("BEHAVIORAL %s %d\n", g_fails ? "FAIL" : "OK", g_fails);
   return g_fails ? 1 : 0;
 }
@@ -587,7 +669,7 @@ static int corpus(const char* path) {
   int index = 0;
   while (std::fgets(line, sizeof(line), file)) {
     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
-    std::uint8_t bytes[192];
+    std::uint8_t bytes[240];
     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
     if (size < 0) { std::fclose(file); return 2; }
     ec::DonorIntent intent{};

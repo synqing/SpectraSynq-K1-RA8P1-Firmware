@@ -78,8 +78,58 @@ static void check_output_intensities() {
   }
 }
 
+#ifdef K1_TITAN_TOP_OUTPUT
+static void check_board_intensities() {
+  PaletteRuntime runtime;
+  PaletteConfig config;
+  config.flags = 1U; config.brightness = 100U;
+  assert(runtime.configure(config, 0U));
+  Pixel16 scene[160];
+  for (unsigned i = 0; i < 160U; ++i)
+    scene[i] = {std::uint16_t(i * 401U), std::uint16_t(65535U - i * 307U), std::uint16_t(i * 197U)};
+  assert(runtime.stageWideFrame(0U, scene, 160U));
+  assert(runtime.boardIntensity(0U) == 1.0F && runtime.boardIntensity(1U) == 1.0F);
+  assert(!runtime.secondaryOutputEnabled());
+  std::uint8_t baseline[2][480];
+  for (unsigned lane = 0; lane < 2U; ++lane) {
+    assert(runtime.packBenchGrb48Lane(baseline[lane], 480U, lane) == 480U);
+    for (unsigned board = 0; board < 2U; ++board) {
+      std::uint8_t packed[480];
+      assert(runtime.packBoardGrb48Lane(packed, 480U, board, lane) == 480U);
+      assert(std::memcmp(packed, baseline[lane], 480U) == 0);
+    }
+  }
+  for (unsigned changed_board = 0; changed_board < 2U; ++changed_board) {
+    assert(runtime.setBoardIntensity(0U, 1.0F) && runtime.setBoardIntensity(1U, 1.0F));
+    assert(runtime.setBoardIntensity(changed_board, 0.5F));
+    for (unsigned board = 0; board < 2U; ++board) {
+      for (unsigned lane = 0; lane < 2U; ++lane) {
+        std::uint8_t packed[480];
+        assert(runtime.packBoardGrb48Lane(packed, 480U, board, lane) == 480U);
+        for (unsigned offset = 0; offset < 480U; offset += 2U) {
+          const unsigned original = (unsigned(baseline[lane][offset]) << 8) | baseline[lane][offset + 1U];
+          const unsigned actual = (unsigned(packed[offset]) << 8) | packed[offset + 1U];
+          assert(actual == (board == changed_board ? (original * 32768U + 32767U) / 65535U : original));
+        }
+      }
+    }
+  }
+  assert(runtime.setBoardIntensity(0U, 1.0F) && runtime.setBoardIntensity(1U, 1.0F));
+  assert(runtime.setOutputIntensity(0U, 0.5F));
+  std::uint8_t top[480];
+  assert(runtime.packBoardGrb48Lane(top, 480U, 1U, 0U) == 480U);
+  assert(std::memcmp(top, baseline[0], 480U) == 0);
+  for (float invalid : {NAN, INFINITY, -0.01F, 1.01F, -std::numeric_limits<float>::denorm_min()})
+    assert(!runtime.setBoardIntensity(1U, invalid));
+  assert(runtime.boardIntensity(1U) == 1.0F && !runtime.setBoardIntensity(2U, 0.5F));
+}
+#endif
+
 int main() {
   check_output_intensities();
+#ifdef K1_TITAN_TOP_OUTPUT
+  check_board_intensities();
+#endif
   static_assert(kProductPaletteCount == 44U);
 #ifndef K1_SNAP_FREEZE_ONLY
   char text[8192];

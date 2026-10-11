@@ -66,6 +66,7 @@ RA8P1_LOCAL_K1_FILES = [
     'core/audio/k1_audio_hop.h',
     'core/audio/k1_audio_hop.c',
 ]
+TOP_PLATFORM_FILES = ['ws281x_gpt_dma_hw_top.h', 'ws281x_gpt_dma_hw_top.c']
 LIVE_RUNTIME_FILES = [
     'k1_live_runtime.cpp',
     'k1_live_runtime.h',
@@ -388,6 +389,44 @@ def stage_led_pair_vectors(stage: Path) -> None:
     assert text.count(event_anchor) == 1
     source.write_text(text.replace(isr_anchor, isr_insert).replace(event_anchor, event_insert))
 
+def stage_top_output_vectors(stage: Path) -> None:
+    """Append secondary stop/completion IRQs without changing primary vectors."""
+    header = stage / 'ra_gen/vector_data.h'
+    text = header.read_text()
+    entries = ((78, 'GPT3_COUNTER_OVERFLOW', 'gpt_counter_overflow_isr'),
+               (79, 'GPT4_COUNTER_OVERFLOW', 'gpt_counter_overflow_isr'),
+               (80, 'DMAC6_INT', 'dmac_int_isr'),
+               (81, 'DMAC7_INT', 'dmac_int_isr'))
+    assert text.count('#define VECTOR_DATA_IRQ_COUNT    (78)') == 1
+    assert text.count('#define BSP_ICU_VECTOR_NUM_ENTRIES (78)') == 1
+    for _, name, _ in entries:
+        assert f'VECTOR_NUMBER_{name}' not in text, f'existing top IRQ owner: {name}'
+    marker = '        /* The number of entries required for the ICU vector table. */'
+    assert text.count(marker) == 1
+    additions = ''.join(
+        f'        #define VECTOR_NUMBER_{name} ((IRQn_Type) {irq})\n'
+        f'        #define {name}_IRQn ((IRQn_Type) {irq})\n'
+        for irq, name, _ in entries)
+    text = text.replace(marker, additions + marker)
+    text = text.replace('#define VECTOR_DATA_IRQ_COUNT    (78)',
+                        '#define VECTOR_DATA_IRQ_COUNT    (82)')
+    text = text.replace('#define BSP_ICU_VECTOR_NUM_ENTRIES (78)',
+                        '#define BSP_ICU_VECTOR_NUM_ENTRIES (82)')
+    header.write_text(text)
+    source = stage / 'ra_gen/vector_data.c'
+    text = source.read_text()
+    isr_anchor = '            [77] = dmac_int_isr, /* DMAC3 INT (DMAC3 transfer end) */\n'
+    event_anchor = ('            [77] = BSP_PRV_VECT_ENUM(EVENT_DMAC3_INT,FIXED), '
+                    '/* DMAC3 INT (DMAC3 transfer end) */\n')
+    assert text.count(isr_anchor) == text.count(event_anchor) == 1
+    text = text.replace(isr_anchor, isr_anchor + ''.join(
+        f'            [{irq}] = {isr}, /* {name} */\n' for irq, name, isr in entries))
+    text = text.replace(event_anchor, event_anchor + ''.join(
+        f'            [{irq}] = BSP_PRV_VECT_ENUM(EVENT_{name},FIXED), /* {name} */\n'
+        for irq, name, _ in entries))
+    source.write_text(text)
+
+
 def stage_pcm1808_vectors(stage: Path) -> None:
     """Fail closed: U18 has no complete, framed PCM1808 receive route."""
     del stage
@@ -426,6 +465,8 @@ def main():
     parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
     parser.add_argument('--palette-ws2816-gpt-pair',action='store_true',
                         help='concurrent GPT6/P601 + GPT8/P604 WS2816 pair; exclusive of single-lane GPT and GPIO WS2816')
+    parser.add_argument('--titan-top-output', action='store_true',
+                        help='optional default-disabled P603/GPT7A + P714/GPT12B secondary board')
     parser.add_argument('--dual-edge-donor',action='store_true',help='live May Bloom/Waveform adaptation on the continuous 160-pixel strip')
     parser.add_argument('--emotiscope-port',action='store_true',
                         help='complete Emotiscope v1.1_build AP/VP: 12800 Hz/64 samples, native 128 pixels mapped to continuous 160')
@@ -444,6 +485,8 @@ def main():
     parser.add_argument('--live-defaults',type=Path,
                         help='optional hashed live-default JSON; omitted uses firmware canonical defaults')
     args=parser.parse_args()
+    if args.titan_top_output and (not args.emotiscope_port or args.p601_loopback):
+        parser.error('--titan-top-output requires --emotiscope-port and excludes diagnostic loopback')
     if args.debug and args.debug_info:
         parser.error('--debug-info keeps the selected optimisation; --debug is the separate -O0 build')
     if args.emotiscope_port:
@@ -502,6 +545,8 @@ def main():
         if args.stage_profile and not args.resident_controls: raise RuntimeError('stage profiling requires the resident K1 schedule')
         names=json.loads((ROOT/'docs/import-slices.json').read_text())['product']
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'src/k1'/p for p in RA8P1_LOCAL_K1_FILES]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
+        if args.titan_top_output:
+            material += [ROOT/'platform/ra8p1'/name for name in TOP_PLATFORM_FILES]
         if args.tempo_field:
             material += [ROOT/'src/k1'/name for name in TEMPO_FIELD_LOCAL_FILES]
             material += [ROOT/TEMPO_FIELD_MANIFEST, ROOT/'scripts/verify_tempo_adaptation.py']
@@ -602,13 +647,14 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
                        palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,
                        dmac_priority=args.dmac_priority,
                        dmac_lane_map=args.dmac_lane_map,
+                       titan_top_output=args.titan_top_output,
                        tempo_placement=args.tempo_placement,
                        product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),
                        live_runtime=args.live_runtime,
@@ -683,6 +729,7 @@ def main():
         if args.palette_ws2816_gpt_pair: defines.append('-DK1_PALETTE_WS2816_GPT_PAIR=1')
         if args.dual_edge_donor: defines.append('-DK1_DUAL_EDGE_DONOR=1')
         if args.emotiscope_port: defines.append('-DK1_EMOTISCOPE_PORT=1')
+        if args.titan_top_output: defines.append('-DK1_TITAN_TOP_OUTPUT=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
@@ -781,8 +828,18 @@ def main():
         stage_led_gpt_vectors(stage)
         if args.palette_ws2816_gpt_pair:
             stage_led_pair_vectors(stage)
+        if args.titan_top_output:
+            stage_top_output_vectors(stage)
         for name in PLATFORM_FILES:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+        if args.titan_top_output:
+            for name in TOP_PLATFORM_FILES:
+                shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
+            scon = stage/'src/SConscript'
+            text = scon.read_text()
+            assert text.count('src += ws281x_diagnostic') == 1
+            scon.write_text(text.replace('src += ws281x_diagnostic',
+                            "src += ws281x_diagnostic + Glob('ws281x_gpt_dma_hw_top.c')"))
         if args.pdm_target:
             for name in PDM_TARGET_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.pcm1808_target:
@@ -1007,6 +1064,20 @@ def main():
                 'source_precision':('donor_post_gamma_temporal_dither_rgb8_to_rgb16' if args.emotiscope_port
                                     else 'donor_q15_16_to_rgb16' if args.dual_edge_donor else 'rgb8_to_grb48'),
                 'pixels_per_din':80,
+            }
+        if args.titan_top_output:
+            for symbol in ('k1_ws281x_gpt_dma_hw_top_init',
+                           'k1_ws281x_gpt_dma_hw_top_submit',
+                           'k1_ws281x_gpt_dma_hw_top_poll'):
+                assert symbol in dump, f'missing secondary execution symbol {symbol}'
+            receipt['top_allocation'] = {
+                'lane_a': {'pin': 'P603', 'gpt_pwm': 7, 'output': 'A',
+                           'stop_gpt': 3, 'dma': 6, 'elc': ['GPT_E', 'GPT_F']},
+                'lane_b': {'pin': 'P714', 'gpt_pwm': 12, 'output': 'B',
+                           'stop_gpt': 4, 'dma': 7, 'elc': ['GPT_G', 'GPT_H']},
+                'pixels_per_din': 80,
+                'enabled_default': False,
+                'checkpoint': 'SOURCE_BOUND_ONLY_NO_TOP_ACTIVATION_PROOF',
             }
         if args.palette_gpt_dma:
             for symbol in ['k1_ws281x_gpt_dma_hw_submit', 'k1_ws281x_gpt_dma_hw_snapshot', 'dmac_int_isr', 'gpt_counter_overflow_isr']:
