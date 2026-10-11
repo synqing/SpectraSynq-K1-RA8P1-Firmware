@@ -2,7 +2,57 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current image: palette is the only colour source — 1 October 2026
+## Current image: authored two-board scenes — 11 October 2026
+
+Resident build `47bc25b5f69c9e27c90dfe089343412569825beef07bed1a4f94e47718ef28d4`,
+compiled from `eda9bf4` (all207 receipt inputs match). Host Surface source `0aa05f4`.
+Schema `6d68932e22c0796bcac290a233df9e235410b7af724ac71112525a86017b561b`, v6,
+capabilities127; target UID `545433931bd25436593630352d068363`. Programme used the
+existing sealed E2Lite path, probe powerOFF,1MHz, bounded code area, with identity
+MATCH after reset. Final programming ran21:42:35–21:42:59AWST; identity readback21:43:09.
+Earlier integration image was programmed21:32:29–21:32:54; both interruptions were
+followed by autonomous output. No physical continuity claim during reset.
+
+Current confirmed composition: Travelling Dual Ribbons on both boards, no pending
+scene, hardware brightness100, primary/secondary gains0.25, secondary enabled,
+emissionON, reference precision0. Around100frames/s and zero reported LED faults.
+Existing Surface is running new code; fresh-process recall confirmed complete Scene1.
+Scene1=Travelling Dual Ribbons, Scene2=Vertical Call and Answer,
+Scene3=Tension/Release Bloom, saved in the existing host preset store. These are host
+presets, not device nonvolatile scene storage. Draft comparison is clean after readback.
+
+All three compositions exercised on device using the existing authorised24s Sonic
+Samba source window (owned playback bounded and ended). Ribbons and call/answer
+reported real travel/quiet/return/recovery phases and changing gesture IDs. Bloom
+reported phrase states Establish,Develop,Tension,Release,Recover. Save, locked palette,
+scoped variation, whole-draft undo/redo and recall were exercised through authenticated
+Surface APIs. Fresh service restart retained all three slots and restored Scene1.
+
+Host checks:210SMC tests,287broker tests, original live-protocol/controls/output gates,
+new ASan/UBSan motion/pair/timing/actual donor RGB tests and ARM build. A mixed legacy
+background quiet regression failed before correction and passed afterwards. Per-frame
+2ms target render ceiling has NOT been measured;100fps telemetry does not prove it.
+Actual donor RGB rasters were opened and inspected; return strength was repaired from
+a visibly weak initial implementation without raising physical output gains.
+
+Optical acceptance remains BLOCKED by camera evidence: supplied EiP camera connected
+but delivered nearly black video (first decoded frame max3/255, mean0.0126). This cannot
+prove light movement through the plate. No alternate camera or guessed view was used.
+Required remaining path:1.obtain usable product imagery through the existing camera;
+2.compare all three scenes including handoff/quiet/return on the plate;3.measure target
+render cost and admit the result through the applicable assignment governance.
+
+Evidence: [implementation](COMPOSED-SCENES.md),
+[final readback](evidence/composed-scenes-20261011/final-surface-readback.json),
+[ARM receipt](evidence/composed-scenes-20261011/arm-receipt.json),
+[programme receipt](evidence/composed-scenes-20261011/programme-receipt.json).
+Raw scene observations and black camera originals: `_scratch/composed-scenes-live`.
+Native workflow verification rejected the donor project for the PRISM launch session;
+workflow_gate reports no bound ledger and explicitly no completion certificate.
+No task registry or acceptance record was invented. No push performed.
+
+## Historical image: palette is the only colour source — 1 October 2026 (superseded)
+
 
 Resident since 17:09 AWST: build `becb0186f0a66fbb04b0e0f4a79c0480b8b963db0fe3f518a91af9bb2dd2b5c7`, HEX `8ecc9fba931ee2178cccf643efef8d132e144e764494614eeaf999f50e53c045`, ELF `97923cbb8ff0b7ea80548e775b68765475da87b583d5b08a2683016e62a2b6e3`, schema unchanged `e40f6598…`, same UID, pins, DMA and 80+80 split. Build `evidence/arm-palette-003`, programme `evidence/programme-palette-003`, admission `evidence/smc-palette-003/accepted-candidate.json` (broker LaunchAgent points here).
 
