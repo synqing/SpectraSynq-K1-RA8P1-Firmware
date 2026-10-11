@@ -335,7 +335,8 @@ std::uint64_t palette_time_us = 0;
 k1::titan::PaletteClock palette_clock;
 #if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
 std::uint32_t donor_ml_clock_us(){
-  return static_cast<std::uint32_t>(palette_clock.sample(k1_cycle_count(),palette_clock_hz));
+  // Match the AP/publication epoch used by palette_step, including late checks.
+  return static_cast<std::uint32_t>(live_runtime.nowUs());
 }
 #endif
 #if defined(K1_PALETTE_WS2816) || defined(K1_PALETTE_WS2816_GPT_PAIR)
