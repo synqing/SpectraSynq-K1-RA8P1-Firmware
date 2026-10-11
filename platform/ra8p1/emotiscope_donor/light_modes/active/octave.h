@@ -3,11 +3,11 @@ void draw_octave() {
 		for (uint16_t i = 0; i < (NUM_LEDS >> 1); i++) {
 			float progress = num_leds_float_lookup[i<<1];
 			float mag = clip_float(interpolate(progress, chromagram, 12));
-			CRGBF color = hsv(
+			CRGBF color = hsv_at(
 				get_color_range_hue(progress),
 				configuration.saturation,
-				mag
-			);
+				mag, (NUM_LEDS>>1)+i
+);
 
 			leds[ (NUM_LEDS>>1)    + i] = color;
 			leds[((NUM_LEDS>>1)-1) - i] = color;
@@ -17,11 +17,11 @@ void draw_octave() {
 		for (uint16_t i = 0; i < NUM_LEDS; i++) {
 			float progress = num_leds_float_lookup[i];
 			float mag = clip_float(interpolate(progress, chromagram, 12));
-			CRGBF color = hsv(
+			CRGBF color = hsv_at(
 				get_color_range_hue(progress),
 				configuration.saturation,
-				mag
-			);
+				mag, i
+);
 
 			leds[i] = color;
 		}

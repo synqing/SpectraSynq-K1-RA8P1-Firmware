@@ -108,6 +108,7 @@ struct PendingControl {
   std::uint32_t status = 0;
 #ifdef K1_EMOTISCOPE_PORT
   k1::emotiscope::DonorIntent donor{};
+  std::uint32_t donor_response_bytes=k1::emotiscope::kDonorStateBytes;
   std::uint8_t donor_response[k1::emotiscope::kDonorStateBytes]{};
 #endif
 };
@@ -332,6 +333,11 @@ void live_handle_config(std::uint32_t size);
 std::uint32_t palette_clock_hz = 0;
 std::uint64_t palette_time_us = 0;
 k1::titan::PaletteClock palette_clock;
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+std::uint32_t donor_ml_clock_us(){
+  return static_cast<std::uint32_t>(palette_clock.sample(k1_cycle_count(),palette_clock_hz));
+}
+#endif
 #if defined(K1_PALETTE_WS2816) || defined(K1_PALETTE_WS2816_GPT_PAIR)
 // Last completed submission: 16 LE32 words, native RGB8, then both GRB48 lanes.
 // Capture the actual emitter inputs, not a later re-render or a pre-gain tap.
@@ -1468,6 +1474,42 @@ void donor_apply_pending() {
   observed.output_precision = palettes.outputPrecision();
 #ifdef K1_TITAN_TOP_OUTPUT
   observed.board=pending_control.donor.board;
+  K1EmotiscopeEdgeColourConfig colour{};
+  K1EmotiscopeEdgePairConfig pair{};
+  K1EmotiscopeMusicalConfig musical{};
+  K1EmotiscopeMlConfig ml{};
+  if(observed.board==1u){
+    k1_secondary_emotiscope_get_edge_colour(&colour);
+    k1_secondary_emotiscope_get_musical_config(&musical);
+    k1_secondary_emotiscope_get_ml_config(&ml);
+  }else{
+    k1_emotiscope_get_edge_colour(&colour);
+    k1_emotiscope_get_musical_config(&musical);
+    k1_emotiscope_get_ml_config(&ml);
+  }
+  k1_emotiscope_get_edge_pair(&pair);
+  observed.edge_colour_enabled=colour.enabled;observed.edge_colour_mode=colour.mode;
+  observed.edge_colour_strength=colour.strength;observed.edge_colour_spread_degrees=colour.spread_degrees;
+  observed.edge_colour_spatial=colour.spatial;
+  observed.edge_pair_link=pair.link;observed.edge_pair_enabled=pair.colour.enabled;
+  observed.edge_pair_mode=pair.colour.mode;observed.edge_pair_strength=pair.colour.strength;
+  observed.edge_pair_spread_degrees=pair.colour.spread_degrees;observed.edge_pair_spatial=pair.colour.spatial;
+  observed.musical_role=musical.role;observed.musical_strength=musical.strength;
+  observed.musical_attack_ms=musical.attack_ms;observed.musical_release_ms=musical.release_ms;
+  observed.ml_enabled=ml.enabled;observed.ml_strength=ml.strength;
+  K1EmotiscopeAudioPublication publication{};
+  k1_emotiscope_audio_publication(&publication);
+  observed.publication_sequence=publication.sequence;
+  if(observed.board==1u){
+    k1_secondary_emotiscope_get_ml_result(&observed.ml_result);
+    k1_secondary_emotiscope_musical_state(&observed.event_cursor,&observed.conditioning_value);
+  }else{
+    k1_emotiscope_get_ml_result(&observed.ml_result);
+    k1_emotiscope_musical_state(&observed.event_cursor,&observed.conditioning_value);
+  }
+  if(!ml.enabled || !publication.valid || publication.now_us-observed.ml_result.now_us>100000u)
+    observed.ml_result.valid=0u;
+
   observed.palette=observed.board==1u?k1_secondary_emotiscope_palette():k1_emotiscope_palette();
   observed.response_gain=observed.board==1u?k1_secondary_emotiscope_response_gain():k1_emotiscope_response_gain();
   observed.edge_response=observed.board==1u?k1_secondary_emotiscope_edge_response():k1_emotiscope_edge_response();
@@ -1480,7 +1522,7 @@ void donor_apply_pending() {
 #ifdef K1_TITAN_TOP_OUTPUT
   observed.primary_intensity = palettes.boardIntensity(0U);
   observed.secondary_intensity = palettes.boardIntensity(1U);
-  observed.board_capabilities = 5U |
+  observed.board_capabilities = 61U |
       (k1_ws281x_gpt_dma_hw_top_last_fault() == K1_WS281X_FAULT_NONE ? 2U : 0U);
   observed.secondary_output_enabled =
       palettes.secondaryOutputEnabled() && (observed.board_capabilities & 2U) ? 1U : 0U;
@@ -1505,7 +1547,8 @@ void donor_apply_pending() {
 #endif
       );
   pending_control.status = result.status;
-  std::memcpy(pending_control.donor_response, result.response, k1::emotiscope::kDonorStateBytes);
+  pending_control.donor_response_bytes=result.response_bytes;
+  std::memcpy(pending_control.donor_response, result.response, result.response_bytes);
   if (result.brightness_changed) palettes.setHardwareBrightness(result.hardware_brightness);
   if (result.emission_changed && palettes.setEmissionEnabled(result.emission != 0U))
     pair_begin_black_shutdown();
@@ -1528,6 +1571,24 @@ void donor_apply_pending() {
 #endif
   // Realtime owner context; the donor reads it on the next rendered frame.
 #ifdef K1_TITAN_TOP_OUTPUT
+  if(result.edge_colour_changed){
+    K1EmotiscopeEdgeColourConfig c{result.edge_colour_enabled,result.edge_colour_mode,
+        result.edge_colour_spatial,result.edge_colour_strength,result.edge_colour_spread_degrees};
+    if(result.board==1u)k1_secondary_emotiscope_set_edge_colour(&c);else k1_emotiscope_set_edge_colour(&c);
+  }
+  if(result.edge_pair_changed){
+    K1EmotiscopeEdgePairConfig p{result.edge_pair_link,{result.edge_pair_enabled,result.edge_pair_mode,
+        result.edge_pair_spatial,result.edge_pair_strength,result.edge_pair_spread_degrees}};
+    k1_emotiscope_set_edge_pair(&p);
+  }
+  if(result.musical_changed){
+    K1EmotiscopeMusicalConfig c{result.musical_role,result.musical_strength,result.musical_attack_ms,result.musical_release_ms};
+    if(result.board==1u)k1_secondary_emotiscope_set_musical_config(&c);else k1_emotiscope_set_musical_config(&c);
+  }
+  if(result.ml_changed){
+    K1EmotiscopeMlConfig c{result.ml_enabled,result.ml_strength};
+    if(result.board==1u)k1_secondary_emotiscope_set_ml_config(&c);else k1_emotiscope_set_ml_config(&c);
+  }
   if(result.palette_changed){
     if(result.board==1u)k1_secondary_emotiscope_set_palette(result.palette);
     else k1_emotiscope_set_palette(result.palette);
@@ -1695,6 +1756,24 @@ void execute() {
     std::memcpy(&offset, rx + 36U, 4U);
     const auto n = k1_p601_loopback_read(offset, reinterpret_cast<std::uint8_t *>(trace.data), 4096U);
     if (!n) error(3); else respond(0, 0, trace.data, n);
+#endif
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+  } else if (command == k1::titan::kPaletteStatusOpcode && size == 4U &&
+             std::memcmp(rx+32U,"MLST",4U)==0) {
+    // On-demand numerical witness; no stream and no change to visualisation.
+    static K1EmotiscopeMlResult model{};
+    static float input[64]{};
+    const auto queried=donor_ml_clock_us();
+    k1_emotiscope_ml_witness(&model,input,queried);
+    static_assert(sizeof(model)==324u,"ML witness metadata and arrays ABI");
+    std::memcpy(trace.data,"MLR1",4u);
+    put32(reinterpret_cast<std::uint8_t*>(trace.data)+4u,1u);
+    put32(reinterpret_cast<std::uint8_t*>(trace.data)+8u,queried);
+    std::memcpy(trace.data+12u,&model,36u);
+    std::memcpy(trace.data+48u,input,sizeof(input));
+    std::memcpy(trace.data+304u,model.latent,sizeof(model.latent));
+    std::memcpy(trace.data+336u,model.reconstruction,sizeof(model.reconstruction));
+    respond(0,0,trace.data,592u);
 #endif
   } else if (command == k1::titan::kPaletteStatusOpcode && size == 0U) {
     const auto n = control_palette_status(trace.data, sizeof(trace.data));
@@ -2053,6 +2132,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
 #endif
 #ifdef K1_PALETTE_RUNTIME
   palette_clock_hz = hz;
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+  k1_emotiscope_set_ml_clocks(&k1_cycle_count,&donor_ml_clock_us);
+#endif
 #ifdef K1_PALETTE_AUTOSTART
   k1::titan::PaletteConfig config;
 #ifdef K1_LIVE_BOOT_MODE
@@ -2338,7 +2420,7 @@ extern "C" void k1_fixture_control_service(void) {
   if (pending_control.kind == ControlKind::Donor) {
     respond(pending_control.status, 0,
             reinterpret_cast<const char*>(pending_control.donor_response),
-            k1::emotiscope::kDonorStateBytes);
+            pending_control.donor_response_bytes);
   } else if (pending_control.status) error(pending_control.status);
   else error(3);
 #else

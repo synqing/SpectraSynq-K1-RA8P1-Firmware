@@ -25,27 +25,19 @@ void draw_hype() {
 
 	float strength = sqrt(tempo_confidence);
 
-	CRGBF dot_color_odd  = hsv(
-		get_color_range_hue(beat_color_odd),
-		configuration.saturation,
-		1.0
-	);
-	CRGBF dot_color_even = hsv(
-		get_color_range_hue(beat_color_even+0.5*configuration.color_range),
-		configuration.saturation,
-		1.0
-	);
+	const float odd_u=get_color_range_hue(beat_color_odd);
+	const float even_u=get_color_range_hue(beat_color_even+0.5*configuration.color_range);
 
 	if(configuration.mirror_mode == true){
 		beat_sum_odd  *= 0.5;
 		beat_sum_even *= 0.5;
 	}
 
-	draw_dot(leds, NUM_RESERVED_DOTS + 0, dot_color_odd,  1.0-beat_sum_odd,  0.1 + 0.8*strength);
-	draw_dot(leds, NUM_RESERVED_DOTS + 1, dot_color_even, 1.0-beat_sum_even, 0.1 + 0.8*strength);
+	draw_palette_dot(leds, NUM_RESERVED_DOTS + 0, odd_u, 1.0f,  1.0-beat_sum_odd,  0.1 + 0.8*strength);
+	draw_palette_dot(leds, NUM_RESERVED_DOTS + 1, even_u, 1.0f, 1.0-beat_sum_even, 0.1 + 0.8*strength);
 
 	if(configuration.mirror_mode == true){
-		draw_dot(leds, NUM_RESERVED_DOTS + 2, dot_color_odd,  beat_sum_odd,  0.1 + 0.8*strength);
-		draw_dot(leds, NUM_RESERVED_DOTS + 3, dot_color_even, beat_sum_even, 0.1 + 0.8*strength);
+		draw_palette_dot(leds, NUM_RESERVED_DOTS + 2, odd_u, 1.0f,  beat_sum_odd,  0.1 + 0.8*strength);
+		draw_palette_dot(leds, NUM_RESERVED_DOTS + 3, even_u, 1.0f, beat_sum_even, 0.1 + 0.8*strength);
 	}
 }

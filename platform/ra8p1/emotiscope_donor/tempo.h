@@ -264,26 +264,15 @@ void normalize_vu_curve() {
 
 void update_tempo() {
 	profile_function([&]() {
-		static uint32_t iter = 0;
-		iter++;
-
 		normalize_novelty_curve();
-
 		static uint16_t calc_bin = 0;
-		uint16_t max_bin = (NUM_TEMPI - 1) * MAX_TEMPO_RANGE;
-
-		if(iter % 2 == 0){
-			calculate_tempi_magnitudes(calc_bin+0);
-		}
-		else{
-			calculate_tempi_magnitudes(calc_bin+1);
-		}
-
-		calc_bin+=2;
-		if (calc_bin >= max_bin) {
-			calc_bin = 0;
-		}
-
+		// MAX_TEMPO_RANGE is the inclusive upper candidate fraction.
+		const float bounded_range = isfinite(MAX_TEMPO_RANGE)
+			? fmaxf(0.0f, fminf(1.0f, MAX_TEMPO_RANGE)) : 1.0f;
+		const uint16_t max_bin = uint16_t((NUM_TEMPI - 1) * bounded_range);
+		if (calc_bin > max_bin) calc_bin = 0;
+		calculate_tempi_magnitudes(calc_bin);
+		calc_bin = calc_bin >= max_bin ? 0 : calc_bin + 1;
 	}, __func__ );
 }
 
@@ -321,7 +310,7 @@ void check_silence(float current_novelty) {
 		float min_val = 1.0;
 		float max_val = 0.0;
 		for (uint16_t i = 0; i < 128; i++) {
-			float recent_novelty = novelty_curve_normalized[(NOVELTY_HISTORY_LENGTH - 1 - 128) + i];
+			float recent_novelty = novelty_curve_normalized[(NOVELTY_HISTORY_LENGTH - 128) + i];
 			recent_novelty = min(0.5f, recent_novelty) * 2.0;
 
 			float scaled_value = sqrt(recent_novelty);

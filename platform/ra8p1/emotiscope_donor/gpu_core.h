@@ -61,7 +61,7 @@ void run_gpu() {
 		#endif
 
 		// Update auto color cycling
-		update_auto_color();  // (leds.h)
+		update_auto_color(float(t_elapsed_us) * 0.000001f);  // (leds.h)
 
 		#ifndef DISABLE_INDICATOR
 		run_indicator_light();
@@ -87,7 +87,7 @@ void run_gpu() {
 		draw_ui_overlay();  // (ui.h)
 
 		if( EMOTISCOPE_ACTIVE == true && configuration.screensaver == true){
-			run_screensaver();
+			run_screensaver(float(t_elapsed_us) * 0.000001f);
 		}
 
 		apply_brightness();
@@ -103,7 +103,7 @@ void run_gpu() {
 		// This value decays itself non linearly toward zero all the time, 
 		// *really* slowing down the LPF when it's set to 1.0.
 		// This is a super hacky way to fake a true fade transition between modes
-		lpf_drag *= 0.9975;
+		lpf_drag *= powf(0.9975f, float(t_elapsed_us) * 0.0001f);
 
 		if(lpf_drag < screensaver_mix*0.8){
 			lpf_drag = screensaver_mix*0.8;
@@ -121,7 +121,7 @@ void run_gpu() {
 		#ifdef HIL_EXTENDED
 		uint32_t t_lpf_start = micros();
 		#endif
-		apply_image_lpf(lpf_cutoff_frequency);
+		apply_image_lpf(lpf_cutoff_frequency, float(t_elapsed_us) * 0.000001f);
 		#ifdef HIL_EXTENDED
 		uint32_t t_lpf_end = micros();
 		#endif
@@ -156,7 +156,7 @@ void run_gpu() {
 		#ifdef HIL_EXTENDED
 		uint32_t t_brightness_start = micros();
 		#endif
-		apply_master_brightness();
+		apply_master_brightness(float(t_elapsed_us) * 0.000001f);
 		#ifdef HIL_EXTENDED
 		uint32_t t_brightness_end = micros();
 		#endif

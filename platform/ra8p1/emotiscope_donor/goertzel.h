@@ -192,7 +192,7 @@ float calculate_magnitude_of_bin(uint16_t bin_number) {
 		float coeff = frequencies_musical[bin_number].coeff;
 		float window_step = frequencies_musical[bin_number].window_step;
 
-		float* sample_ptr = &sample_history[(SAMPLE_HISTORY_LENGTH - 1) - block_size];
+		float* sample_ptr = &sample_history[SAMPLE_HISTORY_LENGTH - block_size];
 
 		for (uint16_t i = 0; i < block_size; i++) {
 			float windowed_sample = sample_ptr[i] * window_lookup[uint32_t(window_pos)];

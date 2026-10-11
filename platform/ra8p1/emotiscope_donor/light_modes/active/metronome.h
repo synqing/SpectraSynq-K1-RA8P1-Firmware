@@ -27,20 +27,16 @@ void draw_metronome() {
 
 			float opacity = clip_float(contribution*2.0);
 
-			CRGBF dot_color = hsv(
-				get_color_range_hue(progress),
-				configuration.saturation,
-				1.0
-			);
+			const float dot_u=get_color_range_hue(progress);
 
 			if(configuration.mirror_mode == true){
 				dot_pos -= 0.25;
 			}
 
-			draw_dot(leds, NUM_RESERVED_DOTS + tempo_bin * 2 + 0, dot_color, dot_pos, opacity);
+			draw_palette_dot(leds, NUM_RESERVED_DOTS + tempo_bin * 2 + 0, dot_u, 1.0f, dot_pos, opacity);
 
 			if(configuration.mirror_mode == true){
-				draw_dot(leds, NUM_RESERVED_DOTS + tempo_bin * 2 + 1, dot_color, 1.0 - dot_pos, opacity);
+				draw_palette_dot(leds, NUM_RESERVED_DOTS + tempo_bin * 2 + 1, dot_u, 1.0f, 1.0 - dot_pos, opacity);
 			}
 		}
 		else{

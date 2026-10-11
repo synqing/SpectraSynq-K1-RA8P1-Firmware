@@ -7,6 +7,11 @@
 #include <vector>
 
 namespace ec = k1::emotiscope;
+#ifdef K1_TITAN_TOP_OUTPUT
+static constexpr std::uint32_t kLegacyResponseVersion = 4u;
+#else
+static constexpr std::uint32_t kLegacyResponseVersion = 2u;
+#endif
 
 static int g_fails = 0;
 
@@ -56,6 +61,73 @@ static std::vector<std::uint8_t> build_patch(std::uint32_t id, std::uint32_t rev
 static std::vector<std::uint8_t> empty_patch(std::uint32_t id, std::uint32_t revision, std::uint32_t boot) {
   return build_patch(id, revision, boot, nullptr, 0);
 }
+
+#ifdef K1_TITAN_TOP_OUTPUT
+static std::vector<std::uint8_t> extended_patch(std::uint32_t id, std::uint32_t revision,
+                                               const Entry* entries, unsigned count) {
+  std::uint64_t mask = 0;
+  for (unsigned i=0;i<count;++i) mask |= std::uint64_t{1} << (entries[i].field-1);
+  std::vector<std::uint8_t> out(32+8*count);
+  ec::donorPutU32(out.data(),0x454d0202u);
+  ec::donorPutU32(out.data()+4,0x11u);
+  ec::donorPutU32(out.data()+8,id);
+  ec::donorPutU32(out.data()+12,revision);
+  ec::donorPutU32(out.data()+16,std::uint32_t(mask));
+  ec::donorPutU32(out.data()+20,std::uint32_t(mask>>32));
+  ec::donorPutU32(out.data()+24,count);
+  for(unsigned i=0;i<count;++i){auto* p=out.data()+32+8*i;
+    ec::donorPutU16(p,entries[i].field);ec::donorPutU16(p+2,entries[i].kind);ec::donorPutU32(p+4,entries[i].raw);}
+  return out;
+}
+
+static void check_extended_protocol() {
+  ec::DonorObserved observed{}; observed.boot_id=0x11; observed.hardware_brightness=100; observed.emission=1;
+  ec::DonorDedup cache{}; ec::DonorApplyResult result{};
+  std::uint8_t get[20]{};
+  ec::donorPutU32(get,0x454d0201);ec::donorPutU32(get+4,1200);ec::donorPutU32(get+8,0x11);ec::donorPutU32(get+16,1);
+  ec::DonorIntent intent{};
+  CHECK(ec::donorParse(get,20,&intent)==0 && intent.board==1);
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==0 && result.response_bytes==320);
+  CHECK(ec::donorGetU32(result.response+4)==5 && ec::donorGetU32(result.response+164)==63 && ec::donorGetU32(result.response+176)==1);
+  for(unsigned i=312;i<320;++i)CHECK(result.response[i]==0);
+  const Entry features[]={{24,4,1},{28,2,1},{29,4,2},{30,1,fbits(.5f)},{31,1,fbits(60.f)},
+    {32,4,1},{39,4,2},{40,1,fbits(.75f)},{41,1,fbits(20.f)},{42,1,fbits(250.f)},{43,2,1},{44,1,fbits(.5f)}};
+  auto packet=extended_patch(1201,0,features,sizeof(features)/sizeof(features[0]));
+  CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==0);
+  CHECK(intent.ml_enabled==1 && intent.emission==0 && intent.edge_colour_enabled==1 && intent.edge_pair_enabled==0);
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==0 && result.response_bytes==320 && result.edge_colour_changed && result.musical_changed && result.ml_changed);
+  CHECK(!result.emission_changed && result.emission==1 && result.affected_boards==2);
+  CHECK(ec::donorGetU32(result.response+192)==1 && ec::donorGetU32(result.response+256)==1);
+  const auto first=result;
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.response_bytes==320 && ec::donorGetU32(result.response+96)==1 && !result.changed && !result.ml_changed);
+  CHECK(std::memcmp(first.response+100,result.response+100,220)==0);
+  intent.board=0; // Same CRC forged by a direct caller cannot replay another target.
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==ec::kDonorStatusConflict && !result.changed);
+  K1EmotiscopeConfig primary_before{},secondary_before{},after{};
+  k1_emotiscope_get_config(&primary_before);k1_secondary_emotiscope_get_config(&secondary_before);
+  const Entry invalid[]={{1,1,fbits(.1f)},{15,4,24},{23,2,1},{24,4,1},{30,1,0x7fc00000}};
+  packet=extended_patch(1202,0,invalid,5);
+  CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==ec::kDonorStatusInvalid);
+  // Exercise the actual direct-apply atomic boundary too, before admission.
+  intent={};intent.sub=0x454d0202;intent.boot_id=0x11;intent.request_id=1202;intent.board=1;
+  intent.mask=1|(1ull<<14)|(1ull<<22)|(1ull<<23)|(1ull<<29);
+  intent.brightness=.1f;intent.hardware_brightness=24;intent.secondary_output_enabled=1;intent.edge_colour_strength=NAN;
+  static unsigned admission=0;admission=0;
+  ec::donorApply(&cache,intent,observed,&result,+[](){++admission;return true;});
+  CHECK(result.status==ec::kDonorStatusInvalid && admission==0 && !result.revision_changed && !result.changed);
+  CHECK(result.hardware_brightness==100 && result.emission==1 && observed.revision==0);
+  k1_emotiscope_get_config(&after);CHECK(std::memcmp(&after,&primary_before,sizeof(after))==0);
+  k1_secondary_emotiscope_get_config(&after);CHECK(std::memcmp(&after,&secondary_before,sizeof(after))==0);
+  // Legacy negotiation remains v4 even on the new image.
+  ec::donorPutU32(get,0x454d0101);ec::donorPutU32(get+4,1203);
+  CHECK(ec::donorParse(get,20,&intent)==0);ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.response_bytes==208 && ec::donorGetU32(result.response+4)==4 && ec::donorGetU32(result.response+164)==7);
+}
+#endif
 
 static void build_get(std::uint8_t out[16], std::uint32_t id, std::uint32_t boot) {
   std::memset(out, 0, 16);
@@ -148,7 +220,7 @@ static ec::DonorObserved fresh_observed() {
 
 static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 0) == ec::kDonorStateMagic);
-  CHECK(ec::donorGetU32(body + 4) == ec::kDonorStateVersion);
+  CHECK(ec::donorGetU32(body + 4) == kLegacyResponseVersion);
   CHECK(ec::donorGetU32(body + 8) == 1u);
   CHECK(ec::donorGetU32(body + 12) == 0x11u);
   CHECK(ec::donorGetU32(body + 16) == 0u);
@@ -451,7 +523,7 @@ static int behavioral() {
   result = apply_bytes(&dedup, &observed, get1, 16u);
   CHECK(result.status == 0u && result.changed == 0u && observed.revision == 0u);
   check_default_body(result.response);
-  print_hex("DEFAULT", result.response, ec::kDonorStateBytes);
+  print_hex("DEFAULT", result.response, result.response_bytes);
   result = apply_bytes(&dedup, &observed, get1, 16u);
   CHECK(result.status == 0u && ec::donorGetU32(result.response + 96) == 1u);
 
@@ -495,7 +567,7 @@ static int behavioral() {
   CHECK(result.status == 0u && result.changed == 0u);
   check_f("wire color", ec::donorGetF32(result.response + 32), 1.4f);
   check_f("wire hue", ec::donorGetF32(result.response + 56), 0.4f);
-  print_hex("RAWGET", result.response, ec::kDonorStateBytes);
+  print_hex("RAWGET", result.response, result.response_bytes);
   // Historical raw readback survives an unrelated masked patch; obsolete HSV writes reject.
   for (std::uint16_t field : {3u,5u,7u}) {
     const Entry mixed[]{ {1u,1u,fbits(0.99f)}, {field,1u,fbits(0.2f)} };
@@ -703,7 +775,7 @@ static int behavioral() {
     CHECK(gain_observed.revision == 1u);
     check_f("A gain", gain_observed.output_intensity_a, 0.25f);
     check_f("B preserved", gain_observed.output_intensity_b, 1.0f);
-    CHECK(ec::donorGetU32(gain.response + 4) == ec::kDonorStateVersion);
+    CHECK(ec::donorGetU32(gain.response + 4) == kLegacyResponseVersion);
     check_f("A response", ec::donorGetF32(gain.response + 144), 0.25f);
     check_f("B response", ec::donorGetF32(gain.response + 148), 1.0f);
     for (unsigned i = ec::kDonorStateBytes - 8; i < ec::kDonorStateBytes; ++i) CHECK(gain.response[i] == 0u);
@@ -819,6 +891,7 @@ static int behavioral() {
 #endif
 #ifdef K1_TITAN_TOP_OUTPUT
   check_independent_scene_controls();
+  check_extended_protocol();
 #endif
   std::printf("BEHAVIORAL %s %d\n", g_fails ? "FAIL" : "OK", g_fails);
   return g_fails ? 1 : 0;
@@ -856,7 +929,7 @@ static int corpus(const char* path) {
   int index = 0;
   while (std::fgets(line, sizeof(line), file)) {
     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
-    std::uint8_t bytes[240];
+    std::uint8_t bytes[384];
     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
     if (size < 0) { std::fclose(file); return 2; }
     ec::DonorIntent intent{};
@@ -868,7 +941,7 @@ static int corpus(const char* path) {
       ec::donorApply(&dedup, intent, observed, &result);
       adopt(&observed, intent, result);
       std::printf(",\"apply\":%u,\"body\":\"", result.status);
-      for (unsigned i = 0; i < ec::kDonorStateBytes; ++i) std::printf("%02x", result.response[i]);
+      for (unsigned i = 0; i < result.response_bytes; ++i) std::printf("%02x", result.response[i]);
       std::printf("\"");
     }
     std::printf("}\n");

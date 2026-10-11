@@ -27,7 +27,7 @@ void run_vu(){
 	profile_function([&]() {
 		// CALCULATE AMPLITUDE ------------------------------------------------
 		static float max_amplitude_cap = 0.0000001;
-		float* samples = &sample_history[(SAMPLE_HISTORY_LENGTH-1) - CHUNK_SIZE];
+		float* samples = &sample_history[SAMPLE_HISTORY_LENGTH - CHUNK_SIZE];
 
 		float max_amplitude_now = 0.000001;
 		for(uint16_t i = 0; i < CHUNK_SIZE; i++){
@@ -40,7 +40,7 @@ void run_vu(){
 
 		// LOG AMPLITUDE FOR NOISE REMOVAL ------------------------------------
 		if(t_now_ms < 2000){
-			memset(vu_log, max_amplitude_now, sizeof(float)*NUM_VU_LOG_SAMPLES);
+			for (uint16_t i = 0; i < NUM_VU_LOG_SAMPLES; ++i) vu_log[i] = max_amplitude_now;
 		}
 		else if(t_now_ms - last_vu_log >= 250){
 			last_vu_log = t_now_ms;

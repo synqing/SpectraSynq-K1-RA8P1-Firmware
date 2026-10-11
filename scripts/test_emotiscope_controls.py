@@ -362,6 +362,96 @@ def check_lines(codec, steps, lines, top_output=False):
     return failures
 
 
+def check_feature_codec(codec):
+    """Hand-written v5 packets/layout, independent of the firmware codec."""
+    fields = {"board": 1, "edge_colour_mode": 6, "edge_colour_spread": 60,
+              "pair_link": 3, "musical_role": 2, "musical_attack_ms": 20,
+              "musical_release_ms": 250, "ml_enabled": True, "ml_strength": .5}
+    body = codec.encode_patch(99, 0x11, 7, fields, state_version=5, board_capabilities=63)
+    expected_entries = [(24, 4, 1), (29, 4, 6), (31, 1, 0x42700000), (33, 4, 3),
+                        (39, 4, 2), (41, 1, 0x41A00000), (42, 1, 0x437A0000),
+                        (43, 2, 1), (44, 1, 0x3F000000)]
+    mask = sum(1 << (f-1) for f, _, _ in expected_entries)
+    expected = struct.pack("<IIIIIIII", 0x454D0202, 0x11, 99, 7, mask & 0xFFFFFFFF,
+                           mask >> 32, 9, 0) + b"".join(struct.pack("<HHI", *e) for e in expected_entries)
+    if body != expected or codec.parse(body, state_version=5)[0] != 0:
+        raise RuntimeError("extended packet wire mismatch")
+    if codec.encode_get(100, 0x11, 1, state_version=5, board_capabilities=63) != struct.pack("<IIIII", 0x454D0201, 100, 0x11, 0, 1):
+        raise RuntimeError("v5 explicit GET negotiation")
+    if codec.parse(body, state_version=4)[0] != 3:
+        raise RuntimeError("old profile accepts extended packet")
+    for index, raw in ((20, 0x1000), (28, 1)):
+        bad = bytearray(body); struct.pack_into("<I", bad, index, raw)
+        if codec.parse(bytes(bad), state_version=5)[0] != 3:
+            raise RuntimeError("extended mask/reserved accepted")
+    for field, value in ((31, float("nan")), (31, 60.01), (41, 0), (42, 3001), (44, float("inf"))):
+        try: codec.encode_patch(100, 0x11, 0, {field: value}, state_version=5, board_capabilities=63)
+        except ValueError: pass
+        else: raise RuntimeError("v5 invalid field accepted")
+    for version, caps in ((4, 7), (5, 7)):
+        try: codec.encode_patch(100, 0x11, 0, {"ml_enabled": True}, state_version=version, board_capabilities=caps)
+        except ValueError: pass
+        else: raise RuntimeError("unsupported ML write accepted")
+    state = bytearray(320)
+    struct.pack_into("<III", state, 0, 0x454D5354, 5, 1)
+    struct.pack_into("<ffffII", state, 144, 1., 1., .25, .25, 0, 63)
+    struct.pack_into("<IfIf", state, 176, 1, 1., 2, .65)
+    for offset, value in ((192, 1), (196, 6), (208, 1), (212, 3), (216, 2), (220, 1),
+                          (224, 2), (236, 0), (240, 2), (256, 1), (264, 1), (268, 8),
+                          (272, 7), (276, 10000), (280, 1234), (284, 11), (288, 20),
+                          (292, 7), (296, 8), (304, 25), (308, 0)):
+        struct.pack_into("<I", state, offset, value)
+    for offset, value in ((200, .5), (204, 30.), (228, .75), (232, 60.), (244, .5),
+                          (248, 20.), (252, 250.), (260, .5), (300, .4)):
+        struct.pack_into("<f", state, offset, value)
+    decoded = codec.decode_state(bytes(state))
+    if decoded["version"] != 5 or decoded["selected_board"] != 1 or decoded["pair_link"] != 3 or decoded["effective_pair_link"] != 2 or decoded["ml_model_id"] != 1234 or decoded["ml_inference_count"] != 11 or decoded["reserved"] != bytes(8):
+        raise RuntimeError("v5 state offsets")
+    for offset, raw in ((192, 2), (196, 7), (200, 0x7FC00000), (240, 3), (248, 0), (264, 2), (312, 1)):
+        bad = bytearray(state); struct.pack_into("<I", bad, offset, raw)
+        try: codec.decode_state(bytes(bad))
+        except ValueError: pass
+        else: raise RuntimeError("malformed v5 state accepted")
+    # Read-only secondary fault state remains readable when transport drops.
+    struct.pack_into("<I", state, 164, 61)
+    if codec.decode_state(bytes(state))["selected_board"] != 1:
+        raise RuntimeError("faulted top lost independent scene readback")
+    codec.encode_patch(101, 0x11, 0, {"board": 1, "softness": .5}, state_version=5, board_capabilities=61)
+    for fields, caps in (({"board": 1, "softness": .5}, 59), ({"secondary_output_enabled": True}, 61), ({"secondary_intensity": .5}, 61)):
+        try: codec.encode_patch(101, 0x11, 0, fields, state_version=5, board_capabilities=caps)
+        except ValueError: pass
+        else: raise RuntimeError("scene/transport capability separation")
+    return {"extended_wire": True, "old_profile_rejected": True, "v5_offsets": True,
+            "finite_and_capability_checks": True, "secondary_fault_readback": True}
+
+
+def check_ml_witness(codec):
+    # Literal binary oracle: distinct sequences, times and arrays expose offset aliases.
+    raw = bytearray(592); raw[:4] = b"MLR1"
+    struct.pack_into("<II9I", raw, 4, 1, 10001, 8, 7, 9900, 1, 0x87654321, 12, 20, 25, 3)
+    struct.pack_into("<64f", raw, 48, *(i/64 for i in range(64)))
+    struct.pack_into("<8f", raw, 304, *(i/8 for i in range(8)))
+    struct.pack_into("<64f", raw, 336, *(1-i/64 for i in range(64)))
+    state = codec.decode_ml_state(bytes(raw))
+    if (state["query_us"],state["sequence"],state["input_sequence"],state["now_us"],state["model_id"],state["inference_count"],state["last_cycles"],state["max_cycles"],state["rejected_results"]) != (10001,8,7,9900,0x87654321,12,20,25,3):
+        raise RuntimeError("ML witness metadata offsets")
+    if state["input"][63] != 63/64 or state["latent"][7] != 7/8 or state["reconstruction"][0] != 1 or state["reconstruction"][63] != 1/64:
+        raise RuntimeError("ML witness array offsets")
+    invalid = bytearray(raw); struct.pack_into("<I", invalid, 24, 0); invalid[48:] = bytes(544)
+    decoded = codec.decode_ml_state(bytes(invalid))
+    if decoded["valid"] or decoded["inference_count"] != 12 or any(decoded["input"] + decoded["latent"] + decoded["reconstruction"]):
+        raise RuntimeError("invalid ML witness must retain counters and clear arrays")
+    bads = [bytes(raw[:-1]), b"XXXX" + bytes(raw[4:])]
+    for offset, value in ((4,2),(24,2),(48,0x7fc00000),(304,0x7f800000),(336,0x3f800001)):
+        bad=bytearray(raw);struct.pack_into("<I",bad,offset,value);bads.append(bytes(bad))
+    bad=bytearray(invalid);struct.pack_into("<f",bad,304,.25);bads.append(bytes(bad))
+    for bad in bads:
+        try: codec.decode_ml_state(bad)
+        except ValueError: pass
+        else: raise RuntimeError("malformed ML witness accepted")
+    return {"metadata_offsets":True,"array_offsets":True,"invalid_zero_arrays_retained_metadata":True,"rejected_shapes":len(bads)}
+
+
 def run(cmd, log_path: Path):
     completed = subprocess.run([str(x) for x in cmd], capture_output=True, text=True)
     log_path.write_text(completed.stdout + completed.stderr)
@@ -379,6 +469,8 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     codec = load_codec(root)
     state_versions = check_state_versions(codec)
+    feature_codec = check_feature_codec(codec)
+    ml_witness = check_ml_witness(codec)
     if codec.golden_patch() != codec.FROZEN_GOLDEN or len(codec.FROZEN_GOLDEN) != 32:
         raise SystemExit("frozen golden packet does not match the Python encoder")
     if codec.crc32(b"123456789") != (zlib.crc32(b"123456789") & 0xFFFFFFFF):
@@ -440,6 +532,7 @@ def main():
     if args.top_output:
         command.insert(1, "-DK1_TITAN_TOP_OUTPUT")
         command.insert(-2, str(root / "platform/ra8p1/emotiscope_secondary.cpp"))
+        command.insert(-2, str(root / "platform/ra8p1/emotiscope_ml.cpp"))
     built = run(command, output / "build.log")
     if built.returncode != 0:
         raise SystemExit("build failed: " + str(output / "build.log"))
@@ -459,6 +552,8 @@ def main():
         "raw_color_state": {},
         "corpus_failures": [],
         "state_versions": state_versions,
+        "feature_codec": feature_codec,
+        "ml_witness": ml_witness,
     }
     if default_line:
         state = codec.decode_state(bytes.fromhex(default_line))

@@ -7,11 +7,28 @@
 #include "emotiscope_port.h"
 #include "core/visual/product_palette.h"
 #include "emotiscope_edge_response.h"
+#include "emotiscope_edge_colour.h"
+#ifdef K1_TITAN_TOP_OUTPUT
+#include "musical_conditioning.h"
+#include "emotiscope_ml.h"
+#endif
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
 
+#if defined(K1_TITAN_TOP_OUTPUT) && !defined(K1_EMOTISCOPE_SECONDARY_INSTANCE)
+static EmotiscopeMl shared_ml;
+static bool shared_ml_demand[2]={false,false};
+static EmotiscopeMl::Clock ml_cycles=nullptr,ml_clock=nullptr;
+extern "C" void k1_emotiscope_ml_enable_board(unsigned board,bool enabled){
+  if(board<2u)shared_ml_demand[board]=enabled;
+  if(!shared_ml_demand[0]&&!shared_ml_demand[1])shared_ml.reset();
+}
+extern "C" void k1_emotiscope_set_ml_clocks(uint32_t (*cycles)(),uint32_t (*clock)()){
+  ml_cycles=cycles;ml_clock=clock;
+}
+#endif
 namespace emotiscope {
 #define IRAM_ATTR
 #define PI 3.14159265358979323846
@@ -83,8 +100,25 @@ static void k1_builtin_palette_sample(uint32_t id,float phase,float rgb[3]){
   const auto c=k1::core::visual::sampleProductPaletteHd(static_cast<uint16_t>(id),phase,1.0f);
   rgb[0]=c.red;rgb[1]=c.green;rgb[2]=c.blue;
 }
+static K1EmotiscopeEdgeColourConfig edge_colour_config{0u,0u,0u,0.0f,30.0f};
+static K1EmotiscopeEdgePairConfig edge_pair_config{0u,{0u,0u,0u,0.0f,30.0f}};
+static K1EmotiscopeMusicalConfig musical_config{0u,0.0f,40.0f,160.0f};
+static K1EmotiscopeMlConfig ml_config{0u,0.0f};
+static float k1_frame_ml_offset=0.0f;
 static volatile uint32_t k1_palette_select=K1_EMOTISCOPE_DEFAULT_PALETTE;
 static K1PaletteSampler k1_palette_sampler=&k1_builtin_palette_sample;
+// One complete colour/material snapshot for all contributions in this VP frame.
+static EmotiscopeEdgeColourConfig k1_frame_edge;
+static uint32_t k1_frame_pair=0, k1_frame_palette=K1_EMOTISCOPE_DEFAULT_PALETTE;
+static K1PaletteSampler k1_frame_sampler=&k1_builtin_palette_sample;
+static void k1_edge_begin_frame(){
+  const auto pair=edge_pair_config;
+  const auto c=pair.link?pair.colour:edge_colour_config;
+  k1_frame_edge={c.enabled,c.mode,c.spatial,c.strength,c.spread_degrees};
+  k1_frame_pair=pair.link;k1_frame_palette=k1_palette_select;
+  k1_frame_sampler=k1_palette_sampler;
+}
+
 #define hsv donor_hsv
 #define get_color_range_hue donor_get_color_range_hue
 #define apply_gamma_correction donor_apply_gamma_correction
@@ -124,11 +158,56 @@ void clear_display(float keep=0.0f){
     k1_saved_color_range=configuration.color_range;configuration.color_range=1.0f;k1_draw_scope=true;
   }
 }
-static CRGBF k1_palette_colour(float position){
-  float c[3]={0.0f,0.0f,0.0f};
-  k1_palette_sampler(k1_palette_select-1u,position,c);
-  return CRGBF{c[0],c[1],c[2]};
+// Destination is a native128 pixel; retain the existing nearest-source physical
+// geometry. Duplicated physical pixels share their source's representative mask.
+static CRGBF k1_palette_colour_at(float u,unsigned destination){
+  u+=k1_frame_ml_offset;
+  float original[3]={},colour[3]={};
+  k1_frame_sampler(k1_frame_palette-1u,u,original);
+  std::memcpy(colour,original,sizeof(colour));
+  const unsigned physical=(destination*159u+63u)/127u;
+#ifdef K1_EMOTISCOPE_SECONDARY_INSTANCE
+  constexpr bool primary=false;
+#else
+  constexpr bool primary=true;
+#endif
+  EmotiscopeEdgeColour::apply(k1_frame_edge,k1_frame_pair,primary,u,
+      EmotiscopeEdgeColour::physical_centre_weight(physical),original,
+      k1_frame_sampler,k1_frame_palette,colour);
+  return CRGBF{colour[0],colour[1],colour[2]};
 }
+static CRGBF hsv_at(float u,float saturation,float value,unsigned destination){
+  (void)saturation;
+  const CRGBF c=k1_palette_colour_at(u,destination);
+  const float level=0.65f*value*value+0.35f*value;
+  return CRGBF{c.r*level,c.g*level,c.b*level};
+}
+// Keep authored u through each swept dot contribution, applying the mask at
+// every covered destination before intensity/coverage and RGB composition.
+static void draw_palette_dot(CRGBF* layer,uint16_t slot,float u,float value,
+                             float position,float opacity=1.0f){
+  float x1=fx_dots[slot].position*float(NUM_LEDS-1);
+  float x2=position*float(NUM_LEDS-1);
+  fx_dots[slot].position=position;
+  if(x2<x1){const float swap=x1;x1=x2;x2=swap;}
+  const int first=int(std::floor(x1)),last=int(std::ceil(x2));
+  const float start=1.0f-(x1-first),end=x2-std::floor(x2);
+  for(int i=first;i<=last;++i){
+    if(i<0||i>=NUM_LEDS)continue;
+    float mix=opacity;
+    if(i==first)mix*=start;else if(i==last)mix*=end;
+    mix=std::sqrt(mix);
+    const CRGBF c=hsv_at(u,1.0f,value,static_cast<unsigned>(i));
+    if(c.r!=0.0f||c.g!=0.0f||c.b!=0.0f){
+      layer[i].r+=c.r*mix;layer[i].g+=c.g*mix;layer[i].b+=c.b*mix;
+    }else{
+      layer[i].r=layer[i].r*(1.0f-mix)+c.r*mix;
+      layer[i].g=layer[i].g*(1.0f-mix)+c.g*mix;
+      layer[i].b=layer[i].b*(1.0f-mix)+c.b*mix;
+    }
+  }
+}
+
 void apply_background(float background_level){
   k1_draw_scope_end();
   if(light_modes[configuration.current_mode].type == LIGHT_MODE_TYPE_SYSTEM)return;
@@ -138,12 +217,12 @@ void apply_background(float background_level){
   if(!(level>0.0f))return;
   if(!configuration.mirror_mode){
     for(uint16_t i=0;i<NUM_LEDS;i++){
-      const CRGBF c=k1_palette_colour(get_color_range_hue(num_leds_float_lookup[i]));
+      const CRGBF c=k1_palette_colour_at(get_color_range_hue(num_leds_float_lookup[i]),i);
       leds[i].r+=c.r*level;leds[i].g+=c.g*level;leds[i].b+=c.b*level;
     }
   }else{
     for(uint16_t i=0;i<(NUM_LEDS>>1);i++){
-      const CRGBF c=k1_palette_colour(get_color_range_hue(num_leds_float_lookup[i<<1]));
+      const CRGBF c=k1_palette_colour_at(get_color_range_hue(num_leds_float_lookup[i<<1]),(NUM_LEDS>>1)+i);
       const uint16_t l=((NUM_LEDS>>1)-1)-i,r=(NUM_LEDS>>1)+i;
       leds[l].r+=c.r*level;leds[l].g+=c.g*level;leds[l].b+=c.b*level;
       leds[r].r+=c.r*level;leds[r].g+=c.g*level;leds[r].b+=c.b*level;
@@ -179,8 +258,8 @@ CRGBF hsv(float h,float s,float v){
 #undef run_screensaver
 // Donor screensaver with its four fixed colours replaced by palette colours.
 static CRGBF k1_screensaver_last[4];
-void run_screensaver(){
-  if(configuration.screensaver == false){ return; }
+void run_screensaver(float elapsed_seconds){
+  if(configuration.screensaver == false || !std::isfinite(elapsed_seconds) || elapsed_seconds < 0.0f){ return; }
   if(light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
   float mag_sum=0;
   for(uint16_t i=0;i<NUM_FREQS;i++)mag_sum+=frequencies_musical[i].magnitude;
@@ -188,17 +267,18 @@ void run_screensaver(){
     if(inactive==false){inactive=true;inactive_start=t_now_ms;}
   }else if(mag_sum>screensaver_threshold){inactive=false;}
   if(device_touch_active==true||app_touch_active==true||slider_touch_active==true)inactive=false;
-  if(inactive==false){ if(screensaver_mix>0.0)screensaver_mix-=0.01; }
+  if(inactive==false){ if(screensaver_mix>0.0)screensaver_mix=fmaxf(0.0f,screensaver_mix-elapsed_seconds); }
   if(inactive==true){
-    if(t_now_ms-inactive_start>=SCREENSAVER_WAIT_MS){ if(screensaver_mix<1.0)screensaver_mix+=0.001; }
+    if(t_now_ms-inactive_start>=SCREENSAVER_WAIT_MS){ if(screensaver_mix<1.0)screensaver_mix=fminf(1.0f,screensaver_mix+0.1f*elapsed_seconds); }
   }
   if(screensaver_mix>0.001){
     scale_CRGBF_array_by_constant(leds,1.0-(screensaver_mix*screensaver_mix),NUM_LEDS);
     const float push_val=0.005;
     for(uint16_t i=0;i<4;i++){
-      k1_screensaver_last[i]=k1_palette_colour(0.125f+0.25f*i);
-      sine_positions[i]+=push_val+(0.0001*i);
-      draw_dot(leds,SCREENSAVER_1+i,k1_screensaver_last[i],sin(sine_positions[i])*(0.5*screensaver_mix)+0.5,screensaver_mix*screensaver_mix);
+      k1_screensaver_last[i]=k1_palette_colour_at(0.125f+0.25f*i,64u);
+      sine_positions[i]+=(push_val+(0.0001*i))*elapsed_seconds*100.0f;
+      sine_positions[i]=fmodf(sine_positions[i],6.283185307179586f);
+      draw_palette_dot(leds,SCREENSAVER_1+i,0.125f+0.25f*i,1.0f,sin(sine_positions[i])*(0.5*screensaver_mix)+0.5,screensaver_mix*screensaver_mix);
     }
   }
 }
@@ -249,12 +329,20 @@ static uint32_t audio_gaps=0,fresh_hops=0;
 static bool gap_rewarming=false;
 static float response_gain=1.0f;
 static EmotiscopeEdgeResponse edge_response;
+static uint32_t last_pcm_us=0;
+#ifdef K1_TITAN_TOP_OUTPUT
+static K1MusicalConditioning musical_conditioning;
+static K1EmotiscopeAudioPublication model_publication{},board_publication{};
+static K1EmotiscopeMlResult ml_observation{};
+static uint32_t conditioning_frame_us=0;
+static bool conditioning_frame_seen=false;
+#endif
 static K1EmotiscopeAudioPublication musical_publication{};
 static bool publication_seen=false;
 static uint32_t musical_tick_us=0;
 static void capture_musical_publication(){
   auto& p=musical_publication;
-  ++p.sequence;p.audio_hops=audio_hops;p.now_us=port_clock_us;p.valid=fresh_hops>=64u&&!gap_rewarming;
+  ++p.sequence;p.audio_hops=audio_hops;p.now_us=port_clock_us;p.valid=fresh_hops>=64u&&!gap_rewarming&&(port_clock_us-last_pcm_us<=30000u);
   p.vu_level_raw=vu_level_raw;p.vu_level=vu_level;p.vu_max=vu_max;p.vu_floor=vu_floor;
   p.tempo_confidence=tempo_confidence;p.tempi_power_sum=tempi_power_sum;
   std::memcpy(p.spectrum,spectrogram,sizeof(p.spectrum));
@@ -265,8 +353,7 @@ static void capture_musical_publication(){
   for(unsigned i=0;i<NUM_FREQS;++i)p.frequency_magnitude[i]=frequencies_musical[i].magnitude;
   for(unsigned i=0;i<NUM_TEMPI;++i){p.tempi_phase[i]=tempi[i].phase;p.tempi_beat[i]=tempi[i].beat;}
 }
-static void import_musical_publication(float gain){
-  const auto& p=musical_publication;
+static void import_musical_publication(const K1EmotiscopeAudioPublication& p,float gain){
   vu_level_raw=p.vu_level_raw;vu_level=clip_float(p.vu_level*gain);vu_max=p.vu_max;vu_floor=p.vu_floor;
   tempo_confidence=clip_float(p.tempo_confidence*gain);tempi_power_sum=fmaxf(p.tempi_power_sum*gain,0.00000001f);
   for(unsigned i=0;i<NUM_FREQS;++i){spectrogram[i]=p.spectrum[i]*gain;spectrogram_smooth[i]=p.spectrum_smooth[i]*gain;frequencies_musical[i].magnitude=p.frequency_magnitude[i]*gain;}
@@ -278,7 +365,12 @@ static void import_musical_publication(float gain){
 
 // Legacy EdgeMixer VALUE adaptation; the envelope belongs to this VP instance.
 void apply_edge_response(float delta){
-  (void)edge_response.apply(reinterpret_cast<float*>(leds),musical_publication,
+  (void)edge_response.apply(reinterpret_cast<float*>(leds),
+#ifdef K1_TITAN_TOP_OUTPUT
+      board_publication,
+#else
+      musical_publication,
+#endif
       delta*(1000000/REFERENCE_FPS)/1000000.0f);
 }
 void mute_audio_publication(){
@@ -318,6 +410,11 @@ extern "C" bool k1_emotiscope_init(uint32_t seed){
 #endif
   init_random_dither_error();
   edge_response.initialise_bins();
+#ifdef K1_TITAN_TOP_OUTPUT
+  float musical_hz[NUM_FREQS];
+  for(unsigned i=0;i<NUM_FREQS;++i)musical_hz[i]=notes[BOTTOM_NOTE+NOTE_STEP*i];
+  if(!musical_conditioning.initialise_frequencies(musical_hz))return false;
+#endif
 
   initialized=true;
   return true;
@@ -426,6 +523,7 @@ extern "C" void k1_emotiscope_test_colour(float progress,float v,float pre[3],fl
 // in rgbf[0..11]; 3: colour range seen during a mode draw, then after background.
 extern "C" void k1_emotiscope_test_stage(int stage,float arg,float* rgbf){
   using namespace emotiscope;
+  k1_edge_begin_frame();
   if(stage==0){
     std::memset(leds,0,sizeof(leds));apply_background(arg);std::memcpy(rgbf,leds,sizeof(leds));
   }else if(stage==1){
@@ -435,7 +533,7 @@ extern "C" void k1_emotiscope_test_stage(int stage,float arg,float* rgbf){
     for(auto& c:k1_screensaver_last)c=CRGBF{-1.0f,-1.0f,-1.0f};
     const bool was=configuration.screensaver;configuration.screensaver=true;
     screensaver_mix=1.0f;inactive=true;inactive_start=t_now_ms;
-    run_screensaver();configuration.screensaver=was;
+    run_screensaver(0.01f);configuration.screensaver=was;
     for(unsigned i=0;i<4;++i){rgbf[3*i]=k1_screensaver_last[i].r;rgbf[3*i+1]=k1_screensaver_last[i].g;rgbf[3*i+2]=k1_screensaver_last[i].b;}
   }else if(stage==3){
     clear_display();rgbf[0]=configuration.color_range;
@@ -479,6 +577,7 @@ extern "C" bool k1_emotiscope_push_pcm64(const float* samples,uint32_t now_us){
   get_chromagram();
   run_vu();
   update_tempo();
+  last_pcm_us=now_us;
   ++audio_hops;
   if(fresh_hops<64u)++fresh_hops;
   if(gap_rewarming){
@@ -487,27 +586,51 @@ extern "C" bool k1_emotiscope_push_pcm64(const float* samples,uint32_t now_us){
   }
   return true;
 }
-extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
+extern "C" bool k1_emotiscope_prepare_frame(uint32_t now_us){
   using namespace emotiscope;
-  if(!initialized||!rgb)return false;
-  if(!advance_port_clock(now_us))return false;
+  if(!initialized || !advance_port_clock(now_us))return false;
 #ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
-  // Audio/tempo publication advances once per release, independent of either
-  // board's mode, controls or output validity. VP function statics are per TU.
+  // Shared observation is prepared before either VP. Repeated preparation at
+  // the same timestamp is idempotent; no renderer advances musical analysis.
   if(!publication_seen || now_us!=musical_tick_us){
     t_now_us=micros();t_now_ms=millis();
     const float delta=publication_seen?float(now_us-musical_tick_us)/(1000000/REFERENCE_FPS):0.0f;
     update_novelty();update_tempi_phase(delta);
     musical_tick_us=now_us;publication_seen=true;capture_musical_publication();
+#ifdef K1_TITAN_TOP_OUTPUT
+    shared_ml.prepare(musical_publication,now_us,shared_ml_demand[0]||shared_ml_demand[1],ml_cycles,ml_clock);
+    ml_observation=shared_ml.result();
+#endif
   }
+#ifdef K1_TITAN_TOP_OUTPUT
+  // A same-clock disable/reset must invalidate the copied result immediately,
+  // without admitting another model execution or advancing the shared tick.
+  ml_observation=shared_ml.result();
+#endif
 #else
   if(!publication_seen || musical_publication.now_us!=now_us)return false;
 #endif
-  import_musical_publication(response_gain);
+  return true;
+}
+extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
+  using namespace emotiscope;
+  if(!rgb || !k1_emotiscope_prepare_frame(now_us))return false;
+#ifdef K1_TITAN_TOP_OUTPUT
+  const auto frame_ml=ml_config;
+  EmotiscopeMl::apply(musical_publication,ml_observation,frame_ml,now_us,model_publication);
+  const float dt=conditioning_frame_seen?float(now_us-conditioning_frame_us)*0.000001f:0.01f;
+  musical_conditioning.apply(model_publication,board_publication,dt,now_us);
+  conditioning_frame_us=now_us;conditioning_frame_seen=true;
+  k1_frame_ml_offset=EmotiscopeMl::palette_offset(musical_publication,ml_observation,frame_ml,now_us);
+  import_musical_publication(board_publication,response_gain);
+#else
+  import_musical_publication(musical_publication,response_gain);
+#endif
+  k1_edge_begin_frame();
   run_gpu();
   // Restore the immutable raw observation: visual response must not enter the
   // next analyser hop or another board's response.
-  import_musical_publication(1.0f);
+  import_musical_publication(musical_publication,1.0f);
   ++render_frames;
   if(!frame_output_valid)return false;
   for(unsigned i=0;i<NUM_LEDS;++i){
@@ -536,6 +659,73 @@ extern "C" bool k1_secondary_emotiscope_accept_audio(const K1EmotiscopeAudioPubl
   if(!initialized||!publication||publication->sequence==0)return false;
   musical_publication=*publication;publication_seen=true;audio_hops=publication->audio_hops;
   return true;
+}
+#endif
+static EmotiscopeEdgeColourConfig emotiscope_colour_helper(const K1EmotiscopeEdgeColourConfig& c){
+  return {c.enabled,c.mode,c.spatial,c.strength,c.spread_degrees};
+}
+extern "C" bool k1_emotiscope_set_edge_colour(const K1EmotiscopeEdgeColourConfig* c){
+  if(!c || !EmotiscopeEdgeColour::valid(emotiscope_colour_helper(*c)))return false;
+  emotiscope::edge_colour_config=*c;return true;
+}
+extern "C" void k1_emotiscope_get_edge_colour(K1EmotiscopeEdgeColourConfig* c){if(c)*c=emotiscope::edge_colour_config;}
+extern "C" bool k1_emotiscope_set_edge_pair(const K1EmotiscopeEdgePairConfig* c){
+  if(!c || c->link>3u || !EmotiscopeEdgeColour::valid(emotiscope_colour_helper(c->colour)))return false;
+  emotiscope::edge_pair_config=*c;return true;
+}
+extern "C" void k1_emotiscope_get_edge_pair(K1EmotiscopeEdgePairConfig* c){if(c)*c=emotiscope::edge_pair_config;}
+extern "C" uint32_t k1_emotiscope_effective_edge_pair(){
+  const auto& c=emotiscope::edge_pair_config;return EmotiscopeEdgeColour::effective_pair(c.colour.mode,c.link);
+}
+extern "C" bool k1_emotiscope_set_musical_config(const K1EmotiscopeMusicalConfig* c){
+  if(!c || c->role>2u || !emotiscope_unit_float(c->strength) ||
+      !std::isfinite(c->attack_ms) || c->attack_ms<1.0f || c->attack_ms>1000.0f ||
+      !std::isfinite(c->release_ms) || c->release_ms<1.0f || c->release_ms>3000.0f)return false;
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(!emotiscope::musical_conditioning.configure(*c))return false;
+#else
+  if(c->role!=0u||c->strength!=0.0f)return false;
+#endif
+  emotiscope::musical_config=*c;return true;
+}
+extern "C" void k1_emotiscope_get_musical_config(K1EmotiscopeMusicalConfig* c){if(c)*c=emotiscope::musical_config;}
+extern "C" bool k1_emotiscope_set_ml_config(const K1EmotiscopeMlConfig* c){
+  if(!c || c->enabled>1u || !emotiscope_unit_float(c->strength))return false;
+#ifdef K1_TITAN_TOP_OUTPUT
+#ifdef K1_EMOTISCOPE_SECONDARY_INSTANCE
+  constexpr unsigned board=1u;
+#else
+  constexpr unsigned board=0u;
+#endif
+  if(emotiscope::ml_config.enabled!=c->enabled)emotiscope::ml_observation.valid=0u;
+  k1_emotiscope_ml_enable_board(board,c->enabled!=0u);
+#else
+  if(c->enabled!=0u||c->strength!=0.0f)return false;
+#endif
+  emotiscope::ml_config=*c;return true;
+}
+extern "C" void k1_emotiscope_get_ml_config(K1EmotiscopeMlConfig* c){if(c)*c=emotiscope::ml_config;}
+extern "C" void k1_emotiscope_get_ml_result(K1EmotiscopeMlResult* out){
+  if(!out)return;
+#ifdef K1_TITAN_TOP_OUTPUT
+  *out=emotiscope::ml_observation;
+  if(!emotiscope::musical_publication.valid ||
+      emotiscope::port_clock_us-out->now_us>100000u)out->valid=0u;
+#else
+  std::memset(out,0,sizeof(*out));
+#endif
+}
+extern "C" void k1_emotiscope_musical_state(uint32_t* cursor,float* value){
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(cursor)*cursor=emotiscope::musical_conditioning.event_cursor();
+  if(value)*value=emotiscope::musical_conditioning.value();
+#else
+  if(cursor)*cursor=0u;if(value)*value=0.0f;
+#endif
+}
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_SECONDARY_INSTANCE)
+extern "C" void k1_secondary_emotiscope_accept_ml(const K1EmotiscopeMlResult* result){
+  if(result)emotiscope::ml_observation=*result;
 }
 #endif
 extern "C" bool k1_emotiscope_set_palette(uint32_t id){
@@ -584,7 +774,13 @@ extern "C" const char* k1_emotiscope_mode_name(uint32_t mode){
 extern "C" void k1_emotiscope_audio_gap(){
   using namespace emotiscope;
   if(!initialized)return;
-  ++audio_gaps;fresh_hops=0;gap_rewarming=true;
+  ++audio_gaps;fresh_hops=0;gap_rewarming=true;musical_publication.valid=0u;
+#ifdef K1_TITAN_TOP_OUTPUT
+  musical_conditioning.reset();ml_observation.valid=0u;
+#ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
+  shared_ml.reset();
+#endif
+#endif
   std::memset(sample_history,0,sizeof(sample_history));
   mute_audio_publication();
 }
@@ -592,7 +788,11 @@ extern "C" void k1_emotiscope_status(K1EmotiscopeStatus* out){
   using namespace emotiscope;
   if(!out)return;
   std::memset(out,0,sizeof(*out));
-  out->valid=initialized && fresh_hops>=64u && !gap_rewarming;
+#ifdef K1_EMOTISCOPE_SECONDARY_INSTANCE
+  out->valid=initialized && musical_publication.valid && port_clock_us-musical_publication.now_us<=30000u;
+#else
+  out->valid=initialized && fresh_hops>=64u && !gap_rewarming && port_clock_us-last_pcm_us<=30000u;
+#endif
   out->audio_hops=audio_hops;out->render_frames=render_frames;
   out->audio_gaps=audio_gaps;out->fresh_hops=fresh_hops;
   out->rejected_audio_chunks=rejected_audio_chunks;
@@ -610,3 +810,16 @@ extern "C" void k1_emotiscope_status(K1EmotiscopeStatus* out){
     out->tempo_confidence=tempo_confidence;
   }
 }
+
+#if defined(K1_TITAN_TOP_OUTPUT) && !defined(K1_EMOTISCOPE_SECONDARY_INSTANCE)
+extern "C" bool k1_emotiscope_ml_witness(K1EmotiscopeMlResult* result,float input[64],uint32_t now_us){
+  if(!result||!input)return false;
+  *result=shared_ml.result();
+  const bool valid=emotiscope::musical_publication.valid &&
+    now_us-emotiscope::last_pcm_us<=30000u && shared_ml.inference_input(input,now_us);
+  if(!valid){result->valid=0u;std::memset(input,0,64u*sizeof(float));
+    std::memset(result->latent,0,sizeof(result->latent));
+    std::memset(result->reconstruction,0,sizeof(result->reconstruction));}
+  return valid;
+}
+#endif

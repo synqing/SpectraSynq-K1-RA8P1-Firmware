@@ -402,31 +402,47 @@ void draw_dot(CRGBF* layer, uint16_t fx_dots_slot, CRGBF color, float position, 
     draw_line(layer, prev_position, position, color, (1.0) * opacity);
 }
 
-void update_auto_color(){
+void update_auto_color(float elapsed_seconds){
 	profile_function([&]() {
 		if(light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
-
-		static float color_momentum = 0.0;
+		static float color_momentum = 0.0f;
+		static double tick_fraction = 0.0;
+		if (!isfinite(elapsed_seconds) || elapsed_seconds < 0.0f) return;
 		if(configuration.auto_color_cycle == true){
-			float novelty = novelty_curve_normalized[NOVELTY_HISTORY_LENGTH - 1] * 0.75;
+			float novelty = novelty_curve_normalized[NOVELTY_HISTORY_LENGTH - 1] * 0.75f;
 			novelty = novelty*novelty*novelty*novelty*novelty*novelty;
-
-			color_momentum *= 0.95;
-			color_momentum = fmaxf(color_momentum, novelty);
-			if(color_momentum > 0.1){
-				color_momentum = 0.1;
+			novelty = fminf(0.1f, fmaxf(0.0f, novelty));
+			// Retain the donor's 100 Hz recurrence on elapsed-time ticks. The
+			// closed geometric sum avoids work proportional to a render gap.
+			const double ticks = tick_fraction + double(elapsed_seconds) * 100.0;
+			const double whole_ticks = floor(ticks + 1.0e-6);
+			tick_fraction = fmax(0.0, ticks - whole_ticks);
+			if (whole_ticks < 1.0) return;
+			const float steps = float(whole_ticks);
+			const float q = 0.95f;
+			float decay_steps = steps;
+			if (novelty > 0.0f) {
+				decay_steps = color_momentum > novelty
+					? fminf(steps, fmaxf(0.0f, floorf(logf(novelty/color_momentum)/logf(q))))
+					: 0.0f;
 			}
-
-			configuration.color += color_momentum*0.05;
+			const float phase_sum = color_momentum*q*(1.0f-powf(q,decay_steps))/(1.0f-q)
+				+ (steps-decay_steps)*novelty;
+			color_momentum = fmaxf(color_momentum*powf(q,steps), novelty);
+			configuration.color += phase_sum*0.05f;
+			configuration.color -= floorf(configuration.color);
+		} else {
+			tick_fraction = 0.0;
 		}
 	}, __func__ );
 }
 
-void apply_master_brightness(){
+void apply_master_brightness(float elapsed_seconds){
+	if (!isfinite(elapsed_seconds) || elapsed_seconds < 0.0f) return;
 	static float master_brightness = 0.0;
 	if(t_now_ms >= 1000){
 		if(master_brightness < 1.0){
-			master_brightness += 0.001;
+			master_brightness = fminf(1.0f, master_brightness + 0.1f*elapsed_seconds);
 		}
 	}
 
@@ -545,9 +561,13 @@ void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {
     memcpy(pixels, temp_pixels, sizeof(CRGBF) * num_pixels);
 }
 
-void apply_image_lpf(float cutoff_frequency) {
+void apply_image_lpf(float cutoff_frequency, float elapsed_seconds) {
 	profile_function([&]() {
-		float alpha = 1.0 - expf(-6.28318530718 * cutoff_frequency / FPS_GPU);
+		// Age this board's authored RGB history by actual elapsed render time.
+		// Invalid time/cutoff preserves history; a zero interval is identity.
+		if (!isfinite(elapsed_seconds) || elapsed_seconds < 0.0f ||
+		    !isfinite(cutoff_frequency) || cutoff_frequency < 0.0f) return;
+		float alpha = 1.0f - expf(-6.28318530718f * cutoff_frequency * elapsed_seconds);
 		float alpha_inv = 1.0 - alpha;
 
 		// Crasy fast SIMD-style math possible with the S3

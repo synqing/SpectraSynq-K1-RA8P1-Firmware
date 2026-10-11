@@ -308,6 +308,15 @@ bool PaletteRuntime::step(std::uint64_t now_us,
 #ifdef K1_TITAN_TOP_OUTPUT
   board_frame_valid_[0]=board_frame_valid_[1]=false;
 #endif
+  if(!k1_emotiscope_prepare_frame(static_cast<std::uint32_t>(now_us)))return false;
+#ifdef K1_TITAN_TOP_OUTPUT
+  K1EmotiscopeEdgePairConfig pair{};k1_emotiscope_get_edge_pair(&pair);
+  k1_secondary_emotiscope_set_edge_pair(&pair);
+  k1_emotiscope_audio_publication(&donor_publication_);
+  if(!k1_secondary_emotiscope_accept_audio(&donor_publication_))return false;
+  K1EmotiscopeMlResult model{};k1_emotiscope_get_ml_result(&model);
+  k1_secondary_emotiscope_accept_ml(&model);
+#endif
   const bool primary_valid=k1_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
   const bool candidate=output_precision_!=0U;
   if(primary_valid){
@@ -325,10 +334,7 @@ bool PaletteRuntime::step(std::uint64_t now_us,
 #ifdef K1_TITAN_TOP_OUTPUT
   // A failed visual frame retains only that board's previous output. The
   // musical publication still advances and the other VP is independent.
-  k1_emotiscope_audio_publication(&donor_publication_);
-  bool secondary_valid=false;
-  if(k1_secondary_emotiscope_accept_audio(&donor_publication_))
-    secondary_valid=k1_secondary_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
+  const bool secondary_valid=k1_secondary_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
   if(secondary_valid){
     k1_secondary_emotiscope_last_rgb16(rgb16);
     for(unsigned i=0;i<kPixelsPerChannel;++i){

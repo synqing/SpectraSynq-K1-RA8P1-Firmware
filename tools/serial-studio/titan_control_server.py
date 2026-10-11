@@ -264,6 +264,19 @@ class RestrictedControlPlane:
             return {"ok": False, "error": err}
         if self.transact is None:
             return {"ok": False, "error": "ADMISSION_HOLD"}
+        kind = request.get("kind", "live")
+        if kind == "emotiscope_ml":
+            got = self._transact(17, b"MLST")
+            if not got.get("ok"):
+                return {"ok": False, "error": "ml_witness_rejected", "status": got.get("status")}
+            body = got.get("body")
+            try:
+                witness = donor.decode_ml_state(body)
+            except (ValueError, TypeError):
+                return {"ok": False, "error": "ml_witness_framing"}
+            return {"ok": True, "witness": witness, "body_hex": bytes(body).hex(), "session": self.session.token}
+        if kind != "live":
+            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "snapshot.kind"}
         got = self._transact(23, b"")
         if not got.get("ok"):
             return {"ok": False, "error": "snapshot_rejected", "status": got.get("status")}
@@ -457,11 +470,16 @@ class RestrictedControlPlane:
         observed = self.last_donor or {}
         same_boot = observed.get("boot_id") == boot_id
         board = request.get("board", 0)
+        # Extended readback is explicitly negotiated. A new broker does not
+        # silently enlarge a legacy client's request or trust caller caps.
+        requested_version = request.get("state_version", min(observed.get("version", 2), 4) if same_boot else 2)
+        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5):
+            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "state_version"}
         try:
             wire = donor.encode_get(
                 request_id, boot_id, board,
-                state_version=observed.get("version", 2) if same_boot else 2,
-                board_capabilities=observed.get("board_capabilities", 0) if same_boot else 0,
+                state_version=requested_version,
+                board_capabilities=(observed.get("board_capabilities", 0) if same_boot else 0) & (63 if requested_version==5 else 7 if requested_version==4 else 3),
             )
         except (ValueError, TypeError, OverflowError) as exc:
             self.forbidden_attempts += 1
@@ -473,7 +491,10 @@ class RestrictedControlPlane:
                 return {"ok": False, "error": "ADMISSION_HOLD", "detail": "selected_board_not_cached"}
             return {"ok": True, "state": self.last_donor, "session": self.session.token, "cached": True}
         got = self._transact(25, wire)
-        return self._donor_reply(got, request_id, wrote=False)
+        reply = self._donor_reply(got, request_id, wrote=False)
+        if requested_version == 5 and int(got.get("status") or 0) == 3:
+            reply["error"] = "unsupported_state_version"
+        return reply
 
     def _emotiscope_patch(self, request: dict, conn_id: str | None) -> dict:
         err = self._require_session(request)
@@ -493,16 +514,19 @@ class RestrictedControlPlane:
         observed = self.last_donor or {}
         # Capability comes from this bound device's GET/reply, never the caller.
         same_boot = observed.get("boot_id") == boot_id
+        requested_version = request.get("state_version", min(observed.get("version", 2), 4) if same_boot else 2)
+        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5):
+            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "state_version"}
         try:
             wire = donor.encode_patch(
                 request_id, boot_id, revision, fields,
-                state_version=observed.get("version", 2) if same_boot else 2,
+                state_version=requested_version,
                 board_capabilities=observed.get("board_capabilities", 0) if same_boot else 0,
             )
         except (ValueError, TypeError, OverflowError, KeyError) as exc:
             self.forbidden_attempts += 1
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
-        if donor.PATCH_SUB != int.from_bytes(wire[:4], "little"):
+        if int.from_bytes(wire[:4], "little") not in (donor.PATCH_SUB, donor.EXTENDED_PATCH_SUB):
             self.forbidden_attempts += 1
             return {"ok": False, "error": "would_emit_whole_config"}
         if (self.evidence / "quiesce.flag").exists():
@@ -542,7 +566,7 @@ class RestrictedControlPlane:
 def donor_public_state(state: dict) -> dict:
     flags = int(state["flags"])
     applicability = int(state["applicability"])
-    return {
+    public = {
         "version": state["version"],
         "boot_id": state["boot_id"],
         "revision": state["revision"],
@@ -593,6 +617,17 @@ def donor_public_state(state: dict) -> dict:
         "mode_transition": state["mode_transition"],
         "schema_sha256": state["schema"].hex(),
     }
+    feature_keys = (
+        "edge_colour_enabled", "edge_colour_mode", "edge_colour_strength", "edge_colour_spread", "edge_colour_spatial",
+        "pair_link", "effective_pair_link", "pair_colour_enabled", "pair_colour_mode", "pair_colour_strength", "pair_colour_spread", "pair_colour_spatial",
+        "musical_role", "musical_strength", "musical_attack_ms", "musical_release_ms", "ml_enabled", "ml_strength", "ml_valid", "ml_result_sequence",
+        "ml_input_sequence", "ml_now_us", "ml_model_id", "ml_inference_count", "ml_last_cycles", "ml_max_cycles", "ml_rejected_results",
+        "publication_sequence", "event_cursor", "conditioning_value",
+    )
+    for key in feature_keys:
+        public[key] = state.get(key)
+    return public
+
 
 
 _DONOR_STATUS = {
@@ -606,7 +641,7 @@ _DONOR_STATUS = {
 
 
 def _decode_donor_body(body: bytes) -> dict | None:
-    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES):
+    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES, donor.FEATURE_STATE_BYTES):
         return None
     try:
         state = donor.decode_state(body)

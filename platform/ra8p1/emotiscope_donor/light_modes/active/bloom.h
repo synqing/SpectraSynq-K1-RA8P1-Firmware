@@ -19,11 +19,11 @@ void draw_bloom() {
                         float progress = num_leds_float_lookup[i<<1];                                                       
                         float novelty_pixel = clip_float(novelty_image[i]*1.0);
                         novelty_pixel *= novelty_pixel; // Apply squaring for punchiness
-                        CRGBF color = hsv(                                                                                  
+                        CRGBF color = hsv_at(
                                 get_color_range_hue(progress),                                                              
                                 configuration.saturation,                                                                   
-                                novelty_pixel                                                                               
-                        );                                                                                                  
+                                novelty_pixel, (NUM_LEDS>>1)+i
+);
                         leds[ (NUM_LEDS>>1)    + i] = color;                                                                
                         leds[((NUM_LEDS>>1)-1) - i] = color;                                                                
                 }                                                                                                           
@@ -33,11 +33,11 @@ void draw_bloom() {
                         float progress = num_leds_float_lookup[i];                                                          
                         float novelty_pixel = clip_float(novelty_image[i]*2.0);
                         novelty_pixel *= novelty_pixel; // Apply squaring for punchiness
-                        CRGBF color = hsv(                                                                                  
+                        CRGBF color = hsv_at(
                                 get_color_range_hue(progress),                                                              
                                 configuration.saturation,                                                                   
-                                novelty_pixel                                                                               
-                        );                                                                                                  
+                                novelty_pixel, i
+);
                         leds[i] = color;                                                                                    
                 }                                                                                                           
         }

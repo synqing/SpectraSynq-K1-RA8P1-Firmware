@@ -14,6 +14,40 @@ typedef struct {
   int32_t current_mode;
   bool mirror_mode, screensaver, temporal_dithering, auto_color_cycle, reverse_color_range;
 } K1EmotiscopeConfig;
+/* Per-board palette relationship. Legacy raw-RGB rotation spaces have no
+ * consumer in this permanent-palette profile and are not writable controls. */
+typedef struct {
+  uint32_t enabled, mode, spatial;
+  float strength, spread_degrees;
+} K1EmotiscopeEdgeColourConfig;
+/* link: 0 independent, 1 one-sided, 2 split, 3 mirror. Linked settings never
+ * overwrite either board's saved independent colour configuration. */
+typedef struct {
+  uint32_t link;
+  K1EmotiscopeEdgeColourConfig colour;
+} K1EmotiscopeEdgePairConfig;
+/* role: 0 neutral, 1 transient/body, 2 sustained/harmonic detail. These are
+ * deterministic donor-feature interpretations, not instrument recognition. */
+typedef struct {
+  uint32_t role;
+  float strength, attack_ms, release_ms;
+} K1EmotiscopeMusicalConfig;
+typedef struct { uint32_t enabled; float strength; } K1EmotiscopeMlConfig;
+/* Experimental unlabelled model output; no genre/emotion/instrument labels. */
+typedef struct {
+  uint32_t sequence, input_sequence, now_us, valid, model_id;
+  uint32_t inference_count, last_cycles, max_cycles, rejected_results;
+  float latent[8], reconstruction[64];
+} K1EmotiscopeMlResult;
+bool k1_emotiscope_set_edge_colour(const K1EmotiscopeEdgeColourConfig *config);
+void k1_emotiscope_get_edge_colour(K1EmotiscopeEdgeColourConfig *out);
+bool k1_emotiscope_set_edge_pair(const K1EmotiscopeEdgePairConfig *config);
+void k1_emotiscope_get_edge_pair(K1EmotiscopeEdgePairConfig *out);
+uint32_t k1_emotiscope_effective_edge_pair(void);
+bool k1_emotiscope_set_musical_config(const K1EmotiscopeMusicalConfig *config);
+void k1_emotiscope_get_musical_config(K1EmotiscopeMusicalConfig *out);
+bool k1_emotiscope_set_ml_config(const K1EmotiscopeMlConfig *config);
+void k1_emotiscope_get_ml_config(K1EmotiscopeMlConfig *out);
 typedef struct {
   uint32_t audio_hops, render_frames, rejected_audio_chunks, nonfinite_output_frames;
   uint32_t clock_regressions;
@@ -50,6 +84,7 @@ typedef struct {
   float novelty_normalised;
   float tempi_smooth[96], tempi_phase[96], tempi_beat[96];
 } K1EmotiscopeAudioPublication;
+bool k1_emotiscope_prepare_frame(uint32_t now_us);
 void k1_emotiscope_audio_publication(K1EmotiscopeAudioPublication *out);
 /* Visual response gain affects this context only, never microphone analysis. */
 bool k1_emotiscope_set_response_gain(float gain);
@@ -62,6 +97,11 @@ float k1_emotiscope_edge_depth(void);
 /* Single-threaded owner; init is boot-once because original function-local histories
  * are retained. No ordinary audio discontinuity invokes init or clears history. */
 bool k1_emotiscope_init(uint32_t random_seed);
+bool k1_emotiscope_ml_witness(K1EmotiscopeMlResult *result,float input[64],uint32_t now_us);
+void k1_emotiscope_ml_enable_board(unsigned board,bool enabled);
+void k1_emotiscope_set_ml_clocks(uint32_t (*cycles)(void),uint32_t (*clock_us)(void));
+void k1_emotiscope_get_ml_result(K1EmotiscopeMlResult *out);
+void k1_emotiscope_musical_state(uint32_t *cursor,float *value);
 void k1_emotiscope_default_config(K1EmotiscopeConfig *out);
 bool k1_emotiscope_set_config(const K1EmotiscopeConfig *configuration);
 void k1_emotiscope_get_config(K1EmotiscopeConfig *out);
