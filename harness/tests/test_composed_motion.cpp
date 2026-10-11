@@ -45,7 +45,12 @@ int main(int argc,char** argv) {
   Renderer bloom,slow; bloom.configure(c);slow.configure(c);
   bloom.renderBloom(0,.7f,palette,nullptr,a);slow.renderBloom(0,.7f,palette,nullptr,b);
   for(unsigned t=10;t<=1500;t+=10)bloom.renderBloom(t,.7f,palette,nullptr,a);
-  slow.renderBloom(1500,.7f,palette,nullptr,b);same(a,b);assert(energy(a)>0);
+  for(unsigned t=25;t<=1500;t+=25)slow.renderBloom(t,.7f,palette,nullptr,b);
+  same(a,b);assert(energy(a)>0);
+  // No observation for 1.5 s cannot imply 60 copies of the latest input.
+  Renderer missed;missed.configure(c);missed.renderBloom(0,0,palette,nullptr,b);
+  missed.renderBloom(1500,.7f,palette,nullptr,b);assert(energy(b)==0);
+  missed.renderBloom(1525,0,palette,nullptr,b);assert(energy(b)>0);
   bloom.renderBloom(1510,0,green,nullptr,a);assert(a[0].b>0);
   d=c;d.out_travel_ms=600;assert(bloom.configure(d));assert(bloom.pending());
   for(unsigned t=1520;t<=6000;t+=10)bloom.renderBloom(t,1,green,nullptr,a);
