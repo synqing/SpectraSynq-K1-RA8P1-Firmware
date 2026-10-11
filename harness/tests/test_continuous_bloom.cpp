@@ -8,6 +8,28 @@
 #include <cstdlib>
 #include <cstring>
 static composed_motion::Rgb palette(float u,void*){return {u,1-u,.2f};}
+static void body_level_response_checks(){
+  float hz[64];for(unsigned i=0;i<64;++i)hz[i]=100.f+i;
+  K1MusicalConditioning body;assert(body.initialise_frequencies(hz));
+  assert(body.configure({1,1,40,160}));
+  K1EmotiscopeAudioPublication p{},out{};p.valid=1;p.vu_level=.8f;
+  p.novelty_normalised=1;for(float &x:p.spectrum)x=1;
+  // A constant body target reaches 1-exp(-1) after the selected 40 ms attack.
+  // This independent step-response oracle rejects two cascaded 40 ms filters.
+  for(unsigned i=1;i<=4;++i){p.sequence=p.audio_hops=i;p.now_us=i*10000;
+    assert(body.apply(p,out,.01f,p.now_us));}
+  const float expected=.8f*(1.f-std::exp(-1.f));
+  std::printf("body 40ms step: observed=%f expected=%f\n",out.vu_level,expected);
+  std::fflush(stdout);assert(std::fabs(out.vu_level-expected)<1e-6f);
+  body.reset();p.sequence=p.audio_hops=5;p.now_us=50000;
+  assert(body.apply(p,out,.01f,p.now_us));const float hit=out.vu_level;
+  p.novelty_normalised=0;p.sequence=p.audio_hops=6;p.now_us=60000;
+  assert(body.apply(p,out,.01f,p.now_us));
+  // Once the transient target ends, release starts immediately: no delayed rise.
+  assert(std::fabs(out.vu_level-hit*std::exp(-.01f/.16f))<1e-6f);
+  const float released=out.vu_level;
+  assert(body.apply(p,out,.01f,p.now_us));assert(out.vu_level==released);
+}
 static void boundary_checks(){
   K1EmotiscopeAudioPublication p{};p.valid=1;p.sequence=1;p.audio_hops=1;
   p.now_us=p.audio_time_us=10000;p.amplitude_valid=1;p.pcm_peak_squared=.001f;p.vu_floor=.0005f;p.vu_level_raw=.0001f;
@@ -37,7 +59,7 @@ static void boundary_checks(){
   seen=false;for(unsigned t=3530;t<4000;t+=10){r.renderBloom(t,0,palette,nullptr,pixels);for(auto c:pixels)seen|=c.r+c.g+c.b>0;}assert(seen);
 }
 int main(int argc,char** argv){
-  assert(argc==3);boundary_checks();const int variant=std::atoi(argv[1]);
+  assert(argc==3);body_level_response_checks();boundary_checks();const int variant=std::atoi(argv[1]);
   assert(k1_emotiscope_init(1)&&k1_secondary_emotiscope_init(2));
   K1EmotiscopeConfig c{};k1_emotiscope_get_config(&c);c.current_mode=6;c.brightness=1;c.background=0;c.screensaver=false;c.temporal_dithering=false;c.auto_color_cycle=false;
   assert(k1_emotiscope_set_config(&c)&&k1_secondary_emotiscope_set_config(&c));

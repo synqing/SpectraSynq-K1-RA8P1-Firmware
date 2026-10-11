@@ -113,7 +113,11 @@ class K1MusicalConditioning {
       out.chromagram[i]=raw.chromagram[i]+strength*(shaped-raw.chromagram[i]);
     }
     const float vu_input=clamp(config_.role==1u && raw.amplitude_valid?std::fmax(raw.vu_level,raw.vu_peak):raw.vu_level);
-    const float vu_target=vu_input*(config_.role==1u?value_:detail_energy);
+    // The VU envelope below owns the selected attack/release for injected level.
+    // Feeding the already-filtered value_ through it again delays short hits and
+    // can keep level rising after the transient ends. Filter the raw role target
+    // once here; value_ still owns spectral/chroma/event interpretation above.
+    const float vu_target=vu_input*(config_.role==1u?transient:detail_energy);
     vu_envelope_+=(vu_target-vu_envelope_)*(vu_target>vu_envelope_?attack:release);
     // Analog uses the level as a moving position/extent. Shape its temporal
     // input, keeping the actual raw VU measurement and quality fields intact.
