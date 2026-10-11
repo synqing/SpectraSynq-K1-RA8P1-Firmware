@@ -332,12 +332,14 @@ def _donor_state(request_id, boot_id=0x11, revision=4, brightness=0.5, mode=1, f
 def test_donor_gain_readback_version_2_and_legacy_support():
     import struct
     legacy = _decode_donor_body(_donor_state(1))
+    assert legacy["version"] == 1
     assert legacy["output_intensity_supported"] is False
     assert legacy["output_intensity_a"] is None and legacy["output_intensity_b"] is None
     body = bytearray(_donor_state(2))
     struct.pack_into("<I", body, 4, 2)
     struct.pack_into("<ff", body, 144, 0.25, 1.0)
     state = _decode_donor_body(bytes(body))
+    assert state["version"] == 2
     assert state["output_intensity_supported"] is True
     assert state["output_intensity_a"] == 0.25 and state["output_intensity_b"] == 1.0
     body[152] = 1

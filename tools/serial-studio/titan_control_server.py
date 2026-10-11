@@ -527,6 +527,7 @@ def donor_public_state(state: dict) -> dict:
     flags = int(state["flags"])
     applicability = int(state["applicability"])
     return {
+        "version": state["version"],
         "boot_id": state["boot_id"],
         "revision": state["revision"],
         "request_id": state["request_id"],
