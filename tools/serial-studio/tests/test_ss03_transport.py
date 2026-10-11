@@ -109,6 +109,28 @@ def test_campaign_payload_ops_require_lease():
     assert len(t.writes) > before
 
 
+def test_model_witness_admits_only_fixed_readonly_payload():
+    for campaign in (False, True):
+        fake = FakeSerial()
+        t = Transport(fake, allowed={17}, campaign=campaign)
+        for payload in (b"MLS", b"MLST\x00", b"mlst", b"MLSU", b"arbitrary"):
+            try:
+                t.transact(17, payload)
+                raise AssertionError("non-witness payload must be denied")
+            except ObserveDenied:
+                assert not t.writes and t.next_req == 0
+        fake.feed_response(0, 1, 1, b"numerical-witness")
+        got = t.transact(17, b"MLST")
+        assert got["body"] == b"numerical-witness" and len(t.writes) == 1
+        # Opcode admission still applies to the fixed query.
+        denied = Transport(FakeSerial(), allowed={1}, campaign=campaign)
+        try:
+            denied.transact(17, b"MLST")
+            raise AssertionError("opcode admission must still be required")
+        except ObserveDenied:
+            assert not denied.writes
+
+
 def test_partial_reads_succeed():
     fake = FakeSerial(chunk=1)
     feed_info(fake, 1)

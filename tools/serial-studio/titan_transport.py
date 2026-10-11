@@ -171,7 +171,8 @@ class Transport:
                 raise ObserveDenied(f"opcode {op} is not admitted")
             diagnostic = (self.campaign and op == 17 and
                           (payload in (b"LBRQ", b"HWST") or (len(payload) == 8 and payload[:4] == b"LBPG")))
-            if spec["payload"] is not None and payload != spec["payload"] and not diagnostic:
+            model_witness = op == 17 and payload == b"MLST"
+            if spec["payload"] is not None and payload != spec["payload"] and not diagnostic and not model_witness:
                 raise ObserveDenied(f"opcode {op} payload not admitted")
             if spec["payload"] is None and not self.campaign:
                 raise ObserveDenied(f"opcode {op} requires campaign lease")
