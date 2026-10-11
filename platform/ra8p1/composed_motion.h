@@ -142,23 +142,26 @@ class Renderer {
   // configure() drains old history by stopping injection before applying changes.
   void renderBloom(std::uint32_t now,float level,Palette sampler,void* context,Rgb* output) {
     clear(output); edge_arrived_=false; phase_=Phase::Ready;
-    if(!bloom_clock_) { bloom_clock_=true; newest_=now; history_count_=1; history_[0]={}; next_=1; }
+    if(!bloom_clock_ || !history_count_) { bloom_clock_=true; newest_=now; history_count_=1; history_[0]={}; next_=1; bucket_peak_=0; }
     const std::uint32_t delta=elapsed(now,newest_);
     if(delta>=0x80000000u) return; // stale timestamp
     unsigned steps=delta/kHopMs;
-    if(steps>kHistory) { history_count_=0; next_=0; newest_=now-now%kHopMs; steps=0; }
+    if(steps>kHistory) { history_count_=1; next_=1; history_[0]={}; newest_=now; steps=0; bucket_peak_=0; history_alive_=false; applyPending(); }
     for(unsigned n=0;n<steps;++n) {
       newest_+=kHopMs;
-      Rgb colour{};
-      if(!pending_ && unit(level)>0 && sampler) {
-        if(!history_alive_) latched_=config_;
-        // Curated palette traversal, never hue synthesis or hue-wheel fallback.
-        const float u=static_cast<float>(newest_%1600u)/1599.0f;
-        colour=scale(clean(sampler(u,context)),unit(level));
-        if(colour.r+colour.g+colour.b>0) { last_injection_=newest_; history_alive_=true; }
-      }
-      history_[next_]=colour; next_=(next_+1)%kHistory;
+      // Missed content slots are empty: never replay a current attack backwards.
+      history_[next_]={};next_=(next_+1)%kHistory;bucket_peak_=0;
       if(history_count_<kHistory)++history_count_;
+    }
+    // Accumulate the current 25 ms bucket on EVERY render. An intervening
+    // attack survives even when it falls between the content-clock boundaries.
+    // Only this unfinished bucket changes; completed RGB history is immutable.
+    if(!pending_ && unit(level)>bucket_peak_ && sampler){
+      if(!history_alive_)latched_=config_;
+      const float u=static_cast<float>(newest_%1600u)/1599.0f;
+      const auto colour=scale(clean(sampler(u,context)),unit(level));
+      history_[(next_+kHistory-1)%kHistory]=colour;bucket_peak_=unit(level);
+      if(colour.r+colour.g+colour.b>0){last_injection_=newest_;history_alive_=true;}
     }
     const auto& c=latched_;
     const std::uint32_t lifetime=(c.out_travel_ms+c.return_travel_ms)*c.trips+(c.trips?0:c.out_travel_ms )+c.trail_ms+kHopMs+static_cast<std::uint32_t>(c.out_width*static_cast<float>(c.out_travel_ms)+c.return_width*static_cast<float>(c.return_travel_ms));
@@ -247,7 +250,7 @@ class Renderer {
   unsigned next_=0,history_count_=0;
   Phase phase_=Phase::Ready;
   std::uint32_t start_=0,last_event_=0,gesture_=0,newest_=0,last_injection_=0;
-  float reference_=0;
+  float reference_=0,bucket_peak_=0;
   bool quiet_hold_=false,quiet_released_=false;
   bool inward_=false,pending_=false,edge_arrived_=false,bloom_clock_=false,history_alive_=false;
 };

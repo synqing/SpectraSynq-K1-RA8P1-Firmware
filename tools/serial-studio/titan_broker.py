@@ -821,8 +821,15 @@ class Broker:
             if wire.exists():
                 if self.quiesced() or not self.control_enabled:
                     return
-                if not self.bound or not self.bound.get("accepted"):
+                if not self.bound:
                     raise RuntimeError("wire snapshot requires accepted identity")
+                if not self.bound.get("accepted"):
+                    # The live candidate admission already binds UID, build and
+                    # schema. Reuse it for this read-only observation, too.
+                    admitted, reason = hardware_writes_admitted(
+                        self.evidence, self._control_bound(self.bound))
+                    if not admitted:
+                        raise RuntimeError("wire snapshot requires accepted identity: " + reason)
                 emitting = (self.last_palette or {}).get("emit_enabled")
                 # One immutable submission read is bounded independently of
                 # normal music output. Continuous operation has no emit timer.

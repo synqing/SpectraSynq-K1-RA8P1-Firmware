@@ -84,6 +84,10 @@ void k1_emotiscope_status(K1EmotiscopeStatus *out);
  * tick and copied to each visual context before its own render. */
 typedef struct {
   uint32_t sequence, audio_hops, now_us, valid;
+  // Producer timestamp and bounded maxima since the previous publication.
+  // PCM peak and vu_floor are both squared, unnormalised amplitude quantities.
+  uint32_t audio_time_us, amplitude_valid;
+  float pcm_peak_squared, body_peak_energy, vu_peak;
   float vu_level_raw, vu_level, vu_max, vu_floor, tempo_confidence, tempi_power_sum;
   float spectrum[64], spectrum_smooth[64], chromagram[12], frequency_magnitude[64];
   float novelty_normalised;

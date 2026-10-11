@@ -100,3 +100,26 @@ def test_continuous_music_allows_one_bounded_observation_without_disarm(tmp_path
     assert not (tmp_path/'WIRE_SNAPSHOT_REQUEST').exists()
     assert not (tmp_path/'DIAGNOSTIC_FAULT').exists()
     assert b.emit_deadline is None
+
+
+@pytest.mark.parametrize('mismatch',[None,'uid','build','schema_sha256'])
+def test_live_candidate_snapshot_uses_same_identity_admission(tmp_path,monkeypatch,mismatch):
+    import json
+    from titan_broker import Broker
+    monkeypatch.setenv('TITAN_LIVE_CONTROL_ADMITTED','1')
+    identity={'uid':'target','build':'image','schema_sha256':'schema'}
+    record=dict(identity,ops=['emotiscope_get','emotiscope_patch'])
+    if mismatch:record[mismatch]='wrong'
+    (tmp_path/'accepted-candidate.json').write_text(json.dumps(record))
+    b=Broker.__new__(Broker)
+    b.evidence=tmp_path;b.transport=object();b.replay_only=False
+    b.emit_deadline=None;b.continuous_output=True;b.control_enabled=True
+    b.bound=dict(identity,accepted=False,identified=True)
+    b.last_palette={'emit_enabled':True};b.errors=[]
+    calls=[]
+    b.transact=lambda op,body:(calls.append((op,body)) or {'ok':True,'body':payload()})
+    b.apply_emit=lambda enabled:calls.append(('emit',enabled))
+    (tmp_path/'WIRE_SNAPSHOT_REQUEST').write_text('bounded')
+    b._service_emit_requests()
+    assert calls==([] if mismatch else [(19,b'')])
+    assert (tmp_path/'wire-snapshot.bin').exists()==(mismatch is None)

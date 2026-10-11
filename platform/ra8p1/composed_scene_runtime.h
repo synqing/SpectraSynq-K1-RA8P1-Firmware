@@ -8,6 +8,12 @@
 
 namespace composed_scene {
 using composed_motion::unit;
+inline bool audible(const K1EmotiscopeAudioPublication& p,uint32_t now_us){
+  if(!p.valid || now_us-p.now_us>30000u ||
+     (p.amplitude_valid && now_us-p.audio_time_us>30000u))return false;
+  return p.amplitude_valid ? p.pcm_peak_squared>std::fmax(p.vu_floor,0.000001f)+0.00000001f :
+      p.vu_level_raw>0.00001f;
+}
 enum class Phrase : uint32_t { Rest, Establish, Develop, Tension, Release, Recover };
 
 // Composition states describe our authored behaviour, never detected song parts.
@@ -22,7 +28,7 @@ class Direction {
     energy_+=(level-energy_)*(1.0f-std::exp(-dt/.8f));
     trend_+=((dt>0?(energy_-prior)/dt:0)-trend_)*(1.0f-std::exp(-dt/.3f));
     // Confirm quiet from raw level plus capture validity, not low novelty.
-    const bool silent=!p.valid || !(p.vu_level_raw>p.vu_floor+0.00001f);
+    const bool silent=!audible(p,p.now_us);
     if(!silent)last_sound_=now;
     quiet_=silent && now-last_sound_>=300u;
     if(policy==4u){select(Phrase::Rest,now);return;}
@@ -62,7 +68,7 @@ struct Board {
   K1EmotiscopeAudioPublication conditioned{};
   Direction direction;
   uint32_t now=0,now_us=0,last_us=0,last_cursor=0,event=0,rendered_us=0;
-  float level=0,strength=0,model_delta=0;
+  float level=0,strength=0,model_delta=0,render_dt_seconds=.01f;
   bool observed=false,rendered=false,fresh_event=false,forced_quiet=false;
   bool release_requested=false;
   uint32_t pending_event_time=0;float pending_strength=0;bool pending_event=false;
@@ -110,7 +116,7 @@ struct Board {
     if(observed && stamp==now_us)return;
     now=milliseconds;now_us=stamp;
     const float dt=observed?float(stamp-last_us)*.000001f:.01f;
-    last_us=stamp;observed=true;
+    render_dt_seconds=dt;last_us=stamp;observed=true;
     admission.apply(p,conditioned,dt,stamp);
     fresh_event=admission.event_cursor()!=last_cursor;
     last_cursor=admission.event_cursor();

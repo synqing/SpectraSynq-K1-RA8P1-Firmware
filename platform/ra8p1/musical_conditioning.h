@@ -40,31 +40,34 @@ class K1MusicalConditioning {
     if(&out==&raw)return false;
     std::memcpy(&out,&raw,sizeof(out));
     if(config_.role==0u || config_.strength==0.0f)return false;
-    const uint32_t age=now_us-raw.now_us;
+    const uint32_t sample_time=raw.amplitude_valid?raw.audio_time_us:raw.now_us;
+    const uint32_t age=now_us-sample_time;
     // Publication can advance on a render clock while PCM is no longer arriving.
     // Track producer hop progress separately from the publication sequence.
     if(!audio_seen_ || raw.audio_hops!=progress_hops_){
-      audio_seen_=true;progress_hops_=raw.audio_hops;audio_progress_us_=raw.now_us;
+      audio_seen_=true;progress_hops_=raw.audio_hops;audio_progress_us_=sample_time;
     }
     const bool audio_expired=now_us-audio_progress_us_>100000u;
     const bool discontinuity=seen_ &&
-      (int32_t(raw.sequence-last_sequence_)<=0 ||
-       int32_t(raw.audio_hops-last_hops_)<0 || raw.now_us-last_time_>250000u);
+      (int32_t(raw.sequence-last_sequence_)<0 ||
+       int32_t(raw.audio_hops-last_hops_)<0 || sample_time-last_time_>250000u);
     if(!frequencies_valid_ || !raw.valid || raw.sequence==0u || age>100000u || audio_expired ||
        !valid_features(raw)){
       reset_history();return false;
     }
-    if(consumed_ && raw.sequence==last_sequence_ && raw.now_us==last_time_){
+    if(consumed_ && raw.audio_hops==last_hops_ && sample_time==last_time_){
       // Repeated render at the same generation consumes the cached shaped data.
       // A config edit on a duplicate publication falls back to raw until the
       // next generation; it cannot replay an event or return the old setting.
       if(!cached_valid_)return false;
       copy_features(cached_,out);return true;
     }
-    if(!finite(dt) || dt<=0.0f || dt>0.25f){reset_history();return false;}
     if(discontinuity)reset_history();
+    // Each follower integrates the time since its own last consumed audio hop.
+    if(seen_)dt=float(sample_time-last_time_)*.000001f;
+    if(!finite(dt) || dt<=0.0f || dt>0.25f){reset_history();return false;}
     const bool first_observation=!seen_;
-    seen_=true;consumed_=true;last_sequence_=raw.sequence;last_hops_=raw.audio_hops;last_time_=raw.now_us;
+    seen_=true;consumed_=true;last_sequence_=raw.sequence;last_hops_=raw.audio_hops;last_time_=sample_time;
     const float attack=1.0f-std::exp(-dt*1000.0f/config_.attack_ms);
     const float release=1.0f-std::exp(-dt*1000.0f/config_.release_ms);
     float body_energy=0.0f,body_mass=0.0f,detail_energy=0.0f,detail_mass=0.0f;
@@ -73,6 +76,7 @@ class K1MusicalConditioning {
       detail_energy+=clamp(raw.spectrum_smooth[i])*detail_[i];detail_mass+=detail_[i];
     }
     body_energy/=body_mass>0.0f?body_mass:1.0f;
+    if(raw.amplitude_valid)body_energy=std::fmax(body_energy,clamp(raw.body_peak_energy));
     detail_energy/=detail_mass>0.0f?detail_mass:1.0f;
     // Convert positive change to a fixed 10 ms reference interval. Otherwise
     // the same ramp at 50/100/200 Hz would create different event strengths.
@@ -108,7 +112,7 @@ class K1MusicalConditioning {
       const float shaped=config_.role==1u?input*value_:chroma_[i];
       out.chromagram[i]=raw.chromagram[i]+strength*(shaped-raw.chromagram[i]);
     }
-    const float vu_input=clamp(raw.vu_level);
+    const float vu_input=clamp(config_.role==1u && raw.amplitude_valid?std::fmax(raw.vu_level,raw.vu_peak):raw.vu_level);
     const float vu_target=vu_input*(config_.role==1u?value_:detail_energy);
     vu_envelope_+=(vu_target-vu_envelope_)*(vu_target>vu_envelope_?attack:release);
     // Analog uses the level as a moving position/extent. Shape its temporal
@@ -145,6 +149,8 @@ class K1MusicalConditioning {
   static bool finite(float x){return std::isfinite(x);}
   static float clamp(float x){return x<0.0f?0.0f:(x>1.0f?1.0f:x);}
   static bool valid_features(const K1EmotiscopeAudioPublication &p){
+    if(p.amplitude_valid && (!finite(p.pcm_peak_squared)||p.pcm_peak_squared<0 ||
+       !finite(p.body_peak_energy)||p.body_peak_energy<0 || !finite(p.vu_peak)||p.vu_peak<0))return false;
     if(!finite(p.novelty_normalised)||!finite(p.vu_level)||p.vu_level<0.0f)return false;
     for(unsigned i=0;i<64;++i)
       if(!finite(p.spectrum[i]) || p.spectrum[i]<0.0f ||

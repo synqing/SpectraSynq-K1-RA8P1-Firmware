@@ -340,6 +340,9 @@ static bool gap_rewarming=false;
 static float response_gain=1.0f;
 static EmotiscopeEdgeResponse edge_response;
 static uint32_t last_pcm_us=0;
+static float pending_pcm_peak=0, pending_body_peak=0, pending_vu_peak=0;
+static float latest_pcm_peak=0;
+static bool pending_audio=false;
 #ifdef K1_TITAN_TOP_OUTPUT
 static K1MusicalConditioning musical_conditioning;
 static composed_scene::Board composed_board;
@@ -354,6 +357,11 @@ static uint32_t musical_tick_us=0;
 static void capture_musical_publication(){
   auto& p=musical_publication;
   ++p.sequence;p.audio_hops=audio_hops;p.now_us=port_clock_us;p.valid=fresh_hops>=64u&&!gap_rewarming&&(port_clock_us-last_pcm_us<=30000u);
+  p.audio_time_us=last_pcm_us;p.amplitude_valid=1u;
+  p.pcm_peak_squared=pending_audio?pending_pcm_peak:latest_pcm_peak;
+  p.body_peak_energy=pending_audio?pending_body_peak:0.0f;
+  p.vu_peak=pending_audio?pending_vu_peak:0.0f;
+  pending_pcm_peak=pending_body_peak=pending_vu_peak=0;pending_audio=false;
   p.vu_level_raw=vu_level_raw;p.vu_level=vu_level;p.vu_max=vu_max;p.vu_floor=vu_floor;
   p.tempo_confidence=tempo_confidence;p.tempi_power_sum=tempi_power_sum;
   std::memcpy(p.spectrum,spectrogram,sizeof(p.spectrum));
@@ -596,6 +604,18 @@ extern "C" bool k1_emotiscope_push_pcm64(const float* samples,uint32_t now_us){
   get_chromagram();
   run_vu();
   update_tempo();
+  // Retain intervening 5 ms observations until the coherent render publication.
+  // This is a bounded maximum, never an attack queue or another analyser.
+  latest_pcm_peak=0;
+  for(unsigned i=0;i<CHUNK_SIZE;++i)latest_pcm_peak=fmaxf(latest_pcm_peak,samples[i]*samples[i]);
+  float body=0,mass=0;
+  for(unsigned i=0;i<NUM_FREQS;++i){
+    const float w=1.0f-clip_float((frequencies_musical[i].target_freq-180.0f)/520.0f);
+    body+=clip_float(spectrogram[i])*w;mass+=w;
+  }
+  pending_pcm_peak=fmaxf(pending_pcm_peak,latest_pcm_peak);
+  pending_body_peak=fmaxf(pending_body_peak,body/fmaxf(mass,1.0f));
+  pending_vu_peak=fmaxf(pending_vu_peak,vu_level_raw);pending_audio=true;
   last_pcm_us=now_us;
   ++audio_hops;
   if(fresh_hops<64u)++fresh_hops;
@@ -651,7 +671,11 @@ static void run_composed(){
     const float support=composed_board.motion.active()?.25f:1.0f;
     if(!state.quiet || scope==0u || scope==3u)apply_background(configuration.background*support);
     if(scope==0u)run_screensaver(.01f);
-    apply_brightness();apply_tonemapping();apply_warmth(configuration.warmth);
+    // Display-only response: never feed attenuation back into retained history.
+    apply_brightness();
+    edge_response.apply(reinterpret_cast<float*>(leds),board_publication,
+        composed_board.render_dt_seconds);
+    apply_tonemapping();apply_warmth(configuration.warmth);
     multiply_CRGBF_array_by_LUT(leds,WHITE_BALANCE,NUM_LEDS);
   }else{
     std::memset(leds,0,sizeof(leds));std::memset(dither_error,0,sizeof(dither_error));
@@ -674,7 +698,8 @@ extern "C" void k1_emotiscope_scene_prepare(uint32_t now_us){
   composed_board.palette=&composed_palette;
   composed_board.observe(musical_publication,ml_observation,frame_ml,now_us,millis());
   // Existing per-board musical interpretation and response remain real scene consumers.
-  composed_board.level=musical_publication.valid?composed_motion::unit(board_publication.vu_level*response_gain):0.0f;
+  composed_board.level=composed_scene::audible(musical_publication,now_us)?
+      composed_motion::unit(board_publication.vu_level*response_gain):0.0f;
   composed_board.strength=composed_scene::Board::gestureStrength(composed_board.level,composed_board.admission.value());
 }
 #ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
@@ -864,6 +889,7 @@ extern "C" void k1_emotiscope_audio_gap(){
   using namespace emotiscope;
   if(!initialized)return;
   ++audio_gaps;fresh_hops=0;gap_rewarming=true;musical_publication.valid=0u;
+  pending_pcm_peak=pending_body_peak=pending_vu_peak=latest_pcm_peak=0;pending_audio=false;
 #ifdef K1_TITAN_TOP_OUTPUT
   musical_conditioning.reset();ml_observation.valid=0u;
 #ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
