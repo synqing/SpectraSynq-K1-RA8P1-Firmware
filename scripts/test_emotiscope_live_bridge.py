@@ -29,7 +29,9 @@ def main():
                 platform/"emotiscope_quantize.inc",
                 platform/"k1_live_clock.c", platform/"k1_live_clock.h",
                 platform/"k1_live_protocol.cpp", platform/"k1_live_protocol.h",
-                platform/"k1_live_schema.inc"]
+                platform/"k1_live_schema.inc", platform/"emotiscope_edge_response.h",
+                root/"src/k1/core/visual/product_palette.cpp",
+                root/"src/k1/core/visual/product_palette_data.cpp"]
     observed += [p for p in (platform/"emotiscope_donor").rglob("*") if p.is_file()]
     observed += [p for p in (platform/"emotiscope_shims").rglob("*") if p.is_file()]
     observed = sorted(set(observed))
@@ -64,6 +66,8 @@ def main():
             "-I"+str(platform), "-I"+str(platform/"emotiscope_donor"),
             "-I"+str(platform/"emotiscope_shims"),
             str(platform/"emotiscope_port.cpp"), str(variant),
+            str(root/"src/k1/core/visual/product_palette.cpp"),
+            str(root/"src/k1/core/visual/product_palette_data.cpp"),
             str(platform/"k1_live_clock.c"), str(platform/"k1_live_protocol.cpp"),
             str(test), "-o", str(binary),
         ]

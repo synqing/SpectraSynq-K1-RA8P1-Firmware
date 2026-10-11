@@ -41,6 +41,24 @@ typedef struct {
  * Existing VP/tempo/LPF/dither/configuration histories are retained. */
 void k1_emotiscope_audio_gap(void);
 void k1_emotiscope_status(K1EmotiscopeStatus *out);
+/* Immutable musical publication, computed once by the primary analyser/GPU
+ * tick and copied to each visual context before its own render. */
+typedef struct {
+  uint32_t sequence, audio_hops, now_us, valid;
+  float vu_level_raw, vu_level, vu_max, vu_floor, tempo_confidence, tempi_power_sum;
+  float spectrum[64], spectrum_smooth[64], chromagram[12], frequency_magnitude[64];
+  float novelty_normalised;
+  float tempi_smooth[96], tempi_phase[96], tempi_beat[96];
+} K1EmotiscopeAudioPublication;
+void k1_emotiscope_audio_publication(K1EmotiscopeAudioPublication *out);
+/* Visual response gain affects this context only, never microphone analysis. */
+bool k1_emotiscope_set_response_gain(float gain);
+float k1_emotiscope_response_gain(void);
+/* EdgeMixer VALUE adaptation using donor observations, not legacy STM parity.
+ * 0 = off, 1 = newest novelty, 2 = centre-to-edge spectral contour. */
+bool k1_emotiscope_set_edge_response(uint32_t mode,float depth);
+uint32_t k1_emotiscope_edge_response(void);
+float k1_emotiscope_edge_depth(void);
 /* Single-threaded owner; init is boot-once because original function-local histories
  * are retained. No ordinary audio discontinuity invokes init or clears history. */
 bool k1_emotiscope_init(uint32_t random_seed);
@@ -62,6 +80,7 @@ bool k1_emotiscope_patch(const K1EmotiscopePatch *patch, uint32_t *changed, uint
 float k1_emotiscope_effective_hue(void);
 #ifdef K1_EMOTISCOPE_TEST_SEAM
 void k1_emotiscope_test_set_raw_color(float color);
+void k1_emotiscope_test_fail_next_frame(void);
 float k1_emotiscope_test_lpf_drag(void);
 void k1_emotiscope_test_set_novelty_sample(float value);
 float k1_emotiscope_test_novelty_sample(void);
@@ -74,16 +93,17 @@ void k1_emotiscope_test_stage(int stage, float arg, float rgbf[384]);
 bool k1_emotiscope_push_pcm64(const float samples[64], uint32_t now_us);
 /* Called at the explicit port schedule of 100 Hz. This is not a recovered original
  * GPU frame rate. Returns RGB8 (not GRB) after the donor's gamma and dithering.
- * No Titan palette, gamma, or global hardware brightness is applied here. */
+ * Permanent catalogue colour is applied here; global hardware brightness is
+ * applied later by the output packer. */
 bool k1_emotiscope_render(uint32_t now_us, uint8_t rgb[384]);
 /* Output-precision candidate for the last successful render: the same validated
  * post-gamma float frame that fed the RGB8 quantiser, rounded to 16 bits per
  * channel (round(v*65535)), RGB order, no dither. Computed every frame beside the
  * unchanged RGB8 reference so either path can be selected at a frame boundary. */
 void k1_emotiscope_last_rgb16(uint16_t rgb16[384]);
-/* Palette selection: 0 = native donor HSV colour; 1..44 = K1 product palette
- * (catalogue id-1). Applies to every donor mode from the next rendered frame. */
-enum { K1_EMOTISCOPE_PALETTES=44 };
+/* Musical output is permanently palette coloured. Zero/native HSV is rejected;
+ * 1..44 map to K1 catalogue id-1. Sunset_Real is the autonomous boot default. */
+enum { K1_EMOTISCOPE_PALETTES=44, K1_EMOTISCOPE_DEFAULT_PALETTE=1 };
 /* Palette colour at phase [0,1) as RGB 0..1 (same scale as donor hsv output). */
 typedef void (*K1PaletteSampler)(uint32_t catalogue_id, float phase, float rgb[3]);
 void k1_emotiscope_set_palette_sampler(K1PaletteSampler sampler);

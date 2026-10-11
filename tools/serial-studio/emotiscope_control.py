@@ -22,10 +22,17 @@ TOP_STATE_BYTES = 176
 TOP_PATCH_MAX = 208
 TOP_FIELD_COUNT = 23
 TOP_FIELD_MASK = 0x7FFFFF
+DUAL_STATE_BYTES = 208
+DUAL_GET_BYTES = 20
+DUAL_PATCH_MAX = 240
+DUAL_FIELD_COUNT = 27
+DUAL_FIELD_MASK = 0x7FFFFFF
 CAP_PRIMARY_INTENSITY = 1
 CAP_SECONDARY_OUTPUT = 2
-PALETTE_MAX = 44  # 0 = native donor colour, 1..44 = K1 product palettes
-U32_MAX = {15: 255, 18: PALETTE_MAX}
+CAP_INDEPENDENT_SCENES = 4
+PALETTE_MAX = 44  # Current firmware accepts only K1 product palettes 1..44.
+U32_MAX = {15: 255, 18: PALETTE_MAX, 24: 1, 26: 2}
+UNSUPPORTED_PALETTE_FIELDS = frozenset((3, 5, 7))
 FLAG_OUTPUT_PRECISION = 64
 
 KIND_F32 = 1
@@ -59,6 +66,10 @@ FIELDS = {
     21: ("primary_intensity", KIND_F32),
     22: ("secondary_intensity", KIND_F32),
     23: ("secondary_output_enabled", KIND_BOOL),
+    24: ("board", KIND_U32),
+    25: ("response_gain", KIND_F32),
+    26: ("edge_response", KIND_U32),
+    27: ("edge_depth", KIND_F32),
 }
 NAMES = {name: field for field, (name, _kind) in FIELDS.items()}
 
@@ -90,17 +101,27 @@ def golden_patch() -> bytes:
     )
 
 
-def encode_get(request_id: int, boot_id: int) -> bytes:
+def encode_get(request_id: int, boot_id: int, board: int = 0, *,
+               state_version: int = 2, board_capabilities: int = 0) -> bytes:
     if int(request_id) == 0:
         raise ValueError("request_id")
-    return struct.pack("<IIII", GET_SUB, int(request_id) & 0xFFFFFFFF, int(boot_id) & 0xFFFFFFFF, 0)
+    if board not in (0, 1):
+        raise ValueError("board")
+    body = struct.pack("<IIII", GET_SUB, int(request_id) & 0xFFFFFFFF, int(boot_id) & 0xFFFFFFFF, 0)
+    if board:
+        if state_version != 4 or board_capabilities & ~7 or not board_capabilities & CAP_INDEPENDENT_SCENES:
+            raise ValueError("unsupported secondary scene")
+        body += struct.pack("<I", board)
+    return body
 
 
 def _raw_value(field: int, value):
+    if field in UNSUPPORTED_PALETTE_FIELDS:
+        raise ValueError("unsupported fixed HSV control")
     kind = field_kind(field)
     if kind == KIND_F32:
         number = float(value)
-        if not math.isfinite(number) or number < 0.0 or number > 1.0:
+        if not math.isfinite(number) or number < 0.0 or number > (2.0 if field == 25 else 1.0):
             raise ValueError(field)
         raw = struct.unpack("<I", struct.pack("<f", number))[0]
     elif kind == KIND_BOOL:
@@ -114,7 +135,7 @@ def _raw_value(field: int, value):
         raw &= 0xFFFFFFFF
     elif kind == KIND_U32:
         raw = int(value)
-        if raw < 0 or raw > U32_MAX[field]:
+        if raw < (1 if field == 18 else 0) or raw > U32_MAX[field]:
             raise ValueError(field)
     else:
         raise ValueError(field)
@@ -126,19 +147,30 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
     if int(request_id) == 0:
         raise ValueError("request_id")
     items = []
-    top_profile = state_version == 3
-    if board_capabilities & ~3 or (board_capabilities and not top_profile):
+    if state_version not in (1, 2, 3, 4):
+        raise ValueError("state version")
+    top_profile = state_version >= 3
+    dual_profile = state_version == 4
+    if board_capabilities & ~(7 if dual_profile else 3) or (board_capabilities and not top_profile):
         raise ValueError("board capabilities")
     for key, value in fields.items():
         field = key if isinstance(key, int) else NAMES[key]
-        required = CAP_PRIMARY_INTENSITY if field == 21 else CAP_SECONDARY_OUTPUT
+        if state_version == 1 and field in (19, 20):
+            raise ValueError("unsupported legacy intensity control")
+        required = (CAP_PRIMARY_INTENSITY if field == 21 else CAP_SECONDARY_OUTPUT
+                    if field in (22, 23) else CAP_INDEPENDENT_SCENES)
         if field > FIELD_COUNT and (not top_profile or not board_capabilities & required):
             raise ValueError("unsupported board control")
+        if field >= 24 and not dual_profile:
+            raise ValueError("unsupported scene control")
         kind, raw = _raw_value(field, value)
         items.append((int(field), kind, raw))
     items.sort()
     if len(items) != len({item[0] for item in items}):
         raise ValueError("duplicate")
+    board = next((raw for field, _kind, raw in items if field == 24), 0)
+    if board and (not board_capabilities & CAP_SECONDARY_OUTPUT or any(field in (19, 20) for field, _kind, _raw in items)):
+        raise ValueError("unsupported secondary DIN control")
     mask = 0
     blob = bytearray()
     previous = 0
@@ -148,7 +180,7 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
         previous = field
         mask |= 1 << (field - 1)
         blob += struct.pack("<HHI", field, kind, raw)
-    if mask > (TOP_FIELD_MASK if top_profile else FIELD_MASK) or len(items) > (TOP_FIELD_COUNT if top_profile else FIELD_COUNT):
+    if mask > (DUAL_FIELD_MASK if dual_profile else TOP_FIELD_MASK if top_profile else FIELD_MASK) or len(items) > (DUAL_FIELD_COUNT if dual_profile else TOP_FIELD_COUNT if top_profile else FIELD_COUNT):
         raise ValueError("mask")
     body = struct.pack(
         "<IIIIII",
@@ -159,7 +191,7 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
         mask,
         len(items),
     ) + bytes(blob)
-    if len(body) > (TOP_PATCH_MAX if top_profile else PATCH_MAX):
+    if len(body) > (DUAL_PATCH_MAX if dual_profile else TOP_PATCH_MAX if top_profile else PATCH_MAX):
         raise ValueError("size")
     return body
 
@@ -181,22 +213,28 @@ def raw_patch(request_id: int, boot_id: int, expected_revision: int, mask: int, 
 
 
 def parse(body: bytes, *, state_version: int = 2):
+    if state_version not in (1, 2, 3, 4):
+        return STATUS_INVALID, None
     if len(body) < 4:
         return STATUS_INVALID, None
     sub = struct.unpack_from("<I", body, 0)[0]
     if sub not in (GET_SUB, PATCH_SUB):
         return STATUS_INVALID, None
     if sub == GET_SUB:
-        if len(body) != GET_BYTES:
+        if len(body) != GET_BYTES and not (state_version == 4 and len(body) == DUAL_GET_BYTES):
             return STATUS_INVALID, None
         request, boot, tail = struct.unpack_from("<III", body, 4)
         if request == 0 or tail != 0:
             return STATUS_INVALID, None
-        return STATUS_OK, {"sub": sub, "request_id": request, "boot_id": boot, "crc": crc32(body)}
-    top_profile = state_version == 3
-    field_count = TOP_FIELD_COUNT if top_profile else FIELD_COUNT
-    field_mask = TOP_FIELD_MASK if top_profile else FIELD_MASK
-    if len(body) < PATCH_HEADER or len(body) > (TOP_PATCH_MAX if top_profile else PATCH_MAX):
+        board = struct.unpack_from("<I", body, 16)[0] if len(body) == DUAL_GET_BYTES else 0
+        if board > 1:
+            return STATUS_INVALID, None
+        return STATUS_OK, {"sub": sub, "request_id": request, "boot_id": boot, "board": board, "crc": crc32(body)}
+    top_profile = state_version >= 3
+    dual_profile = state_version == 4
+    field_count = DUAL_FIELD_COUNT if dual_profile else TOP_FIELD_COUNT if top_profile else FIELD_COUNT
+    field_mask = DUAL_FIELD_MASK if dual_profile else TOP_FIELD_MASK if top_profile else FIELD_MASK
+    if len(body) < PATCH_HEADER or len(body) > (DUAL_PATCH_MAX if dual_profile else TOP_PATCH_MAX if top_profile else PATCH_MAX):
         return STATUS_INVALID, None
     revision, request, boot, mask, count = struct.unpack_from("<IIIII", body, 4)
     if request == 0 or (mask & ~field_mask) or count > field_count:
@@ -210,13 +248,13 @@ def parse(body: bytes, *, state_version: int = 2):
         offset = PATCH_HEADER + index * ENTRY_BYTES
         field, kind = struct.unpack_from("<HH", body, offset)
         raw = struct.unpack_from("<I", body, offset + 4)[0]
-        if field < 1 or field > field_count or field <= previous or kind != field_kind(field):
+        if field < 1 or field > field_count or field <= previous or kind != field_kind(field) or field in UNSUPPORTED_PALETTE_FIELDS:
             return STATUS_INVALID, None
         previous = field
         built |= 1 << (field - 1)
         if kind == KIND_F32:
             value = struct.unpack("<f", struct.pack("<I", raw))[0]
-            if not math.isfinite(value) or not (0.0 <= value <= 1.0):
+            if not math.isfinite(value) or not (0.0 <= value <= (2.0 if field == 25 else 1.0)):
                 return STATUS_INVALID, None
         elif kind == KIND_BOOL:
             if raw > 1:
@@ -227,11 +265,14 @@ def parse(body: bytes, *, state_version: int = 2):
             if value < 0 or value > 6:
                 return STATUS_INVALID, None
         else:
-            if raw > U32_MAX[field]:
+            if raw < (1 if field == 18 else 0) or raw > U32_MAX[field]:
                 return STATUS_INVALID, None
             value = int(raw)
         fields[field] = value
     if built != mask:
+        return STATUS_INVALID, None
+    board = fields.get(24, 0)
+    if board and (19 in fields or 20 in fields):
         return STATUS_INVALID, None
     return STATUS_OK, {
         "sub": sub,
@@ -240,21 +281,22 @@ def parse(body: bytes, *, state_version: int = 2):
         "expected_revision": revision,
         "mask": mask,
         "fields": fields,
+        "board": board,
         "crc": crc32(body),
     }
 
 
 def decode_state(body: bytes) -> dict:
-    if len(body) not in (STATE_BYTES, TOP_STATE_BYTES):
+    if len(body) not in (STATE_BYTES, TOP_STATE_BYTES, DUAL_STATE_BYTES):
         raise ValueError("state length %s" % len(body))
     def u32(offset):
         return struct.unpack_from("<I", body, offset)[0]
     def f32(offset):
         return struct.unpack_from("<f", body, offset)[0]
     version = u32(4)
-    if u32(0) != STATE_MAGIC or version not in (1, 2, 3):
+    if u32(0) != STATE_MAGIC or version not in (1, 2, 3, 4):
         raise ValueError("unsupported state framing")
-    if len(body) != (TOP_STATE_BYTES if version == 3 else STATE_BYTES):
+    if len(body) != (DUAL_STATE_BYTES if version == 4 else TOP_STATE_BYTES if version == 3 else STATE_BYTES):
         raise ValueError("state version length")
     intensity_supported = version >= 2
     intensity_a = f32(144) if intensity_supported else None
@@ -264,19 +306,31 @@ def decode_state(body: bytes) -> dict:
         for value in (intensity_a, intensity_b)
     ):
         raise ValueError("invalid output intensity")
-    board_capabilities = u32(164) if version == 3 else 0
-    if board_capabilities & ~3:
+    board_capabilities = u32(164) if version >= 3 else 0
+    if board_capabilities & ~(7 if version == 4 else 3):
         raise ValueError("unknown board capability")
-    primary_intensity = f32(152) if version == 3 else None
-    secondary_intensity = f32(156) if version == 3 else None
-    secondary_enabled = u32(160) if version == 3 else None
-    if version == 3:
+    primary_intensity = f32(152) if version >= 3 else None
+    secondary_intensity = f32(156) if version >= 3 else None
+    secondary_enabled = u32(160) if version >= 3 else None
+    if version >= 3:
         if any(not math.isfinite(value) or not 0.0 <= value <= 1.0
                for value in (primary_intensity, secondary_intensity)):
             raise ValueError("invalid board intensity")
         if secondary_enabled not in (0, 1) or (secondary_enabled and not board_capabilities & CAP_SECONDARY_OUTPUT):
             raise ValueError("unsupported secondary output state")
-    reserved = body[168:176] if version == 3 else body[152:160] if intensity_supported else body[144:160]
+    if version == 4 and any(body[168:176]):
+        raise ValueError("nonzero legacy reserved state bytes")
+    board = u32(176) if version == 4 else 0
+    response_gain = f32(180) if version == 4 else None
+    edge_response = u32(184) if version == 4 else None
+    edge_depth = f32(188) if version == 4 else None
+    independent = bool(board_capabilities & CAP_INDEPENDENT_SCENES)
+    if version == 4:
+        if board > 1 or (board and not independent):
+            raise ValueError("unsupported selected board")
+        if not math.isfinite(response_gain) or not 0.0 <= response_gain <= 2.0 or edge_response > 2 or not math.isfinite(edge_depth) or not 0.0 <= edge_depth <= 1.0:
+            raise ValueError("invalid scene response")
+    reserved = body[192:208] if version == 4 else body[168:176] if version == 3 else body[152:160] if intensity_supported else body[144:160]
     if any(reserved):
         raise ValueError("nonzero reserved state bytes")
     return {
@@ -318,12 +372,17 @@ def decode_state(body: bytes) -> dict:
         "primary_intensity": primary_intensity if board_capabilities & CAP_PRIMARY_INTENSITY else None,
         "secondary_intensity": secondary_intensity if board_capabilities & CAP_SECONDARY_OUTPUT else None,
         "secondary_output_enabled": bool(secondary_enabled) if board_capabilities & CAP_SECONDARY_OUTPUT else None,
+        "selected_board": board,
+        "independent_scenes_supported": independent,
+        "response_gain": response_gain if independent else None,
+        "edge_response": edge_response if independent else None,
+        "edge_depth": edge_depth if independent else None,
         "reserved": reserved,
     }
 
 
 def applicability(mode: int, color_range: float) -> int:
-    bits = 0xFFFF
+    bits = 0xFFFF & ~0x54
     if mode != 0:
         bits &= ~(1 << 5)
     if not (color_range > 0.0):

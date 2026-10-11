@@ -13,10 +13,13 @@ void draw_analog(){
 		);
 
 		if(configuration.mirror_mode == true){
+			CRGBF paired_color = hsv(get_color_range_hue(dot_pos + 0.5f), configuration.saturation, 1.0);
 			dot_pos = 0.05 + dot_pos * 0.95;
 
 			draw_dot(leds, NUM_RESERVED_DOTS+0, dot_color, 0.5 + (dot_pos* 0.5), 1.0);
-			draw_dot(leds, NUM_RESERVED_DOTS+1, dot_color, 0.5 + (dot_pos*-0.5), 1.0);
+			// The paired dot uses another position in the same permanent palette;
+			// retain the original music position, opacity and number of dots.
+			draw_dot(leds, NUM_RESERVED_DOTS+1, paired_color, 0.5 + (dot_pos*-0.5), 1.0);
 		}
 		else{
 			draw_dot(leds, NUM_RESERVED_DOTS+0, dot_color, dot_pos, 1.0);

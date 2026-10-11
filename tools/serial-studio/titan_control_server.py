@@ -454,14 +454,23 @@ class RestrictedControlPlane:
         if isinstance(ids, dict):
             return ids
         request_id, boot_id, _revision = ids
+        observed = self.last_donor or {}
+        same_boot = observed.get("boot_id") == boot_id
+        board = request.get("board", 0)
         try:
-            wire = donor.encode_get(request_id, boot_id)
+            wire = donor.encode_get(
+                request_id, boot_id, board,
+                state_version=observed.get("version", 2) if same_boot else 2,
+                board_capabilities=observed.get("board_capabilities", 0) if same_boot else 0,
+            )
         except (ValueError, TypeError, OverflowError) as exc:
             self.forbidden_attempts += 1
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
         if self.transact is None:
-            if self.last_donor is None:
+            if self.last_donor is None or not same_boot:
                 return {"ok": False, "error": "ADMISSION_HOLD"}
+            if self.last_donor.get("selected_board", 0) != board:
+                return {"ok": False, "error": "ADMISSION_HOLD", "detail": "selected_board_not_cached"}
             return {"ok": True, "state": self.last_donor, "session": self.session.token, "cached": True}
         got = self._transact(25, wire)
         return self._donor_reply(got, request_id, wrote=False)
@@ -475,7 +484,7 @@ class RestrictedControlPlane:
         if conn_id and self.session.writer_id is None:
             self.session.writer_id = conn_id
         fields = request.get("fields")
-        if not isinstance(fields, dict) or len(fields) > donor.TOP_FIELD_COUNT:
+        if not isinstance(fields, dict) or len(fields) > len(donor.FIELDS):
             return {"ok": False, "error": "empty_patch" if not isinstance(fields, dict) else "too_many_fields"}
         ids = self._donor_ids(request)
         if isinstance(ids, dict):
@@ -564,6 +573,11 @@ def donor_public_state(state: dict) -> dict:
         "primary_intensity": state.get("primary_intensity"),
         "secondary_intensity": state.get("secondary_intensity"),
         "secondary_output_enabled": state.get("secondary_output_enabled"),
+        "selected_board": state.get("selected_board", 0),
+        "independent_scenes_supported": state.get("independent_scenes_supported", False),
+        "response_gain": state.get("response_gain"),
+        "edge_response": state.get("edge_response"),
+        "edge_depth": state.get("edge_depth"),
         "palette": state.get("palette", 0),
         "hardware_output_brightness": state["output_brightness"],
         "applicability": applicability,
@@ -592,13 +606,13 @@ _DONOR_STATUS = {
 
 
 def _decode_donor_body(body: bytes) -> dict | None:
-    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES):
+    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES):
         return None
     try:
         state = donor.decode_state(body)
     except (ValueError, TypeError):
         return None
-    reserved_bytes = 8 if state["version"] >= 2 else 16
+    reserved_bytes = 16 if state["version"] in (1, 4) else 8
     if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * reserved_bytes:
         return None
     return donor_public_state(state)

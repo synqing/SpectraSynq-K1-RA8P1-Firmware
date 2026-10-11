@@ -106,7 +106,8 @@ EMOTISCOPE_MANIFEST = ROOT / 'docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.jso
 EMOTISCOPE_CLOCK_DELTA = ROOT / 'docs/emotiscope-port-001/CLOCK-PORT-DELTA.json'
 EMOTISCOPE_PLATFORM_FILES = ['emotiscope_port.h', 'emotiscope_port.cpp',
                             'emotiscope_quantize.inc', 'emotiscope_output.h',
-                            'emotiscope_control.h']
+                            'emotiscope_control.h', 'emotiscope_edge_response.h']
+EMOTISCOPE_SECONDARY_FILES = ['emotiscope_secondary.cpp', 'emotiscope_secondary.h']
 EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
 
 def emotiscope_inputs():
@@ -619,6 +620,10 @@ def main():
             material += [p for p in (ROOT/'platform/ra8p1/donor_fixed').rglob('*') if p.is_file()]
         if args.emotiscope_port:
             port_material, port_provenance = emotiscope_inputs()
+            if args.titan_top_output:
+                secondary_material = [ROOT/'platform/ra8p1'/name for name in EMOTISCOPE_SECONDARY_FILES]
+                assert all(path.is_file() for path in secondary_material), 'required secondary visual source missing'
+                port_material += secondary_material
             material += port_material
             receipt['emotiscope_port'] = dict(
                 enabled=True, **port_provenance,
@@ -626,7 +631,10 @@ def main():
                 audio_sample_rate_hz=12800, audio_hop_samples=64,
                 audio_hop_period_us=5000, spectrum_bins=64, tempo_bins=96,
                 native_pixels=128, logical_pixels=160, pixels_per_din=80,
-                physical_strips=1, mapping='DIN-A=0..79; DIN-B=80..159; one continuous scene',
+                physical_strips=2 if args.titan_top_output else 1,
+                mapping=('per board DIN-A=0..79; DIN-B=80..159; independent continuous scenes'
+                         if args.titan_top_output else
+                         'DIN-A=0..79; DIN-B=80..159; one continuous scene'),
                 spatial_adapter='endpoint- and centre-preserving nearest-neighbour native 128 to 160',
                 source_precision='donor_post_gamma_temporal_dither_rgb8_to_rgb16',
                 render_period_us=10000, render_cadence='explicit port choice, not historical S3 parity',
@@ -769,6 +777,10 @@ def main():
                     raise RuntimeError('Emotiscope port must restore autonomous emission on application return')
                 if boot_mode != 1 or defaults.get('mode_b') != 1:
                     raise RuntimeError('initial Emotiscope profile must select donor Spectrum mode 1 on both controls')
+                if type(defaults.get('donor_palette')) is not int or defaults['donor_palette'] != 1:
+                    raise RuntimeError('Emotiscope boot defaults must bind curated palette 1 Sunset_Real_gp')
+                receipt['emotiscope_port']['boot_donor_palette'] = 1
+                receipt['emotiscope_port']['boot_palette_consumer'] = 'source-enforced k1_emotiscope_init; palette_a/b retain compatibility metadata'
                 receipt['emotiscope_port']['global_gain'] = f'{brightness}/255 once in final hardware packer'
         def _define_value(name):
             prefix = f'-D{name}='
@@ -864,6 +876,9 @@ def main():
         if args.emotiscope_port:
             for name in EMOTISCOPE_PLATFORM_FILES:
                 shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
+            if args.titan_top_output:
+                for name in EMOTISCOPE_SECONDARY_FILES:
+                    shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
             for name in ('emotiscope_donor', 'emotiscope_shims'):
                 shutil.copytree(ROOT/'platform/ra8p1'/name, stage/'src'/name)
             scon = stage/'src/SConscript'
@@ -1002,14 +1017,18 @@ def main():
         for symbol in active_symbols:
             assert symbol in dump, f'missing selected runtime symbol {symbol}'
         if args.emotiscope_port:
-            donor_object = stage/'build/src/emotiscope_port.o'
-            undefined = command([TOOLCHAIN/'arm-none-eabi-nm', '-u', '-C', donor_object])
+            donor_objects = [stage/'build/src/emotiscope_port.o']
+            if args.titan_top_output:
+                donor_objects.append(stage/'build/src/emotiscope_secondary.o')
+            undefined = '\n'.join(command([TOOLCHAIN/'arm-none-eabi-nm', '-u', '-C', obj])
+                                  for obj in donor_objects)
             (args.output/'emotiscope-object-undefined.txt').write_text(undefined)
             assert not re.search(r'\b(?:malloc|calloc|realloc|free|heap_caps_malloc|heap_caps_free)\b|operator new',
                                  undefined), 'Emotiscope object directly references an allocator'
             receipt['emotiscope_port']['allocator_check'] = {
                 'direct_allocator_references': False,
-                'scope': 'undefined symbols in the donor wrapper object; not a target allocation trace'}
+                'objects': [obj.name for obj in donor_objects],
+                'scope': 'undefined symbols in the donor wrapper objects; not a target allocation trace'}
             # Presence alone is not an execution claim. Require the compiled live
             # owner to call the donor and to omit the old AP invocation.
             consume = re.search(r'^[0-9a-f]+ <[^\n]*LiveAudioRuntime::consume[^\n]*>:\n(.*?)(?=^[0-9a-f]+ <|\Z)',
@@ -1021,9 +1040,17 @@ def main():
                              dump, re.MULTILINE | re.DOTALL)
             assert step and 'k1_emotiscope_render' in step.group(1), 'palette owner does not call Emotiscope VP'
             assert 'renderProductChannel' not in step.group(1), 'legacy K1 VP remains active in palette owner'
+            if args.titan_top_output:
+                for symbol in ('k1_emotiscope_audio_publication',
+                               'k1_secondary_emotiscope_accept_audio',
+                               'k1_secondary_emotiscope_render'):
+                    assert symbol in step.group(1), f'palette owner missing secondary publication/VP call: {symbol}'
+                assert 'k1_secondary_emotiscope_push_pcm64' not in dump, 'secondary PCM/AP ingress linked into top image'
             receipt['emotiscope_port']['compiled_live_callchain'] = {
                 'consumer_calls_donor_ap': True, 'consumer_calls_legacy_ap': False,
                 'palette_calls_donor_vp': True, 'palette_calls_legacy_vp': False,
+                'palette_calls_secondary_vp': bool(args.titan_top_output),
+                'secondary_consumes_primary_publication': bool(args.titan_top_output),
                 'scope': 'compiled owner function call sites; not target timing or optical proof'}
 
         if not args.palette_gpt_dma and not args.palette_ws2816_gpt_pair:

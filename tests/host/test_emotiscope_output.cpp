@@ -4,6 +4,7 @@
 #include "palette_runtime.h"
 #include "hd_pixel16.h"
 #include "core/visual/product_palette.h"
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdio>
@@ -262,12 +263,12 @@ static void k1palette_case() {
     k1_emotiscope_default_config(&c);
     c.current_mode=1;
     unsigned checked=0; double worst=0.0;
-    for(bool autoc:{false,true}) for(bool reverse:{false,true}) for(float range:{0.0f,0.378f,1.0f}) {
-        c.color=0.583f; c.color_range=range; c.saturation=0.75f; c.reverse_color_range=reverse;
+    for(bool autoc:{false,true}) for(bool reverse:{false,true}) {
+        c.reverse_color_range=reverse;
         c.auto_color_cycle=autoc;
-        const float base=autoc?0.583f:0.0f;  // Colour moves the palette only via auto colour
+        const float base=autoc?c.color:0.0f;  // Colour moves the palette only via auto colour
         require(k1_emotiscope_set_config(&c),"config write failed");
-        for(unsigned id:{1u,25u,31u,44u}) {
+        for(unsigned id=1u;id<=44u;++id) {
             require(k1_emotiscope_set_palette(id),"palette select failed");
             for(int s=0;s<=20;++s) for(float v:{0.0f,0.25f,0.5f,1.0f}) {
                 const float progress=s/20.0f;
@@ -282,16 +283,12 @@ static void k1palette_case() {
                 ++checked;
             }
         }
-        // Palette 0 keeps the donor: colour range still decides the hue, gamma still squares.
-        require(k1_emotiscope_set_palette(0u),"native select failed");
-        float a0[3],a1[3],b0[3],b1[3];
-        k1_emotiscope_test_colour(0.0f,0.8f,a0,a1); k1_emotiscope_test_colour(0.5f,0.8f,b0,b1);
-        for(int j=0;j<3;++j) require(std::fabs(a1[j]-a0[j]*a0[j])<1e-6f,"native palette lost its gamma");
-        const bool same=a0[0]==b0[0]&&a0[1]==b0[1]&&a0[2]==b0[2];
-        require(range==0.0f?same:!same,"native palette colour range behaviour changed");
+        // Zero must not switch a musical scene back to native HSV.
+        require(!k1_emotiscope_set_palette(0u) && k1_emotiscope_palette()==44u,"native zero accepted or changed palette");
+
     }
     // Background, peaks, screensaver and Hype with a palette on.
-    c.auto_color_cycle=false; c.reverse_color_range=false; c.mirror_mode=false; c.color_range=0.378f;
+    c.auto_color_cycle=false; c.reverse_color_range=false; c.mirror_mode=false;
     require(k1_emotiscope_set_config(&c),"config write failed");
     require(k1_emotiscope_set_palette(31u),"palette select failed");
     std::array<float,384> f{};
@@ -309,11 +306,54 @@ static void k1palette_case() {
         for(int j=0;j<3;++j) require(std::fabs(f[3*d+j]-want[j])<1e-5f,"screensaver colour is not from the palette");
     }
     k1_emotiscope_test_stage(3,0.0f,f.data());
-    require(f[0]==1.0f && std::fabs(f[1]-0.378f)<1e-6f,"Hype colour-range pin not scoped to the draw");
-    require(k1_emotiscope_set_palette(0u),"native select failed");
+    require(f[0]==1.0f && std::fabs(f[1]-c.color_range)<1e-6f,"Hype colour-range pin not scoped to the draw");
+    require(!k1_emotiscope_set_palette(0u) && k1_emotiscope_palette()==31u,"native zero changed selected palette");
     k1_emotiscope_test_stage(3,0.0f,f.data());
-    require(std::fabs(f[0]-0.378f)<1e-6f,"native palette colour range was overridden");
-    std::cout<<"{\"k1_palette_pixels_checked\":"<<checked<<",\"worst_abs_error\":"<<worst<<"}\n";
+    require(f[0]==1.0f && std::fabs(f[1]-c.color_range)<1e-6f,"palette draw did not restore range");
+    // Silence has no injected background floor; Analog retains geometry with paired hues.
+    k1_emotiscope_test_stage(0,0.0f,f.data());
+    for(float v:f)require(v==0.0f,"zero audio injected background light");
+    c.current_mode=0;c.mirror_mode=true;
+    require(k1_emotiscope_set_config(&c),"Analog config rejected");
+    require(k1_emotiscope_set_palette(1u),"SunsetReal Analog palette rejected");
+    float analog_min_hue_difference=1.0f;
+    unsigned analog_paired_pixels=0;
+    for(float level:{0.25f,0.75f}){
+        k1_emotiscope_test_stage(4,level,f.data());
+        k1_emotiscope_test_stage(4,level,f.data());
+        float expected_left[3],expected_right[3];
+        k1_oracle(0u,level+0.5f,1.0f,expected_left);
+        k1_oracle(0u,level,1.0f,expected_right);
+        const float left_sum=expected_left[0]+expected_left[1]+expected_left[2];
+        const float right_sum=expected_right[0]+expected_right[1]+expected_right[2];
+        require(left_sum>0.0f&&right_sum>0.0f,"Analog oracle palette phase is black");
+        unsigned paired_lit=0;
+        float measured_hue_difference=0.0f;
+        for(unsigned i=0;i<64u;++i){
+            const unsigned a=3u*i,b=3u*(127u-i);
+            const float sa=f[a]+f[a+1]+f[a+2],sb=f[b]+f[b+1]+f[b+2];
+            if(sa>1e-6f&&sb>1e-6f){
+                ++paired_lit;
+                for(unsigned j=0;j<3u;++j){
+                    const float left=f[a+j]/sa,right=f[b+j]/sb;
+                    if(std::fabs(left-expected_left[j]/left_sum)>=1e-4f || std::fabs(right-expected_right[j]/right_sum)>=1e-4f)
+                        std::cerr<<"ANALOG_HUE_SAMPLE level="<<level<<" pixel="<<i<<" component="<<j
+                                 <<" left="<<left<<" expected_left="<<expected_left[j]/left_sum
+                                 <<" right="<<right<<" expected_right="<<expected_right[j]/right_sum<<"\n";
+                    require(std::fabs(left-expected_left[j]/left_sum)<1e-4f,"Analog left hue differs from its paired palette phase");
+                    require(std::fabs(right-expected_right[j]/right_sum)<1e-4f,"Analog right hue differs from its palette phase");
+                    measured_hue_difference=std::max(measured_hue_difference,std::fabs(left-right));
+                }
+            }
+        }
+        require(paired_lit>0u,"Analog lost its actual audio-driven pixels");
+        require(measured_hue_difference>1e-3f,"Analog paired dots lost their distinct catalogue hues");
+        analog_min_hue_difference=std::min(analog_min_hue_difference,measured_hue_difference);
+        analog_paired_pixels+=paired_lit;
+    }
+    std::cout<<"{\"k1_palette_pixels_checked\":"<<checked<<",\"worst_abs_error\":"<<worst
+             <<",\"analog_paired_pixels\":"<<analog_paired_pixels
+             <<",\"analog_min_normalised_hue_difference\":"<<analog_min_hue_difference<<"}\n";
 }
 int main(int argc,char** argv) {
     require(argc>=2,"usage: markers | fade | direct|direct16|runtime|runtime16 OUTPUT");

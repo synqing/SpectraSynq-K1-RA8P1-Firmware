@@ -72,13 +72,41 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
   if (result.brightness_changed) observed->hardware_brightness = result.hardware_brightness;
   if (result.emission_changed) observed->emission = result.emission;
   if (result.output_precision_changed) observed->output_precision = result.output_precision;
-  if (result.palette_changed) observed->palette = result.palette;
+  if (result.palette_changed) {
+    observed->palette = result.palette;
+#ifdef K1_TITAN_TOP_OUTPUT
+    CHECK(result.board == 1u ? k1_secondary_emotiscope_set_palette(result.palette)
+                            : k1_emotiscope_set_palette(result.palette));
+#else
+    CHECK(k1_emotiscope_set_palette(result.palette));
+#endif
+  }
   if (result.intensity_a_changed) observed->output_intensity_a = result.output_intensity_a;
   if (result.intensity_b_changed) observed->output_intensity_b = result.output_intensity_b;
 #ifdef K1_TITAN_TOP_OUTPUT
   if (result.primary_intensity_changed) observed->primary_intensity = result.primary_intensity;
   if (result.secondary_intensity_changed) observed->secondary_intensity = result.secondary_intensity;
   if (result.secondary_output_enabled_changed) observed->secondary_output_enabled = result.secondary_output_enabled;
+  if (result.response_gain_changed)
+    CHECK(result.board == 1u ? k1_secondary_emotiscope_set_response_gain(result.response_gain)
+                            : k1_emotiscope_set_response_gain(result.response_gain));
+  if (result.edge_response_changed || result.edge_depth_changed)
+    CHECK(result.board == 1u ? k1_secondary_emotiscope_set_edge_response(result.edge_response, result.edge_depth)
+                            : k1_emotiscope_set_edge_response(result.edge_response, result.edge_depth));
+#endif
+}
+
+static void observe_scene(ec::DonorObserved* observed, const ec::DonorIntent& intent) {
+#ifdef K1_TITAN_TOP_OUTPUT
+  observed->board = intent.board;
+  const bool secondary = intent.board == 1u;
+  observed->palette = secondary ? k1_secondary_emotiscope_palette() : k1_emotiscope_palette();
+  observed->response_gain = secondary ? k1_secondary_emotiscope_response_gain() : k1_emotiscope_response_gain();
+  observed->edge_response = secondary ? k1_secondary_emotiscope_edge_response() : k1_emotiscope_edge_response();
+  observed->edge_depth = secondary ? k1_secondary_emotiscope_edge_depth() : k1_emotiscope_edge_depth();
+#else
+  (void)intent;
+  observed->palette = k1_emotiscope_palette();
 #endif
 }
 
@@ -91,6 +119,7 @@ static ec::DonorApplyResult apply_bytes(ec::DonorDedup* dedup, ec::DonorObserved
     result.status = 1000u + parsed;
     return result;
   }
+  observe_scene(observed, intent);
   ec::donorApply(dedup, intent, *observed, &result);
   adopt(observed, intent, result);
   return result;
@@ -135,26 +164,183 @@ static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 60) == 1u);
   CHECK(ec::donorGetU32(body + 64) == 39u);
   CHECK(ec::donorGetU32(body + 68) == 100u);
-  CHECK(ec::donorGetU32(body + 72) == 0xDFDFu);
+  CHECK(ec::donorGetU32(body + 72) == 0xDF8Bu);
   CHECK(ec::donorGetU32(body + 92) == 0u);
   CHECK(ec::donorGetU32(body + 96) == 0u);
   CHECK(ec::donorGetU32(body + 100) == 0u);
   CHECK(ec::donorGetU32(body + 104) == 0u);
-  CHECK(ec::donorGetU32(body + 140) == 0u);
+  CHECK(ec::donorGetU32(body + 140) == 1u);
   check_f("intensity A", ec::donorGetF32(body + 144), 1.0f);
   check_f("intensity B", ec::donorGetF32(body + 148), 1.0f);
 #ifdef K1_TITAN_TOP_OUTPUT
   check_f("primary", ec::donorGetF32(body + 152), 1.0f);
   check_f("secondary", ec::donorGetF32(body + 156), 1.0f);
-  CHECK(ec::donorGetU32(body + 160) == 0u && ec::donorGetU32(body + 164) == 3u);
+  CHECK(ec::donorGetU32(body + 160) == 0u && ec::donorGetU32(body + 164) == 7u);
   for (unsigned i = 168; i < 176; ++i) CHECK(body[i] == 0u);
+  CHECK(ec::donorGetU32(body + 176) == 0u);
+  check_f("response gain", ec::donorGetF32(body + 180), 1.0f);
+  CHECK(ec::donorGetU32(body + 184) == 0u);
+  check_f("edge depth", ec::donorGetF32(body + 188), 0.0f);
+  for (unsigned i = 192; i < 208; ++i) CHECK(body[i] == 0u);
 #else
   for (unsigned i = 152; i < 160; ++i) CHECK(body[i] == 0u);
 #endif
 }
 
+#ifdef K1_TITAN_TOP_OUTPUT
+static void check_independent_scene_controls() {
+  K1EmotiscopeConfig defaults{}, primary_before{}, secondary_after{};
+  k1_emotiscope_default_config(&defaults);
+  CHECK(k1_emotiscope_set_config(&defaults));
+  CHECK(k1_secondary_emotiscope_set_config(&defaults));
+  CHECK(k1_emotiscope_set_palette(1u) && k1_secondary_emotiscope_set_palette(1u));
+  CHECK(k1_emotiscope_set_response_gain(1.0f) && k1_secondary_emotiscope_set_response_gain(1.0f));
+  CHECK(k1_emotiscope_set_edge_response(0u, 0.0f) && k1_secondary_emotiscope_set_edge_response(0u, 0.0f));
+  k1_emotiscope_get_config(&primary_before);
+  ec::DonorObserved observed = fresh_observed();
+  ec::DonorDedup cache{};
+  // Exercise every mirrored scene parameter through the actual secondary consumer.
+  const Entry scene[]{
+    {1u,1u,fbits(0.21f)}, {2u,1u,fbits(0.32f)},
+    {4u,1u,fbits(0.54f)}, {6u,1u,fbits(0.76f)},
+    {8u,1u,fbits(0.18f)}, {9u,3u,6u},
+    {10u,2u,0u}, {11u,2u,0u}, {12u,2u,0u}, {13u,2u,1u}, {14u,2u,1u},
+    {18u,4u,31u}, {24u,4u,1u}, {25u,1u,fbits(1.75f)}, {26u,4u,2u}, {27u,1u,fbits(0.25f)}
+  };
+  const auto packet = build_patch(1001u, 0u, 0x11u, scene, int(sizeof(scene)/sizeof(scene[0])));
+  auto result = apply_vec(&cache, &observed, packet);
+  CHECK(result.status == 0u && observed.revision == 1u);
+  K1EmotiscopeConfig primary_after{};
+  k1_emotiscope_get_config(&primary_after);
+  k1_secondary_emotiscope_get_config(&secondary_after);
+  CHECK(std::memcmp(&primary_before, &primary_after, sizeof(primary_before)) == 0);
+  const float values[]{secondary_after.brightness, secondary_after.softness, secondary_after.color,
+    secondary_after.warmth, secondary_after.color_range, secondary_after.speed,
+    secondary_after.saturation, secondary_after.background};
+  const float expected[]{0.21f,0.32f,0.33f,0.54f,0.0f,0.76f,0.75f,0.18f};
+  for (unsigned i=0;i<8u;++i) {
+    check_f("secondary actual config", values[i], expected[i]);
+    check_f("secondary selected readback", ec::donorGetF32(result.response+24u+4u*i), expected[i]);
+  }
+  CHECK(secondary_after.current_mode == 6 && !secondary_after.mirror_mode && !secondary_after.screensaver
+        && !secondary_after.temporal_dithering && secondary_after.auto_color_cycle && secondary_after.reverse_color_range);
+  CHECK(k1_emotiscope_palette() == 1u && k1_secondary_emotiscope_palette() == 31u);
+  CHECK(k1_emotiscope_response_gain() == 1.0f && k1_secondary_emotiscope_response_gain() == 1.75f);
+  CHECK(k1_emotiscope_edge_response() == 0u && k1_secondary_emotiscope_edge_response() == 2u);
+  CHECK(k1_secondary_emotiscope_edge_depth() == 0.25f);
+  CHECK(ec::donorGetU32(result.response+176) == 1u && ec::donorGetU32(result.response+140) == 31u);
+  CHECK(ec::donorGetF32(result.response+180) == 1.75f && ec::donorGetU32(result.response+184) == 2u
+        && ec::donorGetF32(result.response+188) == 0.25f);
+  auto replay = apply_vec(&cache, &observed, packet);
+  CHECK(replay.status == 0u && ec::donorGetU32(replay.response+96) == 1u && !replay.revision_changed);
+  // Even a direct caller forging the original CRC cannot reuse the ID for another target.
+  ec::DonorIntent forged{};
+  CHECK(ec::donorParse(packet.data(), packet.size(), &forged) == 0u);
+  forged.board = 0u;
+  ec::donorApply(&cache, forged, observed, &result);
+  CHECK(result.status == ec::kDonorStatusConflict && !result.revision_changed);
+  const Entry primary[]{ {1u,1u,fbits(0.4f)}, {18u,4u,25u}, {25u,1u,fbits(0.5f)} };
+  result = apply_vec(&cache, &observed, build_patch(1002u, 1u, 0x11u, primary, 3));
+  CHECK(result.status == 0u && observed.revision == 2u);
+  K1EmotiscopeConfig secondary_kept{};
+  k1_secondary_emotiscope_get_config(&secondary_kept);
+  CHECK(std::memcmp(&secondary_after, &secondary_kept, sizeof(secondary_after)) == 0);
+  CHECK(k1_secondary_emotiscope_palette() == 31u && k1_secondary_emotiscope_response_gain() == 1.75f);
+  CHECK(k1_emotiscope_palette() == 25u && k1_emotiscope_response_gain() == 0.5f);
+  CHECK(ec::donorGetU32(result.response+176) == 0u);
+  const Entry selector{24u,4u,1u};
+  result = apply_vec(&cache, &observed, build_patch(1003u, 2u, 0x11u, &selector, 1));
+  CHECK(result.status == 0u && !result.changed && observed.revision == 2u);
+  std::uint8_t get[20]{};
+  build_get(get, 1004u, 0x11u); ec::donorPutU32(get+16,1u);
+  result = apply_bytes(&cache, &observed, get, 20u);
+  CHECK(result.status == 0u && ec::donorGetU32(result.response+176) == 1u);
+  check_f("selected secondary GET", ec::donorGetF32(result.response+24), 0.21f);
+  build_get(get, 1005u, 0x11u);
+  result = apply_bytes(&cache, &observed, get, 16u);
+  CHECK(result.status == 0u && ec::donorGetU32(result.response+176) == 0u);
+  check_f("legacy GET stays primary", ec::donorGetF32(result.response+24), 0.4f);
+  // A malformed response or prohibited DIN-half target cannot partially alter either scene.
+  for (std::uint32_t bits : {0x7fc00000u,0x7f800000u,0x40000001u,0x80000001u}) {
+    const Entry invalid[]{ {1u,1u,fbits(0.99f)}, {24u,4u,1u}, {25u,1u,bits} };
+    result = apply_vec(&cache, &observed, build_patch(1006u, 2u, 0x11u, invalid, 3));
+    CHECK(result.status == 1000u+ec::kDonorStatusInvalid && observed.revision == 2u);
+  }
+  const Entry bad_din[]{ {19u,1u,fbits(0.1f)}, {24u,4u,1u} };
+  result = apply_vec(&cache,&observed,build_patch(1007u,2u,0x11u,bad_din,2));
+  CHECK(result.status == 1000u+ec::kDonorStatusInvalid);
+  const Entry palette_zero[]{ {1u,1u,fbits(0.99f)}, {18u,4u,0u}, {24u,4u,1u} };
+  result=apply_vec(&cache,&observed,build_patch(1008u,2u,0x11u,palette_zero,3));
+  CHECK(result.status == 1000u+ec::kDonorStatusInvalid && k1_secondary_emotiscope_palette()==31u);
+  ec::DonorIntent invalid{}; invalid.sub=ec::kDonorCfgPatch; invalid.request_id=1009u;
+  invalid.boot_id=0x11u; invalid.expected_revision=2u; invalid.board=1u;
+  invalid.mask=1u|(1u<<23)|(1u<<24); invalid.brightness=0.99f; invalid.response_gain=NAN;
+  observe_scene(&observed,invalid); ec::donorApply(&cache,invalid,observed,&result);
+  CHECK(result.status==ec::kDonorStatusInvalid && !result.revision_changed);
+  k1_secondary_emotiscope_get_config(&secondary_kept);
+  CHECK(std::memcmp(&secondary_after,&secondary_kept,sizeof(secondary_after))==0);
+  observed.board_capabilities=3u;
+  build_get(get,1010u,0x11u);ec::donorPutU32(get+16,1u);
+  result=apply_bytes(&cache,&observed,get,20u);
+  CHECK(result.status==ec::kDonorStatusInvalid && observed.revision==2u);
+  observed.board_capabilities=7u;
+  // Direct mixed packets also reject before secondary admission on both targets.
+  static unsigned obsolete_admissions=0;
+  for(unsigned target=0;target<2u;++target) for(unsigned field:{3u,5u,7u}) {
+    ec::DonorIntent mixed{};mixed.sub=ec::kDonorCfgPatch;mixed.request_id=1020u;
+    mixed.boot_id=0x11u;mixed.expected_revision=2u;mixed.board=target;
+    mixed.mask=1u|(1u<<(field-1u))|(1u<<22)|(1u<<23);
+    mixed.brightness=0.99f;mixed.color=0.2f;mixed.color_range=0.2f;mixed.saturation=0.2f;
+    mixed.secondary_output_enabled=1u;observe_scene(&observed,mixed);
+    obsolete_admissions=0;
+    ec::donorApply(&cache,mixed,observed,&result,+[](){++obsolete_admissions;return true;});
+    CHECK(result.status==ec::kDonorStatusInvalid && !result.revision_changed && obsolete_admissions==0u);
+  }
+  ec::DonorIntent fault_enable{};fault_enable.sub=ec::kDonorCfgPatch;fault_enable.request_id=1021u;
+  fault_enable.boot_id=0x11u;fault_enable.expected_revision=2u;fault_enable.board=1u;
+  fault_enable.mask=(1u<<22)|(1u<<23);fault_enable.secondary_output_enabled=1u;
+  observe_scene(&observed,fault_enable);
+  ec::donorApply(&cache,fault_enable,observed,&result,+[](){return false;});
+  CHECK(result.status==ec::kDonorStatusInvalid && !result.revision_changed);
+  CHECK(ec::donorGetU32(result.response+176)==1u && ec::donorGetU32(result.response+164)==5u);
+  CHECK(ec::donorGetU32(result.response+160)==0u);
+  k1_emotiscope_get_config(&primary_after);k1_secondary_emotiscope_get_config(&secondary_kept);
+  check_f("atomic primary brightness",primary_after.brightness,0.4f);
+  CHECK(std::memcmp(&secondary_after,&secondary_kept,sizeof(secondary_after))==0);
+  Entry full[27];
+  for(unsigned i=0;i<27u;++i){const auto field=std::uint16_t(i+1);const auto kind=ec::donorFieldKind(field);
+    full[i]={field,std::uint16_t(kind),kind==1u?fbits(0.5f):field==18u?1u:0u};}
+  ec::DonorIntent parsed{};const auto maximum=build_patch(1011u,2u,0x11u,full,27);
+  CHECK(maximum.size()==240u && ec::donorParse(maximum.data(),maximum.size(),&parsed)==ec::kDonorStatusInvalid);
+  for(unsigned target=0;target<2u;++target) for(std::uint16_t field:{3u,5u,7u}) {
+    const Entry mixed[]{{1u,1u,fbits(0.99f)},{field,1u,fbits(0.2f)},{24u,4u,target}};
+    result=apply_vec(&cache,&observed,build_patch(1012u,2u,0x11u,mixed,3));
+    CHECK(result.status==1000u+ec::kDonorStatusInvalid && observed.revision==2u);
+  }
+  // Receipt routing follows actual changed consumers, rather than selector presence.
+  const Entry top_gain_with_primary_noop[]{{1u,1u,fbits(0.4f)},{22u,1u,fbits(0.5f)}};
+  result=apply_vec(&cache,&observed,build_patch(1030u,2u,0x11u,top_gain_with_primary_noop,2));
+  CHECK(result.status==0u && result.affected_boards==2u && observed.revision==3u);
+  const Entry global_brightness{15u,4u,99u};
+  result=apply_vec(&cache,&observed,build_patch(1031u,3u,0x11u,&global_brightness,1));
+  CHECK(result.status==0u && result.affected_boards==3u && observed.revision==4u);
+  const Entry secondary_scene[]{{2u,1u,fbits(0.45f)},{24u,4u,1u}};
+  result=apply_vec(&cache,&observed,build_patch(1032u,4u,0x11u,secondary_scene,2));
+  CHECK(result.status==0u && result.affected_boards==2u && observed.revision==5u);
+  const auto selector_packet=build_patch(1033u,5u,0x11u,&selector,1);
+  result=apply_vec(&cache,&observed,selector_packet);
+  CHECK(result.status==0u && result.affected_boards==0u && observed.revision==5u);
+  result=apply_vec(&cache,&observed,selector_packet);
+  CHECK(result.status==0u && result.affected_boards==0u && !result.revision_changed
+        && ec::donorGetU32(result.response+96)==1u);
+}
+#endif
+
 static int behavioral() {
   CHECK(k1_emotiscope_init(1u));
+#ifdef K1_TITAN_TOP_OUTPUT
+  CHECK(k1_secondary_emotiscope_init(2u));
+#endif
   CHECK(!k1_emotiscope_init(2u));
   const char* names[] = {"Analog", "Spectrum", "Octave", "Metronome", "Spectronome", "Hype", "Bloom"};
   for (std::uint32_t mode = 0; mode < 7u; ++mode)
@@ -262,7 +448,7 @@ static int behavioral() {
   CHECK(result.mode == 0);
   CHECK(k1_emotiscope_test_lpf_drag() == 1.0f);
   CHECK(k1_emotiscope_test_novelty_sample() == 0.37f);
-  CHECK(ec::donorGetU32(result.response + 72) == 0xDFFFu);
+  CHECK(ec::donorGetU32(result.response + 72) == 0xDFABu);
   const Entry screen_off{11u, ec::kDonorKindBool, 0u};
   result = apply_vec(&dedup, &observed, build_patch(4u, observed.revision, 0x11u, &screen_off, 1));
   CHECK(result.status == 0u);
@@ -290,51 +476,26 @@ static int behavioral() {
   check_f("wire color", ec::donorGetF32(result.response + 32), 1.4f);
   check_f("wire hue", ec::donorGetF32(result.response + 56), 0.4f);
   print_hex("RAWGET", result.response, ec::kDonorStateBytes);
-  const Entry hue{3u, ec::kDonorKindF32, fbits(0.20f)};
-  result = apply_vec(&dedup, &observed, build_patch(8u, observed.revision, 0x11u, &hue, 1));
-  CHECK(result.status == 0u);
-  k1_emotiscope_get_config(&raw);
-  check_f("replaced color", raw.color, 0.20f);
-  check_f("replaced hue", k1_emotiscope_effective_hue(), 0.20f);
-  raw.color = 1.4f;
+  // Historical raw readback survives an unrelated masked patch; obsolete HSV writes reject.
+  for (std::uint16_t field : {3u,5u,7u}) {
+    const Entry mixed[]{ {1u,1u,fbits(0.99f)}, {field,1u,fbits(0.2f)} };
+    const auto rev = observed.revision;
+    result=apply_vec(&dedup,&observed,build_patch(8u,rev,0x11u,mixed,2));
+    CHECK(result.status==1000u+ec::kDonorStatusInvalid && observed.revision==rev);
+    k1_emotiscope_get_config(&raw);
+    check_f("obsolete mixed write preserved brightness",raw.brightness,1.0f);
+    check_f("obsolete mixed write preserved raw colour",raw.color,1.4f);
+  }
+  raw.color=0.2f;
   CHECK(!k1_emotiscope_set_config(&raw));
   k1_emotiscope_get_config(&raw);
-  check_f("set_config kept", raw.color, 0.20f);
-  K1EmotiscopeConfig mode7 = raw;
-  mode7.current_mode = 7;
-  CHECK(k1_emotiscope_set_config(&mode7));
-  mode7.current_mode = 8;
-  mode7.color = 0.20f;
-  CHECK(!k1_emotiscope_set_config(&mode7));
-  k1_emotiscope_get_config(&raw);
-  CHECK(raw.current_mode == 7);
-  const Entry back{9u, ec::kDonorKindI32, 1u};
-  result = apply_vec(&dedup, &observed, build_patch(80u, observed.revision, 0x11u, &back, 1));
-  CHECK(result.status == 0u && result.mode == 1);
-  k1_emotiscope_test_set_raw_color(-1.2f);
-  check_f("negative hue", k1_emotiscope_effective_hue(), 0.8f);
-  const Entry soft_again{2u, ec::kDonorKindF32, fbits(0.40f)};
-  const std::uint32_t rev_neg = observed.revision;
-  result = apply_vec(&dedup, &observed, build_patch(9u, observed.revision, 0x11u, &soft_again, 1));
-  CHECK(result.status == 0u && observed.revision == rev_neg);
-  k1_emotiscope_get_config(&raw);
-  check_f("kept negative", raw.color, -1.2f);
-  const Entry restore_color{3u, ec::kDonorKindF32, fbits(0.33f)};
-  result = apply_vec(&dedup, &observed, build_patch(81u, observed.revision, 0x11u, &restore_color, 1));
-  CHECK(result.status == 0u);
-
-  const Entry bloom{9u, ec::kDonorKindI32, 6u};
-  result = apply_vec(&dedup, &observed, build_patch(10u, observed.revision, 0x11u, &bloom, 1));
-  CHECK(result.status == 0u);
-  CHECK(ec::donorGetU32(result.response + 72) == 0xDFDFu);
-  const Entry ranged{5u, ec::kDonorKindF32, fbits(0.50f)};
-  result = apply_vec(&dedup, &observed, build_patch(11u, observed.revision, 0x11u, &ranged, 1));
-  CHECK(ec::donorGetU32(result.response + 72) == 0xFFDFu);
-  result = apply_vec(&dedup, &observed, build_patch(12u, observed.revision, 0x11u, &analog, 1));
-  CHECK(ec::donorGetU32(result.response + 72) == 0xFFFFu);
-  const Entry clear_range{5u, ec::kDonorKindF32, fbits(0.0f)};
-  result = apply_vec(&dedup, &observed, build_patch(13u, observed.revision, 0x11u, &clear_range, 1));
-  CHECK(ec::donorGetU32(result.response + 72) == 0xDFFFu);
+  check_f("set_config retains historical colour",raw.color,1.4f);
+  k1_emotiscope_test_set_raw_color(0.33f);
+  const Entry bloom{9u,ec::kDonorKindI32,6u};
+  result=apply_vec(&dedup,&observed,build_patch(10u,observed.revision,0x11u,&bloom,1));
+  CHECK(result.status==0u && ec::donorGetU32(result.response+72)==0xDF8Bu);
+  result=apply_vec(&dedup,&observed,build_patch(12u,observed.revision,0x11u,&analog,1));
+  CHECK(result.status==0u && ec::donorGetU32(result.response+72)==0xDFABu);
 
   const float donor_before = 1.0f;
   k1_emotiscope_get_config(&raw);
@@ -393,21 +554,23 @@ static int behavioral() {
   scene[13] = Entry{14u, ec::kDonorKindBool, 1u};
   scene[14] = Entry{15u, ec::kDonorKindU32, 80u};
   scene[15] = Entry{16u, ec::kDonorKindBool, 0u};
-  const auto scene_bytes = build_patch(21u, observed.revision, 0x11u, scene, 16);
-  CHECK(scene_bytes.size() == 152u);
+  std::vector<Entry> applicable_scene;
+  for(const auto& entry:scene) if(entry.field!=3u && entry.field!=5u && entry.field!=7u) applicable_scene.push_back(entry);
+  const auto scene_bytes = build_patch(21u, observed.revision, 0x11u, applicable_scene.data(), applicable_scene.size());
+  CHECK(scene_bytes.size() == 128u);
   result = apply_vec(&dedup, &observed, scene_bytes);
   CHECK(result.status == 0u);
   CHECK(observed.revision == rev_scene + 1u);
   CHECK(result.mode_transition == 1u && result.mode == 6);
   CHECK(result.hardware_brightness == 80u && result.emission == 0u && result.emission_fell == 1u);
-  CHECK(ec::donorGetU32(result.response + 72) == 0xFFDFu);
+  CHECK(ec::donorGetU32(result.response + 72) == 0xDF8Bu);
   CHECK(ec::donorGetU32(result.response + 64) == 24u);
   CHECK(ec::donorGetU32(result.response + 76) == 21u);
   k1_emotiscope_get_config(&raw);
   check_f("scene brightness", raw.brightness, 0.10f);
-  check_f("scene color", raw.color, 0.30f);
+  check_f("scene color", raw.color, 0.33f);
   check_f("scene speed", raw.speed, 0.60f);
-  check_f("scene saturation", raw.saturation, 0.70f);
+  check_f("scene saturation", raw.saturation, 0.75f);
   CHECK(raw.current_mode == 6);
   CHECK(!raw.mirror_mode && !raw.screensaver && !raw.temporal_dithering);
   CHECK(raw.auto_color_cycle && raw.reverse_color_range);
@@ -500,8 +663,7 @@ static int behavioral() {
     }
     auto full = build_patch(47u, observed.revision, 0x11u, all, 20);
     CHECK(full.size() == 184u);
-    CHECK(ec::donorParse(full.data(), std::uint32_t(full.size()), &intent) == 0u);
-    CHECK(intent.mask == 0xfffffu);
+    CHECK(ec::donorParse(full.data(), std::uint32_t(full.size()), &intent) == ec::kDonorStatusInvalid);
     std::vector<std::uint8_t> oversize(full);
     oversize.push_back(0u);
     CHECK(ec::donorParse(oversize.data(), std::uint32_t(oversize.size()), &intent) == ec::kDonorStatusInvalid);
@@ -591,14 +753,14 @@ static int behavioral() {
     CHECK(response.status == ec::kDonorStatusInvalid && board.revision == revision);
     CHECK(std::memcmp(&before_board, &after_board, sizeof(before_board)) == 0);
     CHECK(!board.secondary_output_enabled);
-    board.board_capabilities = 3u;
+    board.board_capabilities = 7u;
     const auto failed_enable = build_patch(905u, board.revision, 0x11u, unsupported, 2);
     ec::DonorIntent failed_intent{};
     CHECK(ec::donorParse(failed_enable.data(), failed_enable.size(), &failed_intent) == 0u);
     ec::donorApply(&cache, failed_intent, board, &response, +[]() { return false; });
     k1_emotiscope_get_config(&after_board);
     CHECK(response.status == ec::kDonorStatusInvalid && response.revision == revision);
-    CHECK(ec::donorGetU32(response.response + 164) == 1u && !response.secondary_output_enabled_changed);
+    CHECK(ec::donorGetU32(response.response + 164) == 5u && !response.secondary_output_enabled_changed);
     CHECK(std::memcmp(&before_board, &after_board, sizeof(before_board)) == 0);
     // Direct intents must reject invalid scene data before hardware admission.
     ec::DonorIntent invalid_legacy = failed_intent;
@@ -627,14 +789,16 @@ static int behavioral() {
       const auto field = std::uint16_t(i + 1);
       const auto kind = ec::donorFieldKind(field);
       full[i] = Entry{field, std::uint16_t(kind), kind == ec::kDonorKindF32 ? 0x3f000000u
-                        : field == 9u ? 1u : field == 15u ? 100u : 0u};
+                        : field == 9u ? 1u : field == 15u ? 100u : field == 18u ? 1u : 0u};
     }
     const auto maximum = build_patch(904u, board.revision, 0x11u, full, 23);
     ec::DonorIntent full_intent{};
     CHECK(maximum.size() == 208u);
-    CHECK(ec::donorParse(maximum.data(), maximum.size(), &full_intent) == 0u);
-    CHECK(full_intent.mask == 0x7fffffu);
+    CHECK(ec::donorParse(maximum.data(), maximum.size(), &full_intent) == ec::kDonorStatusInvalid);
   }
+#endif
+#ifdef K1_TITAN_TOP_OUTPUT
+  check_independent_scene_controls();
 #endif
   std::printf("BEHAVIORAL %s %d\n", g_fails ? "FAIL" : "OK", g_fails);
   return g_fails ? 1 : 0;
@@ -661,6 +825,9 @@ static int parse_hex(const char* text, std::uint8_t* out, int cap) {
 
 static int corpus(const char* path) {
   if (!k1_emotiscope_init(1u)) return 2;
+#ifdef K1_TITAN_TOP_OUTPUT
+  if (!k1_secondary_emotiscope_init(2u)) return 2;
+#endif
   FILE* file = std::fopen(path, "r");
   if (!file) return 2;
   ec::DonorDedup dedup{};
@@ -677,6 +844,7 @@ static int corpus(const char* path) {
     std::printf("{\"i\":%d,\"parse\":%u", index, parsed);
     if (parsed == 0u) {
       ec::DonorApplyResult result{};
+      observe_scene(&observed, intent);
       ec::donorApply(&dedup, intent, observed, &result);
       adopt(&observed, intent, result);
       std::printf(",\"apply\":%u,\"body\":\"", result.status);

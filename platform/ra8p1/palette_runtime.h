@@ -4,6 +4,9 @@
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
 #include "core/visual/ws2816_pack.h"
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+#include "emotiscope_port.h"
+#endif
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
 #include "centre_palette_engine.h"
@@ -109,11 +112,14 @@ class PaletteRuntime {
   float boardIntensity(unsigned board) const noexcept;
   void setSecondaryOutputEnabled(bool enabled) noexcept { secondary_output_enabled_ = enabled; }
   bool secondaryOutputEnabled() const noexcept { return secondary_output_enabled_; }
+  bool lastBoardRenderValid(unsigned board) const noexcept {
+    return board<2U && board_frame_valid_[board];
+  }
   std::size_t packBoardGrb48Lane(std::uint8_t* destination, std::size_t capacity,
                                unsigned board, unsigned lane) const noexcept;
 #endif
   bool setEmissionEnabled(bool enabled) noexcept;
-  void noteDonorMode(std::uint32_t mode) noexcept;
+  void noteDonorMode(std::uint32_t mode, unsigned board = 0U) noexcept;
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
   void selectPerformanceMode(std::uint32_t mode) noexcept;
@@ -189,6 +195,10 @@ class PaletteRuntime {
   float board_intensity_[2]{1.0F, 1.0F};
   std::uint16_t board_intensity_q16_[2]{65535U, 65535U};
   bool secondary_output_enabled_ = false;
+  bool board_frame_valid_[2]{};
+#ifdef K1_EMOTISCOPE_PORT
+  K1EmotiscopeAudioPublication donor_publication_{};
+#endif
 #endif
 };
 } // namespace k1::titan

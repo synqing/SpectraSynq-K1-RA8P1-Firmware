@@ -41,6 +41,9 @@
 #include "palette_runtime.h"
 #ifdef K1_EMOTISCOPE_PORT
 #include "emotiscope_port.h"
+#ifdef K1_TITAN_TOP_OUTPUT
+#include "emotiscope_secondary.h"
+#endif
 #include "emotiscope_control.h"
 #endif
 #include "palette_clock.h"
@@ -69,6 +72,11 @@ k1::titan::PaletteRuntime palettes;
 k1::titan::LiveAudioRuntime live_runtime;
 k1::titan::LiveConfigBlob live_cfg{};
 k1::titan::LiveRenderReceipt live_render_receipt{};
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+k1::titan::LiveRenderReceipt donor_board_receipt[2]{};
+std::uint32_t donor_board_frames[2]{};
+std::uint32_t secondary_emit_pending_generation=0,secondary_emit_pending_request=0;
+#endif
 std::uint32_t live_render_frames = 0;
 std::uint32_t live_emit_pending_generation = 0;
 std::uint32_t live_emit_pending_request = 0;
@@ -361,8 +369,21 @@ void secondary_request_black() {
 void secondary_poll() {
   if (!secondary_initialised) return;
   k1_ws281x_gpt_dma_hw_top_poll();
+#if defined(K1_LIVE_RUNTIME) && defined(K1_EMOTISCOPE_PORT)
+  if(secondary_emit_pending_generation &&
+      k1_ws281x_gpt_dma_hw_top_completed_generation()==secondary_emit_pending_generation){
+    if(palettes.emitEnabled()&&palettes.secondaryOutputEnabled())
+      (void)k1::titan::liveNotePairCompleted(&donor_board_receipt[1],
+          k1_ws281x_gpt_dma_hw_top_completed_generation(),
+          secondary_emit_pending_generation,secondary_emit_pending_request);
+    secondary_emit_pending_generation=secondary_emit_pending_request=0;
+  }
+#endif
   if (k1_ws281x_gpt_dma_hw_top_last_fault() != K1_WS281X_FAULT_NONE) {
     palettes.setSecondaryOutputEnabled(false);
+#if defined(K1_LIVE_RUNTIME) && defined(K1_EMOTISCOPE_PORT)
+    secondary_emit_pending_generation=secondary_emit_pending_request=0;
+#endif
     secondary_black_pending = false;
     return; // Secondary failure never disarms primary music output.
   }
@@ -435,9 +456,18 @@ void palette_pair_poll() {
     const std::uint32_t completed_generation =
         k1_ws281x_gpt_dma_hw_pair_completed_generation();
     if (live_cfg.emit_on != 0U) {
-      if (k1::titan::liveNotePairCompleted(&live_render_receipt, completed_generation,
+      if (k1::titan::liveNotePairCompleted(
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+          &donor_board_receipt[0],
+#else
+          &live_render_receipt,
+#endif
+          completed_generation,
                                           live_emit_pending_generation,
                                           live_emit_pending_request)) {
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+        live_render_receipt=donor_board_receipt[0];
+#endif
         live_runtime.setRenderReceipt(live_render_receipt);
       }
     } else {
@@ -520,8 +550,19 @@ void palette_step(bool emit) {
     live_runtime.setVpCycles(k1_cycle_count() - vp_begin);
     live_render_frames += 1U;
     if (k1::titan::livePathConsumesAcceptedRevision(palettes.visualPath())) {
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+      for(unsigned board=0;board<2;++board){
+        if(palettes.lastBoardRenderValid(board)){
+          ++donor_board_frames[board];
+          k1::titan::liveNoteRendererConsumed(&donor_board_receipt[board],live_runtime.hopsConsumed(),
+              donor_board_frames[board],palettes.lastPublicationUs());
+        }
+      }
+      live_render_receipt=donor_board_receipt[0];
+#else
       k1::titan::liveNoteRendererConsumed(&live_render_receipt, live_runtime.hopsConsumed(),
                                           live_render_frames, palettes.lastPublicationUs());
+#endif
       live_runtime.setRenderReceipt(live_render_receipt);
     }
   }
@@ -589,15 +630,7 @@ void palette_step(bool emit) {
       snapshot_word(13, generation);
       const int status = k1_ws281x_gpt_dma_hw_pair_submit(
           wire_a0, size0, wire_a1, size1, 3U, generation);
-#ifdef K1_TITAN_TOP_OUTPUT
-      if (palettes.secondaryOutputEnabled() && secondary_initialised && !secondary_black_pending) {
-        static std::uint8_t top_a0[K1_WS281X_PAIR_LANE_BYTES], top_a1[K1_WS281X_PAIR_LANE_BYTES];
-        if (palettes.packBoardGrb48Lane(top_a0, sizeof(top_a0), 1U, 0U) == sizeof(top_a0) &&
-            palettes.packBoardGrb48Lane(top_a1, sizeof(top_a1), 1U, 1U) == sizeof(top_a1))
-          (void)k1_ws281x_gpt_dma_hw_top_submit(top_a0, sizeof(top_a0), top_a1, sizeof(top_a1),
-                                             3U, generation);
-      }
-#endif
+
       if (status == K1_WS281X_SUBMIT_ACCEPTED) {
         palette_pair_pending = false;
 #ifdef K1_LIVE_RUNTIME
@@ -613,6 +646,23 @@ void palette_step(bool emit) {
         palette_pair_pending = false;
       }
     }
+#ifdef K1_TITAN_TOP_OUTPUT
+    // Secondary submission is independent of primary frame validity/submit.
+    if(palettes.secondaryOutputEnabled()&&secondary_initialised&&!secondary_black_pending&&!fixture_hold){
+      static std::uint8_t top_a0[K1_WS281X_PAIR_LANE_BYTES],top_a1[K1_WS281X_PAIR_LANE_BYTES];
+      if(palettes.packBoardGrb48Lane(top_a0,sizeof(top_a0),1U,0U)==sizeof(top_a0)&&
+          palettes.packBoardGrb48Lane(top_a1,sizeof(top_a1),1U,1U)==sizeof(top_a1)){
+        const std::uint32_t generation=++palette_pair_generation;
+        const int top_status=k1_ws281x_gpt_dma_hw_top_submit(top_a0,sizeof(top_a0),top_a1,sizeof(top_a1),3U,generation);
+#if defined(K1_LIVE_RUNTIME) && defined(K1_EMOTISCOPE_PORT)
+        if(top_status==K1_WS281X_SUBMIT_ACCEPTED){
+          secondary_emit_pending_generation=generation;
+          secondary_emit_pending_request=donor_board_receipt[1].rendered_request_id;
+        }
+#endif
+      }
+    }
+#endif
 #elif defined(K1_PALETTE_WS2816)
     const auto& config = palettes.config();
     const auto& selected = palettes.channel(config.output_channel);
@@ -1416,21 +1466,37 @@ void donor_apply_pending() {
   observed.hardware_brightness = palettes.config().brightness;
   observed.emission = palettes.emitEnabled() ? 1U : 0U;
   observed.output_precision = palettes.outputPrecision();
+#ifdef K1_TITAN_TOP_OUTPUT
+  observed.board=pending_control.donor.board;
+  observed.palette=observed.board==1u?k1_secondary_emotiscope_palette():k1_emotiscope_palette();
+  observed.response_gain=observed.board==1u?k1_secondary_emotiscope_response_gain():k1_emotiscope_response_gain();
+  observed.edge_response=observed.board==1u?k1_secondary_emotiscope_edge_response():k1_emotiscope_edge_response();
+  observed.edge_depth=observed.board==1u?k1_secondary_emotiscope_edge_depth():k1_emotiscope_edge_depth();
+#else
   observed.palette = k1_emotiscope_palette();
+#endif
   observed.output_intensity_a = palettes.outputIntensity(0U);
   observed.output_intensity_b = palettes.outputIntensity(1U);
 #ifdef K1_TITAN_TOP_OUTPUT
   observed.primary_intensity = palettes.boardIntensity(0U);
   observed.secondary_intensity = palettes.boardIntensity(1U);
-  observed.board_capabilities = 1U |
+  observed.board_capabilities = 5U |
       (k1_ws281x_gpt_dma_hw_top_last_fault() == K1_WS281X_FAULT_NONE ? 2U : 0U);
   observed.secondary_output_enabled =
       palettes.secondaryOutputEnabled() && (observed.board_capabilities & 2U) ? 1U : 0U;
 #endif
+#ifdef K1_TITAN_TOP_OUTPUT
+  const auto& scene_receipt=donor_board_receipt[observed.board];
+  observed.accepted_request_id=scene_receipt.accepted_request_id;
+  observed.rendered_request_id=scene_receipt.rendered_request_id;
+  observed.emitted_request_id=scene_receipt.emitted_request_id;
+  observed.rendered_frame=donor_board_frames[observed.board];
+#else
   observed.accepted_request_id = live_render_receipt.accepted_request_id;
   observed.rendered_request_id = live_render_receipt.rendered_request_id;
   observed.emitted_request_id = live_render_receipt.emitted_request_id;
   observed.rendered_frame = live_render_frames;
+#endif
   live_hex32(kTitanLiveSchemaSha256, observed.schema_sha);
   k1::emotiscope::DonorApplyResult result{};
   k1::emotiscope::donorApply(&donor_dedup, pending_control.donor, observed, &result
@@ -1443,7 +1509,11 @@ void donor_apply_pending() {
   if (result.brightness_changed) palettes.setHardwareBrightness(result.hardware_brightness);
   if (result.emission_changed && palettes.setEmissionEnabled(result.emission != 0U))
     pair_begin_black_shutdown();
-  if (result.mode_changed) palettes.noteDonorMode(static_cast<std::uint32_t>(result.mode));
+  if (result.mode_changed) palettes.noteDonorMode(static_cast<std::uint32_t>(result.mode)
+#ifdef K1_TITAN_TOP_OUTPUT
+      , result.board
+#endif
+      );
   // Realtime owner context; the runtime reads it at the next frame boundary.
   if (result.output_precision_changed) palettes.setOutputPrecision(result.output_precision);
   if (result.intensity_a_changed) palettes.setOutputIntensity(0U, result.output_intensity_a);
@@ -1457,12 +1527,34 @@ void donor_apply_pending() {
   }
 #endif
   // Realtime owner context; the donor reads it on the next rendered frame.
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(result.palette_changed){
+    if(result.board==1u)k1_secondary_emotiscope_set_palette(result.palette);
+    else k1_emotiscope_set_palette(result.palette);
+  }
+  if(result.response_gain_changed){
+    if(result.board==1u)k1_secondary_emotiscope_set_response_gain(result.response_gain);
+    else k1_emotiscope_set_response_gain(result.response_gain);
+  }
+  if(result.edge_response_changed||result.edge_depth_changed){
+    if(result.board==1u)k1_secondary_emotiscope_set_edge_response(result.edge_response,result.edge_depth);
+    else k1_emotiscope_set_edge_response(result.edge_response,result.edge_depth);
+  }
+#else
   if (result.palette_changed) k1_emotiscope_set_palette(result.palette);
+#endif
   if (result.revision_changed) {
     live_cfg_revision = result.revision;
     live_cfg.revision = result.revision;
+#ifdef K1_TITAN_TOP_OUTPUT
+    for(unsigned board=0;board<2;++board)
+      if(result.affected_boards&(1u<<board))
+        k1::titan::liveNotePatchAccepted(&donor_board_receipt[board],pending_control.donor.request_id,result.revision);
+    live_render_receipt=donor_board_receipt[0];
+#else
     k1::titan::liveNotePatchAccepted(&live_render_receipt, pending_control.donor.request_id,
                                     result.revision);
+#endif
     live_runtime.setRenderReceipt(live_render_receipt);
   }
   if (result.status != 0U) ++rejected;
@@ -1950,6 +2042,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   k1_ws2816_set_clock(hz);
 #ifdef K1_EMOTISCOPE_PORT
   (void)k1_emotiscope_init(0x4b31454dU);
+#ifdef K1_TITAN_TOP_OUTPUT
+  (void)k1_secondary_emotiscope_init(0x4b31454dU);
+#endif
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
   (void)k1_ws281x_gpt_dma_hw_pair_init();

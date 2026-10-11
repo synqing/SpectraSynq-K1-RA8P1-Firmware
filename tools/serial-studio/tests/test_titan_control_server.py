@@ -375,7 +375,7 @@ def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):
 
     plane.transact = donor_transact
     scene = {name: 0.5 for name in (
-        "brightness", "softness", "color", "warmth", "color_range", "speed", "saturation", "background")}
+        "brightness", "softness", "warmth", "speed", "background")}
     scene.update({
         "current_mode": 1,
         "mirror_mode": 1,
@@ -400,7 +400,7 @@ def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):
     assert calls[0][0] == 25
     assert calls[0][1] == donor.encode_patch(3, 0x11, 8, scene)
     assert proto._u32(calls[0][1], 0) == donor.PATCH_SUB
-    assert len(calls[0][1]) == 24 + 15 * 8
+    assert len(calls[0][1]) == 24 + 12 * 8
 
 
 def _top_state(request_id, capabilities=3):
@@ -478,6 +478,87 @@ def test_board_controls_require_observed_same_boot_capability(tmp_path):
     calls.clear()
     assert plane.handle({**request, "session": new_hello["session"]})["ok"] is False
     assert calls == []
+
+
+def _dual_state(request_id, board=0, capabilities=7):
+    import struct
+    body = bytearray(_top_state(request_id, capabilities & 3))
+    body.extend(b"\0" * (donor.DUAL_STATE_BYTES - len(body)))
+    struct.pack_into("<I", body, 4, 4)
+    struct.pack_into("<I", body, 140, 1)
+    struct.pack_into("<I", body, 72, 0xDFDF & ~((1 << 2) | (1 << 4) | (1 << 6)))
+    struct.pack_into("<I", body, 164, capabilities)
+    struct.pack_into("<IfIf", body, 176, board, 1.5, 2, 0.5)
+    return bytes(body)
+
+
+def test_independent_scene_selection_requires_device_capability(tmp_path):
+    evidence = Path(tmp_path)
+    evidence.mkdir(parents=True, exist_ok=True)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n'
+        % (UID, BUILD, SCHEMA)
+    )
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    calls = []
+    reply_body = _dual_state(1)
+
+    def transact(op, wire):
+        calls.append((op, wire))
+        return {"ok": True, "status": 0, "body": reply_body}
+
+    plane = RestrictedControlPlane(transact=transact, evidence=evidence, bound=_bound())
+    hello = plane.handle({"op": "hello"})
+    get = {"op": "emotiscope_get", "session": hello["session"],
+           "request_id": 1, "boot_id": 0x11, "revision": 4}
+    secondary = {**get, "board": 1, "state_version": 4, "board_capabilities": 7}
+    patch = {"op": "emotiscope_patch", "session": hello["session"],
+             "request_id": 5, "boot_id": 0x11, "revision": 4,
+             "fields": {"board": 1, "response_gain": 1.5,
+                        "edge_response": 2, "edge_depth": 0.5},
+             "state_version": 4, "board_capabilities": 7}
+    assert plane.handle(secondary)["ok"] is False
+    assert plane.handle(patch)["ok"] is False
+    assert calls == []
+    for reply_body in (_donor_state(1), _top_state(1)):
+        assert plane.handle(get)["ok"] is True
+        calls.clear()
+        assert plane.handle(secondary)["ok"] is False
+        assert plane.handle(patch)["ok"] is False
+        assert calls == []
+    reply_body = _dual_state(1)
+    primary = plane.handle(get)
+    assert primary["ok"] is True
+    assert primary["state"]["selected_board"] == 0
+    assert primary["state"]["independent_scenes_supported"] is True
+    assert primary["state"]["response_gain"] == 1.5
+    calls.clear()
+    reply_body = _dual_state(1, board=1)
+    selected = plane.handle(secondary)
+    assert selected["ok"] is True and selected["state"]["selected_board"] == 1
+    assert calls == [(25, donor.encode_get(1, 0x11, 1, state_version=4, board_capabilities=7))]
+    calls.clear()
+    assert plane.handle(patch)["ok"] is True
+    assert calls == [(25, donor.encode_patch(5, 0x11, 4, patch["fields"],
+                                            state_version=4, board_capabilities=7))]
+    calls.clear()
+    reply_body = _dual_state(1, board=1, capabilities=5)
+    faulted = plane.handle(secondary)
+    assert faulted["ok"] is True and faulted["state"]["selected_board"] == 1
+    assert faulted["state"]["independent_scenes_supported"] is True
+    assert faulted["state"]["secondary_output_supported"] is False
+    calls.clear()
+    assert plane.handle(patch)["ok"] is False
+    assert calls == []
+    assert plane.handle({**secondary, "boot_id": 0x12})["ok"] is False
+    assert plane.handle({**patch, "boot_id": 0x12})["ok"] is False
+    assert calls == []
+    plane.transact = None
+    assert plane.handle(secondary)["cached"] is True
+    assert plane.handle(get)["ok"] is False
+    plane.on_reconnect(_bound())
+    new_hello = plane.handle({"op": "hello"})
+    assert plane.handle({**secondary, "session": new_hello["session"]})["ok"] is False
 
 
 def test_donor_patch_rejected_by_legacy_only_approval(tmp_path):

@@ -170,7 +170,7 @@ def main():
             "fraction_values_differing":sum(1 for d in diffs if d)/len(diffs),
             "dim_fade":json.loads(f.stdout)}
 
-        # (4) Palette hook reaches the wire: palette 25 output must differ from native.
+        # (4) Palette hook reaches the wire: palette25 output must differ from boot SunsetReal1.
         pal_path = out/"runtime-palette25-grb48.bin"
         pr,_ = run("runtimeP",[binary,"runtimeP",pal_path])
         if pr.returncode: raise RuntimeError("Palette generation failed")
@@ -178,7 +178,7 @@ def main():
         differing = sum(1 for x,y in zip(pal,packed) if x!=y)
         pal_ok = len(pal)==len(packed) and differing > len(packed)//20
         records["cases"].append({"name":"palette25-changes-wire","exit":0 if pal_ok else 3,
-                                 "bytes_differing_from_native":differing,"wire_bytes":len(packed)})
+                                 "bytes_differing_from_boot_palette":differing,"wire_bytes":len(packed)})
         success &= pal_ok
 
         # (5) Palettes 1-44 draw as K1 did (independent oracle in the harness), and

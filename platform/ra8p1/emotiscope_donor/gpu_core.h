@@ -31,7 +31,9 @@ void run_gpu() {
 		t_last_us = t_now_us;
 
 		// Update the novelty curve
+		#ifndef K1_EMOTISCOPE_SHARED_MUSICAL_TICK
 		update_novelty();  // (tempo.h)
+		#endif
 		#ifdef HIL_EXTENDED
 		if (hil_capture_state && hil_monitoring_active) {
 			hil_capture_gpu_write_begin();
@@ -41,7 +43,9 @@ void run_gpu() {
 		#endif
 
 		// Update the tempi phases
+		#ifndef K1_EMOTISCOPE_SHARED_MUSICAL_TICK
 		update_tempi_phase(delta);	// (tempo.h)
+		#endif
 		#ifdef HIL_EXTENDED
 		if (hil_capture_state && hil_monitoring_active) {
 			hil_capture_gpu_write_begin();
@@ -126,6 +130,9 @@ void run_gpu() {
 		#ifdef HIL_EXTENDED
 		uint32_t t_tonemap_start = micros();
 		#endif
+		#ifdef K1_EMOTISCOPE_SHARED_MUSICAL_TICK
+        apply_edge_response(delta);
+        #endif
 		apply_tonemapping();
 		#ifdef HIL_EXTENDED
 		uint32_t t_tonemap_end = micros();

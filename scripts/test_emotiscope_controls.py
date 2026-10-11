@@ -55,7 +55,7 @@ def corpus(codec):
     get = codec.encode_get(7, 0x11)
     add(get, parse=0, apply=0, revision=0, dedup=0, changed=0, mode=1, mode_transition=0,
         brightness=1.0, softness=0.25, color=0.33, warmth=0.0, color_range=0.0, speed=0.5,
-        saturation=0.75, background=0.25, effective_hue=0.33, flags=39, applicability=0xDFDF,
+        saturation=0.75, background=0.25, effective_hue=0.33, flags=39, applicability=0xDF8B,
         output_brightness=100, last_status=0, accepted_request_id=0)
     add(get, parse=0, apply=0, dedup=1, replay_of=0)
     add(struct.pack("<I", 8) + b"\x00" * 28, parse=3)
@@ -64,7 +64,7 @@ def corpus(codec):
         raise RuntimeError("Python encoder drifted from the frozen golden packet")
     add(golden, parse=0, apply=0, revision=1, dedup=0, changed=1, mode_transition=0,
         brightness=0.5, softness=0.25, mode=1, output_brightness=100, last_status=0,
-        flags=39, applicability=0xDFDF)
+        flags=39, applicability=0xDF8B)
     add(golden, parse=0, apply=0, dedup=1, replay_of=3)
     add(codec.encode_patch(1, 0x11, 1, {"brightness": 0.2}),
         parse=0, apply=7, revision=1, dedup=0, changed=0, last_status=7, brightness=0.5)
@@ -92,31 +92,31 @@ def corpus(codec):
     add(struct.pack("<I", codec.GET_SUB) + b"\x00" * 8, parse=3)
     add(codec.raw_patch(58, 0x11, 3, 0x10000, [(1, codec.KIND_F32, half_bits)]), parse=3)
     add(struct.pack("<I", 1) + b"\x00" * 20, parse=3)
-    add(codec.encode_patch(10, 0x11, 3, {"warmth": 0.15, "color": 0.40}),
-        parse=0, apply=0, revision=4, changed=1, dedup=0, warmth=0.15, color=0.40,
-        effective_hue=0.40, brightness=0.2, softness=0.5, mode=1, flags=39,
-        applicability=0xDFDF, output_brightness=100, mode_transition=0)
+    add(codec.encode_patch(10, 0x11, 3, {"warmth": 0.15}),
+        parse=0, apply=0, revision=4, changed=1, dedup=0, warmth=0.15, color=0.33,
+        effective_hue=0.33, brightness=0.2, softness=0.5, mode=1, flags=39,
+        applicability=0xDF8B, output_brightness=100, mode_transition=0)
     scene = {
-        "brightness": 0.10, "softness": 0.20, "color": 0.30, "warmth": 0.40,
-        "color_range": 0.50, "speed": 0.60, "saturation": 0.70, "background": 0.80,
+        "brightness": 0.10, "softness": 0.20, "warmth": 0.40,
+        "speed": 0.60, "background": 0.80,
         "current_mode": 6, "mirror_mode": 0, "screensaver": 0, "temporal_dithering": 0,
         "auto_color_cycle": 1, "reverse_color_range": 1,
         "hardware_output_brightness": 80, "emission_enabled": 0,
     }
     add(codec.encode_patch(8, 0x11, 4, scene),
         parse=0, apply=0, revision=5, changed=1, dedup=0, mode_transition=1, mode=6,
-        brightness=0.10, softness=0.20, color=0.30, warmth=0.40, color_range=0.50,
-        speed=0.60, saturation=0.70, background=0.80, effective_hue=0.30,
-        output_brightness=80, flags=24, applicability=0xFFDF, last_status=0,
+        brightness=0.10, softness=0.20, color=0.33, warmth=0.40, color_range=0.0,
+        speed=0.60, saturation=0.75, background=0.80, effective_hue=0.33,
+        output_brightness=80, flags=24, applicability=0xDF8B, last_status=0,
         accepted_request_id=8)
     add(codec.encode_get(9, 0x11),
         parse=0, apply=0, revision=5, changed=0, dedup=0, mode=6, brightness=0.10,
-        output_brightness=80, flags=24, applicability=0xFFDF, accepted_request_id=8,
+        output_brightness=80, flags=24, applicability=0xDF8B, accepted_request_id=8,
         request_id=9, last_status=0)
     # Output precision: field 17 bool, owner-held, GET flag bit 6 (64). Not a donor field.
     add(codec.encode_patch(11, 0x11, 5, {"output_precision": 1}),
         parse=0, apply=0, revision=6, changed=1, dedup=0, mode=6, flags=24 | 64,
-        applicability=0xFFDF, output_brightness=80, accepted_request_id=11, last_status=0)
+        applicability=0xDF8B, output_brightness=80, accepted_request_id=11, last_status=0)
     add(codec.encode_get(12, 0x11),
         parse=0, apply=0, revision=6, changed=0, dedup=0, flags=24 | 64, request_id=12)
     add(codec.encode_patch(13, 0x11, 6, {"output_precision": 1}),
@@ -126,14 +126,14 @@ def corpus(codec):
     add(codec.raw_patch(61, 0x11, 6, 1 << 16, [(17, codec.KIND_F32, half_bits)]), parse=3)
     add(codec.encode_patch(14, 0x11, 6, {"output_precision": 0}),
         parse=0, apply=0, revision=7, changed=1, dedup=0, flags=24, accepted_request_id=14)
-    # Palette: field 18 u32 0..44 (0 native), owner-held, state offset 140.
+    # Palette: field18 u32 1..44 only, selected-scene state offset140.
     add(codec.encode_patch(15, 0x11, 7, {"palette": 24}),
         parse=0, apply=0, revision=8, changed=1, dedup=0, palette=24, flags=24, accepted_request_id=15)
     add(codec.encode_get(16, 0x11), parse=0, apply=0, revision=8, changed=0, palette=24, request_id=16)
     add(codec.raw_patch(62, 0x11, 8, 1 << 17, [(18, codec.KIND_U32, 45)]), parse=3)
     add(codec.raw_patch(63, 0x11, 8, 1 << 18, [(19, codec.KIND_U32, 1)]), parse=3)
-    add(codec.encode_patch(17, 0x11, 8, {"palette": 0}),
-        parse=0, apply=0, revision=9, changed=1, dedup=0, palette=0, accepted_request_id=17)
+    add(codec.encode_patch(17, 0x11, 8, {"palette": 1}),
+        parse=0, apply=0, revision=9, changed=1, dedup=0, palette=1, accepted_request_id=17)
     # Independent physical gains preserve the donor scene and the other lane.
     gain_a = codec.encode_patch(100, 0x11, 9, {"output_intensity_a": 0.25})
     gain_a_index = len(steps)
@@ -154,14 +154,17 @@ def corpus(codec):
         for raw in (nan_bits, 0x7F800000, 0xFF800000, 0x3F800001, 0xBF000000, 0x80000001):
             add(codec.raw_patch(110, 0x11, 12, 1 << (field - 1),
                                 [(field, codec.KIND_F32, raw)]), parse=3)
-    full_fields = dict(scene, output_precision=0, palette=0,
+    full_fields = dict(scene, output_precision=0, palette=1,
                        output_intensity_a=0.5, output_intensity_b=0.5)
     full_packet = codec.encode_patch(120, 0x11, 12, full_fields)
-    if len(full_packet) != 184 or struct.unpack_from("<II", full_packet, 16) != (0xFFFFF, 20):
-        raise RuntimeError("full 20-field packet shape")
+    if len(full_packet) != 160 or struct.unpack_from("<II", full_packet, 16) != (0xFFFAB, 17):
+        raise RuntimeError("full 17-applicable-field packet shape")
     add(full_packet, parse=0, apply=0, revision=13, changed=1,
         output_intensity_a=0.5, output_intensity_b=0.5)
     add(full_packet + b"\x00", parse=3)
+    for field in (3, 5, 7):
+        add(codec.raw_patch(121, 0x11, 13, 1 | (1 << (field-1)), [(1, codec.KIND_F32, half_bits), (field, codec.KIND_F32, half_bits)]), parse=3)
+    add(codec.raw_patch(122, 0x11, 13, 1 | (1 << 17), [(1, codec.KIND_F32, half_bits), (18, codec.KIND_U32, 0)]), parse=3)
     return steps
 
 
@@ -242,7 +245,56 @@ def check_state_versions(codec):
             except ValueError:
                 continue
             raise RuntimeError("invalid intensity encoded")
+    dual = bytearray(top) + bytearray(32)
+    struct.pack_into("<I", dual, 4, 4)
+    struct.pack_into("<I", dual, 164, 7)
+    struct.pack_into("<IfIf", dual, 176, 1, 1.75, 2, 0.25)
+    state = codec.decode_state(bytes(dual))
+    if (state["selected_board"], state["response_gain"], state["edge_response"], state["edge_depth"]) != (1, 1.75, 2, 0.25) or not state["independent_scenes_supported"]:
+        raise RuntimeError("v4 selected-scene offsets")
+    if top_state["independent_scenes_supported"] or top_state["response_gain"] is not None:
+        raise RuntimeError("historical v3 falsely advertises independent scenes")
+    fault = bytearray(dual)
+    struct.pack_into("<I", fault, 164, 5)
+    state = codec.decode_state(bytes(fault))
+    if state["selected_board"] != 1 or state["response_gain"] != 1.75 or state["secondary_output_supported"]:
+        raise RuntimeError("failed top admission lost independent scene readback")
+    if len(codec.encode_get(49, 0x11, 1, state_version=4, board_capabilities=5)) != 20:
+        raise RuntimeError("faulted secondary scene cannot be read")
+    for offset, raw in ((164, 8), (168, 1), (176, 2), (180, 0x40000001), (180, 0x7FC00000),
+                        (184, 3), (188, 0x80000001), (192, 1), (204, 1)):
+        bad = bytearray(dual)
+        struct.pack_into("<I", bad, offset, raw)
+        try:
+            codec.decode_state(bytes(bad))
+        except ValueError:
+            pass
+        else:
+            raise RuntimeError("malformed v4 state accepted")
+    get = codec.encode_get(50, 0x11, 1, state_version=4, board_capabilities=7)
+    if get != struct.pack("<IIIII", codec.GET_SUB, 50, 0x11, 0, 1) or codec.parse(get, state_version=4)[1]["board"] != 1:
+        raise RuntimeError("secondary GET wire target")
+    if len(codec.encode_get(51, 0x11, state_version=4, board_capabilities=7)) != 16 or codec.parse(get, state_version=3)[0] != 3:
+        raise RuntimeError("legacy GET compatibility")
+    fields = {"board": 1, "response_gain": 1.75, "edge_response": 2, "edge_depth": 0.25}
+    packet = codec.encode_patch(52, 0x11, 3, fields, state_version=4, board_capabilities=7)
+    parsed, info = codec.parse(packet, state_version=4)
+    if parsed or info["board"] != 1 or info["fields"] != {24: 1, 25: 1.75, 26: 2, 27: 0.25}:
+        raise RuntimeError("v4 scene response packet")
+    for fields, version, caps in (({"board": 1}, 3, 3), ({"response_gain": 1}, 4, 3),
+                                  ({"board": 1, "output_intensity_a": 0.5}, 4, 7),
+                                  ({"response_gain": float("nan")}, 4, 7),
+                                  ({"response_gain": 2.01}, 4, 7), ({"edge_response": 3}, 4, 7),
+                                  ({"edge_depth": -0.1}, 4, 7), ({"palette": 0}, 4, 7),
+                                  ({"brightness": 0.1, "color": 0.2}, 4, 7)):
+        try:
+            codec.encode_patch(53, 0x11, 3, fields, state_version=version, board_capabilities=caps)
+        except ValueError:
+            pass
+        else:
+            raise RuntimeError("unsupported or invalid scene patch encoded")
     return {"legacy_unsupported": True, "version_2_offsets": True, "version_3_capabilities": True,
+            "version_4_selected_scene": True,
             "malformed_states_rejected": len(malformed), "invalid_patch_values_rejected": 8}
 
 
@@ -277,7 +329,7 @@ def check_lines(codec, steps, lines, top_output=False):
             failures.append({"i": index, "apply": got["apply"], "want": expect["apply"]})
         body = bytes.fromhex(got["body"])
         bodies.append(body)
-        if len(body) != (176 if top_output else 160):
+        if len(body) != (208 if top_output else 160):
             failures.append({"i": index, "error": "body length", "n": len(body)})
             continue
         state = codec.decode_state(body)
@@ -296,10 +348,10 @@ def check_lines(codec, steps, lines, top_output=False):
                     failures.append({"i": index, "field": key, "got": got_value, "want": want})
             elif got_value != want:
                 failures.append({"i": index, "field": key, "got": got_value, "want": want})
-        if (state["magic"] != codec.STATE_MAGIC or state["version"] != (3 if top_output else 2)
-                or state["output_intensity_supported"] is not True or state["reserved"] != b"\x00" * 8):
+        if (state["magic"] != codec.STATE_MAGIC or state["version"] != (4 if top_output else 2)
+                or state["output_intensity_supported"] is not True or state["reserved"] != b"\x00" * (16 if top_output else 8)):
             failures.append({"i": index, "error": "framing"})
-        if top_output and (state["board_capabilities"] != 3 or state["primary_intensity"] != 1
+        if top_output and (state["board_capabilities"] != 7 or state["selected_board"] != 0 or state["response_gain"] != 1 or state["edge_response"] != 0 or state["edge_depth"] != 0 or state["primary_intensity"] != 1
                            or state["secondary_intensity"] != 1 or state["secondary_output_enabled"] is not False):
             failures.append({"i": index, "error": "default board controls changed by legacy packet"})
     return failures
@@ -351,6 +403,9 @@ def main():
         item = top_contract["fields"][name]
         if (item["id"], item["kind"], top_contract["state_layout"][name]) != (field, kind, offset):
             raise SystemExit("optional top contract field")
+    dual_contract = donor["independent_scene_profile"]
+    if tuple(dual_contract[key] for key in ("version", "state_bytes", "patch_max_bytes", "patch_field_count", "patch_field_mask", "profile_capabilities")) != (4, 208, 240, 27, 0x7FFFFFF, 7):
+        raise SystemExit("independent scene contract shape")
     witness = source_witness(root)
     if not all(witness.values()):
         (output / "source-witness.json").write_text(json.dumps(witness, indent=2))
@@ -370,12 +425,16 @@ def main():
         "-I" + str(root / "platform/ra8p1/emotiscope_donor"),
         "-I" + str(root / "platform/ra8p1/emotiscope_shims"),
         "-I" + str(root / "tests/host"),
+        "-I" + str(root / "src/k1"),
         str(root / "tests/host/test_emotiscope_controls.cpp"),
         str(root / "platform/ra8p1/emotiscope_port.cpp"),
+        str(root / "src/k1/core/visual/product_palette.cpp"),
+        str(root / "src/k1/core/visual/product_palette_data.cpp"),
         "-o", str(binary),
     ]
     if args.top_output:
         command.insert(1, "-DK1_TITAN_TOP_OUTPUT")
+        command.insert(-2, str(root / "platform/ra8p1/emotiscope_secondary.cpp"))
     built = run(command, output / "build.log")
     if built.returncode != 0:
         raise SystemExit("build failed: " + str(output / "build.log"))
@@ -405,9 +464,9 @@ def main():
         }
         wire["default_ok"] = (
             close(state["brightness"], 1) and state["mode"] == 1 and state["flags"] == 39
-            and state["applicability"] == 0xDFDF and state["output_brightness"] == 100
-            and close(state["saturation"], 0.75) and close(state["effective_hue"], 0.33)
-            and state["version"] == (3 if args.top_output else 2) and state["output_intensity_supported"] is True
+            and state["applicability"] == 0xDF8B and state["output_brightness"] == 100
+            and state["palette"] == 1 and close(state["saturation"], 0.75) and close(state["effective_hue"], 0.33)
+            and state["version"] == (4 if args.top_output else 2) and state["output_intensity_supported"] is True
             and state["output_intensity_a"] == 1.0 and state["output_intensity_b"] == 1.0
         )
     if raw_line:

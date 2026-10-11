@@ -56,7 +56,10 @@ def main():
     observed_paths = [platform/"emotiscope_port.cpp", platform/"emotiscope_port.h",
                       platform/"emotiscope_quantize.inc",
                       root/"tests/host/test_emotiscope_port.cpp",
-                      root/"tests/host/emotiscope_ap_reference.h"]
+                      root/"tests/host/emotiscope_ap_reference.h",
+                      platform/"emotiscope_edge_response.h",
+                      root/"src/k1/core/visual/product_palette.cpp",
+                      root/"src/k1/core/visual/product_palette_data.cpp"]
     observed_paths += sorted((platform/"emotiscope_donor").rglob("*.h"))
     observed_paths += sorted((platform/"emotiscope_shims").rglob("*"))
     observed_paths = [p for p in observed_paths if p.is_file()]
@@ -71,10 +74,12 @@ def main():
         binary = output/name
         command = [args.compiler, "-std=c++17", "-O1", "-g", "-Wno-narrowing",
                    "-fsanitize=address,undefined", "-fno-omit-frame-pointer",
-                   "-I"+str(platform_dir), "-I"+str(platform_dir/"emotiscope_donor"),
+                   "-I"+str(platform_dir), "-I"+str(platform), "-I"+str(platform_dir/"emotiscope_donor"),
                    "-I"+str(platform_dir/"emotiscope_shims"), "-I"+str(oracle),
-                   "-I"+str(root/"tests/host"), str(root/"tests/host/test_emotiscope_port.cpp"),
-                   str(platform_dir/"emotiscope_port.cpp"), "-o", str(binary)]
+                   "-I"+str(root/"tests/host"), "-I"+str(root/"src/k1"), str(root/"tests/host/test_emotiscope_port.cpp"),
+                   str(platform_dir/"emotiscope_port.cpp"),
+                   str(root/"src/k1/core/visual/product_palette.cpp"),
+                   str(root/"src/k1/core/visual/product_palette_data.cpp"), "-o", str(binary)]
         result = execute(command, output/(name+"-build.log"))
         results["cases"].append({"name": name+"-build", **result})
         if result["exit"] != 0:

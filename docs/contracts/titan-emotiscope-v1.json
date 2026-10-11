@@ -152,7 +152,7 @@
   "palette_ids": [
     0
   ],
-  "palette_semantics": "ID 0 is a transport placeholder. The donor owns colour; no Titan palette catalogue is applied.",
+  "palette_semantics": "Musical output permanently uses K1 catalogue palettes1..44; SunsetReal1 boots autonomously. Current writes reject0; historical readback remains decoded truthfully.",
   "stale_publication_us": 30000,
   "stale_source_test_us": 0,
   "warmup_hops": 64,
@@ -219,14 +219,16 @@
         "kind": "f32",
         "min": 0,
         "max": 1,
-        "default": 1.0
+        "default": 1.0,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "softness": {
         "id": 2,
         "kind": "f32",
         "min": 0,
         "max": 1,
-        "default": 0.25
+        "default": 0.25,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "color": {
         "id": 3,
@@ -234,21 +236,29 @@
         "min": 0,
         "max": 1,
         "default": 0.33,
-        "note": "Explicit write replaces the auto-color phase. Readback color may exceed 1 while auto-color is evolving. effective_hue is the fractional part and is not written back."
+        "note": "Historical/default value remains readable; current writes are rejected before any mutation.",
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "writable": false,
+        "supported": false
       },
       "warmth": {
         "id": 4,
         "kind": "f32",
         "min": 0,
         "max": 1,
-        "default": 0
+        "default": 0,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "color_range": {
         "id": 5,
         "kind": "f32",
         "min": 0,
         "max": 1,
-        "default": 0
+        "default": 0,
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "writable": false,
+        "supported": false,
+        "note": "Historical/default value remains readable; current writes are rejected before any mutation."
       },
       "speed": {
         "id": 6,
@@ -256,7 +266,8 @@
         "min": 0,
         "max": 1,
         "default": 0.5,
-        "applicable_when": "current_mode == Analog (0). Stored but ineffective in other modes, including this donor Bloom variant."
+        "applicable_when": "current_mode == Analog (0). Stored but ineffective in other modes, including this donor Bloom variant.",
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "saturation": {
         "id": 7,
@@ -264,47 +275,58 @@
         "min": 0,
         "max": 1,
         "default": 0.75,
-        "wire": "native raw. Host UI uses one sqrt transform."
+        "wire": "native raw. Host UI uses one sqrt transform.",
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "writable": false,
+        "supported": false,
+        "note": "Historical/default value remains readable; current writes are rejected before any mutation."
       },
       "background": {
         "id": 8,
         "kind": "f32",
         "min": 0,
         "max": 1,
-        "default": 0.25
+        "default": 0.25,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "current_mode": {
         "id": 9,
         "kind": "i32",
         "min": 0,
         "max": 6,
-        "default": 1
+        "default": 1,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "mirror_mode": {
         "id": 10,
         "kind": "bool",
-        "default": true
+        "default": true,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "screensaver": {
         "id": 11,
         "kind": "bool",
-        "default": true
+        "default": true,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "temporal_dithering": {
         "id": 12,
         "kind": "bool",
-        "default": true
+        "default": true,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "auto_color_cycle": {
         "id": 13,
         "kind": "bool",
-        "default": false
+        "default": false,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "reverse_color_range": {
         "id": 14,
         "kind": "bool",
         "default": false,
-        "applicable_when": "color_range > 0"
+        "applicable_when": "color_range > 0",
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "hardware_output_brightness": {
         "id": 15,
@@ -335,7 +357,7 @@
       "palette": {
         "id": 18,
         "kind": "u32",
-        "default": 0,
+        "default": 1,
         "range": [
           0,
           44
@@ -348,7 +370,9 @@
           "0": "native donor HSV colour",
           "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"
         },
-        "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."
+        "note": "Current firmware permanently uses catalogue colour; native palette0 is rejected atomically. IDs1..44 map to catalogue0..43. SunsetReal1 boots autonomously.",
+        "min": 1,
+        "scope": "selected whole-board scene; legacy request selects primary"
       },
       "output_intensity_a": {
         "id": 19,
@@ -432,8 +456,88 @@
         }
       },
       "gain_order": "global hardware scale, whole-board Q16 attenuation, then bottom DIN-half Q16 attenuation; top ignores fields19/20",
-      "scene_semantics": "Both boards consume the same rendered160-pixel donor scene and shared audio analysis. Independent intensities do not imply independent scenes.",
+      "scene_semantics": "Historical v3 used one shared rendered160 scene with board gains. v4 consumes isolated primary/secondary visual state and shared immutable audio publication.",
       "activation": "Optional build capability is distinct from electrical clearance, runtime enabled state and observed physical output. The existing v2 installed image does not support secondary output."
+    },
+    "independent_scene_profile": {
+      "build_flag": "K1_TITAN_TOP_OUTPUT",
+      "version": 4,
+      "state_bytes": 208,
+      "get_bytes": 20,
+      "legacy_get_bytes": 16,
+      "patch_max_bytes": 240,
+      "patch_field_count": 27,
+      "patch_field_mask": 134217727,
+      "profile_capabilities": 7,
+      "capability_bits": {
+        "0": "primary whole-board intensity",
+        "1": "secondary transport and whole-board intensity",
+        "2": "independent board scenes and musical response"
+      },
+      "state_layout": {
+        "unchanged_offsets": "0..175; scene values belong to selected board, globals retain their scope",
+        "selected_board": 176,
+        "response_gain": 180,
+        "edge_response": 184,
+        "edge_depth": 188,
+        "legacy_reserved_zero": "168..175",
+        "reserved_zero": "192..207"
+      },
+      "fields": {
+        "board": {
+          "id": 24,
+          "kind": "u32",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "scope": "packet-local target; no persistent selector or revision change by itself"
+        },
+        "response_gain": {
+          "id": 25,
+          "kind": "f32",
+          "min": 0,
+          "max": 2,
+          "finite": true,
+          "default": 1.0,
+          "scope": "selected board VP-consumed audio magnitudes; raw shared analysis unchanged"
+        },
+        "edge_response": {
+          "id": 26,
+          "kind": "u32",
+          "min": 0,
+          "max": 2,
+          "default": 0,
+          "values": {
+            "0": "off",
+            "1": "novelty",
+            "2": "spectrum"
+          },
+          "scope": "selected board visual response"
+        },
+        "edge_depth": {
+          "id": 27,
+          "kind": "f32",
+          "min": 0,
+          "max": 1,
+          "finite": true,
+          "default": 0.0,
+          "scope": "selected board edge response depth"
+        }
+      },
+      "targeting": "GET16 and PATCH omitting24 select primary0. GET20 selector at16 and PATCH24 select board0/1 per request. Read-only Board1 GET requires actual v4 independent-scene capability, independently of transport readiness. Current outbound Board1 mutations additionally require secondary transport capability. Applicable fields1..14/18/25..27 target that board; fields15..17/21..23 remain global. Fixed HSV fields3/5/7 are unsupported on both boards and rejected atomically. Fields19/20 remain bottom DIN-half gains; board1 with19/20 is rejected atomically.",
+      "atomicity": "One shared revision across scene/global controls. Validate all masked values and target before any scene, palette, response, edge or admission mutation. Replay identity includes payloadCRC and explicit target; reused ID with different target conflicts even for a forged matching CRC.",
+      "rendering": "Separate160-pixel scenes with isolated config, visual history and RNG; common once-per-hop analyser and once-per-frame immutable novelty/tempo publication. Palette and Analog paired-hue rules apply independently to each board.",
+      "legacy_support": "v1/v2/v3 decode retains real old values. v2/v3 do not advertise independent scenes or response/edge controls; these decode as null. Capability advertisement does not prove physical output.",
+      "progress_receipts": "Offsets76/80/84/88 report accepted/rendered/emitted request IDs and rendered frame for the selected board. Shared revision and electrical output words remain global. A primary emit never confirms a secondary request.",
+      "fault_readback": "When secondary transport admission fails, capability bit1 may clear while independent-scenes bit2 remains. Selected secondary scene readback and read-only GET remain valid (caps5, enabled0); no physical-output claim follows."
+    },
+    "unsupported_palette_fields": {
+      "ids": [
+        3,
+        5,
+        7
+      ],
+      "reason": "Fixed HSV Colour, ColourRange and Saturation are ineffective in permanent catalogue colour. All current donor PATCH writes reject them atomically; readback retains historical/default values. Direct config read-modify-write preserves unchanged values but rejects changes."
     }
   },
   "mode_control": {
@@ -490,7 +594,7 @@
   },
   "boot_defaults": {
     "mode": 1,
-    "palette": 0,
+    "palette": 1,
     "flags": 5,
     "brightness": 100,
     "output_channel": 0,

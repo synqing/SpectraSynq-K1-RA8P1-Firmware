@@ -5,6 +5,8 @@
 // no network/NVS/physical touch, captured RGB8 output in place of ESP32 RMT.
 // Native geometry remains 128. The Titan's 128->160/GRB48 mapping is external.
 #include "emotiscope_port.h"
+#include "core/visual/product_palette.h"
+#include "emotiscope_edge_response.h"
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -75,11 +77,14 @@ void save_config_delayed(){}
 void save_noise_spectrum(){}
 void watch_gpu_fps(){}
 #include "emotiscope_donor/utilities.h"
-// Palette adaptation: every donor mode colours through hsv(). The donor definition is
-// renamed (source untouched) and wrapped: palette 0 = native donor HSV; 1..44 = K1
-// product palette (id-1). See the K1 drawing rules below.
-static volatile uint32_t k1_palette_select=0;
-static K1PaletteSampler k1_palette_sampler=nullptr;  // registered by the runtime that links the K1 palettes
+// All musical colour paths use the existing K1 catalogue, including boot and
+// missing-runtime-sampler fallback. There is no selectable native HSV path.
+static void k1_builtin_palette_sample(uint32_t id,float phase,float rgb[3]){
+  const auto c=k1::core::visual::sampleProductPaletteHd(static_cast<uint16_t>(id),phase,1.0f);
+  rgb[0]=c.red;rgb[1]=c.green;rgb[2]=c.blue;
+}
+static volatile uint32_t k1_palette_select=K1_EMOTISCOPE_DEFAULT_PALETTE;
+static K1PaletteSampler k1_palette_sampler=&k1_builtin_palette_sample;
 #define hsv donor_hsv
 #define get_color_range_hue donor_get_color_range_hue
 #define apply_gamma_correction donor_apply_gamma_correction
@@ -99,19 +104,12 @@ static K1PaletteSampler k1_palette_sampler=nullptr;  // registered by the runtim
 // donor's drifting colour). Colour, Colour range and Saturation do not touch it.
 // Level 0.65v^2+0.35v (K1 SQUARE_ITER 1); no final x^2 gamma (K1
 // ENABLE_OUTPUT_GAMMA 0). Background and screensaver draw palette colours; peak
-// soft-clip scales whole pixels so hues hold. Palette 0 is the donor, unchanged.
-static inline bool k1_palette_active(){
-  const uint32_t p=k1_palette_select;
-  return p!=0u&&p<=K1_EMOTISCOPE_PALETTES&&k1_palette_sampler!=nullptr;
-}
+// soft-clip scales whole pixels so hues hold. Silence is never filled for colour.
 float get_color_range_hue(float progress){
-  if(!k1_palette_active())return donor_get_color_range_hue(progress);
   const float base=configuration.auto_color_cycle?configuration.color:0.0f;
   return configuration.reverse_color_range?base+1.0f-progress:base+progress;
 }
-void apply_gamma_correction(){
-  if(!k1_palette_active())donor_apply_gamma_correction();
-}
+void apply_gamma_correction(){}
 // Hype offsets its second dot by 0.5*color_range. With a palette that offset is
 // pinned to half the palette for the duration of the mode draw only (same render
 // thread; restored before background, before any control read).
@@ -122,7 +120,7 @@ static void k1_draw_scope_end(){
 }
 void clear_display(float keep=0.0f){
   donor_clear_display(keep);
-  if(k1_palette_active()&&!k1_draw_scope){
+  if(!k1_draw_scope){
     k1_saved_color_range=configuration.color_range;configuration.color_range=1.0f;k1_draw_scope=true;
   }
 }
@@ -133,7 +131,6 @@ static CRGBF k1_palette_colour(float position){
 }
 void apply_background(float background_level){
   k1_draw_scope_end();
-  if(!k1_palette_active()){donor_apply_background(background_level);return;}
   if(light_modes[configuration.current_mode].type == LIGHT_MODE_TYPE_SYSTEM)return;
   // Same light as the donor's background at the same setting: its (0.25b) was
   // squared by the final gamma, which palettes skip.
@@ -155,7 +152,6 @@ void apply_background(float background_level){
 }
 void apply_tonemapping(){
   k1_draw_scope_end();
-  if(!k1_palette_active()){donor_apply_tonemapping();return;}
   for(uint16_t i=0;i<NUM_LEDS;i++){
     const float m=fmaxf(leds[i].r,fmaxf(leds[i].g,leds[i].b));
     if(m>0.75f){
@@ -167,7 +163,7 @@ void apply_tonemapping(){
 CRGBF hsv(float h,float s,float v){
   const uint32_t p=k1_palette_select;
   const K1PaletteSampler sample=k1_palette_sampler;
-  if(p==0u||p>K1_EMOTISCOPE_PALETTES||!sample)return donor_hsv(h,s,v);
+  // Selector and sampler are validated at their owner-only setters.
   (void)s;
   float c[3]={0.0f,0.0f,0.0f};
   sample(p-1u,h,c);
@@ -184,7 +180,6 @@ CRGBF hsv(float h,float s,float v){
 // Donor screensaver with its four fixed colours replaced by palette colours.
 static CRGBF k1_screensaver_last[4];
 void run_screensaver(){
-  if(!k1_palette_active()){donor_run_screensaver();return;}
   if(configuration.screensaver == false){ return; }
   if(light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
   float mag_sum=0;
@@ -219,7 +214,13 @@ static uint16_t raw_led_data16[NUM_LEDS*3]; // RGB order, one per float in leds
 #include "emotiscope_quantize.inc"
 static bool frame_output_valid=true;
 static uint32_t nonfinite_output_frames=0;
+#ifdef K1_EMOTISCOPE_TEST_SEAM
+static bool test_fail_next_frame=false;
+#endif
 void transmit_leds(){
+#ifdef K1_EMOTISCOPE_TEST_SEAM
+  if(test_fail_next_frame){test_fail_next_frame=false;leds[0].r=std::nanf("");}
+#endif
   // Validate before the donor float-to-integer conversion. A numerical fault
   // retains the last complete hardware frame; it is not converted to white/black.
   const float* p=reinterpret_cast<const float*>(leds);
@@ -238,11 +239,48 @@ void transmit_leds(){
     raw_led_data16[i]=static_cast<uint16_t>(p[i]*65535.0f+0.5f);
   frame_output_valid=true;
 }
+void apply_edge_response(float delta);
+#define K1_EMOTISCOPE_SHARED_MUSICAL_TICK 1
 #include "emotiscope_donor/gpu_core.h"
+#undef K1_EMOTISCOPE_SHARED_MUSICAL_TICK
 static bool initialized=false;
 static uint32_t audio_hops=0,render_frames=0,rejected_audio_chunks=0;
 static uint32_t audio_gaps=0,fresh_hops=0;
 static bool gap_rewarming=false;
+static float response_gain=1.0f;
+static EmotiscopeEdgeResponse edge_response;
+static K1EmotiscopeAudioPublication musical_publication{};
+static bool publication_seen=false;
+static uint32_t musical_tick_us=0;
+static void capture_musical_publication(){
+  auto& p=musical_publication;
+  ++p.sequence;p.audio_hops=audio_hops;p.now_us=port_clock_us;p.valid=fresh_hops>=64u&&!gap_rewarming;
+  p.vu_level_raw=vu_level_raw;p.vu_level=vu_level;p.vu_max=vu_max;p.vu_floor=vu_floor;
+  p.tempo_confidence=tempo_confidence;p.tempi_power_sum=tempi_power_sum;
+  std::memcpy(p.spectrum,spectrogram,sizeof(p.spectrum));
+  std::memcpy(p.spectrum_smooth,spectrogram_smooth,sizeof(p.spectrum_smooth));
+  std::memcpy(p.chromagram,chromagram,sizeof(p.chromagram));
+  p.novelty_normalised=novelty_curve_normalized[NOVELTY_HISTORY_LENGTH-1];
+  std::memcpy(p.tempi_smooth,tempi_smooth,sizeof(p.tempi_smooth));
+  for(unsigned i=0;i<NUM_FREQS;++i)p.frequency_magnitude[i]=frequencies_musical[i].magnitude;
+  for(unsigned i=0;i<NUM_TEMPI;++i){p.tempi_phase[i]=tempi[i].phase;p.tempi_beat[i]=tempi[i].beat;}
+}
+static void import_musical_publication(float gain){
+  const auto& p=musical_publication;
+  vu_level_raw=p.vu_level_raw;vu_level=clip_float(p.vu_level*gain);vu_max=p.vu_max;vu_floor=p.vu_floor;
+  tempo_confidence=clip_float(p.tempo_confidence*gain);tempi_power_sum=fmaxf(p.tempi_power_sum*gain,0.00000001f);
+  for(unsigned i=0;i<NUM_FREQS;++i){spectrogram[i]=p.spectrum[i]*gain;spectrogram_smooth[i]=p.spectrum_smooth[i]*gain;frequencies_musical[i].magnitude=p.frequency_magnitude[i]*gain;}
+  for(unsigned i=0;i<12;++i)chromagram[i]=p.chromagram[i]*gain;
+  novelty_curve_normalized[NOVELTY_HISTORY_LENGTH-1]=clip_float(p.novelty_normalised*gain);
+  for(unsigned i=0;i<NUM_TEMPI;++i)tempi_smooth[i]=p.tempi_smooth[i]*gain;
+  for(unsigned i=0;i<NUM_TEMPI;++i){tempi[i].phase=p.tempi_phase[i];tempi[i].beat=p.tempi_beat[i];}
+}
+
+// Legacy EdgeMixer VALUE adaptation; the envelope belongs to this VP instance.
+void apply_edge_response(float delta){
+  (void)edge_response.apply(reinterpret_cast<float*>(leds),musical_publication,
+      delta*(1000000/REFERENCE_FPS)/1000000.0f);
+}
 void mute_audio_publication(){
   std::memset(spectrogram,0,sizeof(spectrogram));
   std::memset(spectrogram_smooth,0,sizeof(spectrogram_smooth));
@@ -268,22 +306,38 @@ extern "C" bool k1_emotiscope_init(uint32_t seed){
   K1EmotiscopeConfig defaults;k1_emotiscope_default_config(&defaults);
   std::memcpy(&configuration,&defaults,sizeof(configuration));
   init_light_mode_list();
+#ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
   init_window_lookup();
   init_goertzel_constants_musical();
   init_tempo_goertzel_constants();
   init_noise_samples();
+#endif
   init_floating_point_lookups();
+#ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
   init_vu();
+#endif
   init_random_dither_error();
+  edge_response.initialise_bins();
+
   initialized=true;
   return true;
 }
 extern "C" bool k1_emotiscope_set_config(const K1EmotiscopeConfig* input){
   using namespace emotiscope;
-  if(!initialized || !input || input->current_mode<0 || input->current_mode>7)return false;
+  // Neutral7 is an inactive full-strip lamp, not a musical visualisation.
+  if(!initialized || !input || input->current_mode<0 || input->current_mode>6)return false;
+  // Fixed HSV controls are obsolete in the permanent catalogue path. A full
+  // read-modify-write may preserve their current values, including a drifting
+  // auto-colour phase above1; it may not pretend an inert field is configurable.
+  if(input->color!=configuration.color || input->color_range!=configuration.color_range ||
+      input->saturation!=configuration.saturation)return false;
   const float values[]={input->brightness,input->softness,input->color,input->warmth,
     input->color_range,input->speed,input->saturation,input->background};
-  for(float value:values)if(!std::isfinite(value)||value<0.0f||value>1.0f)return false;
+  for(unsigned i=0;i<8;++i){
+    if(!std::isfinite(values[i]))return false;
+    if(i==2u)continue; // unchanged internally evolving palette phase
+    if(values[i]<0.0f||values[i]>1.0f)return false;
+  }
   const bool mode_changed=configuration.current_mode!=input->current_mode;
   std::memcpy(&configuration,input,sizeof(configuration));
   if(mode_changed)lpf_drag=1.0f; // donor mode transition
@@ -303,6 +357,7 @@ extern "C" bool k1_emotiscope_patch(const K1EmotiscopePatch* patch,uint32_t* cha
   K1EmotiscopeConfig next;
   std::memcpy(&next,&configuration,sizeof(next));
   const uint32_t mask=patch->mask;
+  if(mask&((1u<<2)|(1u<<4)|(1u<<6)))return false;
   if(mask&1u && !emotiscope_unit_float(patch->brightness))return false;
   if(mask&2u && !emotiscope_unit_float(patch->softness))return false;
   if(mask&4u && !emotiscope_unit_float(patch->color))return false;
@@ -347,6 +402,7 @@ extern "C" float k1_emotiscope_effective_hue(void){
   return wrapped;
 }
 #ifdef K1_EMOTISCOPE_TEST_SEAM
+extern "C" void k1_emotiscope_test_fail_next_frame(){emotiscope::test_fail_next_frame=true;}
 extern "C" void k1_emotiscope_test_set_raw_color(float color){
   emotiscope::configuration.color=color;
 }
@@ -384,6 +440,14 @@ extern "C" void k1_emotiscope_test_stage(int stage,float arg,float* rgbf){
   }else if(stage==3){
     clear_display();rgbf[0]=configuration.color_range;
     apply_background(0.0f);rgbf[1]=configuration.color_range;
+  }else if(stage==4){
+    // Deterministic audio level through the actual Analog renderer, without
+    // publishing fabricated audio into the production analyser.
+    const float saved_vu=vu_level,saved_smooth=vu_level_smooth;
+    vu_level=arg;vu_level_smooth=arg;
+    clear_display();draw_analog();apply_background(0.0f);apply_tonemapping();
+    std::memcpy(rgbf,leds,sizeof(leds));
+    vu_level=saved_vu;vu_level_smooth=saved_smooth;
   }
 }
 // Push a known post-gamma float frame through the production output stage
@@ -427,7 +491,23 @@ extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
   using namespace emotiscope;
   if(!initialized||!rgb)return false;
   if(!advance_port_clock(now_us))return false;
+#ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
+  // Audio/tempo publication advances once per release, independent of either
+  // board's mode, controls or output validity. VP function statics are per TU.
+  if(!publication_seen || now_us!=musical_tick_us){
+    t_now_us=micros();t_now_ms=millis();
+    const float delta=publication_seen?float(now_us-musical_tick_us)/(1000000/REFERENCE_FPS):0.0f;
+    update_novelty();update_tempi_phase(delta);
+    musical_tick_us=now_us;publication_seen=true;capture_musical_publication();
+  }
+#else
+  if(!publication_seen || musical_publication.now_us!=now_us)return false;
+#endif
+  import_musical_publication(response_gain);
   run_gpu();
+  // Restore the immutable raw observation: visual response must not enter the
+  // next analyser hop or another board's response.
+  import_musical_publication(1.0f);
   ++render_frames;
   if(!frame_output_valid)return false;
   for(unsigned i=0;i<NUM_LEDS;++i){
@@ -437,12 +517,33 @@ extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
   }
   return true;
 }
+extern "C" void k1_emotiscope_audio_publication(K1EmotiscopeAudioPublication* out){
+  if(out)std::memcpy(out,&emotiscope::musical_publication,sizeof(*out));
+}
+extern "C" bool k1_emotiscope_set_response_gain(float gain){
+  if(!std::isfinite(gain)||gain<0.0f||gain>2.0f)return false;
+  emotiscope::response_gain=gain;return true;
+}
+extern "C" float k1_emotiscope_response_gain(){return emotiscope::response_gain;}
+extern "C" bool k1_emotiscope_set_edge_response(uint32_t mode,float depth){
+  return emotiscope::edge_response.configure(mode,depth);
+}
+extern "C" uint32_t k1_emotiscope_edge_response(){return emotiscope::edge_response.mode();}
+extern "C" float k1_emotiscope_edge_depth(){return emotiscope::edge_response.depth();}
+#ifdef K1_EMOTISCOPE_SECONDARY_INSTANCE
+extern "C" bool k1_secondary_emotiscope_accept_audio(const K1EmotiscopeAudioPublication* publication){
+  using namespace emotiscope;
+  if(!initialized||!publication||publication->sequence==0)return false;
+  musical_publication=*publication;publication_seen=true;audio_hops=publication->audio_hops;
+  return true;
+}
+#endif
 extern "C" bool k1_emotiscope_set_palette(uint32_t id){
-  if(id>K1_EMOTISCOPE_PALETTES)return false;
+  if(id==0u||id>K1_EMOTISCOPE_PALETTES)return false;
   emotiscope::k1_palette_select=id;return true;
 }
 extern "C" void k1_emotiscope_set_palette_sampler(K1PaletteSampler sampler){
-  emotiscope::k1_palette_sampler=sampler;
+  emotiscope::k1_palette_sampler=sampler?sampler:&emotiscope::k1_builtin_palette_sample;
 }
 extern "C" uint32_t k1_emotiscope_palette(void){return emotiscope::k1_palette_select;}
 extern "C" void k1_emotiscope_last_rgb16(uint16_t* rgb16){

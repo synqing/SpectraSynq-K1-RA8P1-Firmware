@@ -2,6 +2,9 @@
 #include "palette_runtime.h"
 #ifdef K1_EMOTISCOPE_PORT
 #include "emotiscope_port.h"
+#ifdef K1_TITAN_TOP_OUTPUT
+#include "emotiscope_secondary.h"
+#endif
 #include "emotiscope_output.h"
 #endif
 #include "core/visual/product_effect_renderer.h"
@@ -225,10 +228,10 @@ bool PaletteRuntime::setEmissionEnabled(bool enabled) noexcept {
   else config_.flags &= ~4U;
   return was && !enabled;
 }
-void PaletteRuntime::noteDonorMode(std::uint32_t mode) noexcept {
-  if (mode > 6U) return;
-  config_.mode_a = config_.mode_b = mode;
-  a_.controls().mode_id = b_.controls().mode_id = static_cast<std::uint16_t>(mode);
+void PaletteRuntime::noteDonorMode(std::uint32_t mode, unsigned board) noexcept {
+  if (mode > 6U || board > 1U) return;
+  if(board==0U){config_.mode_a=mode;a_.controls().mode_id=static_cast<std::uint16_t>(mode);}
+  else{config_.mode_b=mode;b_.controls().mode_id=static_cast<std::uint16_t>(mode);}
 }
 void PaletteRuntime::selectPerformancePalette(std::uint32_t id, std::uint64_t now_us) noexcept {
   // Caller validates the curated ID; preserve audio and owner timing.
@@ -301,20 +304,46 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   // unit links the K1 product palette catalogue. Idempotent.
   k1_emotiscope_set_palette_sampler(&emotiscopePaletteSample);
   std::uint8_t rgb[K1_EMOTISCOPE_PIXELS * 3U]{};
-  if (!k1_emotiscope_render(static_cast<std::uint32_t>(now_us), rgb)) return false;
-  // Both precisions are computed every frame; the selection is read once here,
-  // at the frame boundary, so a switch never splits a frame.
   std::uint16_t rgb16[K1_EMOTISCOPE_PIXELS * 3U]{};
-  k1_emotiscope_last_rgb16(rgb16);
-  const bool candidate = output_precision_ != 0U;
-  for (unsigned i = 0; i < kPixelsPerChannel; ++i) {
-    const unsigned p = emotiscopeSourceIndex(i) * 3U;
-    const Pixel8 pixel{rgb[p], rgb[p+1U], rgb[p+2U]};
-    a_.frame()[i] = b_.frame()[i] = pixel;
-    wide_[0][i] = wide_[1][i] = candidate ? emotiscopeWirePixel16(rgb16, i)
-                                          : emotiscopeWirePixel(rgb, i);
+#ifdef K1_TITAN_TOP_OUTPUT
+  board_frame_valid_[0]=board_frame_valid_[1]=false;
+#endif
+  const bool primary_valid=k1_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
+  const bool candidate=output_precision_!=0U;
+  if(primary_valid){
+    k1_emotiscope_last_rgb16(rgb16);
+    for(unsigned i=0;i<kPixelsPerChannel;++i){
+      const unsigned p=emotiscopeSourceIndex(i)*3U;
+      a_.frame()[i]={rgb[p],rgb[p+1U],rgb[p+2U]};
+      wide_[0][i]=candidate?emotiscopeWirePixel16(rgb16,i):emotiscopeWirePixel(rgb,i);
+    }
+    wide_valid_[0]=true;
+#ifdef K1_TITAN_TOP_OUTPUT
+    board_frame_valid_[0]=true;
+#endif
   }
-  wide_valid_[0] = wide_valid_[1] = true;
+#ifdef K1_TITAN_TOP_OUTPUT
+  // A failed visual frame retains only that board's previous output. The
+  // musical publication still advances and the other VP is independent.
+  k1_emotiscope_audio_publication(&donor_publication_);
+  bool secondary_valid=false;
+  if(k1_secondary_emotiscope_accept_audio(&donor_publication_))
+    secondary_valid=k1_secondary_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
+  if(secondary_valid){
+    k1_secondary_emotiscope_last_rgb16(rgb16);
+    for(unsigned i=0;i<kPixelsPerChannel;++i){
+      const unsigned p=emotiscopeSourceIndex(i)*3U;
+      b_.frame()[i]={rgb[p],rgb[p+1U],rgb[p+2U]};
+      wide_[1][i]=candidate?emotiscopeWirePixel16(rgb16,i):emotiscopeWirePixel(rgb,i);
+    }
+    wide_valid_[1]=true;board_frame_valid_[1]=true;
+  }
+  if(!primary_valid&&!secondary_valid)return false;
+#else
+  if(!primary_valid)return false;
+  for(unsigned i=0;i<kPixelsPerChannel;++i){b_.frame()[i]=a_.frame()[i];wide_[1][i]=wide_[0][i];}
+  wide_valid_[1]=true;
+#endif
   last_publication_us_ = audio ? audio->source_publication_us : 0U;
   last_musical_ = audio != nullptr;
   waiting_for_audio_ = audio == nullptr;
@@ -552,7 +581,12 @@ std::size_t PaletteRuntime::packBoardGrb48Lane(std::uint8_t* out, std::size_t ca
   constexpr unsigned pixels_per_lane=kPixelsPerHalf;
   constexpr unsigned bytes_per_lane=kPackedBytesPerLane;
   if (!out || capacity < bytes_per_lane || lane > 1U) return 0U;
-  const unsigned channel_index = config_.output_channel;
+  const unsigned channel_index =
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+      board;
+#else
+      config_.output_channel;
+#endif
   if (channel_index > 1U || !wide_valid_[channel_index]) return 0U;
   // Brightness is applied exactly once to the wire channels. The Emotiscope
   // profile supplies RGB8 expanded by 257; other profiles may author TRUE16.
