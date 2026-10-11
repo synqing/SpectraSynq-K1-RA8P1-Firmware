@@ -1,5 +1,27 @@
 # Emotiscope.HIL complete-runtime port to Titan — 29 September 2026
 
+<!-- BEGIN CAPTAIN PERMANENT MULTICOLOUR PALETTE MANDATE 2026-10-11 -->
+## Permanent multicolour palettes — Captain's current visualiser requirement
+
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. Captain now requires:
+"visualiser shall NEVER display a single colour; PALETTE use permanent default,
+single-colour visualiser modes prohibited."
+
+This newer directive supersedes the original Emotiscope transplant instruction
+to preserve native donor HSV/sourcecolour and not apply Titan palettes. Retain
+that assignment and its receipts as historical evidence; it no longer authorises
+palette0/native HSV defaults, presets, fallbacks or selectable single-colour
+visualiser modes. Use the existing curated multicolour product palettes through
+the real render/background/screensaver path. No rainbow cycling or hue-wheel
+sweep is authorised. Do not add a cosmetic colour floor at silence. Enforce the
+requirement in actual boot/default, preset, control and fallback consumers, not
+only in host selectors or documentation. Preserve centre-origin motion, music
+response, existing transport, current brightness100 and the authorised two-board
+requested intensity envelope. Source/host proof and actual physical appearance
+remain separate claims. No new registry or old campaign is reopened.
+<!-- END CAPTAIN PERMANENT MULTICOLOUR PALETTE MANDATE 2026-10-11 -->
+
+
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
 ## Assignment and authority
