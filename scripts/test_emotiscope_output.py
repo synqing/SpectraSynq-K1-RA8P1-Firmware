@@ -2,11 +2,13 @@
 """Production Emotiscope geometry, continuous-DIN packing, and output-path checks."""
 import argparse
 import hashlib
+import io
 import json
 from pathlib import Path
 import shutil
 import subprocess
 import sys
+import tarfile
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -26,6 +28,7 @@ def main():
         "emotiscope_port.h","emotiscope_output.h","emotiscope_quantize.inc","hd_pixel16.h"]]
     files+=list((plat/"emotiscope_donor").rglob("*.h"))
     files+=list((plat/"emotiscope_shims").rglob("*"))
+    files+=list(plat.glob("*.h"))+list(plat.glob("*.inc"))
     files+=list((root/"src/k1").rglob("*.h"))+list((root/"src/k1").rglob("*.cpp"))
     files += [root/"tests/host/test_emotiscope_output.cpp",Path(__file__).resolve()]
     files=sorted(set(p for p in files if p.is_file()))
@@ -43,21 +46,21 @@ def main():
         records["cases"].append(item)
         return p,item
 
-    def build(platform,name):
+    def build(platform,name,source_root=root):
         binary=out/name
         harness=platform/"test_emotiscope_output.cpp"
-        if not harness.is_file(): harness=root/"tests/host/test_emotiscope_output.cpp"
+        if not harness.is_file(): harness=source_root/"tests/host/test_emotiscope_output.cpp"
         cmd=["/usr/bin/clang++","-std=c++17","-O1","-g","-Wno-narrowing",
              "-fsanitize=address,undefined","-fno-omit-frame-pointer",
              "-DK1_EMOTISCOPE_PORT=1","-DK1_PALETTE_MORPH=1","-DK1_EMOTISCOPE_TEST_SEAM=1",
-             "-I"+str(root/"src/k1"),"-I"+str(platform),"-I"+str(plat),
+             "-I"+str(source_root/"src/k1"),"-I"+str(platform),"-I"+str(source_root/"platform/ra8p1"),
              "-I"+str(platform/"emotiscope_donor"),"-I"+str(platform/"emotiscope_shims"),
              str(harness),
              str(platform/"palette_runtime.cpp"),str(platform/"emotiscope_port.cpp"),
-             str(root/"src/k1/core/visual/channel_render_state.cpp"),
-             str(root/"src/k1/core/visual/audio_focus.cpp"),
-             str(root/"src/k1/core/visual/product_palette.cpp"),
-             str(root/"src/k1/core/visual/product_palette_data.cpp"),"-o",str(binary)]
+             str(source_root/"src/k1/core/visual/channel_render_state.cpp"),
+             str(source_root/"src/k1/core/visual/audio_focus.cpp"),
+             str(source_root/"src/k1/core/visual/product_palette.cpp"),
+             str(source_root/"src/k1/core/visual/product_palette_data.cpp"),"-o",str(binary)]
         result,_=run(name+"-compile",cmd)
         if result.returncode: raise RuntimeError("Compile failed for "+name)
         return binary
@@ -102,29 +105,60 @@ def main():
         success &= same
 
         # --- Output precision A/B -------------------------------------------------
-        # (1) Reference untouched: precision 0 output equals the tagged reference build's.
+        # (1) Historical reference uses only its own tagged source and headers.
+        # Its independent packing oracle remains strict. Current palette/AP
+        # changes intentionally alter scene bytes, so the cross-image delta is
+        # recorded separately from packing conformance.
         reference_tag = "titan-emotiscope-ref-r1"
         ref_src = out/"reference-source"
         ref_src.mkdir()
-        for filename in ["palette_runtime.cpp","palette_runtime.h","emotiscope_port.cpp",
-                         "emotiscope_port.h","emotiscope_output.h","emotiscope_quantize.inc"]:
-            blob = subprocess.run(["git","-C",str(root),"show",f"{reference_tag}:platform/ra8p1/{filename}"],
-                                  capture_output=True, check=True).stdout
-            (ref_src/filename).write_bytes(blob)
-        (ref_src/"test_emotiscope_output.cpp").write_bytes(subprocess.run(
-            ["git","-C",str(root),"show",f"{reference_tag}:tests/host/test_emotiscope_output.cpp"],
-            capture_output=True, check=True).stdout)
-        shutil.copytree(plat/"emotiscope_donor",ref_src/"emotiscope_donor")
-        shutil.copytree(plat/"emotiscope_shims",ref_src/"emotiscope_shims")
-        ref_bin = build(ref_src,"reference-tag")
+        archive=subprocess.run(["git","-C",str(root),"archive",reference_tag,
+            "platform/ra8p1","src/k1","tests/host/test_emotiscope_output.cpp"],
+            capture_output=True,check=True).stdout
+        with tarfile.open(fileobj=io.BytesIO(archive)) as tree:
+            for member in tree:
+                path=Path(member.name)
+                if path.is_absolute() or ".." in path.parts:
+                    raise RuntimeError("Unsafe tagged source path")
+                if not member.isfile(): continue
+                target=ref_src/path
+                target.parent.mkdir(parents=True,exist_ok=True)
+                target.write_bytes(tree.extractfile(member).read())
+        records["reference_source"]={"tag":reference_tag,"commit":subprocess.run(
+            ["git","-C",str(root),"rev-parse",reference_tag+"^{commit}"],
+            capture_output=True,text=True,check=True).stdout.strip(),
+            "source_sha256":{str(p.relative_to(ref_src)):sha(p)
+                for p in sorted(ref_src.rglob("*")) if p.is_file()}}
+        ref_bin = build(ref_src/"platform/ra8p1","reference-tag",ref_src)
         ref_wire = out/"reference-tag-runtime-grb48.bin"
+        ref_native = out/"reference-tag-direct-native128-rgb8.bin"
+        d,_ = run("reference-tag-direct",[ref_bin,"direct",ref_native])
         r,_ = run("reference-tag-runtime",[ref_bin,"runtime",ref_wire])
-        if r.returncode: raise RuntimeError("Reference-tag generation failed")
+        if d.returncode or r.returncode: raise RuntimeError("Reference-tag generation failed")
+        ref_raw=ref_native.read_bytes()
+        ref_packed=ref_wire.read_bytes()
+        if len(ref_raw)!=1000*384 or len(ref_packed)!=1000*960:
+            raise RuntimeError("Unexpected tagged reference geometry")
+        ref_expected=bytearray()
+        for frame in range(1000):
+            for destination in range(160):
+                index=frame*384+mapping[destination]*3
+                for colour in [1,0,2]:
+                    ref_expected+=(ref_raw[index+colour]*65535*100//(255*255)).to_bytes(2,"big")
+        ref_expected_path=out/"reference-tag-independent-expected-grb48.bin"
+        ref_expected_path.write_bytes(ref_expected)
+        ref_same=ref_packed==ref_expected
+        records["cases"].append({"name":"same-tag-direct-donor-to-packer","exit":0 if ref_same else 3,
+            "independent_processes":True,"reference_tag":reference_tag,"frames":1000,
+            "wire_bytes_compared":len(ref_packed),"reference_sha256":sha(ref_wire),
+            "expected_sha256":sha(ref_expected_path),"all_wire_bytes_equal":ref_same})
+        success &= ref_same
         identical = ref_wire.read_bytes()==packed
-        records["cases"].append({"name":"precision0-equals-reference-tag","exit":0 if identical else 3,
+        records["historical_scene_comparison"]={"name":"current-versus-reference-tag",
             "reference_tag":reference_tag,"frames":1000,"wire_bytes_compared":len(packed),
-            "reference_sha256":sha(ref_wire),"precision0_sha256":sha(actual),"identical":identical})
-        success &= identical
+            "reference_sha256":sha(ref_wire),"precision0_sha256":sha(actual),"identical":identical,
+            "bytes_differing":sum(x!=y for x,y in zip(ref_packed,packed)),
+            "purpose":"Historical raw comparison; current curated palette and AP repairs intentionally change scene output"}
 
         # (2) Candidate: every wire value equals the rounded, mapped, once-gained float.
         floats_path = out/"direct-post-gamma-f32.bin"
@@ -182,18 +216,19 @@ def main():
         success &= pal_ok
 
         # (5) Palettes 1-44 draw as K1 did (independent oracle in the harness), and
-        # three planted faults must each be rejected.
+        # Current palette-only faults must each be rejected by the unchanged oracle.
         kp,kitem = run("k1-palette-drawing",[binary,"k1palette"])
         success &= kp.returncode==0
-        for name,old,new in [
-            ("palette-keeps-gamma","if(!k1_palette_active())donor_apply_gamma_correction();","donor_apply_gamma_correction();"),
-            ("palette-uses-colour-range",":base+progress;",":base+configuration.color_range*progress;"),
-            ("palette-linear-level","const float level=0.65f*v*v+0.35f*v;","const float level=v;"),
-            ("palette-colour-shifts","const float base=configuration.auto_color_cycle?configuration.color:0.0f;","const float base=configuration.color;"),
-            ("background-native-hsv","if(!k1_palette_active()){donor_apply_background(background_level);return;}","{donor_apply_background(background_level);return;}"),
-            ("tonemap-per-channel","if(!k1_palette_active()){donor_apply_tonemapping();return;}","{donor_apply_tonemapping();return;}"),
-            ("screensaver-fixed-colours","if(!k1_palette_active()){donor_run_screensaver();return;}","{donor_run_screensaver();return;}"),
-            ("hype-range-unpinned","configuration.color_range=1.0f;k1_draw_scope=true;","k1_draw_scope=true;")]:
+        for name,old,new,count in [
+            ("palette-keeps-gamma","void apply_gamma_correction(){}","void apply_gamma_correction(){donor_apply_gamma_correction();}",1),
+            ("palette-uses-colour-range",":base+progress;",":base+configuration.color_range*progress;",1),
+            ("palette-linear-level","const float level=0.65f*v*v+0.35f*v;","const float level=v;",1),
+            ("palette-colour-shifts","const float base=configuration.auto_color_cycle?configuration.color:0.0f;","const float base=configuration.color;",1),
+            ("background-native-hsv","void apply_background(float background_level){","void apply_background(float background_level){donor_apply_background(background_level);return;",1),
+            ("tonemap-per-channel","void apply_tonemapping(){","void apply_tonemapping(){donor_apply_tonemapping();return;",1),
+            ("screensaver-fixed-colours","void run_screensaver(float elapsed_seconds){","void run_screensaver(float elapsed_seconds){donor_run_screensaver();return;",1),
+            ("hype-range-unpinned","configuration.color_range=1.0f;k1_draw_scope=true;","k1_draw_scope=true;",1),
+            ("palette-zero-admitted","if(id==0u||id>K1_EMOTISCOPE_PALETTES)","if(id>K1_EMOTISCOPE_PALETTES)",1)]:
             mutant=out/name
             mutant.mkdir()
             for filename in ["palette_runtime.cpp","palette_runtime.h","emotiscope_port.cpp",
@@ -202,12 +237,23 @@ def main():
             shutil.copytree(plat/"emotiscope_donor",mutant/"emotiscope_donor")
             shutil.copytree(plat/"emotiscope_shims",mutant/"emotiscope_shims")
             mp=mutant/"emotiscope_port.cpp";text=mp.read_text()
-            if text.count(old)!=1: raise RuntimeError("Cannot isolate "+name)
-            mp.write_text(text.replace(old,new))
+            if text.count(old)!=count: raise RuntimeError("Cannot isolate "+name)
+            text=text.replace(old,new)
+            changes=[{"old":old,"new":new,"replacement_count":count}]
+            if name=="palette-linear-level":
+                # Destination-aware contributions use the same curve with a
+                # different parameter name; mutate the actual renderer too.
+                old_level="const float level=0.65f*value*value+0.35f*value;"
+                new_level="const float level=value;"
+                if text.count(old_level)!=1: raise RuntimeError("Cannot isolate destination level mutation")
+                text=text.replace(old_level,new_level)
+                changes.append({"old":old_level,"new":new_level,"replacement_count":1})
+            mp.write_text(text)
             exe=build(mutant,name+"-binary")
             r,mitem=run(name,[exe,"k1palette"])
             rejected=r.returncode!=0 and "OUTPUT_CONTRACT_FAILURE" in r.stderr
             mitem["expected_rejection_observed"]=rejected
+            mitem["mutation"]={"source":"emotiscope_port.cpp","changes":changes}
             success &= rejected
 
         for name in ["candidate-truncates","candidate-double-gain"]:
@@ -229,7 +275,9 @@ def main():
             exe=build(mutant,name+"-binary")
             mut_path=out/(name+".bin")
             r,mitem=run(name,[exe,"runtime16",mut_path])
-            rejected = r.returncode!=0 or mut_path.read_bytes()!=bytes(cand_expected)
+            if r.returncode or not mut_path.is_file() or mut_path.stat().st_size!=len(cand_expected):
+                raise RuntimeError("Precision mutant generation failed for "+name)
+            rejected = mut_path.read_bytes()!=bytes(cand_expected)
             mitem["expected_rejection_observed"]=rejected
             success &= rejected
 
