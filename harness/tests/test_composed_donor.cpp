@@ -14,10 +14,10 @@ int main(int argc,char** argv){
   cfg.current_mode=6;cfg.brightness=1;cfg.background=background?1.f:0.f;
   cfg.screensaver=background;cfg.auto_color_cycle=false;cfg.temporal_dithering=false;
   assert(k1_emotiscope_set_config(&cfg));assert(k1_secondary_emotiscope_set_config(&cfg));
-  auto authored=k1_composed_scene_defaults();authored.scene=scene;
+  auto authored=k1_composed_scene_defaults();authored.scene=scene==4u?1u:scene;
   authored.outgoing_ms=800;authored.separation_ms=100;authored.quiet_ms=400;
-  authored.return_ms=1200;authored.recovery_ms=300;authored.trail_ms=80;authored.quiet_scope=scene==2?2:1;
-  assert(k1_emotiscope_set_scene_config(&authored));assert(k1_secondary_emotiscope_set_scene_config(&authored));
+  authored.return_ms=1200;authored.recovery_ms=300;authored.trail_ms=80;authored.quiet_scope=(scene==2||scene==4)?2:1;
+  assert(k1_emotiscope_set_scene_config(&authored));if(scene==4u)authored.scene=0;assert(k1_secondary_emotiscope_set_scene_config(&authored));
   k1::titan::PaletteRuntime runtime;k1::titan::PaletteConfig pc;pc.palette_a=pc.palette_b=0;pc.mode_a=pc.mode_b=6;pc.flags=5;pc.brightness=100;
   assert(runtime.configure(pc,0));assert(runtime.setBoardIntensity(0,.25f));assert(runtime.setBoardIntensity(1,.4f));runtime.setSecondaryOutputEnabled(true);
   assert(k1_emotiscope_set_palette(1));assert(k1_secondary_emotiscope_set_palette(1));
@@ -55,5 +55,6 @@ int main(int argc,char** argv){
   }
   std::fclose(out);assert(valid>1500);assert(lit[0]>50&&lit[1]>50);assert(moving[0]>20&&moving[1]>20);
   if(scene==1||scene==2){assert(quiet[0]>10&&quiet[1]>10);assert(gestures[0]>0&&gestures[1]>0);}
+  if(scene==4u)assert(quiet[0]>10&&quiet[1]>10);
   std::printf("{\"scene\":%u,\"background\":%u,\"switch_frame\":%u,\"valid_frames\":%u,\"lit\":[%u,%u],\"moving\":[%u,%u],\"quiet\":[%u,%u],\"gestures\":[%u,%u]}\n",scene,unsigned(background),switch_frame,valid,lit[0],lit[1],moving[0],moving[1],quiet[0],quiet[1],gestures[0],gestures[1]);
 }

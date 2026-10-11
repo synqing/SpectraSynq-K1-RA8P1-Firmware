@@ -142,7 +142,7 @@ struct Board {
               const composed_motion::PaletteSnapshot* identity=nullptr,bool linked=false){
     forced_quiet=false;
     if(launch){release_requested=false;pending_event=false;}
-    if(!active.scene){for(auto& p:pixels)p={};return;}
+    if(!active.scene){for(auto& p:pixels)p={};rendered_us=now_us;rendered=true;return;}
     motion.configure(motionConfig(linked));
     if(active.scene==3u){
       float feed=(transition_pending||pair_drain)?0.0f:level*direction.injection();

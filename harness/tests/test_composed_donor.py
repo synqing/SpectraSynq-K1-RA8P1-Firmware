@@ -16,7 +16,7 @@ inputs=sources+['platform/ra8p1/composed_scene_runtime.h','platform/ra8p1/compos
 before={p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in inputs}
 code=run(cmd).returncode;data={};metrics=[]
 if not code:
-    for scene,background,change in [(s,b,0) for s in (1,2,3) for b in (0,1)]+[(1,0,1),(3,0,1),(0,0,0)]:
+    for scene,background,change in [(s,b,0) for s in (1,2,3) for b in (0,1)]+[(1,0,1),(3,0,1),(0,0,0),(4,1,0)]:
         key=f'{scene}-{background}-{change}';path=OUT/(key+'.rgb8')
         p=run([str(OUT/'donor'),str(scene),str(background),str(change),str(path)])
         if p.returncode:code=p.returncode;break
