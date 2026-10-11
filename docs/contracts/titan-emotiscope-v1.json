@@ -875,6 +875,229 @@
       "validation": "strictlength/tag/version/BOOL; allarraysfinite0..1; invalidrecordzerosarrayswhilemetadataretained",
       "host_decoder": "emotiscope_control.decode_ml_state",
       "truth": "readonly actual inference witness; unlabelled experimental outputs, no classifier claims"
+    },
+    "composed_scene_profile": {
+      "version": 6,
+      "state_bytes": 424,
+      "get_sub": 1162674689,
+      "patch_sub": 1162674690,
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 536,
+      "patch_field_count": 63,
+      "patch_field_mask": 9223372036854775807,
+      "profile_capabilities": 127,
+      "inherits": "feature_profile",
+      "fields": {
+        "scene": {
+          "id": 45,
+          "kind": "u32",
+          "state_offset": 320,
+          "min": 0,
+          "max": 3,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_outgoing_width": {
+          "id": 46,
+          "kind": "f32",
+          "state_offset": 324,
+          "min": 0.02,
+          "max": 0.8,
+          "default": 0.14,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_outgoing_ms": {
+          "id": 47,
+          "kind": "f32",
+          "state_offset": 328,
+          "min": 200.0,
+          "max": 8000.0,
+          "default": 1400.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_separation_ms": {
+          "id": 48,
+          "kind": "f32",
+          "state_offset": 332,
+          "min": 0.0,
+          "max": 5000.0,
+          "default": 350.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_quiet_ms": {
+          "id": 49,
+          "kind": "f32",
+          "state_offset": 336,
+          "min": 0.0,
+          "max": 8000.0,
+          "default": 450.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_width": {
+          "id": 50,
+          "kind": "f32",
+          "state_offset": 340,
+          "min": 0.02,
+          "max": 0.8,
+          "default": 0.1,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_ms": {
+          "id": 51,
+          "kind": "f32",
+          "state_offset": 344,
+          "min": 200.0,
+          "max": 8000.0,
+          "default": 2200.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_strength": {
+          "id": 52,
+          "kind": "f32",
+          "state_offset": 348,
+          "min": 0.0,
+          "max": 0.95,
+          "default": 0.45,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_trail_ms": {
+          "id": 53,
+          "kind": "f32",
+          "state_offset": 352,
+          "min": 0.0,
+          "max": 2000.0,
+          "default": 120.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_trips": {
+          "id": 54,
+          "kind": "u32",
+          "state_offset": 356,
+          "min": 0,
+          "max": 2,
+          "default": 1,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_outgoing_feather": {
+          "id": 55,
+          "kind": "f32",
+          "state_offset": 360,
+          "min": 0.0,
+          "max": 1.0,
+          "default": 0.3,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_feather": {
+          "id": 56,
+          "kind": "f32",
+          "state_offset": 364,
+          "min": 0.0,
+          "max": 1.0,
+          "default": 0.5,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_recovery_ms": {
+          "id": 57,
+          "kind": "f32",
+          "state_offset": 368,
+          "min": 0.0,
+          "max": 8000.0,
+          "default": 500.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_choreography": {
+          "id": 58,
+          "kind": "u32",
+          "state_offset": 372,
+          "min": 0,
+          "max": 2,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "global pair relation"
+        },
+        "scene_initiator": {
+          "id": 59,
+          "kind": "u32",
+          "state_offset": 376,
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "global pair relation"
+        },
+        "scene_answer_delay_ms": {
+          "id": 60,
+          "kind": "f32",
+          "state_offset": 380,
+          "min": 0.0,
+          "max": 8000.0,
+          "default": 180.0,
+          "required_capability": 64,
+          "scope": "global pair relation"
+        },
+        "scene_phrase": {
+          "id": 61,
+          "kind": "u32",
+          "state_offset": 384,
+          "min": 0,
+          "max": 4,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_ml_target": {
+          "id": 62,
+          "kind": "u32",
+          "state_offset": 388,
+          "min": 0,
+          "max": 3,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_quiet_scope": {
+          "id": 63,
+          "kind": "u32",
+          "state_offset": 392,
+          "min": 0,
+          "max": 3,
+          "default": 1,
+          "required_capability": 64,
+          "scope": "selected board"
+        }
+      },
+      "status_layout": {
+        "active_scene": 396,
+        "scene_phase": 400,
+        "scene_pending": 404,
+        "scene_gesture_id": 408,
+        "scene_phrase_state": 412,
+        "scene_quiet": 416
+      },
+      "reserved_zero": [
+        [
+          312,
+          320
+        ],
+        [
+          420,
+          424
+        ]
+      ],
+      "semantics": "Fields45..63 are requested configuration; active_scene/phase/pending report the render-boundary state separately. Validate every field of the merged complete config before applying any mixed patch. Legacy mode is independent. Choreography, initiator and answer delay are pair-owned. Dedup replays the original acknowledgement. Old legacy GET/PATCH remain v4; extended GET/PATCH return v6 on this image. Host retains v5 decoding for older images."
     }
   },
   "mode_control": {

@@ -106,9 +106,10 @@ EMOTISCOPE_MANIFEST = ROOT / 'docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.jso
 EMOTISCOPE_CLOCK_DELTA = ROOT / 'docs/emotiscope-port-001/CLOCK-PORT-DELTA.json'
 EMOTISCOPE_PLATFORM_FILES = ['emotiscope_port.h', 'emotiscope_port.cpp',
                             'emotiscope_quantize.inc', 'emotiscope_output.h',
-                            'emotiscope_control.h', 'emotiscope_edge_response.h', 'emotiscope_edge_colour.h']
+                            'emotiscope_control.h', 'composed_scene_config.h', 'emotiscope_edge_response.h', 'emotiscope_edge_colour.h']
 EMOTISCOPE_SECONDARY_FILES = ['emotiscope_secondary.cpp', 'emotiscope_secondary.h',
-                              'musical_conditioning.h', 'emotiscope_ml.h', 'emotiscope_ml.cpp']
+                              'musical_conditioning.h', 'emotiscope_ml.h', 'emotiscope_ml.cpp',
+                              'composed_motion.h', 'composed_scene_runtime.h', 'composed_timing.h']
 EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
 
 def emotiscope_inputs():

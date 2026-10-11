@@ -44,4 +44,10 @@ step "F Emotiscope output path"
 "$FW_PY" "$F/scripts/test_emotiscope_output.py" --output "$OUT/output"
 
 echo
+step "F composed scenes and negotiated dual controls"
+"$FW_PY" "$F/scripts/test_emotiscope_controls.py" --top-output --output "$OUT/dual-controls"
+for name in motion timing scene donor; do
+  "$FW_PY" "$F/harness/tests/test_composed_${name}.py"
+done
+
 echo "CHECK_INSTRUMENT PASS"

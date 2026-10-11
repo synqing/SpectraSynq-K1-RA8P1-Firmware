@@ -2,6 +2,7 @@
 #define K1_EMOTISCOPE_PORT_H
 #include <stdbool.h>
 #include <stdint.h>
+#include "composed_scene_config.h"
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -48,6 +49,10 @@ bool k1_emotiscope_set_musical_config(const K1EmotiscopeMusicalConfig *config);
 void k1_emotiscope_get_musical_config(K1EmotiscopeMusicalConfig *out);
 bool k1_emotiscope_set_ml_config(const K1EmotiscopeMlConfig *config);
 void k1_emotiscope_get_ml_config(K1EmotiscopeMlConfig *out);
+bool k1_emotiscope_set_scene_config(const K1ComposedSceneConfig *config);
+void k1_emotiscope_get_scene_config(K1ComposedSceneConfig *out);
+void k1_emotiscope_scene_status(K1ComposedSceneStatus *out);
+void k1_emotiscope_scene_pair_frame(uint32_t now_us);
 typedef struct {
   uint32_t audio_hops, render_frames, rejected_audio_chunks, nonfinite_output_frames;
   uint32_t clock_regressions;

@@ -316,6 +316,7 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   if(!k1_secondary_emotiscope_accept_audio(&donor_publication_))return false;
   K1EmotiscopeMlResult model{};k1_emotiscope_get_ml_result(&model);
   k1_secondary_emotiscope_accept_ml(&model);
+  k1_emotiscope_scene_pair_frame(static_cast<std::uint32_t>(now_us));
 #endif
   const bool primary_valid=k1_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
   const bool candidate=output_precision_!=0U;

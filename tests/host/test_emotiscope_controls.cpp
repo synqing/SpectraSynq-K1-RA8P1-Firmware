@@ -88,8 +88,8 @@ static void check_extended_protocol() {
   ec::DonorIntent intent{};
   CHECK(ec::donorParse(get,20,&intent)==0 && intent.board==1);
   ec::donorApply(&cache,intent,observed,&result);
-  CHECK(result.status==0 && result.response_bytes==320);
-  CHECK(ec::donorGetU32(result.response+4)==5 && ec::donorGetU32(result.response+164)==63 && ec::donorGetU32(result.response+176)==1);
+  CHECK(result.status==0 && result.response_bytes==424);
+  CHECK(ec::donorGetU32(result.response+4)==6 && ec::donorGetU32(result.response+164)==127 && ec::donorGetU32(result.response+176)==1);
   for(unsigned i=312;i<320;++i)CHECK(result.response[i]==0);
   const Entry features[]={{24,4,1},{28,2,1},{29,4,2},{30,1,fbits(.5f)},{31,1,fbits(60.f)},
     {32,4,1},{39,4,2},{40,1,fbits(.75f)},{41,1,fbits(20.f)},{42,1,fbits(250.f)},{43,2,1},{44,1,fbits(.5f)}};
@@ -97,13 +97,13 @@ static void check_extended_protocol() {
   CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==0);
   CHECK(intent.ml_enabled==1 && intent.emission==0 && intent.edge_colour_enabled==1 && intent.edge_pair_enabled==0);
   ec::donorApply(&cache,intent,observed,&result);
-  CHECK(result.status==0 && result.response_bytes==320 && result.edge_colour_changed && result.musical_changed && result.ml_changed);
+  CHECK(result.status==0 && result.response_bytes==424 && result.edge_colour_changed && result.musical_changed && result.ml_changed);
   CHECK(!result.emission_changed && result.emission==1 && result.affected_boards==2);
   CHECK(ec::donorGetU32(result.response+192)==1 && ec::donorGetU32(result.response+256)==1);
   const auto first=result;
   ec::donorApply(&cache,intent,observed,&result);
-  CHECK(result.response_bytes==320 && ec::donorGetU32(result.response+96)==1 && !result.changed && !result.ml_changed);
-  CHECK(std::memcmp(first.response+100,result.response+100,220)==0);
+  CHECK(result.response_bytes==424 && ec::donorGetU32(result.response+96)==1 && !result.changed && !result.ml_changed);
+  CHECK(std::memcmp(first.response+100,result.response+100,324)==0);
   intent.board=0; // Same CRC forged by a direct caller cannot replay another target.
   ec::donorApply(&cache,intent,observed,&result);
   CHECK(result.status==ec::kDonorStatusConflict && !result.changed);
@@ -122,6 +122,70 @@ static void check_extended_protocol() {
   CHECK(result.hardware_brightness==100 && result.emission==1 && observed.revision==0);
   k1_emotiscope_get_config(&after);CHECK(std::memcmp(&after,&primary_before,sizeof(after))==0);
   k1_secondary_emotiscope_get_config(&after);CHECK(std::memcmp(&after,&secondary_before,sizeof(after))==0);
+  // Independently written v6 full scene packet; distinct values expose field aliases.
+  const Entry composed[]={{24,4,1},{45,4,2},{46,1,fbits(.25f)},{47,1,fbits(1600.f)},
+    {48,1,fbits(400.f)},{49,1,fbits(600.f)},{50,1,fbits(.125f)},{51,1,fbits(2400.f)},
+    {52,1,fbits(.5f)},{53,1,fbits(200.f)},{54,4,2},{55,1,fbits(.375f)},
+    {56,1,fbits(.625f)},{57,1,fbits(700.f)},{58,4,1},{59,4,1},{60,1,fbits(300.f)},
+    {61,4,2},{62,4,3},{63,4,2}};
+  packet=extended_patch(1300,0,composed,20);
+  std::printf("COMPOSED_PACKET ");for(auto byte:packet)std::printf("%02x",byte);std::puts("");
+  CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==0);
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==0 && result.composed_changed && result.affected_boards==3);
+  CHECK(result.composed.scene==2 && result.composed.trips==2 && result.composed.ml_target==3);
+  CHECK(result.composed.outgoing_ms==1600.f && result.composed.return_ms==2400.f);
+  CHECK(ec::donorGetU32(result.response+320)==2 && ec::donorGetU32(result.response+396)==0);
+  CHECK(ec::donorGetU32(result.response+404)==1);
+  std::printf("COMPOSED_STATE ");for(unsigned i=0;i<424;++i)std::printf("%02x",result.response[i]);std::puts("");
+  const auto scene_first=result;
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==0 && !result.composed_changed && ec::donorGetU32(result.response+96)==1);
+  CHECK(std::memcmp(scene_first.response+100,result.response+100,324)==0);
+  intent.payload_crc++;ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==ec::kDonorStatusConflict && !result.composed_changed);
+  // Partial updates merge with the current request and preserve untouched fields.
+  observed.composed=scene_first.composed;observed.revision=scene_first.revision;
+  const Entry partial[]={{24,4,1},{47,1,fbits(1800.f)}};
+  packet=extended_patch(1301,observed.revision,partial,2);
+  CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==0);
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==0 && result.composed.outgoing_ms==1800.f && result.composed.return_ms==2400.f);
+  intent.request_id=1302;intent.expected_revision=0;
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==ec::kDonorStatusStale && !result.composed_changed);
+  // A poisoned untouched member rejects a merged partial patch before any legacy mutation.
+  intent.expected_revision=observed.revision;intent.mask|=1;intent.brightness=.1f;
+  observed.composed.return_ms=0;
+  ec::donorApply(&cache,intent,observed,&result);
+  CHECK(result.status==ec::kDonorStatusInvalid && !result.changed && !result.revision_changed);
+  k1_secondary_emotiscope_get_config(&after);CHECK(std::memcmp(&after,&secondary_before,sizeof(after))==0);
+  observed.composed=k1_composed_scene_defaults();observed.revision=0;
+  for(const auto bad: {Entry{45,4,4},Entry{46,1,fbits(.01f)},Entry{47,1,0x7fc00000},
+      Entry{54,4,3},Entry{58,4,3},Entry{59,4,2},Entry{61,4,5},Entry{63,4,4}}){
+    packet=extended_patch(1310,0,&bad,1);CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==3);
+  }
+  packet=extended_patch(1311,0,composed,20);
+  ec::donorPutU16(packet.data()+32+8,24); // duplicate/out-of-order field
+  CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==3);
+  packet=extended_patch(1312,0,partial,2);packet.pop_back();
+  CHECK(ec::donorParse(packet.data(),packet.size(),&intent)==3);
+  // Exercise the same owning setter used by fixture_app, then read both consumers.
+  K1ComposedSceneConfig primary_scene{}, secondary_scene{};
+  k1_emotiscope_get_scene_config(&primary_scene);
+  CHECK(k1_secondary_emotiscope_set_scene_config(&scene_first.composed));
+  k1_secondary_emotiscope_get_scene_config(&secondary_scene);
+  CHECK(secondary_scene.scene==2 && secondary_scene.outgoing_ms==1600.f);
+  K1ComposedSceneConfig primary_read{};k1_emotiscope_get_scene_config(&primary_read);
+  CHECK(primary_read.scene==primary_scene.scene && primary_read.outgoing_ms==primary_scene.outgoing_ms);
+  CHECK(primary_read.choreography==1 && primary_read.initiator==1 && primary_read.answer_delay_ms==300.f);
+  auto invalid_scene=secondary_scene;invalid_scene.return_ms=0;
+  CHECK(!k1_secondary_emotiscope_set_scene_config(&invalid_scene));
+  k1_secondary_emotiscope_get_scene_config(&invalid_scene);
+  CHECK(invalid_scene.return_ms==2400.f);
+  const auto defaults=k1_composed_scene_defaults();
+  CHECK(k1_secondary_emotiscope_set_scene_config(&defaults));
+  CHECK(k1_emotiscope_set_scene_config(&defaults));
   // Legacy negotiation remains v4 even on the new image.
   ec::donorPutU32(get,0x454d0101);ec::donorPutU32(get+4,1203);
   CHECK(ec::donorParse(get,20,&intent)==0);ec::donorApply(&cache,intent,observed,&result);
@@ -929,7 +993,7 @@ static int corpus(const char* path) {
   int index = 0;
   while (std::fgets(line, sizeof(line), file)) {
     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
-    std::uint8_t bytes[384];
+    std::uint8_t bytes[536];
     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
     if (size < 0) { std::fclose(file); return 2; }
     ec::DonorIntent intent{};

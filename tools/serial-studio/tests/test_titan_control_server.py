@@ -826,3 +826,44 @@ if __name__ == "__main__":
         test_donor_get_uses_get_discriminator(root / "donor-get")
         test_donor_conflict_returns_state_without_counting_a_write(root / "donor-conflict")
     print("TITAN_CONTROL_SERVER_PASS")
+
+
+def test_composed_v6_capability_and_negotiation(tmp_path):
+    import struct
+    evidence = Path(tmp_path)
+    (evidence / "accepted-checkpoint.json").write_text(
+        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n'
+        % (UID, BUILD, SCHEMA))
+    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
+    body = bytearray(_dual_state(1)) + bytearray(424 - 208)
+    struct.pack_into("<I", body, 4, 6)
+    struct.pack_into("<I", body, 164, 127)
+    struct.pack_into("<f", body, 248, 40.)
+    struct.pack_into("<f", body, 252, 160.)
+    values = (0,.14,1400.,350.,450.,.1,2200.,.45,120.,1,.3,.5,500.,0,0,180.,0,0,1)
+    # Literal offsets/types, independent of codec field table.
+    struct.pack_into("<I8fI3fIIfIII", body, 320, *values)
+    calls = []
+    response = {"ok": True, "status": 0, "body": bytes(body)}
+    def transact(op, wire):
+        calls.append((op, wire))
+        return response
+    plane = RestrictedControlPlane(transact=transact, evidence=evidence, bound=_bound())
+    hello = plane.handle({"op":"hello"})
+    get = {"op":"emotiscope_get", "session":hello["session"], "request_id":1,
+           "boot_id":0x11,"revision":4,"state_version":6}
+    patch = {**get,"op":"emotiscope_patch","fields":{"scene":1,"scene_outgoing_ms":1800.},"board_capabilities":127}
+    assert plane.handle(patch)["ok"] is False  # caller caps grant nothing
+    assert not calls
+    got = plane.handle(get)
+    assert got["ok"] is True, got
+    assert got["state"]["scene_outgoing_ms"] == 1400.
+    assert got["state"]["composed_scenes_supported"] is True
+    assert got["state"]["active_scene"] == 0
+    assert plane.handle(patch)["ok"] is True
+    assert calls[-1][1] == donor.encode_patch(1,0x11,4,patch["fields"],state_version=6,board_capabilities=127)
+    calls.clear()
+    assert plane.handle({**get,"board":1})["ok"] is True
+    assert calls[-1][1] == donor.encode_get(1,0x11,1,state_version=6,board_capabilities=127)
+    response = {"ok":False,"status":3,"body":b""}
+    assert plane.handle(get)["error"] == "unsupported_state_version"

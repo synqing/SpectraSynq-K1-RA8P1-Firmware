@@ -473,13 +473,13 @@ class RestrictedControlPlane:
         # Extended readback is explicitly negotiated. A new broker does not
         # silently enlarge a legacy client's request or trust caller caps.
         requested_version = request.get("state_version", min(observed.get("version", 2), 4) if same_boot else 2)
-        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5):
+        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5, 6):
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "state_version"}
         try:
             wire = donor.encode_get(
                 request_id, boot_id, board,
                 state_version=requested_version,
-                board_capabilities=(observed.get("board_capabilities", 0) if same_boot else 0) & (63 if requested_version==5 else 7 if requested_version==4 else 3),
+                board_capabilities=(observed.get("board_capabilities", 0) if same_boot else 0) & (127 if requested_version==6 else 63 if requested_version==5 else 7 if requested_version==4 else 3),
             )
         except (ValueError, TypeError, OverflowError) as exc:
             self.forbidden_attempts += 1
@@ -492,7 +492,7 @@ class RestrictedControlPlane:
             return {"ok": True, "state": self.last_donor, "session": self.session.token, "cached": True}
         got = self._transact(25, wire)
         reply = self._donor_reply(got, request_id, wrote=False)
-        if requested_version == 5 and int(got.get("status") or 0) == 3:
+        if requested_version >= 5 and int(got.get("status") or 0) == 3:
             reply["error"] = "unsupported_state_version"
         return reply
 
@@ -515,7 +515,7 @@ class RestrictedControlPlane:
         # Capability comes from this bound device's GET/reply, never the caller.
         same_boot = observed.get("boot_id") == boot_id
         requested_version = request.get("state_version", min(observed.get("version", 2), 4) if same_boot else 2)
-        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5):
+        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5, 6):
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "state_version"}
         try:
             wire = donor.encode_patch(
@@ -624,6 +624,10 @@ def donor_public_state(state: dict) -> dict:
         "ml_input_sequence", "ml_now_us", "ml_model_id", "ml_inference_count", "ml_last_cycles", "ml_max_cycles", "ml_rejected_results",
         "publication_sequence", "event_cursor", "conditioning_value",
     )
+    feature_keys += tuple(donor.FIELDS[field][0] for field in range(45, 64)) + (
+        "composed_scenes_supported", "active_scene", "scene_phase", "scene_pending",
+        "scene_gesture_id", "scene_phrase_state", "scene_quiet",
+    )
     for key in feature_keys:
         public[key] = state.get(key)
     return public
@@ -641,13 +645,13 @@ _DONOR_STATUS = {
 
 
 def _decode_donor_body(body: bytes) -> dict | None:
-    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES, donor.FEATURE_STATE_BYTES):
+    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES, donor.FEATURE_STATE_BYTES, donor.COMPOSED_STATE_BYTES):
         return None
     try:
         state = donor.decode_state(body)
     except (ValueError, TypeError):
         return None
-    reserved_bytes = 16 if state["version"] in (1, 4) else 8
+    reserved_bytes = 12 if state["version"] == 6 else 16 if state["version"] in (1, 4) else 8
     if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * reserved_bytes:
         return None
     return donor_public_state(state)

@@ -1480,10 +1480,14 @@ void donor_apply_pending() {
   K1EmotiscopeMusicalConfig musical{};
   K1EmotiscopeMlConfig ml{};
   if(observed.board==1u){
+    k1_secondary_emotiscope_get_scene_config(&observed.composed);
+    k1_secondary_emotiscope_scene_status(&observed.composed_status);
     k1_secondary_emotiscope_get_edge_colour(&colour);
     k1_secondary_emotiscope_get_musical_config(&musical);
     k1_secondary_emotiscope_get_ml_config(&ml);
   }else{
+    k1_emotiscope_get_scene_config(&observed.composed);
+    k1_emotiscope_scene_status(&observed.composed_status);
     k1_emotiscope_get_edge_colour(&colour);
     k1_emotiscope_get_musical_config(&musical);
     k1_emotiscope_get_ml_config(&ml);
@@ -1523,7 +1527,7 @@ void donor_apply_pending() {
 #ifdef K1_TITAN_TOP_OUTPUT
   observed.primary_intensity = palettes.boardIntensity(0U);
   observed.secondary_intensity = palettes.boardIntensity(1U);
-  observed.board_capabilities = 61U |
+  observed.board_capabilities = 125U |
       (k1_ws281x_gpt_dma_hw_top_last_fault() == K1_WS281X_FAULT_NONE ? 2U : 0U);
   observed.secondary_output_enabled =
       palettes.secondaryOutputEnabled() && (observed.board_capabilities & 2U) ? 1U : 0U;
@@ -1572,6 +1576,10 @@ void donor_apply_pending() {
 #endif
   // Realtime owner context; the donor reads it on the next rendered frame.
 #ifdef K1_TITAN_TOP_OUTPUT
+  if(result.composed_changed){
+    if(result.board==1u)k1_secondary_emotiscope_set_scene_config(&result.composed);
+    else k1_emotiscope_set_scene_config(&result.composed);
+  }
   if(result.edge_colour_changed){
     K1EmotiscopeEdgeColourConfig c{result.edge_colour_enabled,result.edge_colour_mode,
         result.edge_colour_spatial,result.edge_colour_strength,result.edge_colour_spread_degrees};

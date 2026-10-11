@@ -11,6 +11,8 @@
 #ifdef K1_TITAN_TOP_OUTPUT
 #include "musical_conditioning.h"
 #include "emotiscope_ml.h"
+#include "composed_scene_runtime.h"
+#include "emotiscope_secondary.h"
 #endif
 #include <cmath>
 #include <cstdint>
@@ -28,6 +30,14 @@ extern "C" void k1_emotiscope_ml_enable_board(unsigned board,bool enabled){
 extern "C" void k1_emotiscope_set_ml_clocks(uint32_t (*cycles)(),uint32_t (*clock)()){
   ml_cycles=cycles;ml_clock=clock;
 }
+#endif
+#ifdef K1_TITAN_TOP_OUTPUT
+#ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
+composed_scene::Board* k1_scene_boards[2]={nullptr,nullptr};
+static composed_scene::Pair k1_scene_pair;
+#else
+extern composed_scene::Board* k1_scene_boards[2];
+#endif
 #endif
 namespace emotiscope {
 #define IRAM_ATTR
@@ -332,6 +342,7 @@ static EmotiscopeEdgeResponse edge_response;
 static uint32_t last_pcm_us=0;
 #ifdef K1_TITAN_TOP_OUTPUT
 static K1MusicalConditioning musical_conditioning;
+static composed_scene::Board composed_board;
 static K1EmotiscopeAudioPublication model_publication{},board_publication{};
 static K1EmotiscopeMlResult ml_observation{};
 static uint32_t conditioning_frame_us=0;
@@ -414,6 +425,14 @@ extern "C" bool k1_emotiscope_init(uint32_t seed){
   float musical_hz[NUM_FREQS];
   for(unsigned i=0;i<NUM_FREQS;++i)musical_hz[i]=notes[BOTTOM_NOTE+NOTE_STEP*i];
   if(!musical_conditioning.initialise_frequencies(musical_hz))return false;
+  composed_board.initialise(musical_hz);
+#ifdef K1_EMOTISCOPE_SECONDARY_INSTANCE
+  k1_scene_boards[1]=&composed_board;
+#else
+  k1_scene_boards[0]=&composed_board;
+  float timing_hz[NUM_TEMPI];for(unsigned i=0;i<NUM_TEMPI;++i)timing_hz[i]=tempi[i].target_tempo_hz;
+  if(!k1_scene_pair.configureTiming(timing_hz))return false;
+#endif
 #endif
 
   initialized=true;
@@ -612,21 +631,91 @@ extern "C" bool k1_emotiscope_prepare_frame(uint32_t now_us){
 #endif
   return true;
 }
+#ifdef K1_TITAN_TOP_OUTPUT
+namespace emotiscope {
+static composed_motion::Rgb composed_palette(float u,void*){
+  const auto c=k1_palette_colour_at(get_color_range_hue(u),64u+unsigned(u*63.0f));
+  return {c.r,c.g,c.b};
+}
+static void run_composed(){
+  t_now_us=micros();t_now_ms=millis();
+  const auto state=composed_board.status();
+  const auto scope=composed_board.active.quiet_scope;
+  const bool protected_quiet=composed_board.forced_quiet || (state.quiet && (scope==1u||scope==2u));
+  for(unsigned i=0;i<NUM_LEDS;++i){
+    const auto c=composed_board.pixels[i];leds[i]={c.r,c.g,c.b};
+  }
+  // These scenes own their history: donor image LPF would leak old pixels into
+  // the protected plateau and recolour/blur the authored travelling material.
+  if(!protected_quiet){
+    const float support=composed_board.motion.active()?.25f:1.0f;
+    if(!state.quiet || scope==0u || scope==3u)apply_background(configuration.background*support);
+    if(scope==0u)run_screensaver(.01f);
+    apply_brightness();apply_tonemapping();apply_warmth(configuration.warmth);
+    multiply_CRGBF_array_by_LUT(leds,WHITE_BALANCE,NUM_LEDS);
+  }else{
+    std::memset(leds,0,sizeof(leds));std::memset(dither_error,0,sizeof(dither_error));
+  }
+  transmit_leds();
+}
+}
+extern "C" void k1_emotiscope_scene_prepare(uint32_t now_us){
+  using namespace emotiscope;
+  if(composed_board.observed && composed_board.now_us==now_us)return;
+  if(!k1_emotiscope_prepare_frame(now_us))return;
+  const auto frame_ml=ml_config;
+  EmotiscopeMl::apply(musical_publication,ml_observation,frame_ml,now_us,model_publication);
+  const float dt=conditioning_frame_seen?float(now_us-conditioning_frame_us)*.000001f:.01f;
+  musical_conditioning.apply(model_publication,board_publication,dt,now_us);
+  conditioning_frame_us=now_us;conditioning_frame_seen=true;
+  k1_frame_ml_offset=(composed_board.requested.scene && composed_board.requested.ml_target!=2u)?0.0f:
+    EmotiscopeMl::palette_offset(musical_publication,ml_observation,frame_ml,now_us);
+  k1_edge_begin_frame();
+  composed_board.palette=&composed_palette;
+  composed_board.observe(musical_publication,ml_observation,frame_ml,now_us,millis());
+  // Existing per-board musical interpretation and response remain real scene consumers.
+  composed_board.level=musical_publication.valid?composed_motion::unit(board_publication.vu_level*response_gain):0.0f;
+  composed_board.strength=composed_scene::Board::gestureStrength(composed_board.level,composed_board.admission.value());
+}
+#ifndef K1_EMOTISCOPE_SECONDARY_INSTANCE
+extern "C" void k1_emotiscope_scene_pair_frame(uint32_t now_us){
+  k1_emotiscope_scene_prepare(now_us);
+  k1_secondary_emotiscope_scene_prepare(now_us);
+  k1_scene_pair.updateTiming(emotiscope::musical_publication,emotiscope::millis());
+  k1_scene_pair.render(k1_scene_boards[0],k1_scene_boards[1],now_us);
+}
+#endif
+extern "C" bool k1_emotiscope_set_scene_config(const K1ComposedSceneConfig* c){
+  if(!c || !emotiscope::composed_board.configure(*c))return false;
+  // Pair ownership is separate from the selected board's motion parameters.
+  for(auto* b:k1_scene_boards)if(b){
+    b->requested.choreography=c->choreography;b->requested.initiator=c->initiator;
+    b->requested.answer_delay_ms=c->answer_delay_ms;
+  }
+  return true;
+}
+extern "C" void k1_emotiscope_get_scene_config(K1ComposedSceneConfig* c){if(c)*c=emotiscope::composed_board.requested;}
+extern "C" void k1_emotiscope_scene_status(K1ComposedSceneStatus* s){if(s)*s=emotiscope::composed_board.status();}
+#endif
 extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
   using namespace emotiscope;
   if(!rgb || !k1_emotiscope_prepare_frame(now_us))return false;
 #ifdef K1_TITAN_TOP_OUTPUT
-  const auto frame_ml=ml_config;
-  EmotiscopeMl::apply(musical_publication,ml_observation,frame_ml,now_us,model_publication);
-  const float dt=conditioning_frame_seen?float(now_us-conditioning_frame_us)*0.000001f:0.01f;
-  musical_conditioning.apply(model_publication,board_publication,dt,now_us);
-  conditioning_frame_us=now_us;conditioning_frame_seen=true;
-  k1_frame_ml_offset=EmotiscopeMl::palette_offset(musical_publication,ml_observation,frame_ml,now_us);
+  k1_emotiscope_scene_prepare(now_us);
   import_musical_publication(board_publication,response_gain);
 #else
   import_musical_publication(musical_publication,response_gain);
 #endif
   k1_edge_begin_frame();
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(composed_board.active.scene||composed_board.forced_quiet){
+    if(!composed_board.rendered || composed_board.rendered_us!=now_us){
+      const bool launch=composed_board.eligible()&&composed_board.fresh_event;
+      composed_board.render(launch?composed_board.event:0u,composed_board.strength);
+    }
+    run_composed();
+  }else
+#endif
   run_gpu();
   // Restore the immutable raw observation: visual response must not enter the
   // next analyser hop or another board's response.

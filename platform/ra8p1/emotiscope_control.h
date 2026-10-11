@@ -2,6 +2,7 @@
 // Donor musical-control codec for opcode 25. Legacy subcommands stay rejected.
 // USB may parse this header. Only the realtime owner may call donorApply.
 #include "emotiscope_port.h"
+#include "composed_scene_config.h"
 #ifdef K1_TITAN_TOP_OUTPUT
 #include "emotiscope_secondary.h"
 #endif
@@ -18,11 +19,11 @@ inline constexpr std::uint32_t kDonorStateMagic = 0x454D5354u;
 #ifdef K1_TITAN_TOP_OUTPUT
 inline constexpr std::uint32_t kDonorCfgGetExtended = 0x454D0201u;
 inline constexpr std::uint32_t kDonorCfgPatchExtended = 0x454D0202u;
-inline constexpr std::uint32_t kDonorStateVersion = 5u;
-inline constexpr std::uint32_t kDonorStateBytes = 320u;
-inline constexpr std::uint32_t kDonorPatchMaxBytes = 384u;
-inline constexpr std::uint32_t kDonorFieldCount = 44u;
-inline constexpr std::uint64_t kDonorFieldMask = (std::uint64_t{1} << 44u) - 1u;
+inline constexpr std::uint32_t kDonorStateVersion = 6u;
+inline constexpr std::uint32_t kDonorStateBytes = 424u;
+inline constexpr std::uint32_t kDonorPatchMaxBytes = 536u;
+inline constexpr std::uint32_t kDonorFieldCount = 63u;
+inline constexpr std::uint64_t kDonorFieldMask = (std::uint64_t{1} << 63u) - 1u;
 #else
 inline constexpr std::uint32_t kDonorStateVersion = 2u;
 inline constexpr std::uint32_t kDonorStateBytes = 160u;
@@ -82,7 +83,7 @@ inline bool donorIsGet(std::uint32_t sub) noexcept {
 }
 inline std::uint32_t donorResponseBytes(std::uint32_t sub) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
-  return (sub==kDonorCfgGetExtended || sub==kDonorCfgPatchExtended)?320u:208u;
+  return (sub==kDonorCfgGetExtended || sub==kDonorCfgPatchExtended)?424u:208u;
 #else
   (void)sub;return 160u;
 #endif
@@ -148,6 +149,61 @@ inline bool donorValidResponseGain(float value) noexcept {
   std::uint32_t bits=0u;std::memcpy(&bits,&value,sizeof(bits));
   return bits<=0x40000000u || bits==0x80000000u;
 }
+#ifdef K1_TITAN_TOP_OUTPUT
+inline constexpr std::uint64_t kDonorComposedMask = ((std::uint64_t{1}<<19u)-1u)<<44u;
+// Explicit accessors keep the wire independent of ABI padding and aliasing.
+inline std::uint32_t donorComposedRaw(const K1ComposedSceneConfig& c,unsigned field) noexcept {
+  std::uint32_t raw=0;
+  switch(field){
+    case 45: return c.scene;
+    case 46: std::memcpy(&raw,&c.outgoing_width,4);return raw;
+    case 47: std::memcpy(&raw,&c.outgoing_ms,4);return raw;
+    case 48: std::memcpy(&raw,&c.separation_ms,4);return raw;
+    case 49: std::memcpy(&raw,&c.quiet_ms,4);return raw;
+    case 50: std::memcpy(&raw,&c.return_width,4);return raw;
+    case 51: std::memcpy(&raw,&c.return_ms,4);return raw;
+    case 52: std::memcpy(&raw,&c.return_strength,4);return raw;
+    case 53: std::memcpy(&raw,&c.trail_ms,4);return raw;
+    case 54: return c.trips;
+    case 55: std::memcpy(&raw,&c.outgoing_feather,4);return raw;
+    case 56: std::memcpy(&raw,&c.return_feather,4);return raw;
+    case 57: std::memcpy(&raw,&c.recovery_ms,4);return raw;
+    case 58: return c.choreography;
+    case 59: return c.initiator;
+    case 60: std::memcpy(&raw,&c.answer_delay_ms,4);return raw;
+    case 61: return c.phrase;
+    case 62: return c.ml_target;
+    case 63: return c.quiet_scope;
+    default:return 0;
+  }
+}
+inline bool donorComposedPut(K1ComposedSceneConfig& c,unsigned field,std::uint32_t raw) noexcept {
+  float value;std::memcpy(&value,&raw,4);
+  switch(field){
+    case 45: if(raw>3u)return false;c.scene=raw;return true;
+    case 46: if(!donorValidRange(value,0.02f,0.8f))return false;c.outgoing_width=value;return true;
+    case 47: if(!donorValidRange(value,200.0f,8000.0f))return false;c.outgoing_ms=value;return true;
+    case 48: if(!donorValidRange(value,0.0f,5000.0f))return false;c.separation_ms=value;return true;
+    case 49: if(!donorValidRange(value,0.0f,8000.0f))return false;c.quiet_ms=value;return true;
+    case 50: if(!donorValidRange(value,0.02f,0.8f))return false;c.return_width=value;return true;
+    case 51: if(!donorValidRange(value,200.0f,8000.0f))return false;c.return_ms=value;return true;
+    case 52: if(!donorValidRange(value,0.0f,0.95f))return false;c.return_strength=value;return true;
+    case 53: if(!donorValidRange(value,0.0f,2000.0f))return false;c.trail_ms=value;return true;
+    case 54: if(raw>2u)return false;c.trips=raw;return true;
+    case 55: if(!donorValidRange(value,0.0f,1.0f))return false;c.outgoing_feather=value;return true;
+    case 56: if(!donorValidRange(value,0.0f,1.0f))return false;c.return_feather=value;return true;
+    case 57: if(!donorValidRange(value,0.0f,8000.0f))return false;c.recovery_ms=value;return true;
+    case 58: if(raw>2u)return false;c.choreography=raw;return true;
+    case 59: if(raw>1u)return false;c.initiator=raw;return true;
+    case 60: if(!donorValidRange(value,0.0f,8000.0f))return false;c.answer_delay_ms=value;return true;
+    case 61: if(raw>4u)return false;c.phrase=raw;return true;
+    case 62: if(raw>3u)return false;c.ml_target=raw;return true;
+    case 63: if(raw>3u)return false;c.quiet_scope=raw;return true;
+    default:return false;
+  }
+}
+#endif
+
 inline void donorSceneGetConfig(std::uint32_t board,K1EmotiscopeConfig* config) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
   if(board==1u){k1_secondary_emotiscope_get_config(config);return;}
@@ -163,6 +219,9 @@ inline std::uint32_t donorPopcount(std::uint64_t mask) noexcept {
 }
 inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
+  if (field>=45u && field<=63u) {
+    switch(field){case 45:case 54:case 58:case 59:case 61:case 62:case 63:return kDonorKindU32;default:return kDonorKindF32;}
+  }
   if (field == 21u || field == 22u || field == 25u || field == 27u ||
       field==30u || field==31u || field==36u || field==37u ||
       (field>=40u && field<=42u) || field==44u) return kDonorKindF32;
@@ -181,6 +240,7 @@ inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
 
 struct DonorIntent {
 #ifdef K1_TITAN_TOP_OUTPUT
+  K1ComposedSceneConfig composed = k1_composed_scene_defaults();
   std::uint32_t edge_colour_enabled = 0;
   std::uint32_t edge_colour_mode = 0;
   float edge_colour_strength = 0.0f;
@@ -232,6 +292,8 @@ struct DonorDedup {
 
 struct DonorObserved {
 #ifdef K1_TITAN_TOP_OUTPUT
+  K1ComposedSceneConfig composed = k1_composed_scene_defaults();
+  K1ComposedSceneStatus composed_status{};
   std::uint32_t edge_colour_enabled = 0;
   std::uint32_t edge_colour_mode = 0;
   float edge_colour_strength = 0.0f;
@@ -249,8 +311,8 @@ struct DonorObserved {
   float musical_release_ms = 160.0f;
   std::uint32_t ml_enabled = 0;
   float ml_strength = 0.0f;
-  std::uint32_t board_capabilities = 63u;
-  std::uint32_t response_version=5u;
+  std::uint32_t board_capabilities = 127u;
+  std::uint32_t response_version=6u;
   K1EmotiscopeMlResult ml_result{};
   std::uint32_t publication_sequence=0,event_cursor=0;
   float conditioning_value=0.0f;
@@ -268,6 +330,8 @@ struct DonorObserved {
 };
 struct DonorApplyResult {
 #ifdef K1_TITAN_TOP_OUTPUT
+  K1ComposedSceneConfig composed = k1_composed_scene_defaults();
+  std::uint8_t composed_changed=0;
   std::uint32_t edge_colour_enabled = 0;
   std::uint32_t edge_colour_mode = 0;
   float edge_colour_strength = 0.0f;
@@ -378,7 +442,7 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
   donorPutF32(out + 152, observed.primary_intensity);
   donorPutF32(out + 156, observed.secondary_intensity);
   donorPutU32(out + 160, observed.secondary_output_enabled);
-  donorPutU32(out + 164, observed.board_capabilities & (observed.response_version>=5u?63u:7u));
+  donorPutU32(out + 164, observed.board_capabilities & (observed.response_version>=6u?127u:observed.response_version>=5u?63u:7u));
   // Legacy reserved bytes168..175 remain zero. New v4 scene identity/response.
   donorPutU32(out+176,observed.board);donorPutF32(out+180,observed.response_gain);
   donorPutU32(out+184,observed.edge_response);donorPutF32(out+188,observed.edge_depth);
@@ -413,6 +477,15 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
   donorPutF32(out+300,observed.conditioning_value);
   donorPutU32(out+304,observed.ml_result.max_cycles);
   donorPutU32(out+308,observed.ml_result.rejected_results);
+  if(observed.response_version>=6u){
+    for(unsigned field=45;field<=63;++field)donorPutU32(out+320+4*(field-45),donorComposedRaw(observed.composed,field));
+    donorPutU32(out+396,observed.composed_status.active_scene);
+    donorPutU32(out+400,observed.composed_status.phase);
+    donorPutU32(out+404,observed.composed_status.pending);
+    donorPutU32(out+408,observed.composed_status.gesture_id);
+    donorPutU32(out+412,observed.composed_status.phrase_state);
+    donorPutU32(out+416,observed.composed_status.quiet);
+  }
   }
 #endif
 }
@@ -474,6 +547,12 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
       return kDonorStatusInvalid;
     previous = field;
     built |= std::uint64_t{1} << (field - 1u);
+#ifdef K1_TITAN_TOP_OUTPUT
+    if(field>=45u){
+      if(!donorComposedPut(out->composed,field,raw))return kDonorStatusInvalid;
+      continue;
+    }
+#endif
     if (kind == kDonorKindF32) {
       const float value = donorGetF32(entry + 4);
       if (
@@ -614,7 +693,8 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
   result->output_intensity_a = observed.output_intensity_a;
   result->output_intensity_b = observed.output_intensity_b;
 #ifdef K1_TITAN_TOP_OUTPUT
-  observed.response_version=result->response_bytes==320u?5u:4u;
+  observed.response_version=result->response_bytes==424u?6u:4u;
+  result->composed=observed.composed;
   result->edge_colour_enabled=observed.edge_colour_enabled;
   result->edge_colour_mode=observed.edge_colour_mode;
   result->edge_colour_strength=observed.edge_colour_strength;
@@ -658,6 +738,8 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     encoded.output_intensity_a = result->output_intensity_a;
     encoded.output_intensity_b = result->output_intensity_b;
 #ifdef K1_TITAN_TOP_OUTPUT
+    encoded.composed=result->composed;
+    if(result->composed_changed)encoded.composed_status.pending=1u;
     encoded.edge_colour_enabled=result->edge_colour_enabled;
     encoded.edge_colour_mode=result->edge_colour_mode;
     encoded.edge_colour_strength=result->edge_colour_strength;
@@ -759,6 +841,18 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     if(!valid){finish(kDonorStatusInvalid,0,0,0);return;}
   }
 #endif
+#ifdef K1_TITAN_TOP_OUTPUT
+  K1ComposedSceneConfig merged_composed=observed.composed;
+  if(donorIsPatch(intent.sub) && (intent.mask&kDonorComposedMask)){
+    if(!(observed.board_capabilities&64u)) {finish(kDonorStatusInvalid,0,0,0);return;}
+    for(unsigned field=45;field<=63;++field)
+      if((intent.mask&(std::uint64_t{1}<<(field-1))) &&
+          !donorComposedPut(merged_composed,field,donorComposedRaw(intent.composed,field))){
+        finish(kDonorStatusInvalid,0,0,0);return;
+      }
+    if(!k1_composed_scene_valid(merged_composed)){finish(kDonorStatusInvalid,0,0,0);return;}
+  }
+#endif
   // The owner application boundary also validates direct intents atomically,
   // before any donor scene patch can mutate state.
   if (donorIsPatch(intent.sub) &&
@@ -838,6 +932,11 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     }
 #ifdef K1_TITAN_TOP_OUTPUT
     const bool scene_changed = changed != 0u;
+    if(intent.mask&kDonorComposedMask){
+      for(unsigned field=45;field<=63;++field)
+        if(donorComposedRaw(merged_composed,field)!=donorComposedRaw(observed.composed,field))result->composed_changed=1u;
+      if(result->composed_changed){result->composed=merged_composed;changed=1u;}
+    }
 #endif
     if (intent.mask & (1u << 14)) {
       if (intent.hardware_brightness != observed.hardware_brightness) {
@@ -932,6 +1031,15 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
         result->edge_response_changed || result->edge_depth_changed ||
         result->edge_colour_changed || result->musical_changed || result->ml_changed)
       result->affected_boards|=static_cast<std::uint8_t>(1u<<intent.board);
+    if(result->composed_changed){
+      result->affected_boards|=static_cast<std::uint8_t>(1u<<intent.board);
+      if(result->composed.choreography!=observed.composed.choreography ||
+         result->composed.initiator!=observed.composed.initiator ||
+         result->composed.answer_delay_ms!=observed.composed.answer_delay_ms ||
+         result->composed.scene==2u || observed.composed.scene==2u ||
+         result->composed.quiet_scope==2u || observed.composed.quiet_scope==2u)
+        result->affected_boards|=3u;
+    }
     if(result->edge_pair_changed)result->affected_boards|=3u;
     if(result->brightness_changed||result->emission_changed||result->output_precision_changed)
       result->affected_boards|=3u;

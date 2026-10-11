@@ -25,6 +25,10 @@ bool k1_secondary_emotiscope_set_musical_config(const K1EmotiscopeMusicalConfig 
 void k1_secondary_emotiscope_get_musical_config(K1EmotiscopeMusicalConfig *out);
 bool k1_secondary_emotiscope_set_ml_config(const K1EmotiscopeMlConfig *config);
 void k1_secondary_emotiscope_get_ml_config(K1EmotiscopeMlConfig *out);
+bool k1_secondary_emotiscope_set_scene_config(const K1ComposedSceneConfig *config);
+void k1_secondary_emotiscope_get_scene_config(K1ComposedSceneConfig *out);
+void k1_secondary_emotiscope_scene_status(K1ComposedSceneStatus *out);
+void k1_secondary_emotiscope_scene_prepare(uint32_t now_us);
 void k1_secondary_emotiscope_get_ml_result(K1EmotiscopeMlResult *out);
 void k1_secondary_emotiscope_accept_ml(const K1EmotiscopeMlResult *result);
 void k1_secondary_emotiscope_musical_state(uint32_t *cursor,float *value);

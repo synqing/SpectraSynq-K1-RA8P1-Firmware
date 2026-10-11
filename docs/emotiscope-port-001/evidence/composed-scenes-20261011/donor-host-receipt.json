@@ -1,0 +1,443 @@
+{
+  "rgb8_peaks": {
+    "1-0-0": [
+      {
+        "max_channel": 48,
+        "p95_frame_peak": 47.0
+      },
+      {
+        "max_channel": 48,
+        "p95_frame_peak": 47.0
+      }
+    ],
+    "1-1-0": [
+      {
+        "max_channel": 48,
+        "p95_frame_peak": 47.0
+      },
+      {
+        "max_channel": 48,
+        "p95_frame_peak": 47.0
+      }
+    ],
+    "2-0-0": [
+      {
+        "max_channel": 48,
+        "p95_frame_peak": 46.0
+      },
+      {
+        "max_channel": 20,
+        "p95_frame_peak": 20.0
+      }
+    ],
+    "2-1-0": [
+      {
+        "max_channel": 48,
+        "p95_frame_peak": 47.0
+      },
+      {
+        "max_channel": 21,
+        "p95_frame_peak": 20.0
+      }
+    ],
+    "3-0-0": [
+      {
+        "max_channel": 119,
+        "p95_frame_peak": 83.0
+      },
+      {
+        "max_channel": 119,
+        "p95_frame_peak": 83.0
+      }
+    ],
+    "3-1-0": [
+      {
+        "max_channel": 119,
+        "p95_frame_peak": 83.0
+      },
+      {
+        "max_channel": 119,
+        "p95_frame_peak": 83.0
+      }
+    ],
+    "1-0-1": [
+      {
+        "max_channel": 51,
+        "p95_frame_peak": 51.0
+      },
+      {
+        "max_channel": 51,
+        "p95_frame_peak": 51.0
+      }
+    ],
+    "3-0-1": [
+      {
+        "max_channel": 119,
+        "p95_frame_peak": 83.0
+      },
+      {
+        "max_channel": 119,
+        "p95_frame_peak": 83.0
+      }
+    ],
+    "0-0-0": [
+      {
+        "max_channel": 230,
+        "p95_frame_peak": 182.0
+      },
+      {
+        "max_channel": 230,
+        "p95_frame_peak": 182.0
+      }
+    ]
+  },
+  "utc": "2026-10-11T13:28:42.939981+00:00",
+  "scope": "host real donor synthetic PCM only; no optical or music-quality claim",
+  "records": [
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "-O1",
+        "-g",
+        "-Wno-narrowing",
+        "-fsanitize=address,undefined",
+        "-fno-omit-frame-pointer",
+        "-DK1_EMOTISCOPE_PORT=1",
+        "-DK1_PALETTE_MORPH=1",
+        "-DK1_TITAN_TOP_OUTPUT=1",
+        "-DK1_EMOTISCOPE_TEST_SEAM=1",
+        "-Isrc/k1",
+        "-Iplatform/ra8p1",
+        "-Iplatform/ra8p1/emotiscope_donor",
+        "-Iplatform/ra8p1/emotiscope_shims",
+        "harness/tests/test_composed_donor.cpp",
+        "platform/ra8p1/palette_runtime.cpp",
+        "platform/ra8p1/emotiscope_port.cpp",
+        "platform/ra8p1/emotiscope_secondary.cpp",
+        "platform/ra8p1/emotiscope_ml.cpp",
+        "src/k1/core/visual/channel_render_state.cpp",
+        "src/k1/core/visual/audio_focus.cpp",
+        "src/k1/core/visual/product_palette.cpp",
+        "src/k1/core/visual/product_palette_data.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor"
+      ],
+      "exit_code": 0,
+      "output": "In file included from platform/ra8p1/emotiscope_port.cpp:138:\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]\n  532 |     CRGBF temp_pixels[num_pixels];\n      |                       ^~~~~~~~~~\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression\nplatform/ra8p1/emotiscope_donor/leds.h:522:45: note: declared here\n  522 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {\n      |                                             ^\n1 warning generated.\nIn file included from platform/ra8p1/emotiscope_secondary.cpp:50:\nIn file included from platform/ra8p1/emotiscope_port.cpp:138:\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]\n  532 |     CRGBF temp_pixels[num_pixels];\n      |                       ^~~~~~~~~~\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression\nplatform/ra8p1/emotiscope_donor/leds.h:522:45: note: declared here\n  522 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {\n      |                                             ^\n1 warning generated.\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "1",
+        "0",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/1-0-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":1,\"background\":0,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[1148,1148],\"moving\":[1142,1142],\"quiet\":[200,200],\"gestures\":[9,10]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "1",
+        "1",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/1-1-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":1,\"background\":1,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[1400,1400],\"moving\":[1160,1160],\"quiet\":[200,200],\"gestures\":[9,10]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "2",
+        "0",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/2-0-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":2,\"background\":0,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[801,432],\"moving\":[795,428],\"quiet\":[537,120],\"gestures\":[7,5]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "2",
+        "1",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/2-1-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":2,\"background\":1,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[1063,1480],\"moving\":[811,433],\"quiet\":[537,120],\"gestures\":[7,5]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "3",
+        "0",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/3-0-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":3,\"background\":0,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[1567,1567],\"moving\":[1560,1560],\"quiet\":[2,2],\"gestures\":[0,0]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "3",
+        "1",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/3-1-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":3,\"background\":1,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[1598,1598],\"moving\":[1554,1554],\"quiet\":[2,2],\"gestures\":[0,0]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "1",
+        "0",
+        "1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/1-0-1.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":1,\"background\":0,\"switch_frame\":400,\"valid_frames\":1569,\"lit\":[1143,1143],\"moving\":[1134,1134],\"quiet\":[200,200],\"gestures\":[9,10]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "3",
+        "0",
+        "1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/3-0-1.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":3,\"background\":0,\"switch_frame\":400,\"valid_frames\":1569,\"lit\":[1567,1567],\"moving\":[1562,1562],\"quiet\":[2,2],\"gestures\":[0,0]}\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/donor",
+        "0",
+        "0",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_donor/0-0-0.rgb8"
+      ],
+      "exit_code": 0,
+      "output": "{\"scene\":0,\"background\":0,\"switch_frame\":0,\"valid_frames\":1569,\"lit\":[891,891],\"moving\":[819,819],\"quiet\":[0,0],\"gestures\":[0,0]}\n"
+    }
+  ],
+  "metrics": [
+    {
+      "scene": 1,
+      "background": 0,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        1148,
+        1148
+      ],
+      "moving": [
+        1142,
+        1142
+      ],
+      "quiet": [
+        200,
+        200
+      ],
+      "gestures": [
+        9,
+        10
+      ]
+    },
+    {
+      "scene": 1,
+      "background": 1,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        1400,
+        1400
+      ],
+      "moving": [
+        1160,
+        1160
+      ],
+      "quiet": [
+        200,
+        200
+      ],
+      "gestures": [
+        9,
+        10
+      ]
+    },
+    {
+      "scene": 2,
+      "background": 0,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        801,
+        432
+      ],
+      "moving": [
+        795,
+        428
+      ],
+      "quiet": [
+        537,
+        120
+      ],
+      "gestures": [
+        7,
+        5
+      ]
+    },
+    {
+      "scene": 2,
+      "background": 1,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        1063,
+        1480
+      ],
+      "moving": [
+        811,
+        433
+      ],
+      "quiet": [
+        537,
+        120
+      ],
+      "gestures": [
+        7,
+        5
+      ]
+    },
+    {
+      "scene": 3,
+      "background": 0,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        1567,
+        1567
+      ],
+      "moving": [
+        1560,
+        1560
+      ],
+      "quiet": [
+        2,
+        2
+      ],
+      "gestures": [
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 3,
+      "background": 1,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        1598,
+        1598
+      ],
+      "moving": [
+        1554,
+        1554
+      ],
+      "quiet": [
+        2,
+        2
+      ],
+      "gestures": [
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 1,
+      "background": 0,
+      "switch_frame": 400,
+      "valid_frames": 1569,
+      "lit": [
+        1143,
+        1143
+      ],
+      "moving": [
+        1134,
+        1134
+      ],
+      "quiet": [
+        200,
+        200
+      ],
+      "gestures": [
+        9,
+        10
+      ]
+    },
+    {
+      "scene": 3,
+      "background": 0,
+      "switch_frame": 400,
+      "valid_frames": 1569,
+      "lit": [
+        1567,
+        1567
+      ],
+      "moving": [
+        1562,
+        1562
+      ],
+      "quiet": [
+        2,
+        2
+      ],
+      "gestures": [
+        0,
+        0
+      ]
+    },
+    {
+      "scene": 0,
+      "background": 0,
+      "switch_frame": 0,
+      "valid_frames": 1569,
+      "lit": [
+        891,
+        891
+      ],
+      "moving": [
+        819,
+        819
+      ],
+      "quiet": [
+        0,
+        0
+      ],
+      "gestures": [
+        0,
+        0
+      ]
+    }
+  ],
+  "sha256_inputs": {
+    "harness/tests/test_composed_donor.cpp": "ea3df68f2e1883638bdc3658fde6ef6a14366ead67a8a8d10dc2b7946f15cc1b",
+    "platform/ra8p1/palette_runtime.cpp": "4f6dc32a7cc469d8659392155cd5c0fcddfed6d6e63b6dc520090cf32aa47023",
+    "platform/ra8p1/emotiscope_port.cpp": "9ae28c557e543aa486ad99c5212c04c487e59a283791ae7e59ca81d959a4b169",
+    "platform/ra8p1/emotiscope_secondary.cpp": "a956090c269bfb81f62ed61b2b5beb82990524a52fb3c299eb8cff10ddc2961f",
+    "platform/ra8p1/emotiscope_ml.cpp": "948e1195d69020a59fe006000a0f077f26262480cadc08dcbac8e4ffa4ac8fc8",
+    "src/k1/core/visual/channel_render_state.cpp": "565b601a0a7286d9519b3cce447410b4db699e1204d1dcdcd6e98ff3aa53c15a",
+    "src/k1/core/visual/audio_focus.cpp": "92400bf0d04709cf6aa3cd19b48a186cdee37aa174468b55acb8b77525098fb0",
+    "src/k1/core/visual/product_palette.cpp": "9325af165bc9efb2fbbad71333da1dc030741441a412acf2d0052dbc000360df",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060",
+    "platform/ra8p1/composed_scene_runtime.h": "b7150b0323f9dcf2eb5f18b1b3615f6cd569866c0917f02305f091da29599761",
+    "platform/ra8p1/composed_motion.h": "d15dcb0165ba0ec34219d1febb23faf549f4d755a998c5772abe7959c7ce36f6",
+    "harness/tests/test_composed_donor.py": "1cacde63e78e7acfdd23ab3de21916264563082dd38b65e36c706f2d29d03b09"
+  }
+}

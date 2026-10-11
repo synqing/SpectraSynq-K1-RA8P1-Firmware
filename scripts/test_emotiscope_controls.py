@@ -545,6 +545,34 @@ def main():
     default_line = next((line.split(" ", 1)[1] for line in text.splitlines() if line.startswith("DEFAULT ")), "")
     raw_line = next((line.split(" ", 1)[1] for line in text.splitlines() if line.startswith("RAWGET ")), "")
     crc_line = next((line.split(" ", 1)[1] for line in text.splitlines() if line.startswith("CRC_VECTOR ")), "")
+    if args.top_output:
+        expected_scene = {"board":1,"scene":2,"scene_outgoing_width":.25,"scene_outgoing_ms":1600.,
+            "scene_separation_ms":400.,"scene_quiet_ms":600.,"scene_return_width":.125,
+            "scene_return_ms":2400.,"scene_return_strength":.5,"scene_trail_ms":200.,"scene_trips":2,
+            "scene_outgoing_feather":.375,"scene_return_feather":.625,"scene_recovery_ms":700.,
+            "scene_choreography":1,"scene_initiator":1,"scene_answer_delay_ms":300.,
+            "scene_phrase":2,"scene_ml_target":3,"scene_quiet_scope":2}
+        packet_line = next(line.split(" ",1)[1] for line in text.splitlines() if line.startswith("COMPOSED_PACKET "))
+        expected_packet = codec.encode_patch(1300,0x11,0,expected_scene,state_version=6,board_capabilities=127)
+        if bytes.fromhex(packet_line) != expected_packet:
+            raise RuntimeError("independent C++/Python v6 packet bytes differ")
+        if codec.parse(expected_packet,state_version=6)[0] != 0 or codec.parse(expected_packet,state_version=5)[0] != 3:
+            raise RuntimeError("v6/v5 scene parser boundary")
+        state_line = next(line.split(" ",1)[1] for line in text.splitlines() if line.startswith("COMPOSED_STATE "))
+        scene_state = codec.decode_state(bytes.fromhex(state_line))
+        for name,value in expected_scene.items():
+            if name != "board" and scene_state[name] != value:
+                raise RuntimeError("C++ state / Python decode mismatch: " + name)
+        if scene_state["active_scene"] != 0 or scene_state["scene_pending"] != 1:
+            raise RuntimeError("requested state falsely reported active")
+        for field,value in ((45,4),(46,.01),(47,float("nan")),(54,3),(58,3),(59,2),(61,5),(63,4)):
+            try: codec.encode_patch(1301,0x11,0,{field:value},state_version=6,board_capabilities=127)
+            except ValueError: pass
+            else: raise RuntimeError("invalid v6 scene accepted")
+        for caps in (63, 0):
+            try: codec.encode_patch(1301,0x11,0,{"scene":1},state_version=6,board_capabilities=caps)
+            except ValueError: pass
+            else: raise RuntimeError("scene capability bypass")
     wire = {
         "behavioral_exit": behaved.returncode,
         "corpus_exit": corpus_run.returncode,
