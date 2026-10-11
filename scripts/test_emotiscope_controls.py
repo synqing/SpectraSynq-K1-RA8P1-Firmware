@@ -55,7 +55,7 @@ def corpus(codec):
     get = codec.encode_get(7, 0x11)
     add(get, parse=0, apply=0, revision=0, dedup=0, changed=0, mode=1, mode_transition=0,
         brightness=1.0, softness=0.25, color=0.33, warmth=0.0, color_range=0.0, speed=0.5,
-        saturation=0.75, background=0.25, effective_hue=0.33, flags=39, applicability=0xDF8B,
+        saturation=0.75, background=0.25, effective_hue=0.33, flags=39, applicability=0xFF8B,
         output_brightness=100, last_status=0, accepted_request_id=0)
     add(get, parse=0, apply=0, dedup=1, replay_of=0)
     add(struct.pack("<I", 8) + b"\x00" * 28, parse=3)
@@ -64,7 +64,7 @@ def corpus(codec):
         raise RuntimeError("Python encoder drifted from the frozen golden packet")
     add(golden, parse=0, apply=0, revision=1, dedup=0, changed=1, mode_transition=0,
         brightness=0.5, softness=0.25, mode=1, output_brightness=100, last_status=0,
-        flags=39, applicability=0xDF8B)
+        flags=39, applicability=0xFF8B)
     add(golden, parse=0, apply=0, dedup=1, replay_of=3)
     add(codec.encode_patch(1, 0x11, 1, {"brightness": 0.2}),
         parse=0, apply=7, revision=1, dedup=0, changed=0, last_status=7, brightness=0.5)
@@ -95,7 +95,7 @@ def corpus(codec):
     add(codec.encode_patch(10, 0x11, 3, {"warmth": 0.15}),
         parse=0, apply=0, revision=4, changed=1, dedup=0, warmth=0.15, color=0.33,
         effective_hue=0.33, brightness=0.2, softness=0.5, mode=1, flags=39,
-        applicability=0xDF8B, output_brightness=100, mode_transition=0)
+        applicability=0xFF8B, output_brightness=100, mode_transition=0)
     scene = {
         "brightness": 0.10, "softness": 0.20, "warmth": 0.40,
         "speed": 0.60, "background": 0.80,
@@ -107,16 +107,16 @@ def corpus(codec):
         parse=0, apply=0, revision=5, changed=1, dedup=0, mode_transition=1, mode=6,
         brightness=0.10, softness=0.20, color=0.33, warmth=0.40, color_range=0.0,
         speed=0.60, saturation=0.75, background=0.80, effective_hue=0.33,
-        output_brightness=80, flags=24, applicability=0xDF8B, last_status=0,
+        output_brightness=80, flags=24, applicability=0xFF8B, last_status=0,
         accepted_request_id=8)
     add(codec.encode_get(9, 0x11),
         parse=0, apply=0, revision=5, changed=0, dedup=0, mode=6, brightness=0.10,
-        output_brightness=80, flags=24, applicability=0xDF8B, accepted_request_id=8,
+        output_brightness=80, flags=24, applicability=0xFF8B, accepted_request_id=8,
         request_id=9, last_status=0)
     # Output precision: field 17 bool, owner-held, GET flag bit 6 (64). Not a donor field.
     add(codec.encode_patch(11, 0x11, 5, {"output_precision": 1}),
         parse=0, apply=0, revision=6, changed=1, dedup=0, mode=6, flags=24 | 64,
-        applicability=0xDF8B, output_brightness=80, accepted_request_id=11, last_status=0)
+        applicability=0xFF8B, output_brightness=80, accepted_request_id=11, last_status=0)
     add(codec.encode_get(12, 0x11),
         parse=0, apply=0, revision=6, changed=0, dedup=0, flags=24 | 64, request_id=12)
     add(codec.encode_patch(13, 0x11, 6, {"output_precision": 1}),
@@ -170,6 +170,11 @@ def corpus(codec):
 
 def check_state_versions(codec):
     """Independent byte fixtures exercise legacy support and version-2 rejection."""
+    for mode in range(7):
+        for historical_range in (0.0, 0.5):
+            expected = 0xFFAB if mode == 0 else 0xFF8B
+            if codec.applicability(mode, historical_range) != expected:
+                raise RuntimeError("palette reversal incorrectly depends on obsolete range")
     legacy = bytearray(160)
     struct.pack_into("<III", legacy, 0, 0x454D5354, 1, 1)
     state = codec.decode_state(bytes(legacy))
@@ -464,7 +469,7 @@ def main():
         }
         wire["default_ok"] = (
             close(state["brightness"], 1) and state["mode"] == 1 and state["flags"] == 39
-            and state["applicability"] == 0xDF8B and state["output_brightness"] == 100
+            and state["applicability"] == 0xFF8B and state["output_brightness"] == 100
             and state["palette"] == 1 and close(state["saturation"], 0.75) and close(state["effective_hue"], 0.33)
             and state["version"] == (4 if args.top_output else 2) and state["output_intensity_supported"] is True
             and state["output_intensity_a"] == 1.0 and state["output_intensity_b"] == 1.0

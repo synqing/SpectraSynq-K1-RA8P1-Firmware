@@ -164,7 +164,7 @@ static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 60) == 1u);
   CHECK(ec::donorGetU32(body + 64) == 39u);
   CHECK(ec::donorGetU32(body + 68) == 100u);
-  CHECK(ec::donorGetU32(body + 72) == 0xDF8Bu);
+  CHECK(ec::donorGetU32(body + 72) == 0xFF8Bu);
   CHECK(ec::donorGetU32(body + 92) == 0u);
   CHECK(ec::donorGetU32(body + 96) == 0u);
   CHECK(ec::donorGetU32(body + 100) == 0u);
@@ -336,12 +336,32 @@ static void check_independent_scene_controls() {
 }
 #endif
 
+static void check_reverse_applicability() {
+  // These local snapshots cover historical positive ranges without writing the
+  // obsolete setting. Palette reversal must remain supported at range zero too.
+  for (std::int32_t mode=0;mode<7;++mode) for(float range:{0.0f,0.5f}) {
+    K1EmotiscopeConfig config{};
+    k1_emotiscope_default_config(&config);
+    config.current_mode=mode;config.color_range=range;
+    const auto expected=mode==0?0xffabu:0xff8bu;
+    CHECK(ec::donorApplicability(config)==expected);
+    CHECK((expected&(1u<<13))!=0u && (expected&0x54u)==0u);
+    ec::DonorObserved observed=fresh_observed();
+    std::uint8_t body[ec::kDonorStateBytes]{};
+    ec::donorEncodeState(body,config,observed,77u,0u,0u,0u,0u);
+    CHECK(ec::donorGetU32(body+4)==ec::kDonorStateVersion);
+    CHECK(ec::donorGetU32(body+72)==expected);
+    check_f("historical range readback",ec::donorGetF32(body+40),range);
+  }
+}
+
 static int behavioral() {
   CHECK(k1_emotiscope_init(1u));
 #ifdef K1_TITAN_TOP_OUTPUT
   CHECK(k1_secondary_emotiscope_init(2u));
 #endif
   CHECK(!k1_emotiscope_init(2u));
+  check_reverse_applicability();
   const char* names[] = {"Analog", "Spectrum", "Octave", "Metronome", "Spectronome", "Hype", "Bloom"};
   for (std::uint32_t mode = 0; mode < 7u; ++mode)
     CHECK(std::strcmp(k1_emotiscope_mode_name(mode), names[mode]) == 0);
@@ -448,7 +468,7 @@ static int behavioral() {
   CHECK(result.mode == 0);
   CHECK(k1_emotiscope_test_lpf_drag() == 1.0f);
   CHECK(k1_emotiscope_test_novelty_sample() == 0.37f);
-  CHECK(ec::donorGetU32(result.response + 72) == 0xDFABu);
+  CHECK(ec::donorGetU32(result.response + 72) == 0xFFABu);
   const Entry screen_off{11u, ec::kDonorKindBool, 0u};
   result = apply_vec(&dedup, &observed, build_patch(4u, observed.revision, 0x11u, &screen_off, 1));
   CHECK(result.status == 0u);
@@ -493,9 +513,9 @@ static int behavioral() {
   k1_emotiscope_test_set_raw_color(0.33f);
   const Entry bloom{9u,ec::kDonorKindI32,6u};
   result=apply_vec(&dedup,&observed,build_patch(10u,observed.revision,0x11u,&bloom,1));
-  CHECK(result.status==0u && ec::donorGetU32(result.response+72)==0xDF8Bu);
+  CHECK(result.status==0u && ec::donorGetU32(result.response+72)==0xFF8Bu);
   result=apply_vec(&dedup,&observed,build_patch(12u,observed.revision,0x11u,&analog,1));
-  CHECK(result.status==0u && ec::donorGetU32(result.response+72)==0xDFABu);
+  CHECK(result.status==0u && ec::donorGetU32(result.response+72)==0xFFABu);
 
   const float donor_before = 1.0f;
   k1_emotiscope_get_config(&raw);
@@ -563,7 +583,7 @@ static int behavioral() {
   CHECK(observed.revision == rev_scene + 1u);
   CHECK(result.mode_transition == 1u && result.mode == 6);
   CHECK(result.hardware_brightness == 80u && result.emission == 0u && result.emission_fell == 1u);
-  CHECK(ec::donorGetU32(result.response + 72) == 0xDF8Bu);
+  CHECK(ec::donorGetU32(result.response + 72) == 0xFF8Bu);
   CHECK(ec::donorGetU32(result.response + 64) == 24u);
   CHECK(ec::donorGetU32(result.response + 76) == 21u);
   k1_emotiscope_get_config(&raw);

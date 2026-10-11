@@ -325,8 +325,8 @@
         "id": 14,
         "kind": "bool",
         "default": false,
-        "applicable_when": "color_range > 0",
-        "scope": "selected whole-board scene; legacy request selects primary"
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "note": "Reverses curated palette progress on the selected board independently of the obsolete Colour Range value. Applicable in every donor mode; stored range0 does not disable this control."
       },
       "hardware_output_brightness": {
         "id": 15,

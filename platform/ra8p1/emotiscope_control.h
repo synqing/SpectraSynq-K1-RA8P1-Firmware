@@ -214,7 +214,7 @@ inline std::uint32_t donorApplicability(const K1EmotiscopeConfig& config) noexce
   // always applicable in state version 2, with no new applicability bits.
   std::uint32_t bits = 0xffffu & ~kDonorUnsupportedHsvMask;
   if (config.current_mode != 0) bits &= ~(1u << 5);
-  if (!(config.color_range > 0.0f)) bits &= ~(1u << 13);
+  // Palette reversal is independent of the retained, unsupported HSV range.
   return bits;
 }
 

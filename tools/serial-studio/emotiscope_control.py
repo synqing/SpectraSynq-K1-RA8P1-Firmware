@@ -385,8 +385,7 @@ def applicability(mode: int, color_range: float) -> int:
     bits = 0xFFFF & ~0x54
     if mode != 0:
         bits &= ~(1 << 5)
-    if not (color_range > 0.0):
-        bits &= ~(1 << 13)
+    # Retain the API argument for callers; palette reversal ignores obsolete HSV range.
     return bits
 
 
