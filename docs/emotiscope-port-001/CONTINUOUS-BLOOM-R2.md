@@ -2,7 +2,7 @@
 
 12 October 2026, Perth. **Installed engineering candidate; physical delivery incomplete. Aesthetic preference PENDING.** This executes the 11 October Revision 2 order only. No new effects, choreography, analyser, ML targets or UI were added.
 
-The authorised EiP camera produced an indistinct brown surface with no identifiable K1 stack and stopped early with AVFoundation `-11808` (`RecordingStopped`). The owner opened and inspected its decoded frame. No valid baseline/candidate plate comparison exists. Firmware and controls remained independently executable and were completed. There is no claim that this is a better physical lightshow.
+The authorised EiP camera produced an indistinct brown surface with no identifiable K1 stack and stopped early with AVFoundation `-11808` (`RecordingStopped`). The owner opened and inspected its decoded frame and subsequently a contact sheet spanning the recording. The entire available view lacks an identifiable K1 plate. The file is truncated to 1.73 seconds; the error reports a finalised playable file, which does not establish a successful full-duration capture. No valid baseline/candidate plate comparison exists. Firmware and controls remained independently executable and were completed. There is no claim that this is a better physical lightshow.
 
 ## Running identity and recovery
 
@@ -89,3 +89,9 @@ Remaining delivery path:
 4. Deliver that concrete pair for Captain's aesthetic decision, then stop this cycle. All parked work remains parked.
 
 Device leave-state: candidate image running, continuous autonomous audio-reactive output ON, both boards enabled at the unchanged operating gains, SQ4 settings recalled, broker and mixer healthy, LED faults zero. [Final health](../../_scratch/continuous-bloom-r2/leave-health.json). This is an installed engineering increment, not completion of the required physical performance.
+
+## Continuation readback — 12 October, 03:31 Perth
+
+The camera is now unavailable at device discovery: AVFoundation lists only the MacBook Pro Camera and no EiP device. Camera permission remains authorised (`3`). [Current inventory](../../_scratch/continuous-bloom-r2/camera-continuation-inventory.json), [inspected recording contact sheet](../../_scratch/continuous-bloom-r2/camera-preflight-contact.png). The exact blocked operation is opening persistent device `EB6E6241-CD5C-4917-91B3-7E6500000001` to record the assembled K1 stack. There is no connected product camera to repair or operate through the existing capture path. No blind recording retry or camera substitution was performed.
+
+Fresh control readback confirms every field of the saved comparison preset matches both running boards, including unlinked scene 3, body/detail roles at strength 1, ML influence off and independent histories. Output remains enabled at master 100/255 and both board gains 0.25. [Live settings](../../_scratch/continuous-bloom-r2/continuation-status.json), [field comparison](../../_scratch/continuous-bloom-r2/continuation-preset-readback.json). Health reports 100 frames/s and zero LED faults. Firmware remains the installed repair build above. No physical acceptance is claimed; the remaining numbered delivery path above still applies.
