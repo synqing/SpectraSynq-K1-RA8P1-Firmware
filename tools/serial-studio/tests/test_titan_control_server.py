@@ -83,6 +83,33 @@ def _bound():
     return {"uid": UID, "build": BUILD, "schema_sha256": SCHEMA, "schema": SCHEMA}
 
 
+def test_snapshot_ml_witness_fixed_route_and_default_snapshot_are_separate(tmp_path):
+    import struct
+    calls=[];raw=bytearray(592);raw[:4]=b'MLR1'
+    struct.pack_into('<II9I',raw,4,1,10000,8,7,9900,1,0x12345678,11,20,25,2)
+    struct.pack_into('<64f',raw,48,*([.25]*64));struct.pack_into('<8f',raw,304,*([.5]*8))
+    struct.pack_into('<64f',raw,336,*([.75]*64))
+    live=bytearray(1184);struct.pack_into('<IH',live,0,proto.SNAP_MAGIC,1)
+    def transact(op,payload):
+        calls.append((op,bytes(payload)))
+        return {'ok':True,'status':0,'body':bytes(raw) if op==17 else bytes(live)}
+    plane=RestrictedControlPlane(transact=transact,evidence=Path(tmp_path),bound=_bound())
+    session=plane.handle({'op':'hello'})['session']
+    result=plane.handle({'op':'snapshot','kind':'emotiscope_ml','session':session})
+    assert result['ok'] is True
+    assert result['body_hex']==raw.hex()
+    witness=result['witness']
+    assert witness['sequence']==8 and witness['input_sequence']==7 and witness['inference_count']==11
+    assert witness['latent']==[.5]*8 and witness['reconstruction']==[.75]*64
+    assert calls==[(17,b'MLST')]
+    result=plane.handle({'op':'snapshot','session':session})
+    assert result['ok'] is True and 'snapshot' in result and 'witness' not in result
+    assert calls[-1]==(23,b'')
+    before=list(calls)
+    result=plane.handle({'op':'snapshot','kind':'arbitrary','payload':'4d4c5354','session':session})
+    assert result['ok'] is False and calls==before
+
+
 def test_empty_approval_wrong_id_denied(tmp_path):
     evidence = Path(tmp_path)
     evidence.mkdir(parents=True, exist_ok=True)
@@ -548,8 +575,15 @@ def test_independent_scene_selection_requires_device_capability(tmp_path):
     assert faulted["state"]["independent_scenes_supported"] is True
     assert faulted["state"]["secondary_output_supported"] is False
     calls.clear()
-    assert plane.handle(patch)["ok"] is False
-    assert calls == []
+    # A transport fault does not remove the independent secondary scene.
+    assert plane.handle(patch)["ok"] is True
+    assert calls == [(25, donor.encode_patch(5, 0x11, 4, patch["fields"],
+                                            state_version=4, board_capabilities=5))]
+    calls.clear()
+    # Claimed request capabilities cannot admit either physical output write.
+    for physical in ({"secondary_output_enabled": True}, {"secondary_intensity": 0.5}):
+        assert plane.handle({**patch, "fields": {"board": 1, **physical}})["ok"] is False
+        assert calls == []
     assert plane.handle({**secondary, "boot_id": 0x12})["ok"] is False
     assert plane.handle({**patch, "boot_id": 0x12})["ok"] is False
     assert calls == []
