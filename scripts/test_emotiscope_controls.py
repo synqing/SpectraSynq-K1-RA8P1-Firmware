@@ -134,7 +134,79 @@ def corpus(codec):
     add(codec.raw_patch(63, 0x11, 8, 1 << 18, [(19, codec.KIND_U32, 1)]), parse=3)
     add(codec.encode_patch(17, 0x11, 8, {"palette": 0}),
         parse=0, apply=0, revision=9, changed=1, dedup=0, palette=0, accepted_request_id=17)
+    # Independent physical gains preserve the donor scene and the other lane.
+    gain_a = codec.encode_patch(100, 0x11, 9, {"output_intensity_a": 0.25})
+    gain_a_index = len(steps)
+    add(gain_a, parse=0, apply=0, revision=10, changed=1, dedup=0,
+        output_intensity_a=0.25, output_intensity_b=1.0, brightness=0.10,
+        output_brightness=80, accepted_request_id=100)
+    add(gain_a, parse=0, apply=0, dedup=1, replay_of=gain_a_index)
+    add(codec.encode_patch(101, 0x11, 10, {"output_intensity_b": 0.75}),
+        parse=0, apply=0, revision=11, changed=1, dedup=0,
+        output_intensity_a=0.25, output_intensity_b=0.75, accepted_request_id=101)
+    add(codec.encode_patch(102, 0x11, 9, {"output_intensity_a": 0.5}),
+        parse=0, apply=5, revision=11, changed=0,
+        output_intensity_a=0.25, output_intensity_b=0.75)
+    add(codec.encode_patch(102, 0x11, 11, {"output_intensity_a": 0.5}),
+        parse=0, apply=0, revision=12, changed=1,
+        output_intensity_a=0.5, output_intensity_b=0.75)
+    for field in (19, 20):
+        for raw in (nan_bits, 0x7F800000, 0xFF800000, 0x3F800001, 0xBF000000, 0x80000001):
+            add(codec.raw_patch(110, 0x11, 12, 1 << (field - 1),
+                                [(field, codec.KIND_F32, raw)]), parse=3)
+    full_fields = dict(scene, output_precision=0, palette=0,
+                       output_intensity_a=0.5, output_intensity_b=0.5)
+    full_packet = codec.encode_patch(120, 0x11, 12, full_fields)
+    if len(full_packet) != 184 or struct.unpack_from("<II", full_packet, 16) != (0xFFFFF, 20):
+        raise RuntimeError("full 20-field packet shape")
+    add(full_packet, parse=0, apply=0, revision=13, changed=1,
+        output_intensity_a=0.5, output_intensity_b=0.5)
+    add(full_packet + b"\x00", parse=3)
     return steps
+
+
+def check_state_versions(codec):
+    """Independent byte fixtures exercise legacy support and version-2 rejection."""
+    legacy = bytearray(160)
+    struct.pack_into("<III", legacy, 0, 0x454D5354, 1, 1)
+    state = codec.decode_state(bytes(legacy))
+    if (state["output_intensity_supported"] is not False
+            or state["output_intensity_a"] is not None or state["output_intensity_b"] is not None
+            or state["reserved"] != bytes(16)):
+        raise RuntimeError("legacy state falsely advertises independent intensity")
+    current = bytearray(legacy)
+    struct.pack_into("<I", current, 4, 2)
+    struct.pack_into("<ff", current, 144, 0.25, 0.75)
+    state = codec.decode_state(bytes(current))
+    if (state["output_intensity_supported"] is not True
+            or state["output_intensity_a"] != 0.25 or state["output_intensity_b"] != 0.75
+            or state["reserved"] != bytes(8)):
+        raise RuntimeError("version-2 intensity offsets")
+    malformed = []
+    for offset in (144, 148):
+        for raw in (0x7FC00000, 0x7F800000, 0xFF800000, 0x3F800001, 0xBF000000, 0x80000001):
+            body = bytearray(current)
+            struct.pack_into("<I", body, offset, raw)
+            malformed.append(body)
+    for offset, value in ((0, 0), (4, 3), (152, 1)):
+        body = bytearray(current)
+        struct.pack_into("<I", body, offset, value)
+        malformed.append(body)
+    for body in malformed:
+        try:
+            codec.decode_state(bytes(body))
+        except ValueError:
+            continue
+        raise RuntimeError("malformed version-2 state accepted")
+    for field in ("output_intensity_a", "output_intensity_b"):
+        for invalid in (float("nan"), float("inf"), -0.01, 1.01):
+            try:
+                codec.encode_patch(1, 0x11, 0, {field: invalid})
+            except ValueError:
+                continue
+            raise RuntimeError("invalid intensity encoded")
+    return {"legacy_unsupported": True, "version_2_offsets": True,
+            "malformed_states_rejected": len(malformed), "invalid_patch_values_rejected": 8}
 
 
 def check_python_parser(codec, steps):
@@ -152,7 +224,7 @@ def check_lines(codec, steps, lines):
     if len(lines) != len(steps):
         return [{"error": "line count", "got": len(lines), "want": len(steps)}]
     float_keys = {"brightness", "softness", "color", "warmth", "color_range", "speed",
-                  "saturation", "background", "effective_hue"}
+                  "saturation", "background", "effective_hue", "output_intensity_a", "output_intensity_b"}
     for index, ((packet, expect), line) in enumerate(zip(steps, lines)):
         got = json.loads(line)
         if got["i"] != index or got["parse"] != expect["parse"]:
@@ -187,7 +259,8 @@ def check_lines(codec, steps, lines):
                     failures.append({"i": index, "field": key, "got": got_value, "want": want})
             elif got_value != want:
                 failures.append({"i": index, "field": key, "got": got_value, "want": want})
-        if state["magic"] != codec.STATE_MAGIC or state["reserved"] != b"\x00" * 16:
+        if (state["magic"] != codec.STATE_MAGIC or state["version"] != 2
+                or state["output_intensity_supported"] is not True or state["reserved"] != b"\x00" * 8):
             failures.append({"i": index, "error": "framing"})
     return failures
 
@@ -207,6 +280,7 @@ def main():
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     codec = load_codec(root)
+    state_versions = check_state_versions(codec)
     if codec.golden_patch() != codec.FROZEN_GOLDEN or len(codec.FROZEN_GOLDEN) != 32:
         raise SystemExit("frozen golden packet does not match the Python encoder")
     if codec.crc32(b"123456789") != (zlib.crc32(b"123456789") & 0xFFFFFFFF):
@@ -218,6 +292,14 @@ def main():
         raise SystemExit("contract discriminators diverged from the codec")
     if donor["state_bytes"] != 160 or contract["capabilities"]["config"] is not True:
         raise SystemExit("contract shape is not the donor control surface")
+    if (donor["version"] != 2 or donor["patch_max_bytes"] != 184
+            or donor["patch_field_count"] != 20 or donor["patch_field_mask"] != 0xFFFFF
+            or len(donor["fields"]) != 20):
+        raise SystemExit("independent intensity contract shape")
+    for name, field, offset in (("output_intensity_a", 19, 144), ("output_intensity_b", 20, 148)):
+        item = donor["fields"][name]
+        if (item["id"], item["kind"], item["state_offset"], item["default"]) != (field, "f32", offset, 1.0):
+            raise SystemExit("independent intensity contract field")
     witness = source_witness(root)
     if not all(witness.values()):
         (output / "source-witness.json").write_text(json.dumps(witness, indent=2))
@@ -259,6 +341,7 @@ def main():
         "default_state": {},
         "raw_color_state": {},
         "corpus_failures": [],
+        "state_versions": state_versions,
     }
     if default_line:
         state = codec.decode_state(bytes.fromhex(default_line))
@@ -271,6 +354,8 @@ def main():
             close(state["brightness"], 1) and state["mode"] == 1 and state["flags"] == 39
             and state["applicability"] == 0xDFDF and state["output_brightness"] == 100
             and close(state["saturation"], 0.75) and close(state["effective_hue"], 0.33)
+            and state["version"] == 2 and state["output_intensity_supported"] is True
+            and state["output_intensity_a"] == 1.0 and state["output_intensity_b"] == 1.0
         )
     if raw_line:
         state = codec.decode_state(bytes.fromhex(raw_line))

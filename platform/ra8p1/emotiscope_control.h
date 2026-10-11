@@ -11,15 +11,21 @@ namespace k1::emotiscope {
 inline constexpr std::uint32_t kDonorCfgGetState = 0x454D0101u;
 inline constexpr std::uint32_t kDonorCfgPatch = 0x454D0102u;
 inline constexpr std::uint32_t kDonorStateMagic = 0x454D5354u;
-inline constexpr std::uint32_t kDonorStateVersion = 1u;
+inline constexpr std::uint32_t kDonorStateVersion = 2u;
 inline constexpr std::uint32_t kDonorEngineId = 1u;
 inline constexpr std::uint32_t kDonorStateBytes = 160u;
 inline constexpr std::uint32_t kDonorGetBytes = 16u;
 inline constexpr std::uint32_t kDonorPatchHeaderBytes = 24u;
 inline constexpr std::uint32_t kDonorEntryBytes = 8u;
-inline constexpr std::uint32_t kDonorPatchMaxBytes = 168u;
-inline constexpr std::uint32_t kDonorFieldCount = 18u;
-inline constexpr std::uint32_t kDonorFieldMask = 0x3ffffu;
+inline constexpr std::uint32_t kDonorPatchMaxBytes = 184u;
+inline constexpr std::uint32_t kDonorFieldCount = 20u;
+inline constexpr std::uint32_t kDonorFieldMask = 0xfffffu;
+inline constexpr std::uint32_t kDonorFieldOutputIntensityA = 19u;
+inline constexpr std::uint32_t kDonorFieldOutputIntensityB = 20u;
+inline constexpr std::uint32_t kDonorStateIntensityAOffset = 144u;
+inline constexpr std::uint32_t kDonorStateIntensityBOffset = 148u;
+static_assert(kDonorPatchMaxBytes == kDonorPatchHeaderBytes + kDonorFieldCount * kDonorEntryBytes);
+static_assert(kDonorStateIntensityBOffset + sizeof(float) <= kDonorStateBytes);
 inline constexpr std::uint32_t kDonorFieldPalette = 18u;
 inline constexpr std::uint32_t kDonorPaletteMax = 44u;  // 0 native, 1..44 K1 palettes
 inline constexpr std::uint32_t kDonorStatePaletteOffset = 140u;
@@ -81,13 +87,21 @@ inline float donorGetF32(const std::uint8_t* p) noexcept {
   std::memcpy(&value, &bits, sizeof(value));
   return value;
 }
+inline bool donorValidUnitFloat(float value) noexcept {
+  std::uint32_t bits = 0u;
+  std::memcpy(&bits, &value, sizeof(bits));
+  // IEEE-754 F32 ordering: positive 0..1, or negative zero. Integer validation
+  // also rejects negative subnormals when the processor flushes them to zero.
+  return bits <= 0x3f800000u || bits == 0x80000000u;
+}
 inline std::uint32_t donorPopcount(std::uint32_t mask) noexcept {
   std::uint32_t count = 0;
   while (mask) { count += mask & 1u; mask >>= 1; }
   return count;
 }
 inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
-  if (field >= 1u && field <= 8u) return kDonorKindF32;
+  if ((field >= 1u && field <= 8u) || field == kDonorFieldOutputIntensityA ||
+      field == kDonorFieldOutputIntensityB) return kDonorKindF32;
   if (field == 9u) return kDonorKindI32;
   if ((field >= 10u && field <= 14u) || field == 16u || field == 17u) return kDonorKindBool;
   if (field == 15u || field == 18u) return kDonorKindU32;
@@ -99,6 +113,7 @@ struct DonorIntent {
   std::uint32_t mask = 0, payload_crc = 0;
   float brightness = 0, softness = 0, color = 0, warmth = 0;
   float color_range = 0, speed = 0, saturation = 0, background = 0;
+  float output_intensity_a = 1.0f, output_intensity_b = 1.0f;
   std::int32_t mode = 0;
   std::uint8_t mirror = 0, screensaver = 0, dither = 0, auto_color = 0, reverse = 0;
   std::uint32_t hardware_brightness = 0, emission = 0, output_precision = 0, palette = 0;
@@ -119,6 +134,7 @@ struct DonorDedup {
 struct DonorObserved {
   std::uint32_t boot_id = 0, revision = 0, hardware_brightness = 0, emission = 0;
   std::uint32_t output_precision = 0, palette = 0;
+  float output_intensity_a = 1.0f, output_intensity_b = 1.0f;
   std::uint32_t accepted_request_id = 0, rendered_request_id = 0;
   std::uint32_t emitted_request_id = 0, rendered_frame = 0;
   std::uint8_t schema_sha[32]{};
@@ -126,6 +142,8 @@ struct DonorObserved {
 struct DonorApplyResult {
   std::uint32_t status = 0, revision = 0, hardware_brightness = 0, emission = 0;
   std::uint32_t output_precision = 0, palette = 0;
+  float output_intensity_a = 1.0f, output_intensity_b = 1.0f;
+  std::uint8_t intensity_a_changed = 0, intensity_b_changed = 0;
   std::uint8_t changed = 0, mode_transition = 0, revision_changed = 0;
   std::uint8_t output_precision_changed = 0, palette_changed = 0;
   std::uint8_t brightness_changed = 0, emission_changed = 0, emission_fell = 0;
@@ -135,7 +153,8 @@ struct DonorApplyResult {
 };
 
 inline std::uint32_t donorApplicability(const K1EmotiscopeConfig& config) noexcept {
-  // Bits 0..15 only; output_precision (field 17) is always applicable.
+  // Preserve legacy bits 0..15; precision, palette and DIN intensities are
+  // always applicable in state version 2, with no new applicability bits.
   std::uint32_t bits = 0xffffu;
   if (config.current_mode != 0) bits &= ~(1u << 5);
   if (!(config.color_range > 0.0f)) bits &= ~(1u << 13);
@@ -184,6 +203,9 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
   donorPutU32(out + 104, mode_transition);
   std::memcpy(out + 108, observed.schema_sha, 32);
   donorPutU32(out + kDonorStatePaletteOffset, observed.palette);
+  donorPutF32(out + kDonorStateIntensityAOffset, observed.output_intensity_a);
+  donorPutF32(out + kDonorStateIntensityBOffset, observed.output_intensity_b);
+  // Bytes 152..159 remain reserved and zero.
 }
 
 inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, DonorIntent* out) noexcept {
@@ -223,7 +245,7 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
     built |= 1u << (field - 1u);
     if (kind == kDonorKindF32) {
       const float value = donorGetF32(entry + 4);
-      if (!(value >= 0.0f && value <= 1.0f)) return kDonorStatusInvalid;
+      if (!donorValidUnitFloat(value)) return kDonorStatusInvalid;
       float* dest = nullptr;
       switch (field) {
         case 1: dest = &out->brightness; break;
@@ -233,6 +255,8 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
         case 5: dest = &out->color_range; break;
         case 6: dest = &out->speed; break;
         case 7: dest = &out->saturation; break;
+        case 19: dest = &out->output_intensity_a; break;
+        case 20: dest = &out->output_intensity_b; break;
         default: dest = &out->background; break;
       }
       *dest = value;
@@ -300,6 +324,8 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
   result->emission = observed.emission;
   result->output_precision = observed.output_precision;
   result->palette = observed.palette;
+  result->output_intensity_a = observed.output_intensity_a;
+  result->output_intensity_b = observed.output_intensity_b;
   auto finish = [&](std::uint32_t status, std::uint32_t dedup_code, std::uint32_t changed,
                     std::uint32_t mode_transition) {
     K1EmotiscopeConfig config{};
@@ -310,6 +336,8 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     encoded.emission = result->emission;
     encoded.output_precision = result->output_precision;
     encoded.palette = result->palette;
+    encoded.output_intensity_a = result->output_intensity_a;
+    encoded.output_intensity_b = result->output_intensity_b;
     if (result->revision_changed) encoded.accepted_request_id = intent.request_id;
     donorEncodeState(result->response, config, encoded, intent.request_id, status, dedup_code,
                      changed, mode_transition);
@@ -336,6 +364,14 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
   }
   if (intent.sub == kDonorCfgPatch && intent.expected_revision != observed.revision) {
     finish(kDonorStatusStale, 0, 0, 0);
+    return;
+  }
+  // The owner application boundary also validates direct intents atomically,
+  // before any donor scene patch can mutate state.
+  if (intent.sub == kDonorCfgPatch &&
+      (((intent.mask & (1u << 18)) && !donorValidUnitFloat(intent.output_intensity_a)) ||
+       ((intent.mask & (1u << 19)) && !donorValidUnitFloat(intent.output_intensity_b)))) {
+    finish(kDonorStatusInvalid, 0, 0, 0);
     return;
   }
   std::uint32_t changed = 0, mode_transition = 0;
@@ -388,6 +424,16 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
         result->palette_changed = 1u;
         changed = 1u;
       }
+    }
+    if ((intent.mask & (1u << 18)) && intent.output_intensity_a != observed.output_intensity_a) {
+      result->output_intensity_a = intent.output_intensity_a;
+      result->intensity_a_changed = 1u;
+      changed = 1u;
+    }
+    if ((intent.mask & (1u << 19)) && intent.output_intensity_b != observed.output_intensity_b) {
+      result->output_intensity_b = intent.output_intensity_b;
+      result->intensity_b_changed = 1u;
+      changed = 1u;
     }
     if (mode_transition) {
       result->mode_changed = 1u;

@@ -18,6 +18,7 @@ from titan_control_server import (  # noqa: E402
     SocketInUseError,
     hardware_writes_admitted,
     load_approval_record,
+    _decode_donor_body,
 )
 
 UID = "545433931bd25436593630352d068363"
@@ -326,6 +327,21 @@ def _donor_state(request_id, boot_id=0x11, revision=4, brightness=0.5, mode=1, f
     pu(72, 0xDFDF)
     pu(76, accepted)
     return bytes(body)
+
+
+def test_donor_gain_readback_version_2_and_legacy_support():
+    import struct
+    legacy = _decode_donor_body(_donor_state(1))
+    assert legacy["output_intensity_supported"] is False
+    assert legacy["output_intensity_a"] is None and legacy["output_intensity_b"] is None
+    body = bytearray(_donor_state(2))
+    struct.pack_into("<I", body, 4, 2)
+    struct.pack_into("<ff", body, 144, 0.25, 1.0)
+    state = _decode_donor_body(bytes(body))
+    assert state["output_intensity_supported"] is True
+    assert state["output_intensity_a"] == 0.25 and state["output_intensity_b"] == 1.0
+    body[152] = 1
+    assert _decode_donor_body(bytes(body)) is None
 
 
 def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):

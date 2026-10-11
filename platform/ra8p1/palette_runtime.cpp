@@ -501,6 +501,19 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
   return used + 2U;
 #endif
 }
+bool PaletteRuntime::setOutputIntensity(unsigned lane, float intensity) noexcept {
+  std::uint32_t bits = 0U;
+  std::memcpy(&bits, &intensity, sizeof(bits));
+  // IEEE-754 F32 ordering accepts 0..1 and negative zero; integer validation
+  // rejects nonfinite and negative subnormal values even with fast-math.
+  if (lane > 1U || (bits > 0x3f800000U && bits != 0x80000000U)) return false;
+  output_intensity_[lane] = intensity;
+  output_intensity_q16_[lane] = static_cast<std::uint16_t>(intensity * 65535.0F + 0.5F);
+  return true;
+}
+float PaletteRuntime::outputIntensity(unsigned lane) const noexcept {
+  return lane < 2U ? output_intensity_[lane] : 0.0F;
+}
 bool PaletteRuntime::stageWideFrame(unsigned channel_index,
                                     const Pixel16* pixels,
                                     std::size_t count) noexcept {
@@ -524,11 +537,16 @@ std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
   // Brightness is applied exactly once to the wire channels. The Emotiscope
   // profile supplies RGB8 expanded by 257; other profiles may author TRUE16.
   const auto* source = wide_[channel_index];
+  const std::uint32_t gain = output_intensity_q16_[lane];
+  // Maximum numerator: 65535*65535+32767 = 4294868992, within uint32_t.
+  const auto attenuate = [gain](std::uint16_t component) noexcept {
+    return static_cast<std::uint16_t>((std::uint32_t(component) * gain + 32767U) / 65535U);
+  };
   for (unsigned i = 0; i < pixels_per_lane; ++i) {
     const auto pixel = source[lane * kPixelsPerHalf + i];
-    packPixel(Pixel16{scale16(pixel.red, config_.brightness),
-                      scale16(pixel.green, config_.brightness),
-                      scale16(pixel.blue, config_.brightness)},
+    packPixel(Pixel16{attenuate(scale16(pixel.red, config_.brightness)),
+                      attenuate(scale16(pixel.green, config_.brightness)),
+                      attenuate(scale16(pixel.blue, config_.brightness))},
               out + i * kPackedBytesPerPixel);
   }
   return bytes_per_lane;

@@ -1330,6 +1330,8 @@ void donor_apply_pending() {
   observed.emission = palettes.emitEnabled() ? 1U : 0U;
   observed.output_precision = palettes.outputPrecision();
   observed.palette = k1_emotiscope_palette();
+  observed.output_intensity_a = palettes.outputIntensity(0U);
+  observed.output_intensity_b = palettes.outputIntensity(1U);
   observed.accepted_request_id = live_render_receipt.accepted_request_id;
   observed.rendered_request_id = live_render_receipt.rendered_request_id;
   observed.emitted_request_id = live_render_receipt.emitted_request_id;
@@ -1345,6 +1347,8 @@ void donor_apply_pending() {
   if (result.mode_changed) palettes.noteDonorMode(static_cast<std::uint32_t>(result.mode));
   // Realtime owner context; the runtime reads it at the next frame boundary.
   if (result.output_precision_changed) palettes.setOutputPrecision(result.output_precision);
+  if (result.intensity_a_changed) palettes.setOutputIntensity(0U, result.output_intensity_a);
+  if (result.intensity_b_changed) palettes.setOutputIntensity(1U, result.output_intensity_b);
   // Realtime owner context; the donor reads it on the next rendered frame.
   if (result.palette_changed) k1_emotiscope_set_palette(result.palette);
   if (result.revision_changed) {

@@ -191,8 +191,12 @@
     "state_bytes": 160,
     "state_magic": 1162695508,
     "engine_id": 1,
-    "version": 1,
-    "patch_max_bytes": 168,
+    "version": 2,
+    "patch_max_bytes": 184,
+    "patch_field_count": 20,
+    "patch_field_mask": 1048575,
+    "state_layout": {"unchanged_offsets": "0..143", "output_intensity_a": {"offset": 144, "kind": "f32"}, "output_intensity_b": {"offset": 148, "kind": "f32"}, "reserved_zero": "152..159"},
+    "legacy_state_version": {"version": 1, "intensity_controls_supported": false, "decoded_intensities": null, "reserved_zero": "144..159"},
     "fields": {
       "brightness": {"id": 1, "kind": "f32", "min": 0, "max": 1, "default": 1.0},
       "softness": {"id": 2, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
@@ -211,7 +215,9 @@
       "hardware_output_brightness": {"id": 15, "kind": "u32", "min": 0, "max": 255, "default": 100},
       "emission_enabled": {"id": 16, "kind": "bool", "default": true},
       "output_precision": {"id": 17, "kind": "bool", "default": false, "state_flag_bit": 6, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire", "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"}, "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."},
-      "palette": {"id": 18, "kind": "u32", "default": 0, "range": [0, 44], "state_offset": 140, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "native donor HSV colour", "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"}, "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."}
+      "palette": {"id": 18, "kind": "u32", "default": 0, "range": [0, 44], "state_offset": 140, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "native donor HSV colour", "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"}, "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."},
+      "output_intensity_a": {"id": 19, "kind": "f32", "min": 0, "max": 1, "finite": true, "default": 1.0, "state_offset": 144, "owner": "realtime frame boundary", "scene": false, "note": "Physical DIN-A logical pixels 0..79 only; shared scene and music motion remain unchanged. Cached Q16 gain rounded from value*65535, applied after hardware scale16 as (component*q16+32767)/65535; 1.0 is byte exact."},
+      "output_intensity_b": {"id": 20, "kind": "f32", "min": 0, "max": 1, "finite": true, "default": 1.0, "state_offset": 148, "owner": "realtime frame boundary", "scene": false, "note": "Physical DIN-B logical pixels 80..159 only; same independent output gain law as DIN-A. Boot defaults to 1.0; a patch to one lane preserves the other."}
     },
     "statuses": {
       "ok": 0,
@@ -273,7 +279,7 @@
     },
     "owner": "Queued through the existing idle RT owner; response follows application or rejection.",
     "scope": "Selects one complete donor scene. Both mode fields must agree. Brightness is the final hardware gain; it does not modify donor brightness.",
-    "unavailable": "Version 2/3 transition/travel controls, automatic palette cycling, independent channels and legacy performance scalars.",
+    "unavailable": "Version 2/3 transition/travel controls, automatic palette cycling, independent scenes and legacy performance scalars. Physical A/B intensity uses donor_control fields 19/20.",
     "source": "platform/ra8p1/fixture_app.cpp and PaletteRuntime::configure"
   },
   "boot_defaults": {

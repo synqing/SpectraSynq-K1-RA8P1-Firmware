@@ -73,6 +73,8 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
   if (result.emission_changed) observed->emission = result.emission;
   if (result.output_precision_changed) observed->output_precision = result.output_precision;
   if (result.palette_changed) observed->palette = result.palette;
+  if (result.intensity_a_changed) observed->output_intensity_a = result.output_intensity_a;
+  if (result.intensity_b_changed) observed->output_intensity_b = result.output_intensity_b;
 }
 
 static ec::DonorApplyResult apply_bytes(ec::DonorDedup* dedup, ec::DonorObserved* observed,
@@ -106,12 +108,13 @@ static ec::DonorObserved fresh_observed() {
   observed.boot_id = 0x11u;
   observed.hardware_brightness = 100u;
   observed.emission = 1u;
+  observed.output_intensity_a = observed.output_intensity_b = 1.0f;
   return observed;
 }
 
 static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 0) == ec::kDonorStateMagic);
-  CHECK(ec::donorGetU32(body + 4) == 1u);
+  CHECK(ec::donorGetU32(body + 4) == 2u);
   CHECK(ec::donorGetU32(body + 8) == 1u);
   CHECK(ec::donorGetU32(body + 12) == 0x11u);
   CHECK(ec::donorGetU32(body + 16) == 0u);
@@ -132,7 +135,10 @@ static void check_default_body(const std::uint8_t* body) {
   CHECK(ec::donorGetU32(body + 96) == 0u);
   CHECK(ec::donorGetU32(body + 100) == 0u);
   CHECK(ec::donorGetU32(body + 104) == 0u);
-  for (unsigned i = 140; i < 160; ++i) CHECK(body[i] == 0u);
+  CHECK(ec::donorGetU32(body + 140) == 0u);
+  check_f("intensity A", ec::donorGetF32(body + 144), 1.0f);
+  check_f("intensity B", ec::donorGetF32(body + 148), 1.0f);
+  for (unsigned i = 152; i < 160; ++i) CHECK(body[i] == 0u);
 }
 
 static int behavioral() {
@@ -472,21 +478,80 @@ static int behavioral() {
     const Entry f17f{17u, 1u, 0x3f000000u};
     auto badk = build_patch(46u, observed.revision, 0x11u, &f17f, 1);
     CHECK(ec::donorParse(badk.data(), std::uint32_t(badk.size()), &intent) == ec::kDonorStatusInvalid);
-    // All 17 fields fit in the 160-byte maximum.
-    Entry all[18];
-    for (int i = 0; i < 18; ++i) {
+    // All 20 fields fit in the explicit 184-byte maximum.
+    Entry all[20];
+    for (int i = 0; i < 20; ++i) {
       const std::uint16_t f = std::uint16_t(i + 1);
       const std::uint32_t kind = ec::donorFieldKind(f);
       all[i] = Entry{f, std::uint16_t(kind), kind == ec::kDonorKindF32 ? 0x3f000000u
                                             : f == 9u ? 1u : f == 15u ? 100u : f == 16u ? 1u : f == 18u ? 7u : 0u};
     }
-    auto full = build_patch(47u, observed.revision, 0x11u, all, 18);
-    CHECK(full.size() == 168u);
+    auto full = build_patch(47u, observed.revision, 0x11u, all, 20);
+    CHECK(full.size() == 184u);
     CHECK(ec::donorParse(full.data(), std::uint32_t(full.size()), &intent) == 0u);
-    CHECK(intent.mask == 0x3ffffu);
+    CHECK(intent.mask == 0xfffffu);
     std::vector<std::uint8_t> oversize(full);
     oversize.push_back(0u);
     CHECK(ec::donorParse(oversize.data(), std::uint32_t(oversize.size()), &intent) == ec::kDonorStatusInvalid);
+  }
+
+  // Intensity is independent physical-lane state, not a donor scene control.
+  {
+    ec::DonorDedup gain_dedup{};
+    ec::DonorObserved gain_observed = fresh_observed();
+    K1EmotiscopeConfig scene_before{};
+    k1_emotiscope_get_config(&scene_before);
+    const Entry gain_a{19u, ec::kDonorKindF32, fbits(0.25f)};
+    const Entry gain_b{20u, ec::kDonorKindF32, fbits(0.75f)};
+    const auto packet_a = build_patch(101u, 0u, 0x11u, &gain_a, 1);
+    auto gain = apply_vec(&gain_dedup, &gain_observed, packet_a);
+    CHECK(gain.status == 0u && gain.intensity_a_changed && !gain.intensity_b_changed);
+    CHECK(gain_observed.revision == 1u);
+    check_f("A gain", gain_observed.output_intensity_a, 0.25f);
+    check_f("B preserved", gain_observed.output_intensity_b, 1.0f);
+    CHECK(ec::donorGetU32(gain.response + 4) == 2u);
+    check_f("A response", ec::donorGetF32(gain.response + 144), 0.25f);
+    check_f("B response", ec::donorGetF32(gain.response + 148), 1.0f);
+    for (unsigned i = 152; i < 160; ++i) CHECK(gain.response[i] == 0u);
+    const auto first_gain = gain;
+    gain = apply_vec(&gain_dedup, &gain_observed, packet_a);
+    CHECK(gain.status == 0u && !gain.intensity_a_changed && !gain.intensity_b_changed);
+    CHECK(ec::donorGetU32(gain.response + 96) == 1u && gain_observed.revision == 1u);
+    CHECK(std::memcmp(gain.response, first_gain.response, 96) == 0);
+    CHECK(std::memcmp(gain.response + 100, first_gain.response + 100, 60) == 0);
+    gain = apply_vec(&gain_dedup, &gain_observed, build_patch(102u, 1u, 0x11u, &gain_b, 1));
+    CHECK(gain.status == 0u && !gain.intensity_a_changed && gain.intensity_b_changed);
+    check_f("A preserved", gain_observed.output_intensity_a, 0.25f);
+    check_f("B gain", gain_observed.output_intensity_b, 0.75f);
+    CHECK(gain_observed.revision == 2u);
+    const Entry zero_a{19u, ec::kDonorKindF32, fbits(0.0f)};
+    gain = apply_vec(&gain_dedup, &gain_observed, build_patch(103u, 0u, 0x11u, &zero_a, 1));
+    CHECK(gain.status == ec::kDonorStatusStale && gain_observed.revision == 2u);
+    check_f("stale A preserved", gain_observed.output_intensity_a, 0.25f);
+    check_f("stale B preserved", gain_observed.output_intensity_b, 0.75f);
+    gain = apply_vec(&gain_dedup, &gain_observed, build_patch(103u, 2u, 0x11u, &zero_a, 1));
+    CHECK(gain.status == 0u && gain_observed.revision == 3u);
+    check_f("A zero", gain_observed.output_intensity_a, 0.0f);
+    check_f("zero leaves B", gain_observed.output_intensity_b, 0.75f);
+    for (std::uint16_t field : {19u, 20u}) {
+      for (std::uint32_t raw_bits : {0x7fc00000u, 0x7f800000u, 0xff800000u, 0x3f800001u, 0xbf000000u, 0x80000001u}) {
+        const Entry bad_gain{field, ec::kDonorKindF32, raw_bits};
+        ec::DonorIntent parsed{};
+        const auto bytes = build_patch(104u, 3u, 0x11u, &bad_gain, 1);
+        CHECK(ec::donorParse(bytes.data(), std::uint32_t(bytes.size()), &parsed) == ec::kDonorStatusInvalid);
+      }
+    }
+    // Caller-side bypass of parse must still reject atomically before donor changes.
+    ec::DonorIntent bad_gain{};
+    bad_gain.sub = ec::kDonorCfgPatch; bad_gain.request_id = 105u;
+    bad_gain.boot_id = 0x11u; bad_gain.expected_revision = 3u;
+    bad_gain.mask = 1u | (1u << 18); bad_gain.brightness = 0.99f;
+    bad_gain.output_intensity_a = NAN;
+    ec::donorApply(&gain_dedup, bad_gain, gain_observed, &gain);
+    CHECK(gain.status == ec::kDonorStatusInvalid && !gain.revision_changed);
+    K1EmotiscopeConfig scene_after{};
+    k1_emotiscope_get_config(&scene_after);
+    CHECK(std::memcmp(&scene_before, &scene_after, sizeof(scene_before)) == 0);
   }
 
   std::printf("BEHAVIORAL %s %d\n", g_fails ? "FAIL" : "OK", g_fails);
@@ -522,7 +587,7 @@ static int corpus(const char* path) {
   int index = 0;
   while (std::fgets(line, sizeof(line), file)) {
     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
-    std::uint8_t bytes[176];
+    std::uint8_t bytes[192];
     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
     if (size < 0) { std::fclose(file); return 2; }
     ec::DonorIntent intent{};

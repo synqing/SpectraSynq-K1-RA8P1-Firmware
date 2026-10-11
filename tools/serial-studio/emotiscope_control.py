@@ -15,9 +15,9 @@ STATE_BYTES = 160
 GET_BYTES = 16
 PATCH_HEADER = 24
 ENTRY_BYTES = 8
-PATCH_MAX = 168
-FIELD_COUNT = 18
-FIELD_MASK = 0x3FFFF
+PATCH_MAX = 184
+FIELD_COUNT = 20
+FIELD_MASK = 0xFFFFF
 PALETTE_MAX = 44  # 0 = native donor colour, 1..44 = K1 product palettes
 U32_MAX = {15: 255, 18: PALETTE_MAX}
 FLAG_OUTPUT_PRECISION = 64
@@ -48,6 +48,8 @@ FIELDS = {
     16: ("emission_enabled", KIND_BOOL),
     17: ("output_precision", KIND_BOOL),
     18: ("palette", KIND_U32),
+    19: ("output_intensity_a", KIND_F32),
+    20: ("output_intensity_b", KIND_F32),
 }
 NAMES = {name: field for field, (name, _kind) in FIELDS.items()}
 
@@ -230,6 +232,19 @@ def decode_state(body: bytes) -> dict:
         return struct.unpack_from("<I", body, offset)[0]
     def f32(offset):
         return struct.unpack_from("<f", body, offset)[0]
+    if u32(0) != STATE_MAGIC or u32(4) not in (1, 2):
+        raise ValueError("unsupported state framing")
+    intensity_supported = u32(4) == 2
+    intensity_a = f32(144) if intensity_supported else None
+    intensity_b = f32(148) if intensity_supported else None
+    if intensity_supported and any(
+        not math.isfinite(value) or not 0.0 <= value <= 1.0
+        for value in (intensity_a, intensity_b)
+    ):
+        raise ValueError("invalid output intensity")
+    reserved = body[152:160] if intensity_supported else body[144:160]
+    if any(reserved):
+        raise ValueError("nonzero reserved state bytes")
     return {
         "magic": u32(0),
         "version": u32(4),
@@ -260,7 +275,10 @@ def decode_state(body: bytes) -> dict:
         "mode_transition": u32(104),
         "schema": body[108:140],
         "palette": u32(140),
-        "reserved": body[144:160],
+        "output_intensity_supported": intensity_supported,
+        "output_intensity_a": intensity_a,
+        "output_intensity_b": intensity_b,
+        "reserved": reserved,
     }
 
 

@@ -101,6 +101,9 @@ class PaletteRuntime {
   PaletteRuntime& operator=(const PaletteRuntime&) = delete;
   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
   void setHardwareBrightness(std::uint32_t brightness) noexcept;
+  // Physical DIN attenuation after global brightness; owner applies before packing.
+  bool setOutputIntensity(unsigned lane, float intensity) noexcept;
+  float outputIntensity(unsigned lane) const noexcept;
   bool setEmissionEnabled(bool enabled) noexcept;
   void noteDonorMode(std::uint32_t mode) noexcept;
   bool step(std::uint64_t now_us,
@@ -172,5 +175,7 @@ class PaletteRuntime {
   core::visual::Pixel16 wide_[2][core::visual::kPixelsPerChannel]{};
   bool wide_valid_[2]{};
   std::uint32_t output_precision_ = 0U;
+  float output_intensity_[2]{1.0F, 1.0F};
+  std::uint16_t output_intensity_q16_[2]{65535U, 65535U};
 };
 } // namespace k1::titan
