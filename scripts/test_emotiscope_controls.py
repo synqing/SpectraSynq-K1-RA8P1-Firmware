@@ -15,6 +15,8 @@ import sys
 import zlib
 from pathlib import Path
 
+from test_emotiscope_ml import run_ml_tests
+
 
 def load_codec(root: Path):
     path = root / "tools/serial-studio/emotiscope_control.py"
@@ -582,9 +584,13 @@ def main():
         and wire["golden_matches_frozen"] and wire.get("default_ok") and wire.get("raw_ok")
         and not wire["corpus_failures"]
     )
-    (output / "result.json").write_text(json.dumps(wire, indent=2))
     if not wire["pass"]:
+        (output / "result.json").write_text(json.dumps(wire, indent=2))
         raise SystemExit("controls proof failed: " + str(output / "result.json"))
+    # The normal controls gate also executes the real ML admission and the
+    # actual fixture callback clock regression; codec-only proof missed it.
+    wire["ml_runtime"] = run_ml_tests(root, output / "ml-runtime", args.compiler)
+    (output / "result.json").write_text(json.dumps(wire, indent=2))
     print(json.dumps({"pass": True, "result": str(output / "result.json")}))
 
 
