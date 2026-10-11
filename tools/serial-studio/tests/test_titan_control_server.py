@@ -110,6 +110,68 @@ def test_snapshot_ml_witness_fixed_route_and_default_snapshot_are_separate(tmp_p
     assert result['ok'] is False and calls==before
 
 
+def test_snapshot_ml_witness_real_broker_transport_admission(tmp_path):
+    """Use the production socket, broker and framing; emulate only device bytes."""
+    import struct
+    import pytest
+    from test_live_control_path import _checkpoint, _usb, UnixBroker
+    from titan_broker import Broker
+    from titan_live_device import LiveDeviceSerial
+    from titan_transport import ObserveDenied
+
+    raw = bytearray(592)
+    raw[:4] = b"MLR1"
+    struct.pack_into("<II9I", raw, 4, 1, 10000, 8, 7, 9900, 1, 0x12345678, 11, 20, 25, 2)
+    struct.pack_into("<64f", raw, 48, *([0.25] * 64))
+    struct.pack_into("<8f", raw, 304, *([0.5] * 8))
+    struct.pack_into("<64f", raw, 336, *([0.75] * 64))
+
+    class DeviceBytes(LiveDeviceSerial):
+        def __init__(self):
+            super().__init__()
+            self.requests = []
+
+        def _handle(self, op, req, payload):
+            self.requests.append((op, bytes(payload)))
+            if op == 17 and payload == b"MLST":
+                self._respond(0, req, bytes(raw))
+            else:
+                super()._handle(op, req, payload)
+
+    device = DeviceBytes()
+    evidence = _checkpoint(Path(tmp_path), build=device.build, schema=device.schema)
+    broker = Broker(evidence, backend=device, control_enabled=True)
+    client = None
+    try:
+        broker.attach(_usb(Path(tmp_path)))  # Injected backend; no physical CDC open.
+        client = UnixBroker(str(evidence / "titan-control.sock"))
+        session = client.request({"op": "hello"})["session"]
+        device.requests.clear()
+        result = client.request({"op": "snapshot", "kind": "emotiscope_ml", "session": session})
+        assert result["ok"] is True and result["body_hex"] == raw.hex()
+        assert result["witness"]["input_sequence"] == 7
+        assert result["witness"]["latent"] == [0.5] * 8
+        assert device.requests == [(17, b"MLST")]
+
+        before = bytes(device.tx), broker.transport.next_req
+        for payload in (b"MLSU", b"MLS", b"MLST\x00", b"mlst"):
+            with pytest.raises(ObserveDenied, match="payload not admitted"):
+                broker.transact(17, payload)
+            assert (bytes(device.tx), broker.transport.next_req) == before
+        bad_kind = client.request({"op": "snapshot", "kind": "arbitrary", "session": session})
+        assert bad_kind["ok"] is False
+        assert (bytes(device.tx), broker.transport.next_req) == before
+
+        ordinary = client.request({"op": "snapshot", "session": session})
+        assert ordinary["ok"] is True and "snapshot" in ordinary and "witness" not in ordinary
+        assert device.requests == [(17, b"MLST"), (23, b"")]
+        assert broker.control_plane.hw_writes == 0 and device.patch_applies == 0
+    finally:
+        if client is not None:
+            client.close()
+        broker.shutdown()
+
+
 def test_empty_approval_wrong_id_denied(tmp_path):
     evidence = Path(tmp_path)
     evidence.mkdir(parents=True, exist_ok=True)
