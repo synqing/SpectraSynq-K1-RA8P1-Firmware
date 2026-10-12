@@ -1,0 +1,34 @@
+{
+  "_scratch/waveform-migration-001/weak-009/original.mov": {
+    "sha256": "056cc422d983152ea1007424d1267164db0ef761931bf5d4b0cbf53b1a75ece1",
+    "bytes": 128830750
+  },
+  "_scratch/waveform-migration-001/weak-009/before/observation.json": {
+    "sha256": "410f246fc68ab2afb074cca2295031528527dff20fd308d752be6c5e5e7514c0",
+    "bytes": 2505
+  },
+  "_scratch/waveform-migration-001/weak-009/after/observation.json": {
+    "sha256": "44b32d61e96e697e1c7bee6b24b49601830b5391db3a0ece7d8eacd0d7990baf",
+    "bytes": 2504
+  },
+  "_scratch/waveform-migration-001/weak-009/root-visual-inspection.json": {
+    "sha256": "bcce790664b7346ad5591b7fdd1ee8da0228583a23bfd24d7480c011e8905ffa",
+    "bytes": 1310
+  },
+  "_scratch/waveform-migration-001/weak-009/runtime-evidence-analysis.json": {
+    "sha256": "9856c7eb010f8afa75d42258eb383abf59df523c0852b4134fe61bd848aa129c",
+    "bytes": 67843
+  },
+  "docs/emotiscope-port-001/evidence/waveform-migration-001/hybrid-009-build-receipt.json": {
+    "sha256": "36104f956a3c8976bd6681ae7a8666ed3dbefd218079e73a5c12f2ba204a722e",
+    "bytes": 42174
+  },
+  "docs/emotiscope-port-001/evidence/waveform-migration-001/hybrid-009-programme-receipt.json": {
+    "sha256": "79b3b09a9364f419580732eda2b6e63630f2347e0ea712762086a1cc56318d1b",
+    "bytes": 16319
+  },
+  "docs/emotiscope-port-001/evidence/waveform-migration-001/hybrid-009-leave-state.json": {
+    "sha256": "907edb05fe8110c5f211ad0d4b35be4afe5f245ae5ac81880c313cb82041ca67",
+    "bytes": 33038
+  }
+}

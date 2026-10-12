@@ -1,3 +1,55 @@
+## 13 October 2026 — Hybrid 009 installed; working two-board Bloom restored
+
+Firmware source `d33945a3f3df6b20064909a890046c604f373f92`, build `95499e22d9bc761171535a33c51c7e06c1bd93b87795e6a9eaeffbe70823a9e4`, schema `ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787`, UID `545433931bd25436593630352d068363`. Verified programme/readback on existing E2 Lite 1 MHz route with target power OFF. Candidate 009 reuses the existing Titan acoustic admission independently per Hybrid renderer, retaining source audio numerics. Source/FIR throughput repairs and host boundary checks are in the full migration record.
+
+Current running composition is the restored two-board continuous Bloom: mode 1 / scene 3 / phrase 0 both, palette 1, master 255, board gains 0.25, emission ON / secondary ON, body return 0.25 unsaved trial/detail return 0.55. Full readback: [leave-state](evidence/waveform-migration-001/hybrid-009-leave-state.json). Saved SQ4 and boot defaults were not replaced. Hybrid 32 remains selectable, not physically accepted.
+
+Latest comparison: `_scratch/waveform-migration-001/weak-009/original.mov` and `root-visual-inspection.json`; same approved audio at 0.25 afplay gain, one locked 100-second session. Both passages complete, no observed audio gaps or ASRC rejects. Root inspected actual plate stills: musical colour separation and sampled dark recovery visible; intermittent later light persists. Its acoustic cause is unproved. Host weak wake/independence passes are not broad physical qualification.
+
+**Full migration incomplete. M13 complete playback-speed review with music is BLOCKED by the current inspection tools; M14–M17 have not started.** Do not silently advance effects or replace that operation with stills. Exact continuation and all original M00–M24 tasks remain in [the migration record](INHOUSE-WAVEFORM-MIGRATION-20261012.md). Both autonomous optical-edge outputs remain enabled. Historical entries below retain their original state and are superseded only by this dated checkpoint.
+
+## 13 October 2026 — candidate 008 installed; quiet-input assay in progress
+
+THE TITAN MUST CONTINUE AUTONOMOUS MUSIC. Root is the sole live owner.
+This dated checkpoint supersedes the installed-state descriptions below; all
+older failures and recovery records remain historical evidence.
+
+Installed source `2f83736e78805cc7333499302835edabb17997a3`, build
+`924aee6c55d2476bb2a164e3faf669d34cedbab90b87c381ef823ce164d19bc8`, UID
+`545433931bd25436593630352d068363`, schema
+`ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787`.
+Identity evidence: `_scratch/waveform-migration-001/hybrid-008-admission.json`
+and `programme-hybrid-008/readback.json`. Root is actively running the bounded
+`weak-008c` assay; this record does **not** declare final settings or leave-state.
+
+The exact two-span 95-tap FIR change `451dd056` resolved the demonstrated runtime
+capture pressure in the complete matched-007/008 passages: approximately 100 Hz
+rendering/200 Hz audio publication, with no observed new skipped releases, audio
+gaps, ASRC rejections or raw overflows. Diagnostic USB responses are still slower
+in the mixed pair; throughput equivalence is not claimed. Candidate 007's quiet
+consumer defect was subsequently corrected in 008: confirmed silence now stops
+new Hybrid deposits while history drains. Focused host checks cover that consumer.
+
+**Quiet recovery remains unproved.** All 81 active 008 in-house observations have
+`silence=false`; post-playback RMS spikes above the existing 0.08 threshold
+interrupt the five-second quiet dwell. The source of that energy is unknown.
+Inactive-before silence flags are not quiet evidence. The 0.08 wake limitation
+and weak-input assay remain open. Reuse of existing Bloom admission is under
+local development, not installed or accepted.
+
+Complete matched-008 recording exists with unchanged output controls, but
+playback-speed audiovisual review remains BLOCKED by available tools. Video-only
+recordings/stills do not qualify musical motion or preference. M13/M18 and the
+migration remain incomplete; no next mode has been accepted. See the complete
+[canonical migration record](INHOUSE-WAVEFORM-MIGRATION-20261012.md) and
+`matched-007/runtime-evidence-analysis.json` /
+`matched-008/runtime-evidence-analysis.json` under
+`_scratch/waveform-migration-001/`. Candidates 002–006 and the retained
+`037dd22f…` recovery image remain preserved. Root completes the active assay and
+its scoped correction before recording a final operating state.
+
+---
+
 ## 13 October 2026 — Hybrid scheduler candidate006 rejected and rolled back
 
 Candidate `f8d2c002` / build `ce969aa81e2b2855cee970038758d87ffcd47063c3fddb01a530a695abf724ec` added a bounded yield when LED transmission ends during an audio hop. It passed production-loop scheduling checks and all 211 compiled inputs matched the commit, but target acceptance failed: two successive MIR samples show audio gaps 1 → 2, stream epoch 2 → 3 and invalid/warming donor publication. Cached PDM telemetry independently records one ASRC queue rejection, 1,030 discarded samples and a 14,395 µs maximum PDM service gap; it predates the second MIR gap. No new physical comparison or visual pass is claimed.

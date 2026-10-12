@@ -1227,3 +1227,157 @@ Candidate source `f8d2c002` / image `ce969aa81e2b2855cee970038758d87ffcd47063c3f
 Root restored baseline `037dd22f…` and the complete two-edge entry settings; receipts are `rollback-hybrid-006/` and `rollback-hybrid-006-active.json`. Both outputs remain autonomous, enabled at master255 with board gains0.25/0.25. SQ4 was not overwritten. The unsuccessful scheduler change was reverted in `6e07b19`.
 
 Source accounting establishes the rejected queue admission: 734 retained samples plus the incoming296 block exceed the unchanged1024 capacity by6. This proves queue pressure, not sustained CPU overload or a raw microphone dropout. No queue enlargement is justified: existing scheduling does not guarantee a sub-hop residue, and a drain-until-empty poll can admit newly completed slots while it runs. The next scoped correction under inspection removes repeated circular-index wrap work from the existing95-tap FIR while preserving coefficients, summation order, sample rate and exact output. It is not yet target-tested or accepted. M13/M18 and overall migration remain incomplete.
+
+## Execution checkpoint — 13 October 2026, candidate007
+
+Firmware commit `451dd056b3b0a35a723a9ba138dd36ee4f0a21bc`, build `0a6026bdacde88a2e59b1d228d33ee784e5c9584f18804ee32b24a76249d8606`, changes the existing95-tap FIR to two contiguous spans, preserving arithmetic and output exactly. It also exposes32bytes of capture cost/rejection evidence through the existing MIR query. The unsuccessful006 yield is absent. Host exact-state/output comparisons, existing pressure/recovery cases and maximum-width MIR response fit passed; the ARM build matches all211 source inputs. These are engineering evidence, not optical acceptance.
+
+The full `matched-007/original.mov` recording completed at112.067650s in one locked camera session. The before composition and after lowerHybrid/upperdetail each received the same approved24s passage plus bounded quiet. Output settings were unchanged. Fresh records show before/after render cadence approximately100Hz, audio199.985Hz, no new skipped releases, no audio gaps and no ASRC rejections. Two-block PDM poll maximum was4.485316ms. Detailed bound/cache caveats are in `matched-007/runtime-evidence-analysis.json`.
+
+Diagnostic USB latency still increases: median wire12.07→60.90ms, MIR10.67→61.53ms, GET8.27→49.59ms, status54.94→212.95ms. All requests completed in this bounded comparison. Diagnostic throughput is not render rate or microphone-to-light latency; latency equivalence is not claimed.
+
+Root opened and inspected12 actual before/after plate frames at playback-process cues2,6,12,20,30,36seconds. The new lower field shows blue-violet outer lobes and a darker centre while the upper field remains coloured. This is insufficient to judge motion or musical improvement. More decisively, after cues30/36 the lower edge stays pink while the retained before composition is dark. The analyser declares silence approximately4.99s after playback exit, yet fresh deposits continue through the end of observation. The renderer's inherited `silence && peak <0.02` veto and active-seed floor permit automatically normalised room input to override confirmed quiet. Root rejects this physical defect.
+
+The recording contains video only. Logged playback-process offsets support approximate cue pairing, not measured acoustic synchronisation. Available tools have not supplied complete playback-speed audiovisual review; M13step9/M18 remain unfulfilled. Selected stills and telemetry do not substitute for them. Root restored both boards to the retained Bloom composition on007 while correcting the quiet consumer. No saved slot was overwritten, no candidate visual acceptance or overall completion is claimed. Evidence is retained under `_scratch/waveform-migration-001/matched-007/`, including `root-visual-inspection.json`.
+
+---
+
+## Execution checkpoint — candidate 008 quiet consumer and current assay, 13 October 2026
+
+THE TITAN MUST CONTINUE AUTONOMOUS MUSIC. Root remains the sole live owner.
+The candidate-007 account immediately above remains intact: its exact two-span
+95-tap FIR correction (`451dd056`) removed the demonstrated capture-pressure
+failure in the bounded comparison, but its renderer continued births after the
+producer declared silence. Candidate 008 addresses that consumer defect; it does
+not establish that the producer now classifies quiet or weak music correctly.
+
+### Installed identity and completed bounded observations
+
+Installed candidate 008 is source
+`2f83736e78805cc7333499302835edabb17997a3`, build
+`924aee6c55d2476bb2a164e3faf669d34cedbab90b87c381ef823ce164d19bc8`, schema
+`ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787`, target UID
+`545433931bd25436593630352d068363`. The
+[admission](../../_scratch/waveform-migration-001/hybrid-008-admission.json),
+[programming receipt](../../_scratch/waveform-migration-001/programme-hybrid-008/receipt.json)
+and [readback](../../_scratch/waveform-migration-001/programme-hybrid-008/readback.json)
+identify the actual image. HEX SHA-256 is
+`92a1c5aab202bdb27de7a9a4351e9020d4016d9876b2d12d596b770356be05f3`;
+ELF SHA-256 is
+`d1724bf0cd0ea004ad247ac44e23b2aa55076bbd269e26d1420cab33b508c4e3`.
+This identity describes the installed development image, not a promoted final
+composition or completed migration.
+
+The renderer now honours coherent confirmed silence as a veto on new deposits;
+old history continues travelling and draining. Focused host cases exercise that
+consumer change. It does not change the producer's existing RMS thresholds or
+five-second quiet dwell, and it does not prove weak-music wake classification.
+
+The [007 runtime analysis](../../_scratch/waveform-migration-001/matched-007/runtime-evidence-analysis.json)
+and [008 runtime/quiet analysis](../../_scratch/waveform-migration-001/matched-008/runtime-evidence-analysis.json)
+retain approximately 100 Hz rendering and 200 Hz audio publication with no
+observed new skipped releases, audio gaps, rejected pushes or raw overflows in
+those complete bounded passages. This supports the specific capture-cost repair
+under those workloads, not unlimited-duration qualification. Diagnostic USB
+latency still increases for the mixed pair: in 008 the median wire/MIR/GET
+ratios are approximately 4.73/5.39/5.56 times their donor-only before values.
+All measured transactions completed; diagnostic latency equivalence remains
+unproved. Device publication timing is not microphone-to-photon latency.
+
+The [008 recording](../../_scratch/waveform-migration-001/matched-008/original.mov)
+completed in one locked camera session, approximately 112.02 seconds. The
+[before observation](../../_scratch/waveform-migration-001/matched-008/before/observation.json)
+and [after observation](../../_scratch/waveform-migration-001/matched-008/after/observation.json)
+retain 131 and 81 samples respectively, with physical controls unchanged in
+both. The comparison uses donor before and mixed Hybrid/detail after on the same
+008 image. Successful capture does not establish a preferred physical show.
+
+### The 008 quiet result is unresolved, not a silence-to-black pass
+
+All **81 active in-house observations report `silence=false`**. The 131 earlier
+`silence=true` values belong to the inactive analyser with `valid=false`; they
+are not acoustic quiet evidence. After playback-process exit, observed RMS
+blocks exceed the existing 0.08 exit threshold at approximately 1.04, 2.51,
+2.86, 4.76 and 8.54 seconds. These interruptions restart the five-second quiet
+dwell. Only 3.67 seconds separate the last observed high block and final sample;
+unobserved analysis blocks may contain further interruptions.
+
+Fresh deposits therefore continue under a false silence flag; this passage does
+not demonstrate stale replay or a failure of the new confirmed-silence consumer.
+It also does **not** demonstrate acceptable room-quiet behaviour. The acoustic or
+electrical source of the post-process energy is unmeasured: do not label it
+ambient sound, speaker tail, other playback or microphone noise without evidence.
+Playback-process exit is not an acoustic-stop timestamp. Stale-input drainage
+was not exercised because valid publications continued throughout.
+
+The inherited RMS wake threshold of 0.08 remains a known weak-input limitation.
+Root's existing `weak-008c` assay is active at this checkpoint; its final result
+and final restored controls are not asserted here. A scoped reuse of the existing
+Bloom admission mechanism is in progress to address the owning admission path;
+it is not installed or accepted. No new analyser, effect or framework is implied.
+
+### Current disposition
+
+Candidate 007's original quiet failure, candidates 002–006 and their rollback
+evidence remain preserved. Candidate 008's confirmed-silence consumer repair has
+host coverage, while physical room-quiet recovery and weak musical wake remain
+open. The full playback-speed audiovisual review remains **BLOCKED by available
+review-tool capability**. Video-only recording, extracted frames and numerical
+payloads do not satisfy that specific requirement or establish musical preference.
+
+M13 remains open; no next Waveform mode or overall migration acceptance is
+claimed. Root is operating the installed 008 image during the bounded weak-input
+assay. This is a progress checkpoint, **not a final leave-state declaration**.
+The next executable work is to complete that assay, repair only its demonstrated
+admission limitation through the existing mechanism, verify the same cases and
+then complete physical comparison and audiovisual review. The preserved recovery
+image and complete two-edge entry configuration remain the rollback route.
+
+### Candidate008 weak-input observation — completed, 13 October 2026
+
+The first weak assay did not execute: `weak-008/before.log` records the existing helper's two-second pre-roll bound refusing the requested seven seconds. Root allowed a maximum ten-second pre-roll only for an external bounded camera session. The second attempt `weak-008b/` recorded no samples: camera acquisition consumed the reserve and the camera stopped itself (`recording_start_missed_full_duration_reserve`). Root retained both failures and changed the next recording to100seconds within the unchanged120second operation limit. The helper now admits only the exact100/112second camera commands and derives its deadline from that duration.
+
+`_scratch/waveform-migration-001/weak-008c/` completed both24second Sonic Samba passages with afplay gain0.25, pre7seconds/post8seconds, in one locked camera session. This is a weak-input assay, not a same-level replacement for matched-008. Global output, palette and operating gains were unchanged. No confirmed silence was observed before candidate playback, so this does not prove wake from silence. The original fixed0.08 RMS wake limitation remains open.
+
+Actual quiet was observed afterwards: first sampled producer silence=true at playback-process cue29.968s. Nine sampled bottom RGB16 payloads were allzero fromcue29.898 to32.628s. A fresh status record atcue31.497s confirms deposit_strength0 and injection_count7482 despite normalised peak0.804. Root independently inspected actual plate frames: cue12 has lower orange lobes and upperpink/orange; cue28 retains lowerpink; cue31 is unlit; cue33 has small freshpink deposits. In the last sample rawRMS0.111252 and rawpeak8006 accompany silencefalse and new nonzero payload, consistent with new input. Its acoustic source is unknown. Camera offsets use afplay process-start logs, not measured acoustic onset.
+
+This supports the confirmed-silence consumer repair for the observed interval. It does not qualify all room conditions, weak wake, rhythmic quality, or full-speed audiovisual acceptance. Effective Titan admission reuse is source work only until a later installed checkpoint says otherwise. Root evidence: `weak-008c/root-visual-inspection.json`; timing/causality analysis: `weak-008c/runtime-evidence-analysis.json`.
+
+### Candidate 009 — Titan acoustic admission reuse, 13 October 2026
+
+**Implemented source:** `d33945a3f3df6b20064909a890046c604f373f92`. Hybrid's local render view now uses the existing `composed_scene::BloomAdmission` on the prepared coherent donor publication. Each renderer owns its hysteresis state. The source 96-sample analyser, spectra, peak/VU and original source-silence observation are unchanged. Invalid/stale/regressive in-house input cannot be rescued by an open donor gate. Mode/epoch changes clear only the affected admission state; donor stale input and rewarming close admission. This is an intentional Titan microphone boundary correction, not a claim of identical historical microphone calibration. It uses the existing raw peak squared open >0.0048 / close <=0.0034 limits; weaker signals below that opening threshold remain limited.
+
+The owning change is `platform/ra8p1/palette_runtime.{h,cpp}`. Its adjacent dependency is the existing admission class in `composed_scene_runtime.h`, included rather than reimplemented. Existing op17 status distinguishes original `source_silence` from effective `admission_open` and names the prepared donor sequence/peak. It is not a simultaneous MIR/wire/camera capture. No new control, schema, renderer, gain/gamma, wiring, DMA, cache or clock policy was added.
+
+Focused validation: `harness/tests/test_inhouse_admission.py` runs actual shared PCM through donor publication, unchanged in-house analysis, both production renderers and final GRB48. Two 1,530-frame runs cover room→0.079 RMS attack→sustain→room, invalid/stale/regressive input, epoch/mode changes and donor rewarming. The weak attack creates material while the original source-silence flag stays true; the peer payload is byte-identical under the other edge's changes. Four actual production status formats fit within16,384 bytes at a conservative 6,849 bytes. Original 900-frame source comparison remains700 audible frames exact plus 200 explicit intentional quiet-divergence frames; four existing mixed-family cases pass. Root independently inspected the actual final-output plot and reviewed the source diff. Host evidence remains separate from physical acceptance.
+
+**Built and installed:** build `95499e22d9bc761171535a33c51c7e06c1bd93b87795e6a9eaeffbe70823a9e4`; schema `ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787`; UID `545433931bd25436593630352d068363`. All 211 compiled source inputs match the source commit. HEX `9d30bb3d04aaeba0ccdb14eef7b44193d7f24255d2cb864f35298706ccd18c7c`; ELF `01f693e44b6169c8a396dd735ba56093fca3c981b140bf0a00254c4754d56bce`. Existing dual-output build, E2 Lite 5AS079228B, SWD 1 MHz, target power OFF, no GDB, chip erase or configuration writes. Programming ran 02:12:35–02:13:01 AWST, followed by identity MATCH and broker recovery. Existing source_pin metadata remains `7f86939b…`; it is not substituted for the actual source commit above.
+
+**Physical evidence:** `_scratch/waveform-migration-001/weak-009/original.mov` contains both complete passages under one 100-second locked camera session, approved Sonic Samba audio at afplay gain 0.25, pre 7 / post 8 seconds, unchanged system playback level, master 255, gains 0.25 and palette 1. Before is the retained two-Bloom composition; after is bottom Hybrid 32 / top detail Bloom. Cue offsets from logged process starts are 7.598917 s and 51.106679 s. These are not measured acoustic-onset times; the MOV has no recorded audio stream. Root inspected six actual frames: before cue 12 broad multicolour; after cue 12 lower orange lobes/darker centre with upper pink/orange retained; cue 24 violet lower lobes; cue 28 faint lower pink; cue 31 unlit; cue 33 small lower violet. This establishes sampled appearance only. The latter light must not be erased by sparse wire snapshots showing zero near that time. No continuous-black or full-speed motion claim is made.
+
+**Engineering disposition:** installed identity/readback PASS; actual capture has 86 candidate MIR samples withzero audio gaps / zero ASRC rejects and unchanged physical controls. Host independence and weak-wake contract PASS. Physical weak-wake threshold discrimination remains NOT PROVED: the first fresh music gate witness already has source_silence 0; no fresh status samples the host-demonstrated source_silence 1 / admission_open 1 coincidence. Quiet drainage is observed in sampled payloads/plate, with intermittent new admissions still present. Their acoustic source remains unproved. Do not raise thresholds from this sample or call every post-playback pulse a defect.
+
+**M13/M18 remain BLOCKED, not accepted:** the executing model can inspect extracted images and source/payload evidence, but has no functioning playback-speed audiovisual perception tool; the camera recording also lacks an audio track. The fixed plan requires complete review with music before retaining Hybrid as the accepted effect and before M14. Root has not performed that operation and does not replace it with a contact sheet, host tests or a firmware flash. The concrete resumption operation is to review this complete captured comparison in a tool/session capable of audiovisual playback inspection, resolve any observed motion defect, then resume M14→M17 and the retained M18→M24 acceptance/boot/persistence work. The ESP32-S3 remains unused and last resort.
+
+**Leave-state:** the correction is installed, while the existing working two-board Bloom composition is restored through the authoring path: both mode 1 / scene 3 / phrase 0, palette 1, master 255, gains 0.25/0.25, emission ON / secondary ON; body return 0.25 unsaved trial and detail return 0.55. Saved SQ4 was not overwritten. The Surface health label reports the base mode Spectrum; fresh board readback confirms scene 3, which owns the continuous Bloom rendering. No candidate preset or final boot selection is claimed. M23 boot defaults remain unchanged and unfinished.
+
+Durable identity/validation records are in `docs/emotiscope-port-001/evidence/waveform-migration-001/hybrid-009-{build-receipt,admission,programme-receipt,leave-state,host-admission-receipt,source-oracle-receipt}.json`. The original video, individual payloads, request timestamps, failures and actual inspection remain in the existing `_scratch/waveform-migration-001/` evidence tree. Full M00–M24 text and all previous failures are preserved. Native workflow_verify refused the actual Titan project with `Session/project mismatch`; workflow_gate reports `No task ledger bound; this is not a completion certificate`. No native acceptance receipt is claimed.
+
+#### Candidate009 final measured bounds and disposition
+
+The complete deduplicated candidate interval contains 3,995 rendered frames and 3,995 pair completions at 100.0002 Hz. Skips remain 61→61; all 86 MIR samples valid, epoch 1, zero audio gaps and zero ASRC rejects. AP rate 199.926 Hz. Diagnostic latency remains slower: before→after medians wire 11.95→50.51 ms, MIR 10.91→55.82 ms, GET 8.01→48.94 ms and op17 status 59.61→192.47 ms. These are host request latencies, not microphone-to-photon measurements. Sampling counts 137→86 are not a frame-rate decline.
+
+All six sampled closed admission frames report deposit 0; all eight open music frames report nonzero deposit. The post-music closed-snapshot counters 4856→4913→4927 show 71 pixel additions between those sparse observations. Therefore neither continuously closed admission nor uninterrupted darkness is proven. Root's physical cue 33 light remains evidence even though nearby submitted-payload samples are zero. The report retains independent timestamps and their uncertainty instead of fitting an offset to dismiss the discrepancy.
+
+| Requirement | Disposition and exact scope |
+|---|---|
+| Source Hybrid port and reference arithmetic | PASS for declared reconstruction and documented Titan admission/quiet exceptions; historical installed S3 image equivalence not claimed |
+| Production weak-input admission | PASS in host PCM path; physical threshold-discriminating wake comparison NOT PROVED |
+| Installed operation and bounded 100 Hz workload | PASS for this mixed pair and completed passage; diagnostic USB latency regression remains |
+| Independent render state | PASS for deterministic peer-byte checks and mixed orientations; full future 144-pair qualification NOT RUN |
+| Quiet recovery | PASS for sampled zero-deposit/drained-payload/unlit-plate intervals; all post-playback births eliminated NOT PROVED |
+| Musical readability, motion and physical separation | BLOCKED at mandatory complete playback-speed audiovisual review; stills show colour/space, not rhythmic quality |
+| Saved composition/recall | Existing authoring restore/readback PASS; SQ4 unchanged; final migrated preset save/recall and boot selection NOT RUN |
+| Full M00–M24 migration | INCOMPLETE; M13 not accepted, M14–M17 not started; retained downstream acceptance tasks remain binding |
+
+Final runtime analysis SHA256 `9856c7eb010f8afa75d42258eb383abf59df523c0852b4134fe61bd848aa129c`; copied unchanged to `evidence/waveform-migration-001/hybrid-009-runtime-evidence-analysis.json`. Root's limited visual review is alongside it. No broad promotion, preference verdict, push or source-repository migration occurred. Resume at M13's concrete full-speed audiovisual operation, correct any observed fault, preserve the accepted checkpoint, then execute the original remaining tasks. Do not request the ESP32-S3 as an automatic substitute for missing review capability.

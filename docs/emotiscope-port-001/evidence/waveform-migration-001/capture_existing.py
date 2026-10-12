@@ -7,11 +7,11 @@ Reuse: _scratch/continuous-bloom-r4/{return_match,observe2}.py.
 
 Separate camera sessions reacquire exposure/WB/focus. This is a bounded before-
 state observation, NOT automatically a matched before/after comparison. Final
-comparison needs one existing 112-second session if the flash fits, or verified
+comparison needs one existing bounded100/112-second session or verified
 explicit camera settings restored before each capture. The current camera helper
 cannot read back numeric exposure, so separate-session matching is not asserted.
-Root may supply an existing 112-second camera PID/event log to share one locked
-session across passages and deployment. This helper never opens or stops that
+Root may supply an existing100/112-second camera PID/event log to share one locked
+session across passages. Complete deployment before that bounded recording. This helper never opens or stops that
 external camera. Captured frames do not fulfil full-speed audiovisual inspection;
 this helper makes no visual acceptance claim.
 """
@@ -192,7 +192,7 @@ def stop_child(child):
 
 
 def external_camera(pid, log_path, reserve_seconds):
-    """Verify root's existing 112-second recording; never open/stop that camera."""
+    """Verify root's existing bounded 100/112-second recording; never open/stop that camera."""
     if pid <= 0:
         raise RuntimeError("external camera PID must be positive")
     process = subprocess.run(["/bin/ps", "-ww", "-p", str(pid), "-o", "command="],
@@ -200,8 +200,8 @@ def external_camera(pid, log_path, reserve_seconds):
     command = shlex.split(process.stdout.strip())
     if (len(command) not in (6, 7) or Path(command[0]).resolve() != CAMERA.resolve()
             or command[1] != "capture" or command[2] != CAMERA_UID
-            or float(command[3]) != 112):
-        raise RuntimeError("external PID is not the exact authorised 112-second camera command")
+            or float(command[3]) not in (100, 112)):
+        raise RuntimeError("external PID is not the exact authorised 100/112-second camera command")
     records = []
     for line in log_path.read_text().splitlines():
         try:
@@ -215,10 +215,11 @@ def external_camera(pid, log_path, reserve_seconds):
         raise RuntimeError("external log does not prove one active matching recording")
     start = datetime.fromisoformat(starts[0]["utc"].replace("Z", "+00:00")).timestamp()
     now = time.time()
-    if start > now or now - start >= 112:
+    duration = float(command[3])
+    if start > now or now - start >= duration:
         raise RuntimeError("external recording start is future or expired")
     # Existing product_camera reserves four seconds before its absolute deadline.
-    deadline = min(start + 112, float(command[6]) - 4 if len(command) == 7 else start + 112)
+    deadline = min(start + duration, float(command[6]) - 4 if len(command) == 7 else start + duration)
     if now + reserve_seconds > deadline:
         raise RuntimeError("external recording lacks time for the complete passage and post interval")
     return {"pid": pid, "event_log": str(log_path), "recording_started": starts[0],
@@ -236,15 +237,19 @@ def main():
                         help="Requires installed board-selective wire snapshot support; preserve both native payloads")
     parser.add_argument("--external-camera-pid", type=int)
     parser.add_argument("--external-camera-log", type=Path)
+    parser.add_argument("--audio-gain", type=float, default=1.0,
+                        help="Bounded afplay gain for matched weak-input checks; does not change system or LED gain")
     parser.add_argument("--pre-seconds", type=float, default=2)
     parser.add_argument("--post-seconds", type=float, default=12)
     parser.add_argument("--dry-run", action="store_true",
                         help="Validate local inputs only; no HTTP, camera or service access")
     args = parser.parse_args()
+    if not 0.0 < args.audio_gain <= 1.0:
+        parser.error("audio gain must be greater than zero and at most one")
     if bool(args.external_camera_pid is not None) != bool(args.external_camera_log):
         parser.error("external camera PID and log must be supplied together")
-    if not 0 <= args.pre_seconds <= 2 or not 1 <= args.post_seconds <= 12:
-        parser.error("pre-seconds must be 0..2 and post-seconds 1..12")
+    if not 0 <= args.pre_seconds <= (10 if args.external_camera_pid else 2) or not 1 <= args.post_seconds <= 12:
+        parser.error("pre-seconds must be 0..2 (0..10 with external camera) and post-seconds 1..12")
     if len(args.expected_build) != 64 or any(c not in "0123456789abcdef" for c in args.expected_build):
         parser.error("expected build must be a complete lowercase SHA-256")
     with wave.open(str(AUDIO)) as source:
@@ -344,9 +349,12 @@ def main():
                     raise RuntimeError("observation exceeded fixed camera deadline")
                 if player is None and now - started >= args.pre_seconds:
                     log("audio_start_request")
-                    player = subprocess.Popen(["/usr/bin/afplay", str(AUDIO)])
+                    player_command = ["/usr/bin/afplay"]
+                    if args.audio_gain != 1.0:
+                        player_command += ["-v", str(args.audio_gain)]
+                    player = subprocess.Popen(player_command + [str(AUDIO)])
                     player_started = time.monotonic()
-                    log("audio_process_started", pid=player.pid)
+                    log("audio_process_started", pid=player.pid, audio_gain=args.audio_gain)
                 if player is not None and ended is None and player.poll() is not None:
                     ended = time.monotonic()
                     log("audio_process_finished", returncode=player.returncode)
@@ -398,7 +406,7 @@ def main():
         (args.output_dir / "capture.json").write_text(json.dumps(samples, indent=2) + "\n")
         (args.output_dir / "observation.json").write_text(json.dumps({
             "expected_uid": UID, "expected_build": args.expected_build,
-            "audio": str(AUDIO), "audio_sha256": hashlib.sha256(AUDIO.read_bytes()).hexdigest(),
+            "audio_gain": args.audio_gain, "audio": str(AUDIO), "audio_sha256": hashlib.sha256(AUDIO.read_bytes()).hexdigest(),
             "camera_uid": CAMERA_UID, "readback_only": args.readback_only,
             "external_camera": attached,
             "pre_seconds_requested": args.pre_seconds, "post_seconds_requested": args.post_seconds,

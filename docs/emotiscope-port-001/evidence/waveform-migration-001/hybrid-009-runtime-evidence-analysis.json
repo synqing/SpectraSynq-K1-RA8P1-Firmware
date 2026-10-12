@@ -1,0 +1,2111 @@
+{
+  "scope": "Read-only analysis of every saved weak-009 row. Gate and birth proof uses unique fresh opcode17 frames; wire/MIR timestamps retained separately. No commands, source edits or physical acceptance.",
+  "sources": {
+    "before/capture.json": "cc1242bd9ec748ca93626194b46cb53353114e66b0f5aea8aae44e2bf690aaf9",
+    "before/events.json": "63ab5687c278f4662630d45b9be27b7adeb5f77e794a13d19bc6a3b6d9a023d6",
+    "before/observation.json": "410f246fc68ab2afb074cca2295031528527dff20fd308d752be6c5e5e7514c0",
+    "after/capture.json": "290ee3e65618e962d3aaf186471c61af4ac5eb93f15a79157309a68eafec1a9a",
+    "after/events.json": "e547d3384de5c8a4e7495e473b848d9f0a55ccdf4b4c6f20cc354339d1ecacc8",
+    "after/observation.json": "44b32d61e96e697e1c7bee6b24b49601830b5391db3a0ece7d8eacd0d7990baf",
+    "_scratch/waveform-migration-001/arm-hybrid-009/stage/src/palette_runtime.cpp": "c468fd5cb85a5388fa378843f13ec8634131ecae5312bf8d6dff1184bee3094a",
+    "_scratch/waveform-migration-001/arm-hybrid-009/stage/src/composed_scene_runtime.h": "caf045276d018f52c97e27b33c96b1ad225c7a1a2fd27005822dfda3feb0218d",
+    "_scratch/waveform-migration-001/arm-hybrid-009/stage/src/k1/core/visual/inhouse_waveform.cpp": "3aec8ca76a3e8030548ce3ededd2ff57bb140ea9cc1293404d70c2c71317a225"
+  },
+  "phases": {
+    "before": {
+      "samples": 137,
+      "host_window_mono": [
+        143044.123067666,
+        143084.939179458
+      ],
+      "duration_s": 40.816111791995354,
+      "audio_gain": 0.25,
+      "wav_sha256": "32b74fc59786a9696303415a011fa4c5fc39975032e969a36cd09ea6f118fe22",
+      "playback_process_mono": [
+        143051.394643958,
+        143076.947998208
+      ],
+      "playback_camera_offset_s": 7.59891676902771,
+      "identity": {
+        "ok": false,
+        "identified": true,
+        "accepted": false,
+        "reason": "no accepted checkpoint bound",
+        "uid": "545433931bd25436593630352d068363",
+        "build": "95499e22d9bc761171535a33c51c7e06c1bd93b87795e6a9eaeffbe70823a9e4",
+        "source": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+        "contract": "sr12800.hop64.bins64.emotiscope",
+        "schema": null,
+        "schema_sha256": "ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787",
+        "protocol": 1,
+        "clock_hz": 1000000000,
+        "device_sequence": 0,
+        "boot_id": 3,
+        "runtime_kind": "live",
+        "hop_samples": 64,
+        "admitted_rate_hz": 12800,
+        "unsupported": false
+      },
+      "render": {
+        "fresh_records": 14,
+        "frame_delta": 3942,
+        "skipped_first_last": [
+          61,
+          61
+        ],
+        "skipped_delta": 0,
+        "pair_completion_delta": 3942,
+        "emit_errors_delta": 0,
+        "period_us": 10000
+      },
+      "audio": {
+        "all_valid": true,
+        "epochs": [
+          1
+        ],
+        "gaps_values": [
+          0
+        ],
+        "reject_values": [
+          0
+        ],
+        "AP_hz": 199.92318314436667,
+        "poll_boot_max_cycles_first_last": [
+          2322180,
+          2322180
+        ]
+      },
+      "op17_cache_age_s": {
+        "n": 137,
+        "min": 0.04282699999748729,
+        "median": 1.554519208992133,
+        "p95": 2.824618541606469,
+        "max": 2.9874992500117514
+      },
+      "fresh_gate_frames": [],
+      "input_windows": {
+        "pre": {
+          "samples": 25,
+          "active_valid": 0,
+          "source_silence_true_active": 0,
+          "raw_rms_active": {
+            "n": 0
+          }
+        },
+        "music_process": {
+          "samples": 85,
+          "active_valid": 0,
+          "source_silence_true_active": 0,
+          "raw_rms_active": {
+            "n": 0
+          }
+        },
+        "post_process": {
+          "samples": 27,
+          "active_valid": 0,
+          "source_silence_true_active": 0,
+          "raw_rms_active": {
+            "n": 0
+          }
+        }
+      },
+      "source_silence_transitions": [
+        {
+          "sample": 0,
+          "host_play_s": -7.186147916974733,
+          "device_publish_us": 35786493,
+          "inhouse_capture_us": 0,
+          "valid": false,
+          "source_silence": true
+        }
+      ],
+      "quiet_and_onset_chronology": [],
+      "usb_transaction_latency": {
+        "wire_19": {
+          "n": 274,
+          "median_ms": 11.948541505262256,
+          "p95_ms": 25.969895403250117,
+          "max_ms": 43.278333003399894
+        },
+        "mir_21": {
+          "n": 137,
+          "median_ms": 10.90620900504291,
+          "p95_ms": 23.04543339414521,
+          "max_ms": 34.994417015695944
+        },
+        "runtime_stats_6": {
+          "n": 14,
+          "median_ms": 34.76391649746802,
+          "p95_ms": 51.90679430961609,
+          "max_ms": 56.61829200107604
+        },
+        "get_25": {
+          "n": 78,
+          "median_ms": 8.007249489310198,
+          "p95_ms": 20.008235741988756,
+          "max_ms": 20.403125003213063
+        },
+        "palette_status_17": {
+          "n": 14,
+          "median_ms": 59.606916998745874,
+          "p95_ms": 70.0986976036802,
+          "max_ms": 71.84679200872779
+        }
+      }
+    },
+    "after": {
+      "samples": 86,
+      "host_window_mono": [
+        143087.40734275,
+        143128.269444958
+      ],
+      "duration_s": 40.862102207989665,
+      "audio_gain": 0.25,
+      "wav_sha256": "32b74fc59786a9696303415a011fa4c5fc39975032e969a36cd09ea6f118fe22",
+      "playback_process_mono": [
+        143094.902082875,
+        143120.247265416
+      ],
+      "playback_camera_offset_s": 51.10667896270752,
+      "identity": {
+        "ok": false,
+        "identified": true,
+        "accepted": false,
+        "reason": "no accepted checkpoint bound",
+        "uid": "545433931bd25436593630352d068363",
+        "build": "95499e22d9bc761171535a33c51c7e06c1bd93b87795e6a9eaeffbe70823a9e4",
+        "source": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+        "contract": "sr12800.hop64.bins64.emotiscope",
+        "schema": null,
+        "schema_sha256": "ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787",
+        "protocol": 1,
+        "clock_hz": 1000000000,
+        "device_sequence": 0,
+        "boot_id": 3,
+        "runtime_kind": "live",
+        "hop_samples": 64,
+        "admitted_rate_hz": 12800,
+        "unsupported": false
+      },
+      "render": {
+        "fresh_records": 14,
+        "frame_delta": 3995,
+        "skipped_first_last": [
+          61,
+          61
+        ],
+        "skipped_delta": 0,
+        "pair_completion_delta": 3995,
+        "emit_errors_delta": 0,
+        "period_us": 10000,
+        "device_fps": 100.00020525699202
+      },
+      "audio": {
+        "all_valid": true,
+        "epochs": [
+          1
+        ],
+        "gaps_values": [
+          0
+        ],
+        "reject_values": [
+          0
+        ],
+        "AP_hz": 199.92555225837808,
+        "poll_boot_max_cycles_first_last": [
+          2322180,
+          4483472
+        ]
+      },
+      "op17_cache_age_s": {
+        "n": 86,
+        "min": 0.11995341599686071,
+        "median": 1.5049116039881483,
+        "p95": 2.782350020483136,
+        "max": 3.1007777079939842
+      },
+      "fresh_gate_frames": [
+        {
+          "host_play_s": -6.712152499996591,
+          "host_exit_s": -32.057335040997714,
+          "request_mono": 143087.971686458,
+          "response_mono": 143088.189930375,
+          "first_seen_cache_age_s": 0.11995341599686071,
+          "donor_sequence": 7897,
+          "donor_peak_squared": 0.003038,
+          "board": 0,
+          "render_us": 79570108,
+          "generation": 140,
+          "capture_us": 79559687,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 0,
+          "peak": 0.378734,
+          "position": 102.25174,
+          "deposit_strength": 0.0,
+          "injection_count": 20,
+          "capture_to_render_estimate_ms": 10.421,
+          "nearest_saved_wire": {
+            "render_delta_us": -149979,
+            "host_play_s": -7.010803374985699,
+            "nonzero_pixels": 0,
+            "max16": 0,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": -3.6844563749909867,
+          "host_exit_s": -29.02963891599211,
+          "request_mono": 143090.946525375,
+          "response_mono": 143091.2176265,
+          "first_seen_cache_age_s": 0.4062739580112975,
+          "donor_sequence": 8199,
+          "donor_peak_squared": 0.004111,
+          "board": 0,
+          "render_us": 82590194,
+          "generation": 542,
+          "capture_us": 82575868,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 0,
+          "peak": 0.966745,
+          "position": 130.07135,
+          "deposit_strength": 0.0,
+          "injection_count": 32,
+          "capture_to_render_estimate_ms": 14.326,
+          "nearest_saved_wire": {
+            "render_delta_us": -299961,
+            "host_play_s": -4.18347933399491,
+            "nonzero_pixels": 0,
+            "max16": 0,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": -0.5834736669785343,
+          "host_exit_s": -25.928656207979657,
+          "request_mono": 143094.055142333,
+          "response_mono": 143094.318609208,
+          "first_seen_cache_age_s": 0.37867624999489635,
+          "donor_sequence": 8511,
+          "donor_peak_squared": 0.00339,
+          "board": 0,
+          "render_us": 85711168,
+          "generation": 958,
+          "capture_us": 85696984,
+          "fresh": 1,
+          "source_silence": 1,
+          "admission_open": 0,
+          "peak": 0.866069,
+          "position": 125.489784,
+          "deposit_strength": 0.0,
+          "injection_count": 36,
+          "capture_to_render_estimate_ms": 14.184,
+          "nearest_saved_wire": {
+            "render_delta_us": -299954,
+            "host_play_s": -1.061484959005611,
+            "nonzero_pixels": 0,
+            "max16": 0,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 2.4873426250123885,
+          "host_exit_s": -22.857839915988734,
+          "request_mono": 143097.183510708,
+          "response_mono": 143097.3894255,
+          "first_seen_cache_age_s": 0.31055241599096917,
+          "donor_sequence": 8818,
+          "donor_peak_squared": 0.053299,
+          "board": 0,
+          "render_us": 88780857,
+          "generation": 1367,
+          "capture_us": 88765502,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.681739,
+          "position": 118.215919,
+          "deposit_strength": 0.352982,
+          "injection_count": 420,
+          "capture_to_render_estimate_ms": 15.355,
+          "nearest_saved_wire": {
+            "render_delta_us": -190840,
+            "host_play_s": 2.140321875020163,
+            "nonzero_pixels": 26,
+            "max16": 2688,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 5.60773658301332,
+          "host_exit_s": -19.737445957987802,
+          "request_mono": 143100.291336541,
+          "response_mono": 143100.509819458,
+          "first_seen_cache_age_s": 0.12773858298896812,
+          "donor_sequence": 9133,
+          "donor_peak_squared": 0.026468,
+          "board": 0,
+          "render_us": 91930319,
+          "generation": 1787,
+          "capture_us": 91916486,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.832638,
+          "position": 127.420135,
+          "deposit_strength": 0.388107,
+          "injection_count": 1050,
+          "capture_to_render_estimate_ms": 13.833,
+          "nearest_saved_wire": {
+            "render_delta_us": -170301,
+            "host_play_s": 5.308798333018785,
+            "nonzero_pixels": 32,
+            "max16": 3803,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 8.736440333013888,
+          "host_exit_s": -16.608742207987234,
+          "request_mono": 143103.41901825,
+          "response_mono": 143103.638523208,
+          "first_seen_cache_age_s": 0.18112333299359307,
+          "donor_sequence": 9446,
+          "donor_peak_squared": 0.060202,
+          "board": 0,
+          "render_us": 95060403,
+          "generation": 2204,
+          "capture_us": 95045134,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.926515,
+          "position": 128.331253,
+          "deposit_strength": 0.754349,
+          "injection_count": 1676,
+          "capture_to_render_estimate_ms": 15.269,
+          "nearest_saved_wire": {
+            "render_delta_us": -159247,
+            "host_play_s": 8.457964500004891,
+            "nonzero_pixels": 34,
+            "max16": 3616,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 11.686392666015308,
+          "host_exit_s": -13.658789874985814,
+          "request_mono": 143106.388790083,
+          "response_mono": 143106.588475541,
+          "first_seen_cache_age_s": 0.4114114999829326,
+          "donor_sequence": 9743,
+          "donor_peak_squared": 0.053638,
+          "board": 0,
+          "render_us": 98030434,
+          "generation": 2600,
+          "capture_us": 98015932,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.927935,
+          "position": 129.390167,
+          "deposit_strength": 0.577972,
+          "injection_count": 2270,
+          "capture_to_render_estimate_ms": 14.502,
+          "nearest_saved_wire": {
+            "render_delta_us": 299858,
+            "host_play_s": 11.886053791007726,
+            "nonzero_pixels": 42,
+            "max16": 5338,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 14.63730908301659,
+          "host_exit_s": -10.707873457984533,
+          "request_mono": 143109.406107041,
+          "response_mono": 143109.539391958,
+          "first_seen_cache_age_s": 0.375458875001641,
+          "donor_sequence": 10040,
+          "donor_peak_squared": 0.070881,
+          "board": 0,
+          "render_us": 101001090,
+          "generation": 2996,
+          "capture_us": 100986725,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.692546,
+          "position": 117.846268,
+          "deposit_strength": 0.388458,
+          "injection_count": 2864,
+          "capture_to_render_estimate_ms": 14.365,
+          "nearest_saved_wire": {
+            "render_delta_us": 230253,
+            "host_play_s": 14.77739274999476,
+            "nonzero_pixels": 44,
+            "max16": 4307,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 17.68573800000013,
+          "host_exit_s": -7.659444541000994,
+          "request_mono": 143112.456565208,
+          "response_mono": 143112.587820875,
+          "first_seen_cache_age_s": 0.3339722079981584,
+          "donor_sequence": 10343,
+          "donor_peak_squared": 0.027077,
+          "board": 0,
+          "render_us": 104030007,
+          "generation": 3400,
+          "capture_us": 104017937,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.796901,
+          "position": 126.441696,
+          "deposit_strength": 0.840714,
+          "injection_count": 3470,
+          "capture_to_render_estimate_ms": 12.07,
+          "nearest_saved_wire": {
+            "render_delta_us": 241244,
+            "host_play_s": 17.8292476250208,
+            "nonzero_pixels": 32,
+            "max16": 8170,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 20.83544058300322,
+          "host_exit_s": -4.509741957997903,
+          "request_mono": 143115.531870041,
+          "response_mono": 143115.737523458,
+          "first_seen_cache_age_s": 0.15218662499682978,
+          "donor_sequence": 10655,
+          "donor_peak_squared": 0.055635,
+          "board": 0,
+          "render_us": 107150983,
+          "generation": 3816,
+          "capture_us": 107139201,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.823151,
+          "position": 126.627335,
+          "deposit_strength": 0.52092,
+          "injection_count": 4094,
+          "capture_to_render_estimate_ms": 11.782,
+          "nearest_saved_wire": {
+            "render_delta_us": -128727,
+            "host_play_s": 20.578560499998275,
+            "nonzero_pixels": 32,
+            "max16": 6640,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 23.80642037501093,
+          "host_exit_s": -1.5387621659901924,
+          "request_mono": 143118.522758125,
+          "response_mono": 143118.70850325,
+          "first_seen_cache_age_s": 0.40048725000815466,
+          "donor_sequence": 10953,
+          "donor_peak_squared": 0.054917,
+          "board": 0,
+          "render_us": 110130353,
+          "generation": 4213,
+          "capture_us": 110118091,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 1,
+          "peak": 0.754384,
+          "position": 123.259232,
+          "deposit_strength": 0.49057,
+          "injection_count": 4690,
+          "capture_to_render_estimate_ms": 12.262,
+          "nearest_saved_wire": {
+            "render_delta_us": 270485,
+            "host_play_s": 23.956139125017216,
+            "nonzero_pixels": 28,
+            "max16": 3642,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 26.876922541006934,
+          "host_exit_s": 1.5317400000058115,
+          "request_mono": 143121.600643708,
+          "response_mono": 143121.779005416,
+          "first_seen_cache_age_s": 0.37637183399056084,
+          "donor_sequence": 11262,
+          "donor_peak_squared": 0.001297,
+          "board": 0,
+          "render_us": 113221227,
+          "generation": 4625,
+          "capture_us": 113209188,
+          "fresh": 1,
+          "source_silence": 0,
+          "admission_open": 0,
+          "peak": 0.294959,
+          "position": 95.898041,
+          "deposit_strength": 0.0,
+          "injection_count": 4856,
+          "capture_to_render_estimate_ms": 12.039,
+          "nearest_saved_wire": {
+            "render_delta_us": 250325,
+            "host_play_s": 27.046819583018078,
+            "nonzero_pixels": 0,
+            "max16": 0,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 29.856207083008485,
+          "host_exit_s": 4.5110245420073625,
+          "request_mono": 143124.639608875,
+          "response_mono": 143124.758289958,
+          "first_seen_cache_age_s": 0.223546916997293,
+          "donor_sequence": 11562,
+          "donor_peak_squared": 0.003281,
+          "board": 0,
+          "render_us": 116221610,
+          "generation": 5025,
+          "capture_us": 116210131,
+          "fresh": 1,
+          "source_silence": 1,
+          "admission_open": 0,
+          "peak": 0.697094,
+          "position": 116.373566,
+          "deposit_strength": 0.0,
+          "injection_count": 4913,
+          "capture_to_render_estimate_ms": 11.479,
+          "nearest_saved_wire": {
+            "render_delta_us": 168906,
+            "host_play_s": 29.948866958002327,
+            "nonzero_pixels": 0,
+            "max16": 0,
+            "same_frame": false
+          }
+        },
+        {
+          "host_play_s": 33.155295166012365,
+          "host_exit_s": 7.810112625011243,
+          "request_mono": 143127.850643041,
+          "response_mono": 143128.057378041,
+          "first_seen_cache_age_s": 0.22374225000385195,
+          "donor_sequence": 11892,
+          "donor_peak_squared": 0.001657,
+          "board": 0,
+          "render_us": 119520026,
+          "generation": 5464,
+          "capture_us": 119503883,
+          "fresh": 1,
+          "source_silence": 1,
+          "admission_open": 0,
+          "peak": 0.78739,
+          "position": 123.903824,
+          "deposit_strength": 0.0,
+          "injection_count": 4927,
+          "capture_to_render_estimate_ms": 16.143,
+          "nearest_saved_wire": {
+            "render_delta_us": 170645,
+            "host_play_s": 33.2477373330039,
+            "nonzero_pixels": 0,
+            "max16": 0,
+            "same_frame": false
+          }
+        }
+      ],
+      "input_windows": {
+        "pre": {
+          "samples": 15,
+          "active_valid": 15,
+          "source_silence_true_active": 6,
+          "raw_rms_active": {
+            "n": 15,
+            "min": 0.0141449,
+            "median": 0.0179749,
+            "p95": 0.021342469999999995,
+            "max": 0.0233612
+          }
+        },
+        "music_process": {
+          "samples": 52,
+          "active_valid": 52,
+          "source_silence_true_active": 1,
+          "raw_rms_active": {
+            "n": 52,
+            "min": 0.0133209,
+            "median": 0.0828323,
+            "p95": 0.10796629999999999,
+            "max": 0.111389
+          }
+        },
+        "post_process": {
+          "samples": 19,
+          "active_valid": 19,
+          "source_silence_true_active": 10,
+          "raw_rms_active": {
+            "n": 19,
+            "min": 0.0123444,
+            "median": 0.0174561,
+            "p95": 0.02070466999999999,
+            "max": 0.0253601
+          }
+        }
+      },
+      "source_silence_transitions": [
+        {
+          "sample": 0,
+          "host_play_s": -7.312215749989264,
+          "device_publish_us": 79149703,
+          "inhouse_capture_us": 79139515,
+          "valid": true,
+          "source_silence": false
+        },
+        {
+          "sample": 9,
+          "host_play_s": -2.8628924999793526,
+          "device_publish_us": 83618103,
+          "inhouse_capture_us": 83603767,
+          "valid": true,
+          "source_silence": true
+        },
+        {
+          "sample": 16,
+          "host_play_s": 0.5368060409964528,
+          "device_publish_us": 86989188,
+          "inhouse_capture_us": 86972387,
+          "valid": true,
+          "source_silence": false
+        },
+        {
+          "sample": 76,
+          "host_play_s": 29.667295666004065,
+          "device_publish_us": 116128398,
+          "inhouse_capture_us": 116112609,
+          "valid": true,
+          "source_silence": true
+        }
+      ],
+      "quiet_and_onset_chronology": [
+        {
+          "sample": 0,
+          "mir_host_play_s": -7.312215749989264,
+          "mir_host_exit_s": -32.657398290990386,
+          "mir_device_publish_us": 79149703,
+          "source_silence": false,
+          "raw_rms": 0.0186462,
+          "raw_peak_pcm": 2234,
+          "normalised_peak": 1.07991,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -7.432224583986681,
+              "camera_cue_s": 43.67445437872084,
+              "render_us": 79010540,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -7.382442500005709,
+              "camera_cue_s": 43.72423646270181,
+              "render_us": 79061170,
+              "nonzero_pixels": 10,
+              "max16": 64,
+              "sum16": 640,
+              "crc32": 162854816
+            }
+          ]
+        },
+        {
+          "sample": 1,
+          "mir_host_play_s": -6.605296249996172,
+          "mir_host_exit_s": -31.950478790997295,
+          "mir_device_publish_us": 79848600,
+          "source_silence": false,
+          "raw_rms": 0.0162659,
+          "raw_peak_pcm": 1419,
+          "normalised_peak": 0.377662,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -7.010803374985699,
+              "camera_cue_s": 44.09587558772182,
+              "render_us": 79420129,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -6.931691834004596,
+              "camera_cue_s": 44.174987128702924,
+              "render_us": 79510651,
+              "nonzero_pixels": 44,
+              "max16": 386,
+              "sum16": 10674,
+              "crc32": 279320013
+            }
+          ]
+        },
+        {
+          "sample": 2,
+          "mir_host_play_s": -6.183503042004304,
+          "mir_host_exit_s": -31.528685583005426,
+          "mir_device_publish_us": 80269000,
+          "source_silence": false,
+          "raw_rms": 0.0204773,
+          "raw_peak_pcm": 2054,
+          "normalised_peak": 0.553675,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -6.332376749982359,
+              "camera_cue_s": 44.77430221272516,
+              "render_us": 80110371,
+              "nonzero_pixels": 4,
+              "max16": 125,
+              "sum16": 810,
+              "crc32": 4043843541
+            },
+            {
+              "board": 1,
+              "host_play_s": -6.261512208991917,
+              "camera_cue_s": 44.8451667537156,
+              "render_us": 80170019,
+              "nonzero_pixels": 56,
+              "max16": 386,
+              "sum16": 12206,
+              "crc32": 2583543831
+            }
+          ]
+        },
+        {
+          "sample": 3,
+          "mir_host_play_s": -5.733926666987827,
+          "mir_host_exit_s": -31.07910920798895,
+          "mir_device_publish_us": 80746092,
+          "source_silence": false,
+          "raw_rms": 0.0185852,
+          "raw_peak_pcm": 1426,
+          "normalised_peak": 0.515209,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -5.884237624995876,
+              "camera_cue_s": 45.22244133771164,
+              "render_us": 80560510,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -5.832927874987945,
+              "camera_cue_s": 45.273751087719575,
+              "render_us": 80640195,
+              "nonzero_pixels": 64,
+              "max16": 386,
+              "sum16": 11568,
+              "crc32": 1659379614
+            }
+          ]
+        },
+        {
+          "sample": 4,
+          "mir_host_play_s": -5.333868416986661,
+          "mir_host_exit_s": -30.679050957987783,
+          "mir_device_publish_us": 81147051,
+          "source_silence": false,
+          "raw_rms": 0.0194244,
+          "raw_peak_pcm": 1531,
+          "normalised_peak": 0.617638,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -5.483238166983938,
+              "camera_cue_s": 45.62344079572358,
+              "render_us": 80990222,
+              "nonzero_pixels": 4,
+              "max16": 121,
+              "sum16": 498,
+              "crc32": 1337623150
+            },
+            {
+              "board": 1,
+              "host_play_s": -5.382939792005345,
+              "camera_cue_s": 45.723739170702174,
+              "render_us": 81040620,
+              "nonzero_pixels": 64,
+              "max16": 193,
+              "sum16": 9374,
+              "crc32": 994736575
+            }
+          ]
+        },
+        {
+          "sample": 5,
+          "mir_host_play_s": -4.933908791979775,
+          "mir_host_exit_s": -30.279091332980897,
+          "mir_device_publish_us": 81547045,
+          "source_silence": false,
+          "raw_rms": 0.0166473,
+          "raw_peak_pcm": 1434,
+          "normalised_peak": 0.540157,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -5.08303124998929,
+              "camera_cue_s": 46.02364771271823,
+              "render_us": 81390222,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -4.983460249990458,
+              "camera_cue_s": 46.12321871271706,
+              "render_us": 81440735,
+              "nonzero_pixels": 60,
+              "max16": 193,
+              "sum16": 8348,
+              "crc32": 1858736558
+            }
+          ]
+        },
+        {
+          "sample": 6,
+          "mir_host_play_s": -4.434077791986056,
+          "mir_host_exit_s": -29.779260332987178,
+          "mir_device_publish_us": 82019809,
+          "source_silence": false,
+          "raw_rms": 0.0188599,
+          "raw_peak_pcm": 1511,
+          "normalised_peak": 0.584052,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -4.63287883400335,
+              "camera_cue_s": 46.47380012870417,
+              "render_us": 81840125,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -4.484104417002527,
+              "camera_cue_s": 46.62257454570499,
+              "render_us": 81890636,
+              "nonzero_pixels": 54,
+              "max16": 193,
+              "sum16": 6418,
+              "crc32": 700826855
+            }
+          ]
+        },
+        {
+          "sample": 7,
+          "mir_host_play_s": -3.984851624991279,
+          "mir_host_exit_s": -29.3300341659924,
+          "mir_device_publish_us": 82447395,
+          "source_silence": false,
+          "raw_rms": 0.0168457,
+          "raw_peak_pcm": 1315,
+          "normalised_peak": 0.811563,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -4.18347933399491,
+              "camera_cue_s": 46.92319962871261,
+              "render_us": 82290233,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -4.082946584007004,
+              "camera_cue_s": 47.023732378700515,
+              "render_us": 82340680,
+              "nonzero_pixels": 40,
+              "max16": 129,
+              "sum16": 4104,
+              "crc32": 2890448356
+            }
+          ]
+        },
+        {
+          "sample": 8,
+          "mir_host_play_s": -3.2852119589806534,
+          "mir_host_exit_s": -28.630394499981776,
+          "mir_device_publish_us": 83119752,
+          "source_silence": false,
+          "raw_rms": 0.0185699,
+          "raw_peak_pcm": 1505,
+          "normalised_peak": 0.734658,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -3.5335483749804553,
+              "camera_cue_s": 47.573130587727064,
+              "render_us": 82911454,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -3.3833176670013927,
+              "camera_cue_s": 47.72336129570613,
+              "render_us": 83040703,
+              "nonzero_pixels": 16,
+              "max16": 64,
+              "sum16": 1024,
+              "crc32": 4077675384
+            }
+          ]
+        },
+        {
+          "sample": 9,
+          "mir_host_play_s": -2.8628924999793526,
+          "mir_host_exit_s": -28.208075040980475,
+          "mir_device_publish_us": 83618103,
+          "source_silence": true,
+          "raw_rms": 0.017395,
+          "raw_peak_pcm": 1550,
+          "normalised_peak": 0.815352,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -3.0120882499904837,
+              "camera_cue_s": 48.094590712717036,
+              "render_us": 83461502,
+              "nonzero_pixels": 4,
+              "max16": 123,
+              "sum16": 554,
+              "crc32": 435534299
+            },
+            {
+              "board": 1,
+              "host_play_s": -2.9109931249986403,
+              "camera_cue_s": 48.19568583770888,
+              "render_us": 83511922,
+              "nonzero_pixels": 16,
+              "max16": 64,
+              "sum16": 1024,
+              "crc32": 1928049590
+            }
+          ]
+        },
+        {
+          "sample": 10,
+          "mir_host_play_s": -2.462822542001959,
+          "mir_host_exit_s": -27.80800508300308,
+          "mir_device_publish_us": 83997844,
+          "source_silence": true,
+          "raw_rms": 0.0159912,
+          "raw_peak_pcm": 1596,
+          "normalised_peak": 0.845697,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -2.611624999990454,
+              "camera_cue_s": 48.495053962717066,
+              "render_us": 83861298,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -2.512711416988168,
+              "camera_cue_s": 48.59396754571935,
+              "render_us": 83910232,
+              "nonzero_pixels": 4,
+              "max16": 64,
+              "sum16": 256,
+              "crc32": 998782051
+            }
+          ]
+        },
+        {
+          "sample": 11,
+          "mir_host_play_s": -2.0629847919917665,
+          "mir_host_exit_s": -27.40816733299289,
+          "mir_device_publish_us": 84397761,
+          "source_silence": true,
+          "raw_rms": 0.0168762,
+          "raw_peak_pcm": 1390,
+          "normalised_peak": 0.755291,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -2.2115143749979325,
+              "camera_cue_s": 48.89516458770959,
+              "render_us": 84261363,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -2.1127344589913264,
+              "camera_cue_s": 48.99394450371619,
+              "render_us": 84311683,
+              "nonzero_pixels": 12,
+              "max16": 64,
+              "sum16": 1024,
+              "crc32": 2380064391
+            }
+          ]
+        },
+        {
+          "sample": 12,
+          "mir_host_play_s": -1.3627501250011846,
+          "mir_host_exit_s": -26.707932666002307,
+          "mir_device_publish_us": 85118022,
+          "source_silence": true,
+          "raw_rms": 0.0141449,
+          "raw_peak_pcm": 1377,
+          "normalised_peak": 0.655629,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -1.6624897919828072,
+              "camera_cue_s": 49.44418917072471,
+              "render_us": 84710056,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -1.512629749980988,
+              "camera_cue_s": 49.59404921272653,
+              "render_us": 84890999,
+              "nonzero_pixels": 4,
+              "max16": 64,
+              "sum16": 256,
+              "crc32": 114117405
+            }
+          ]
+        },
+        {
+          "sample": 13,
+          "mir_host_play_s": -0.8632432919985149,
+          "mir_host_exit_s": -26.208425832999637,
+          "mir_device_publish_us": 85597589,
+          "source_silence": true,
+          "raw_rms": 0.0179749,
+          "raw_peak_pcm": 1313,
+          "normalised_peak": 0.851251,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -1.061484959005611,
+              "camera_cue_s": 50.04519400370191,
+              "render_us": 85411214,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -0.912913459003903,
+              "camera_cue_s": 50.19376550370362,
+              "render_us": 85461684,
+              "nonzero_pixels": 18,
+              "max16": 64,
+              "sum16": 1280,
+              "crc32": 1662417802
+            }
+          ]
+        },
+        {
+          "sample": 14,
+          "mir_host_play_s": -0.21287258400116116,
+          "mir_host_exit_s": -25.558055125002284,
+          "mir_device_publish_us": 86238552,
+          "source_silence": true,
+          "raw_rms": 0.0233612,
+          "raw_peak_pcm": 2486,
+          "normalised_peak": 1.08308,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": -0.41152574997977354,
+              "camera_cue_s": 50.695153212727746,
+              "render_us": 86061119,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": -0.26243362500099465,
+              "camera_cue_s": 50.844245337706525,
+              "render_us": 86190745,
+              "nonzero_pixels": 10,
+              "max16": 64,
+              "sum16": 640,
+              "crc32": 608755326
+            }
+          ]
+        },
+        {
+          "sample": 15,
+          "mir_host_play_s": 0.15756304099340923,
+          "mir_host_exit_s": -25.187619500007713,
+          "mir_device_publish_us": 86618515,
+          "source_silence": true,
+          "raw_rms": 0.0202026,
+          "raw_peak_pcm": 1493,
+          "normalised_peak": 0.96036,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 0.017504582996480167,
+              "camera_cue_s": 51.124183545704,
+              "render_us": 86482313,
+              "nonzero_pixels": 4,
+              "max16": 528,
+              "sum16": 1728,
+              "crc32": 3879714475
+            },
+            {
+              "board": 1,
+              "host_play_s": 0.08820183301577345,
+              "camera_cue_s": 51.19488079572329,
+              "render_us": 86532744,
+              "nonzero_pixels": 10,
+              "max16": 64,
+              "sum16": 640,
+              "crc32": 3279459670
+            }
+          ]
+        },
+        {
+          "sample": 16,
+          "mir_host_play_s": 0.5368060409964528,
+          "mir_host_exit_s": -24.80837650000467,
+          "mir_device_publish_us": 86989188,
+          "source_silence": false,
+          "raw_rms": 0.017807,
+          "raw_peak_pcm": 1824,
+          "normalised_peak": 0.625178,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 0.41786166600650176,
+              "camera_cue_s": 51.52454062871402,
+              "render_us": 86860424,
+              "nonzero_pixels": 6,
+              "max16": 1438,
+              "sum16": 10154,
+              "crc32": 3973141010
+            },
+            {
+              "board": 1,
+              "host_play_s": 0.4881014580023475,
+              "camera_cue_s": 51.59478042070987,
+              "render_us": 86930086,
+              "nonzero_pixels": 38,
+              "max16": 1606,
+              "sum16": 16576,
+              "crc32": 1556985727
+            }
+          ]
+        },
+        {
+          "sample": 17,
+          "mir_host_play_s": 0.9166957080014981,
+          "mir_host_exit_s": -24.428486832999624,
+          "mir_device_publish_us": 87369055,
+          "source_silence": false,
+          "raw_rms": 0.0788879,
+          "raw_peak_pcm": 7824,
+          "normalised_peak": 0.924544,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 0.7887024160008878,
+              "camera_cue_s": 51.89538137870841,
+              "render_us": 87240013,
+              "nonzero_pixels": 26,
+              "max16": 3107,
+              "sum16": 60614,
+              "crc32": 3318056446
+            },
+            {
+              "board": 1,
+              "host_play_s": 0.8381348330003675,
+              "camera_cue_s": 51.94481379570789,
+              "render_us": 87281159,
+              "nonzero_pixels": 80,
+              "max16": 2377,
+              "sum16": 120550,
+              "crc32": 2964004135
+            }
+          ]
+        },
+        {
+          "sample": 65,
+          "mir_host_play_s": 24.674692333006533,
+          "mir_host_exit_s": -0.6704902079945896,
+          "mir_device_publish_us": 111107152,
+          "source_silence": false,
+          "raw_rms": 0.0133209,
+          "raw_peak_pcm": 1307,
+          "normalised_peak": 0.136289,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 24.498549958021613,
+              "camera_cue_s": 75.60522892072913,
+              "render_us": 110950263,
+              "nonzero_pixels": 24,
+              "max16": 6598,
+              "sum16": 112478,
+              "crc32": 999119612
+            },
+            {
+              "board": 1,
+              "host_play_s": 24.577200958010508,
+              "camera_cue_s": 75.68387992071803,
+              "render_us": 111000841,
+              "nonzero_pixels": 160,
+              "max16": 1028,
+              "sum16": 151550,
+              "crc32": 1978985680
+            }
+          ]
+        },
+        {
+          "sample": 66,
+          "mir_host_play_s": 25.1256706250133,
+          "mir_host_exit_s": -0.21951191598782316,
+          "mir_device_publish_us": 111579584,
+          "source_silence": false,
+          "raw_rms": 0.0158997,
+          "raw_peak_pcm": 1696,
+          "normalised_peak": 0.209642,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 24.94914345801226,
+              "camera_cue_s": 76.05582242071978,
+              "render_us": 111400064,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 25.075836500007426,
+              "camera_cue_s": 76.18251546271495,
+              "render_us": 111450458,
+              "nonzero_pixels": 160,
+              "max16": 1285,
+              "sum16": 133288,
+              "crc32": 44463657
+            }
+          ]
+        },
+        {
+          "sample": 67,
+          "mir_host_play_s": 25.547646249993704,
+          "mir_host_exit_s": 0.20246370899258181,
+          "mir_device_publish_us": 112028023,
+          "source_silence": false,
+          "raw_rms": 0.0182037,
+          "raw_peak_pcm": 1402,
+          "normalised_peak": 0.17559,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 25.398264457995538,
+              "camera_cue_s": 76.50494342070306,
+              "render_us": 111851101,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 25.496653666021302,
+              "camera_cue_s": 76.60333262872882,
+              "render_us": 111921578,
+              "nonzero_pixels": 160,
+              "max16": 1542,
+              "sum16": 98338,
+              "crc32": 4119221802
+            }
+          ]
+        },
+        {
+          "sample": 68,
+          "mir_host_play_s": 26.095759832998738,
+          "mir_host_exit_s": 0.7505772919976152,
+          "mir_device_publish_us": 112527164,
+          "source_silence": false,
+          "raw_rms": 0.0180511,
+          "raw_peak_pcm": 1959,
+          "normalised_peak": 0.270944,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 25.89760454100906,
+              "camera_cue_s": 77.00428350371658,
+              "render_us": 112350976,
+              "nonzero_pixels": 2,
+              "max16": 12,
+              "sum16": 46,
+              "crc32": 447400620
+            },
+            {
+              "board": 1,
+              "host_play_s": 25.99814070801949,
+              "camera_cue_s": 77.10481967072701,
+              "render_us": 112450971,
+              "nonzero_pixels": 160,
+              "max16": 514,
+              "sum16": 55810,
+              "crc32": 2000139590
+            }
+          ]
+        },
+        {
+          "sample": 69,
+          "mir_host_play_s": 26.496782125002937,
+          "mir_host_exit_s": 1.151599584001815,
+          "mir_device_publish_us": 112957557,
+          "source_silence": false,
+          "raw_rms": 0.0141449,
+          "raw_peak_pcm": 1359,
+          "normalised_peak": 0.222291,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 26.34759283301537,
+              "camera_cue_s": 77.45427179572289,
+              "render_us": 112821030,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 26.447022416017717,
+              "camera_cue_s": 77.55370137872524,
+              "render_us": 112871383,
+              "nonzero_pixels": 124,
+              "max16": 514,
+              "sum16": 44484,
+              "crc32": 3472860768
+            }
+          ]
+        },
+        {
+          "sample": 70,
+          "mir_host_play_s": 27.24682825000491,
+          "mir_host_exit_s": 1.9016457090037875,
+          "mir_device_publish_us": 113678040,
+          "source_silence": false,
+          "raw_rms": 0.0199127,
+          "raw_peak_pcm": 1558,
+          "normalised_peak": 0.464909,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 27.046819583018078,
+              "camera_cue_s": 78.1534985457256,
+              "render_us": 113471552,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 27.148211749998154,
+              "camera_cue_s": 78.25489071270567,
+              "render_us": 113621152,
+              "nonzero_pixels": 54,
+              "max16": 514,
+              "sum16": 22366,
+              "crc32": 1206262241
+            }
+          ]
+        },
+        {
+          "sample": 71,
+          "mir_host_play_s": 27.696571541018784,
+          "mir_host_exit_s": 2.3513890000176616,
+          "mir_device_publish_us": 114128086,
+          "source_silence": false,
+          "raw_rms": 0.0173492,
+          "raw_peak_pcm": 1764,
+          "normalised_peak": 0.451707,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 27.497380750020966,
+              "camera_cue_s": 78.60405971272849,
+              "render_us": 113950665,
+              "nonzero_pixels": 8,
+              "max16": 1196,
+              "sum16": 7780,
+              "crc32": 1042472858
+            },
+            {
+              "board": 1,
+              "host_play_s": 27.597688041016227,
+              "camera_cue_s": 78.70436700372375,
+              "render_us": 114071021,
+              "nonzero_pixels": 16,
+              "max16": 129,
+              "sum16": 1542,
+              "crc32": 3766987892
+            }
+          ]
+        },
+        {
+          "sample": 72,
+          "mir_host_play_s": 28.11672529100906,
+          "mir_host_exit_s": 2.7715427500079386,
+          "mir_device_publish_us": 114578022,
+          "source_silence": false,
+          "raw_rms": 0.0197449,
+          "raw_peak_pcm": 1653,
+          "normalised_peak": 0.578859,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 28.046774083020864,
+              "camera_cue_s": 79.15345304572838,
+              "render_us": 114420938,
+              "nonzero_pixels": 12,
+              "max16": 403,
+              "sum16": 4890,
+              "crc32": 146473165
+            },
+            {
+              "board": 1,
+              "host_play_s": 28.068661958008306,
+              "camera_cue_s": 79.17534092071583,
+              "render_us": 114542019,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 73,
+          "mir_host_play_s": 28.46741350000957,
+          "mir_host_exit_s": 3.122230959008448,
+          "mir_device_publish_us": 114948495,
+          "source_silence": false,
+          "raw_rms": 0.0123444,
+          "raw_peak_pcm": 1282,
+          "normalised_peak": 0.559659,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 28.367735208012164,
+              "camera_cue_s": 79.47441417071968,
+              "render_us": 114821369,
+              "nonzero_pixels": 12,
+              "max16": 557,
+              "sum16": 4920,
+              "crc32": 781950092
+            },
+            {
+              "board": 1,
+              "host_play_s": 28.41743316600332,
+              "camera_cue_s": 79.52411212871084,
+              "render_us": 114871219,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 74,
+          "mir_host_play_s": 28.947050332993967,
+          "mir_host_exit_s": 3.601867791992845,
+          "mir_device_publish_us": 115408210,
+          "source_silence": false,
+          "raw_rms": 0.0253601,
+          "raw_peak_pcm": 2403,
+          "normalised_peak": 0.859521,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 28.717178207996767,
+              "camera_cue_s": 79.82385717070429,
+              "render_us": 115171176,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 28.768339000002015,
+              "camera_cue_s": 79.87501796270953,
+              "render_us": 115241926,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 75,
+          "mir_host_play_s": 29.31745616599801,
+          "mir_host_exit_s": 3.9722736249968875,
+          "mir_device_publish_us": 115778276,
+          "source_silence": false,
+          "raw_rms": 0.0163574,
+          "raw_peak_pcm": 1628,
+          "normalised_peak": 0.710826,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 29.19869358302094,
+              "camera_cue_s": 80.30537254572846,
+              "render_us": 115650011,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 29.24836729100207,
+              "camera_cue_s": 80.35504625370959,
+              "render_us": 115700007,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 76,
+          "mir_host_play_s": 29.667295666004065,
+          "mir_host_exit_s": 4.322113125002943,
+          "mir_device_publish_us": 116128398,
+          "source_silence": true,
+          "raw_rms": 0.0158691,
+          "raw_peak_pcm": 1382,
+          "normalised_peak": 0.555955,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 29.56888274999801,
+              "camera_cue_s": 80.67556171270553,
+              "render_us": 116020127,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 29.61796725000022,
+              "camera_cue_s": 80.72464621270774,
+              "render_us": 116071767,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 77,
+          "mir_host_play_s": 30.06759045799845,
+          "mir_host_exit_s": 4.7224079169973265,
+          "mir_device_publish_us": 116548733,
+          "source_silence": true,
+          "raw_rms": 0.0190735,
+          "raw_peak_pcm": 1534,
+          "normalised_peak": 0.879845,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 29.948866958002327,
+              "camera_cue_s": 81.05554592070985,
+              "render_us": 116390516,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 30.01846537500387,
+              "camera_cue_s": 81.12514433771139,
+              "render_us": 116470020,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 78,
+          "mir_host_play_s": 30.446324290998746,
+          "mir_host_exit_s": 5.101141749997623,
+          "mir_device_publish_us": 116898794,
+          "source_silence": true,
+          "raw_rms": 0.0139313,
+          "raw_peak_pcm": 1152,
+          "normalised_peak": 0.593631,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 30.31955275000655,
+              "camera_cue_s": 81.42623171271407,
+              "render_us": 116791975,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 30.3683145410032,
+              "camera_cue_s": 81.47499350371072,
+              "render_us": 116840452,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 79,
+          "mir_host_play_s": 30.86744295799872,
+          "mir_host_exit_s": 5.522260416997597,
+          "mir_device_publish_us": 117328326,
+          "source_silence": true,
+          "raw_rms": 0.0161285,
+          "raw_peak_pcm": 1351,
+          "normalised_peak": 0.635763,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 30.71864233299857,
+              "camera_cue_s": 81.82532129570609,
+              "render_us": 117190347,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 30.816952708002646,
+              "camera_cue_s": 81.92363167071017,
+              "render_us": 117242178,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 80,
+          "mir_host_play_s": 31.24711979101994,
+          "mir_host_exit_s": 5.901937250018818,
+          "mir_device_publish_us": 117699169,
+          "source_silence": true,
+          "raw_rms": 0.0175171,
+          "raw_peak_pcm": 1599,
+          "normalised_peak": 0.919111,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 31.11867483300739,
+              "camera_cue_s": 82.22535379571491,
+              "render_us": 117590304,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 31.19693033301155,
+              "camera_cue_s": 82.30360929571907,
+              "render_us": 117640604,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 81,
+          "mir_host_play_s": 31.64612687501358,
+          "mir_host_exit_s": 6.300944334012456,
+          "mir_device_publish_us": 118098644,
+          "source_silence": true,
+          "raw_rms": 0.0174713,
+          "raw_peak_pcm": 1444,
+          "normalised_peak": 0.829353,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 31.49805337502039,
+              "camera_cue_s": 82.60473233772791,
+              "render_us": 117963128,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 31.568162500014296,
+              "camera_cue_s": 82.67484146272182,
+              "render_us": 118020004,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 82,
+          "mir_host_play_s": 32.167361833009636,
+          "mir_host_exit_s": 6.822179292008514,
+          "mir_device_publish_us": 118629346,
+          "source_silence": true,
+          "raw_rms": 0.0128174,
+          "raw_peak_pcm": 1088,
+          "normalised_peak": 0.735032,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 32.0180301250075,
+              "camera_cue_s": 83.12470908771502,
+              "render_us": 118490228,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 32.097697250021156,
+              "camera_cue_s": 83.20437621272868,
+              "render_us": 118563102,
+              "nonzero_pixels": 4,
+              "max16": 64,
+              "sum16": 256,
+              "crc32": 2343090986
+            }
+          ]
+        },
+        {
+          "sample": 83,
+          "mir_host_play_s": 32.54628441602108,
+          "mir_host_exit_s": 7.201101875019958,
+          "mir_device_publish_us": 118998769,
+          "source_silence": true,
+          "raw_rms": 0.0162506,
+          "raw_peak_pcm": 1319,
+          "normalised_peak": 0.867669,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 32.41784545799601,
+              "camera_cue_s": 83.52452442070353,
+              "render_us": 118870002,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 32.46797520801192,
+              "camera_cue_s": 83.57465417071944,
+              "render_us": 118940231,
+              "nonzero_pixels": 2,
+              "max16": 64,
+              "sum16": 128,
+              "crc32": 3130148921
+            }
+          ]
+        },
+        {
+          "sample": 84,
+          "mir_host_play_s": 32.94734466599766,
+          "mir_host_exit_s": 7.602162124996539,
+          "mir_device_publish_us": 119419854,
+          "source_silence": true,
+          "raw_rms": 0.0174561,
+          "raw_peak_pcm": 1787,
+          "normalised_peak": 0.875891,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 32.79786366599728,
+              "camera_cue_s": 83.9045426287048,
+              "render_us": 119261592,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 32.86890800000401,
+              "camera_cue_s": 83.97558696271153,
+              "render_us": 119320112,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            }
+          ]
+        },
+        {
+          "sample": 85,
+          "mir_host_play_s": 33.36736208299408,
+          "mir_host_exit_s": 8.022179541992955,
+          "mir_device_publish_us": 119819842,
+          "source_silence": true,
+          "raw_rms": 0.0201874,
+          "raw_peak_pcm": 1795,
+          "normalised_peak": 0.896731,
+          "wire": [
+            {
+              "board": 0,
+              "host_play_s": 33.2477373330039,
+              "camera_cue_s": 84.35441629571142,
+              "render_us": 119690671,
+              "nonzero_pixels": 0,
+              "max16": 0,
+              "sum16": 0,
+              "crc32": 954335355
+            },
+            {
+              "board": 1,
+              "host_play_s": 33.2974271660205,
+              "camera_cue_s": 84.40410612872802,
+              "render_us": 119740993,
+              "nonzero_pixels": 4,
+              "max16": 64,
+              "sum16": 256,
+              "crc32": 3930810989
+            }
+          ]
+        }
+      ],
+      "usb_transaction_latency": {
+        "wire_19": {
+          "n": 172,
+          "median_ms": 50.506895990110934,
+          "p95_ms": 99.08984374778811,
+          "max_ms": 135.143416991923
+        },
+        "mir_21": {
+          "n": 86,
+          "median_ms": 55.82497949944809,
+          "p95_ms": 100.32269774819724,
+          "max_ms": 112.93874998227693
+        },
+        "palette_status_17": {
+          "n": 14,
+          "median_ms": 192.4659784854157,
+          "p95_ms": 265.8078983615269,
+          "max_ms": 270.77262502280064
+        },
+        "get_25": {
+          "n": 80,
+          "median_ms": 48.93597899354063,
+          "p95_ms": 97.82057499978691,
+          "max_ms": 119.21604201779701
+        },
+        "runtime_stats_6": {
+          "n": 13,
+          "median_ms": 99.4971249892842,
+          "p95_ms": 136.6623916022945,
+          "max_ms": 148.6045419878792
+        }
+      }
+    }
+  },
+  "limitations": [
+    "Sequential MIR, opcode17 and retained-wire snapshots are not simultaneous.",
+    "Cached repeats are not fresh observations; inactive before-phase inhouse fields are excluded from gate/birth conclusions.",
+    "Playback process start/exit are host events, not exact acoustic arrival/stop.",
+    "Root optical stills are attributed; this analyst makes no independent optical/full-speed acceptance claim.",
+    "Sparse all-zero payloads do not prove continuously black physical output.",
+    "Physical_timestamp_valid=false; no actual microphone-to-light latency claim."
+  ],
+  "gate_findings": {
+    "actual_policy": "Existing BloomAdmission replaces local renderer input.silence. source_silence records original analyser flag separately. Fresh finite donor peak_squared opens above0.0048, closes at/below0.0034, holds state between; stale/invalid donor closes.",
+    "closed_frames": 6,
+    "all_sampled_closed_deposit_zero": true,
+    "open_frames": 8,
+    "all_sampled_open_deposit_nonzero": true,
+    "source_quiet_true_and_admission_open_same_fresh_record_count": 0,
+    "birth_increments_between_closed_samples": [
+      {
+        "from_host_play_s": -6.712152499996591,
+        "to_host_play_s": -3.6844563749909867,
+        "from_count": 20,
+        "to_count": 32,
+        "new_nonzero_pixel_additions": 12
+      },
+      {
+        "from_host_play_s": -3.6844563749909867,
+        "to_host_play_s": -0.5834736669785343,
+        "from_count": 32,
+        "to_count": 36,
+        "new_nonzero_pixel_additions": 4
+      },
+      {
+        "from_host_play_s": 26.876922541006934,
+        "to_host_play_s": 29.856207083008485,
+        "from_count": 4856,
+        "to_count": 4913,
+        "new_nonzero_pixel_additions": 57
+      },
+      {
+        "from_host_play_s": 29.856207083008485,
+        "to_host_play_s": 33.155295166012365,
+        "from_count": 4913,
+        "to_count": 4927,
+        "new_nonzero_pixel_additions": 14
+      }
+    ],
+    "interpretation": "Sampled closed frames suppress deposits; count growth between closed snapshots proves nonzero additions occurred between them. Sparse snapshots cannot establish continuously closed admission or continuously zero injection.",
+    "wake_bracket": {
+      "last_pre_music_gate": {
+        "host_play_s": -0.5834736669785343,
+        "host_exit_s": -25.928656207979657,
+        "request_mono": 143094.055142333,
+        "response_mono": 143094.318609208,
+        "first_seen_cache_age_s": 0.37867624999489635,
+        "donor_sequence": 8511,
+        "donor_peak_squared": 0.00339,
+        "board": 0,
+        "render_us": 85711168,
+        "generation": 958,
+        "capture_us": 85696984,
+        "fresh": 1,
+        "source_silence": 1,
+        "admission_open": 0,
+        "peak": 0.866069,
+        "position": 125.489784,
+        "deposit_strength": 0.0,
+        "injection_count": 36,
+        "capture_to_render_estimate_ms": 14.184,
+        "nearest_saved_wire": {
+          "render_delta_us": -299954,
+          "host_play_s": -1.061484959005611,
+          "nonzero_pixels": 0,
+          "max16": 0,
+          "same_frame": false
+        }
+      },
+      "first_music_gate": {
+        "host_play_s": 2.4873426250123885,
+        "host_exit_s": -22.857839915988734,
+        "request_mono": 143097.183510708,
+        "response_mono": 143097.3894255,
+        "first_seen_cache_age_s": 0.31055241599096917,
+        "donor_sequence": 8818,
+        "donor_peak_squared": 0.053299,
+        "board": 0,
+        "render_us": 88780857,
+        "generation": 1367,
+        "capture_us": 88765502,
+        "fresh": 1,
+        "source_silence": 0,
+        "admission_open": 1,
+        "peak": 0.681739,
+        "position": 118.215919,
+        "deposit_strength": 0.352982,
+        "injection_count": 420,
+        "capture_to_render_estimate_ms": 15.355,
+        "nearest_saved_wire": {
+          "render_delta_us": -190840,
+          "host_play_s": 2.140321875020163,
+          "nonzero_pixels": 26,
+          "max16": 2688,
+          "same_frame": false
+        }
+      },
+      "limit": "No fresh opcode17 sample shows source_silence=true with admission_open=true. Nearby early wire material and MIR source_silence=true are sequential evidence, not that missing same-frame witness."
+    }
+  },
+  "root_still_observations": {
+    "provenance": "Root reports viewing actual stills; no independent inspection by this analyst.",
+    "playback_cues_s": {
+      "12": "brightlowerorangebilateral/darkercentre;upperpink/orange",
+      "24": "violetlower",
+      "28": "faintpink",
+      "31": "unlit",
+      "33": "smalllowerviolet"
+    },
+    "mismatch": "Root cue33 has visible light while nearby sampled bottom payloads are zero. Preserve this discrepancy: snapshots are sparse and separately timed; birth counts rise between closed-gate samples. Zero saved payloads do not override the optical observation.",
+    "scope": "Stills only, no full-speed audiovisual acceptance."
+  },
+  "conclusion": {
+    "runtime": "Bounded cadence/continuity supported; see fresh counters.",
+    "gate": "Gate-to-deposit behaviour agrees at every sampled fresh frame. Intermittent unsampled admissions remain evident from counters.",
+    "quiet": "Sampled final payloads drain to zero but do not establish continuously dark output.",
+    "wake": "Quiet before weak music and later open-gate injection are observed; precise source-silence-versus-admission ordering at first birth is unobserved.",
+    "acceptance": "No physical acceptance claim; root owns judgement."
+  },
+  "usb_timing_method": "Broker TX to matching RX by request ID, complete transactions inside each phase window; GET opcode 25 selected by recognised GET payload, excludes PATCH. Host protocol response duration, not audio-to-light latency.",
+  "usb_timing_source": "/tmp/titan-emotiscope-control/broker.jsonl",
+  "usb_latency_median_ratio_after_before": {
+    "wire_19": 4.227034401467928,
+    "mir_21": 5.118642002334196,
+    "runtime_stats_6": 2.862080427460782,
+    "get_25": 6.111459254375791,
+    "palette_status_17": 3.228920202154813
+  }
+}
