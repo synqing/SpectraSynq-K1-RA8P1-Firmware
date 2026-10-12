@@ -6,6 +6,7 @@
 #include "core/visual/ws2816_pack.h"
 #if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
 #include "emotiscope_port.h"
+#include "composed_scene_runtime.h"
 #include "core/visual/inhouse_waveform.h"
 #endif
 #ifdef K1_PALETTE_MORPH
@@ -113,6 +114,15 @@ class PaletteRuntime {
   void setInhouseAudio(unsigned board,const core::visual::InhouseWaveformAudio& audio) noexcept {
     if(board<2U)inhouse_audio_[board]=audio;
   }
+  bool inhouseAdmissionOpen(unsigned board) const noexcept {
+    return board<2U && (board?config_.mode_b:config_.mode_a)==32U &&
+        inhouse_renderer_[board].observation().input_fresh && !inhouse_observed_audio_[board].silence;
+  }
+  bool inhouseSourceSilence(unsigned board) const noexcept {
+    return board<2U?inhouse_source_silence_[board]:true;
+  }
+  std::uint32_t inhouseDonorSequence() const noexcept { return donor_publication_.sequence; }
+  float inhouseDonorPeakSquared() const noexcept { return donor_publication_.pcm_peak_squared; }
 #endif
   bool setBoardIntensity(unsigned board, float intensity) noexcept;
   float boardIntensity(unsigned board) const noexcept;
@@ -202,8 +212,10 @@ class PaletteRuntime {
 #ifdef K1_TITAN_TOP_OUTPUT
 #ifdef K1_EMOTISCOPE_PORT
   core::visual::InhouseWaveformRenderer inhouse_renderer_[2]{};
+  composed_scene::BloomAdmission inhouse_admission_[2]{};
   core::visual::InhouseWaveformAudio inhouse_audio_[2]{};
   core::visual::InhouseWaveformAudio inhouse_observed_audio_[2]{};
+  bool inhouse_source_silence_[2]{true,true};
   std::uint64_t inhouse_render_us_[2]{};
   bool renderInhouse(unsigned board,std::uint64_t now_us) noexcept;
 #endif

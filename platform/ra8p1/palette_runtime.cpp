@@ -242,11 +242,23 @@ bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept
   controls.motion_scale=config.speed*2.0f;
   controls.mirror=config.mirror_mode!=0;
   auto input=inhouse_audio_[board];
+  if(input.epoch!=inhouse_observed_audio_[board].epoch)inhouse_admission_[board]={};
+  // Intentional Titan acoustic boundary: reuse the existing measured-room Bloom
+  // admission on this prepared donor publication. The source RMS silence remains
+  // in the producer/MIR; only this local render view uses Titan admission. Keep
+  // legacy feature values and travelling history intact.
+  input.silence=!inhouse_admission_[board].update(donor_publication_,static_cast<std::uint32_t>(now_us));
   const float response=board?k1_secondary_emotiscope_response_gain():k1_emotiscope_response_gain();
   input.peak_scaled=std::clamp(input.peak_scaled*response,0.0f,1.0f);
   input.vu_level=std::clamp(input.vu_level*response,0.0f,1.0f);
   input.observed_peak_scaled=std::clamp(input.observed_peak_scaled*response,0.0f,1.0f);
   if(!inhouse_renderer_[board].render(input,controls,now_us,wide_[board],kPixelsPerChannel))return false;
+  // The core renderer remains authoritative for Inhouse chronology/validity.
+  // Invalid, stale or regressive input cannot retain an open hysteresis state.
+  if(!inhouse_renderer_[board].observation().input_fresh){
+    inhouse_admission_[board]={};input.silence=true;
+  }
+  inhouse_source_silence_[board]=inhouse_audio_[board].silence;
   inhouse_observed_audio_[board]=input;inhouse_render_us_[board]=now_us;
   // Existing display-only brightness, hue-preserving shoulder, warmth and
   // white balance. Master/edge gains remain in the unchanged wire packer.
@@ -273,7 +285,7 @@ void PaletteRuntime::noteDonorMode(std::uint32_t mode, unsigned board) noexcept 
   if (!supportedMode(mode) || board > 1U) return;
 #if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
   const auto previous=board?config_.mode_b:config_.mode_a;
-  if(previous!=mode)inhouse_renderer_[board].reset();
+  if(previous!=mode){inhouse_renderer_[board].reset();inhouse_admission_[board]={};}
 #endif
   if(board==0U){config_.mode_a=mode;a_.controls().mode_id=static_cast<std::uint16_t>(mode);}
   else{config_.mode_b=mode;b_.controls().mode_id=static_cast<std::uint16_t>(mode);}
@@ -307,6 +319,9 @@ void PaletteRuntime::selectPerformanceMode(std::uint32_t mode) noexcept {
   wide_valid_[0] = wide_valid_[1] = false;
 }
 void PaletteRuntime::resetAudioState() noexcept {
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+  inhouse_admission_[0]=inhouse_admission_[1]={};
+#endif
 #ifdef K1_DUAL_EDGE_DONOR
   invalidateDualEdgeDonorAudio();
 #endif
@@ -368,6 +383,8 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   k1_emotiscope_get_config(&primary_config);k1_secondary_emotiscope_get_config(&secondary_config);
   const bool primary_inhouse=primary_config.current_mode==32;
   const bool secondary_inhouse=secondary_config.current_mode==32;
+  if(!primary_inhouse)inhouse_admission_[0]={};
+  if(!secondary_inhouse)inhouse_admission_[1]={};
   const bool primary_valid=primary_inhouse?renderInhouse(0,now_us):
       k1_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
 #else
@@ -789,8 +806,9 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"dwell_reinit\":%s,\"effect_frames\":%llu,\"dwell_frames\":%llu,"
       "\"dwell_reinits\":%llu"
 #if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
-      ",\"inhouse_frames\":[{\"board\":0,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu},"
-      "{\"board\":1,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu}]"
+      ",\"inhouse_donor_sequence\":%lu,\"inhouse_donor_peak_squared\":%.6f"
+      ",\"inhouse_frames\":[{\"board\":0,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"source_silence\":%u,\"admission_open\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu},"
+      "{\"board\":1,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"source_silence\":%u,\"admission_open\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu}]"
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       ",\"pair_backend\":\"%s\",\"submitted_generation\":%lu,"
@@ -836,12 +854,15 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long long)effect_frames_, (unsigned long long)dwell_frames_,
       (unsigned long long)dwell_reinits_
 #if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
+      , (unsigned long)inhouseDonorSequence(),double(inhouseDonorPeakSquared())
       , (unsigned long long)inhouse_render_us_[0],(unsigned long long)inhouse_observed_audio_[0].generation,
       (unsigned long long)inhouse_observed_audio_[0].capture_us,unsigned(inhouse_renderer_[0].observation().input_fresh),
+      unsigned(inhouseSourceSilence(0)),unsigned(inhouseAdmissionOpen(0)),
       double(inhouse_renderer_[0].observation().peak_stage1),double(inhouse_renderer_[0].observation().position),
       double(inhouse_renderer_[0].observation().deposit_strength),(unsigned long long)inhouse_renderer_[0].observation().injection_count
       , (unsigned long long)inhouse_render_us_[1],(unsigned long long)inhouse_observed_audio_[1].generation,
       (unsigned long long)inhouse_observed_audio_[1].capture_us,unsigned(inhouse_renderer_[1].observation().input_fresh),
+      unsigned(inhouseSourceSilence(1)),unsigned(inhouseAdmissionOpen(1)),
       double(inhouse_renderer_[1].observation().peak_stage1),double(inhouse_renderer_[1].observation().position),
       double(inhouse_renderer_[1].observation().deposit_strength),(unsigned long long)inhouse_renderer_[1].observation().injection_count
 #endif
