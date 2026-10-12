@@ -2421,7 +2421,6 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
     // At most three 5 ms donor chunks per pass. Service the paired DMA between
     // chunks; do not turn catch-up into an unbounded renderer starvation loop.
     for (unsigned catchup = 0; catchup < 3U; ++catchup) {
-    const bool transmitting_before_hop = pair_any_transmitting();
 #endif
     const auto hop_status = live_runtime.serviceOneHop();
     if (hop_status == k1::titan::LiveHopStatus::Discontinuity ||
@@ -2431,11 +2430,6 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
 #ifdef K1_EMOTISCOPE_PORT
     palette_pair_poll();
     if (hop_status != k1::titan::LiveHopStatus::Ok) break;
-    // USB IRQs resume only on the next main-loop pass. Preserve an idle
-    // interval that opened during this hop before more AP work consumes it.
-    // A frame already due below can still restart TX; target timing must
-    // establish that the remaining idle interval admits USB service.
-    if (transmitting_before_hop && !pair_any_transmitting()) break;
     // A second analyser can make the old three-hop burst overrun a due frame.
     // Yield to the existing renderer/USB owner, without dropping queued PCM.
     if (palettes.frameDue(live_runtime.nowUs())) break;
