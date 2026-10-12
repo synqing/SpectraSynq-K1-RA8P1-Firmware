@@ -2,7 +2,23 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current image: continuous body/detail Bloom, single body-level envelope — 12 October 2026
+## Current physical evidence — 12 October 2026, evening
+
+The EiP camera is restored. A matched physical baseline/candidate recording and a
+controlled bass/detail/silence probe were captured and inspected through the actual
+assembled stack. Installed firmware remains `4c94653ddc3d...` / source `7ae880e`.
+The comparison retained the operator's current master 255/255 and both board gains
+0.25; no output-chain changes. Both recorded passages had stable SQ4 settings.
+
+The later body-spacing comparison was contaminated by external palette, mode,
+ML and scene changes. Hardware writes stopped pending resolution of that control
+ownership conflict. The last observed state is Ribbons on both boards, emission
+ON; the attempted body width/trail edits are unsaved. Do not mistake the earlier
+SQ4 leave-state below for this latest readback. Full delivery is unfinished.
+
+[Physical clips, settings, failure evidence and remaining work](CONTINUOUS-BLOOM-PHYSICAL-20261012.md).
+
+## Retained deployed correction: continuous body/detail Bloom — 12 October 2026
 
 Resident build `4c94653ddc3d9d2a6a56500e1422d953a48c0be50b0486d7deaec55f6e3a43e4`,
 source `7ae880e`, same UID and schema. Body injection now receives one selected

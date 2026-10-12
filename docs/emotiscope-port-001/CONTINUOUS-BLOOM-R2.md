@@ -2,7 +2,9 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC.
 
-## Current deployed correction — 12 October 2026, 04:09 Perth
+[Latest physical comparison and live-state update](CONTINUOUS-BLOOM-PHYSICAL-20261012.md): camera restored; paired footage captured; subsequent spacing run stopped for competing control activity.
+
+## Retained deployed correction — 12 October 2026, 04:09 Perth
 
 Source commit `7ae880ef05e13912bead58a73a520ad862507ca9`; resident build
 `4c94653ddc3d9d2a6a56500e1422d953a48c0be50b0486d7deaec55f6e3a43e4`.
