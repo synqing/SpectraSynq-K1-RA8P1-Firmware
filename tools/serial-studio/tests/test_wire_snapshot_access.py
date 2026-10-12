@@ -167,3 +167,91 @@ def test_live_candidate_snapshot_uses_same_identity_admission(tmp_path,monkeypat
     b._service_emit_requests()
     assert calls==([] if mismatch else [(19,b'')])
     assert (tmp_path/'wire-snapshot.bin').exists()==(mismatch is None)
+
+
+@pytest.mark.parametrize("case", [
+    "checkpoint", "candidate", "missing_capability", "false_capability",
+    "string_capability", "missing_opcode", "wrong_opcode", "fixture_runtime",
+    "unsupported_protocol", "wrong_uid", "wrong_build", "wrong_schema",
+    "observe_only", "candidate_wrong_build",
+])
+def test_real_attach_mir_contract_and_identity_before_transport(tmp_path, case):
+    """Exercise attach admission and the file trigger through the real Transport."""
+    import json
+    from test_live_control_path import _checkpoint, _usb
+    from titan_live_device import LiveDeviceSerial
+    from titan_broker import Broker
+
+    class Device(LiveDeviceSerial):
+        mir_calls = 0
+
+        def _info_body(self):
+            info = json.loads(super()._info_body())
+            # Exact MIR declaration in fixture_app.cpp INFO and the observed
+            # 037dd22f INFO: protocol 1, live, legacy_mir 21, capability true.
+            info.update(opcodes={"legacy_mir": 21},
+                        capabilities={"legacy_mir_json": True})
+            if case == "missing_capability":
+                info.pop("capabilities")
+            elif case == "false_capability":
+                info["capabilities"]["legacy_mir_json"] = False
+            elif case == "string_capability":
+                info["capabilities"]["legacy_mir_json"] = "true"
+            elif case == "missing_opcode":
+                info.pop("opcodes")
+            elif case == "wrong_opcode":
+                info["opcodes"]["legacy_mir"] = 22
+            elif case == "fixture_runtime":
+                info["runtime_kind"] = "fixture"
+            elif case == "unsupported_protocol":
+                info["protocol"] = 2
+            elif case == "wrong_uid":
+                info["uid"] = "wrong"
+            return json.dumps(info).encode()
+
+        def _handle(self, op, req, body):
+            if op == 21:
+                self.mir_calls += 1
+                assert body == b""
+                self._respond(0, req, b'{"generation96":7}')
+            else:
+                super()._handle(op, req, body)
+
+    device = Device()
+    evidence = _checkpoint(tmp_path)
+    if case in ("wrong_build", "wrong_schema"):
+        setattr(device, "build" if case == "wrong_build" else "schema", "wrong")
+    if case.startswith("candidate"):
+        (evidence / "accepted-checkpoint.json").unlink()
+        (evidence / "accepted-candidate.json").write_text(json.dumps({
+            "uid": device.uid,
+            "build": "wrong" if case == "candidate_wrong_build" else device.build,
+            "schema_sha256": device.schema,
+            "ops": ["emotiscope_get", "emotiscope_patch"],
+        }))
+    broker = Broker(evidence, backend=device, control_enabled=case != "observe_only")
+    try:
+        if case in ("unsupported_protocol", "wrong_uid"):
+            with pytest.raises(RuntimeError, match="identity rejected"):
+                broker.attach(_usb(tmp_path))
+        else:
+            broker.attach(_usb(tmp_path))
+            request = evidence / "MIR_SNAPSHOT_REQUEST"
+            request.touch()
+            broker._service_emit_requests()
+            broker._service_emit_requests()
+        expected = case in ("checkpoint", "candidate")
+        assert device.mir_calls == int(expected)
+        assert (evidence / "mir-snapshot.json").exists() == expected
+        if expected:
+            record = json.loads((evidence / "mir-snapshot.json").read_text())
+            assert record["body"] == {"generation96": 7}
+            assert record["identity"]["uid"] == device.uid
+            assert not request.exists()
+            assert not (evidence / "DIAGNOSTIC_FAULT").exists()
+            before = len(device.tx)
+            with pytest.raises(ObserveDenied, match="payload not admitted"):
+                broker.transact(21, b"x")
+            assert len(device.tx) == before
+    finally:
+        broker.shutdown()

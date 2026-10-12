@@ -473,6 +473,16 @@ class Broker:
                 self.poll_ops.append(op)
         if self.control_enabled:
             admitted |= {16, 23, 25}
+            capabilities = info["info"].get("capabilities")
+            opcodes = info["info"].get("opcodes")
+            # INFO has passed protocol/UID identification; admit only the
+            # live runtime's explicitly advertised, empty-payload MIR read.
+            if (info["info"].get("runtime_kind") == "live"
+                    and isinstance(capabilities, dict)
+                    and capabilities.get("legacy_mir_json") is True
+                    and isinstance(opcodes, dict)
+                    and opcodes.get("legacy_mir") == 21):
+                admitted.add(21)
             if (self.last_palette or {}).get("wire_profile") in (3, 4):
                 admitted.add(19)
             self.transport.allow(admitted)
