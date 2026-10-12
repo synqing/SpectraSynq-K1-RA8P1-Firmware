@@ -1,0 +1,81 @@
+{
+  "recorded_at": "2026-10-12T16:14:51.690307+00:00",
+  "scope": "File identity/existence only; no live device, deployment or physical claim",
+  "source_reference": {
+    "repository": "/Users/spectrasynq/SpectraSynq_K1_Firmware",
+    "head": "96e683944f13c64746bd2c54920719b26fcc354e",
+    "branch": "wip/emotiscope-perf",
+    "scoped_status": "",
+    "golden_binary": {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/deck16_backend_b1b2_20260808/flash_readback_k1.bin",
+      "exists": true,
+      "bytes": 973792,
+      "sha256": "04215afb279af9f63b833a2304d2fda8975db37f9d1cb0cc5d6a2ada814124ad",
+      "historical_use_limit": "Visual/configuration reproduction only; excludes input health, absolute drive and silence qualification; dirty historical source not fully reconstructible"
+    }
+  },
+  "recovery_images": [
+    {
+      "role": "healthy-CDC immediate working rollback",
+      "directory": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/continuous-bloom-r4/arm-final",
+      "build_id": "037dd22f0450f2286bce8f833722e5d410ea83fe658add7d29d91d2e97fa5272",
+      "receipt_sha256": "e4d68346a2a2cea9b8716949852133a6f6c1b7faaeb9caf382bd4f93d3618a5e",
+      "files": [
+        {
+          "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/continuous-bloom-r4/arm-final/rtthread.hex",
+          "exists": true,
+          "bytes": 1266588,
+          "sha256": "7d82a3b995905e99dbfe7ce45809455963a88f8910887f00e15ea7bba2528e18",
+          "receipt_sha256": "7d82a3b995905e99dbfe7ce45809455963a88f8910887f00e15ea7bba2528e18",
+          "matches_receipt": true
+        },
+        {
+          "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/continuous-bloom-r4/arm-final/rtthread.elf",
+          "exists": true,
+          "bytes": 631472,
+          "sha256": "2f8290a64669db349384e5c69da7094234d52ff45e1bf14b59d64e452461d2fc",
+          "receipt_sha256": "2f8290a64669db349384e5c69da7094234d52ff45e1bf14b59d64e452461d2fc",
+          "matches_receipt": true
+        }
+      ]
+    },
+    {
+      "role": "retained absent-CDC recovery candidate; helper eligibility must be checked before write",
+      "directory": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/visible-dual-20261011/arm-001",
+      "build_id": "d20b56cd62b681cb5e1d20ac4540780d37d2304890179207d8779aaa384eb00f",
+      "receipt_sha256": "321ff1639f096d9f17cc33c382c5d4f4a1c0d09ca9947ee0667643c81002f72f",
+      "files": [
+        {
+          "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/visible-dual-20261011/arm-001/rtthread.hex",
+          "exists": true,
+          "bytes": 1020286,
+          "sha256": "806b4edc0b48603d1902e913c8e98c7b9a67d6caf1fd770f2174c777067d8ade",
+          "receipt_sha256": "806b4edc0b48603d1902e913c8e98c7b9a67d6caf1fd770f2174c777067d8ade",
+          "matches_receipt": true
+        },
+        {
+          "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/visible-dual-20261011/arm-001/rtthread.elf",
+          "exists": true,
+          "bytes": 533124,
+          "sha256": "0415f9b773deba3e0116f93a0805382a78102a40ff2df106aa1549489dfc7641",
+          "receipt_sha256": "0415f9b773deba3e0116f93a0805382a78102a40ff2df106aa1549489dfc7641",
+          "matches_receipt": true
+        }
+      ]
+    }
+  ],
+  "physical_acceptance": "OPEN",
+  "registry": "No applicable Waveform registry found among tracked registry/PLAN_TASKS paths; historical effects registries not repurposed.",
+  "associated_records": [
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/continuous-bloom-r4/final-admission.json",
+      "exists": true,
+      "sha256": "c37f063a655913df05a317984a432b61751d1adc4321437a9318db90dc7d594c"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/continuous-bloom-r4/programme-final/receipt.json",
+      "exists": true,
+      "sha256": "090226decaf970f840dccf4de1af77546a108d52302fe68248b792526b5be9b6"
+    }
+  ]
+}

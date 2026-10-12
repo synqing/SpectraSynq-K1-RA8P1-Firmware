@@ -1,0 +1,10 @@
+{
+  "source": "Approved assistant proposed_plan followed by Captain: Implement the plan.",
+  "session_transcript": "/Users/spectrasynq/.codex/sessions/2026/10/11/rollout-2026-10-11T21-00-23-01a12b0c-d2ac-76f2-bd51-140e374cf3d3.jsonl",
+  "line_1based": 4358,
+  "plan_sha256": "c542ed55708324dfc7ddc4ed718f738fd6c85c6a1757a5ffc613562381a33a64",
+  "plan_characters": 40533,
+  "original_assessment_sha256": "bc0ab645f9f2b02b7a55bb1636fdf5d2404071db68cf1e252188acc7691a9979",
+  "original_assessment_bytes": 17281,
+  "preservation": "append-only; exact approved plan including delimiters"
+}

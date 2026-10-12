@@ -1,8 +1,90 @@
+## 13 October 2026 — Hybrid scheduler candidate006 rejected and rolled back
+
+Candidate `f8d2c002` / build `ce969aa81e2b2855cee970038758d87ffcd47063c3fddb01a530a695abf724ec` added a bounded yield when LED transmission ends during an audio hop. It passed production-loop scheduling checks and all 211 compiled inputs matched the commit, but target acceptance failed: two successive MIR samples show audio gaps 1 → 2, stream epoch 2 → 3 and invalid/warming donor publication. Cached PDM telemetry independently records one ASRC queue rejection, 1,030 discarded samples and a 14,395 µs maximum PDM service gap; it predates the second MIR gap. No new physical comparison or visual pass is claimed.
+
+Root restored the known working `037dd22f…` firmware through the established E2 Lite route, then restored the complete entry composition on both boards: scene3/phrase0, master255, gains0.25/0.25, palette1, bodyreturn0.25 unsaved trial and detailreturn0.55. Saved SQ4 remains unchanged. Evidence: `_scratch/waveform-migration-001/hybrid-006-bounded/`, `programme-hybrid-006/`, `rollback-hybrid-006/`, and `rollback-hybrid-006-active.json`. The six-line scheduler correction was reverted in `6e07b19`. Current investigation is the existing raw-capture-to-ASRC drain boundary; no subsequent flash is justified until a specific mechanism is established. M13 and full migration remain incomplete.
+
 # Titan Emotiscope port — current execution record
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current physical delivery — 12 October 2026, evening
+## Waveform migration execution — 13 October 2026, 01:16 AWST
+
+The approved complete M00–M24 plan is preserved in
+[the migration record](INHOUSE-WAVEFORM-MIGRATION-20261012.md). Hybrid K1 is
+implemented in source with independent native 16-bit histories and source-bound
+feature conditioning; it is **not physically accepted**. Later effects have not
+started because the plan requires this first physical checkpoint.
+
+Candidates 002, 003 and 004 were rejected for real target timing/capture failures
+and explicitly rolled back. Candidate 004 (`1bb0cb1d5b25…`, source `5975256`)
+measured approximately 1.4 ms donor work per hop, 2.1 ms additional Hybrid
+analysis, and 1.15 ms render work. ASRC buffer overruns repeatedly reset the
+analyser; Hybrid produced no valid deposits. Its successful build and 100 Hz
+frame counter do not establish a working show. Evidence:
+`_scratch/waveform-migration-001/hybrid-004-bounded/`.
+
+**Current installed state:** known working `037dd22f…`, both scene 3, phrase 0,
+palette 1, emission and secondary ON, master 255, board gains .25/.25,
+body return .25 and detail return .55. Full restored settings:
+`_scratch/waveform-migration-001/rollback-hybrid-004-active.json`.
+SQ4 remains untouched. Current source correction work targets measured analysis
+cost; no ESP32-S3 hardware, new effect, wiring or output-limit changes.
+
+Host corrections are committed and loaded: decoder v7 version normalisation
+`727b07b`, complete mixed-to-donor composition restoration `41853d0`, and guarded
+MIR diagnostic admission `0f30b2b`. The latter enabled the actual processing-cost
+observation. The camera reframe includes both ends; no Hybrid matched music
+comparison has passed. Complete playback-speed audiovisual inspection also
+remains unperformed; extracted stills do not satisfy that requirement.
+
+### Subsequent check — 13 October 2026, 01:26 AWST
+
+Candidate 005, source `b3ca773`, build
+`2f2e0432a88ae0ac97c81549aa5351fead041ef2a3e946a83b36ccae09488cfd`,
+used the exact scalar recurrence. Actual Hybrid analysis fell to approximately
+1.0 ms; the initial eight-second mixed-pair check retained valid audio, new
+injections, no new frame misses and no capture gaps. The subsequent single-camera
+comparison **failed**: baseline passage completed, candidate passage stopped
+about six seconds into music after a MIR USB timeout. The resulting 57.27-second
+clip is retained under `_scratch/waveform-migration-001/matched-005/`; it is an
+incomplete comparison, not a passed musical assessment. Two ASRC rejections were
+observed. Root inspected actual before/candidate stills; candidate lower end
+hotspots remain to be assessed at matched cue points. No playback-speed audiovisual
+acceptance is claimed.
+
+USB responses were already much slower during the mixed pair's pre-music interval.
+The broker's normal restart restored control; the candidate was nevertheless
+rejected and baseline `037dd22f…` explicitly reinstalled. Full entry settings
+were restored again: `_scratch/waveform-migration-001/rollback-hybrid-005-active.json`.
+A source-bound transmission-to-idle yield and a separate timeout-quarantine
+repair are in progress. They are not deployed or proved by this record.
+
+## Historical migration assessment entry — 12 October 2026, late evening
+
+Captain redirected further Bloom tuning to a source-grounded migration assessment
+of the in-house Waveform family, including Waveform Tempo and Hybrid K1.
+[Assessment, recovered reference and exact gaps](INHOUSE-WAVEFORM-MIGRATION-20261012.md).
+Original assignments and evidence below remain historical; this does not close
+the physical Bloom acceptance criteria.
+
+Current installed image is `037dd22f0450f2286bce8f833722e5d410ea83fe658add7d29d91d2e97fa5272`,
+from `_scratch/continuous-bloom-r4/arm-final`, on the authorised Titan UID.
+It includes the admission/pre-conditioning noise repair and bounded trace fields.
+Read-only health confirmed emission ON, roughly 100 frames/s and zero LED faults.
+Master remains 255/255, both gains .25 and secondary output enabled.
+Body return strength .25 is an unsaved trial; SQ4/canonical preset still retain
+.55. Musical release is restored to 160 ms after rejection of the 60 ms trial.
+The last physical comparison is inconclusive for quiet recovery because received
+input remained high after playback. No new aesthetic acceptance is claimed.
+
+The source remains dirty with the scoped R4 repairs; `arm-final2` completed but
+was not deployed. Do not mistake it for the running image. Live readback is
+`_scratch/continuous-bloom-r4/migration-assessment-entry-status.json`; complete
+prior evidence remains under `_scratch/continuous-bloom-r4/`. Further tuning and
+flashing stopped when Captain changed direction; autonomous output was preserved.
+
+## Previous physical delivery — 12 October 2026, evening
 
 Installed candidate `4c94653ddc3d...` / firmware source `7ae880e` is running.
 Captain cleared the competing-control conflict. A clean body-spacing comparison
