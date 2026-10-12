@@ -5,6 +5,7 @@ import zlib
 WORDS = ('version', 'sequence', 'output_channel', 'brightness', 'lanes',
          'pixels_per_lane', 'bits_per_pixel', 'wire_profile', 'mode', 'palette',
          'flags', 'period_us', 'result_a', 'result_b', 'time_low', 'time_high')
+NATIVE16_SOURCE_FLAG = 1 << 31
 
 
 def score_snapshot(payload: bytes) -> dict:
@@ -18,6 +19,7 @@ def score_snapshot(payload: bytes) -> dict:
             state['palette'] >= 44 or not state['sequence']):
         raise ValueError('invalid snapshot identity or configuration')
     native, wire = payload[64:544], payload[544:]
+    native16 = bool(state['flags'] & NATIVE16_SOURCE_FLAG)
     mismatches, lit, mirror_mismatches = 0, [], 0
     for pixel in range(160):
         rgb = native[pixel*3:pixel*3+3]
@@ -33,13 +35,16 @@ def score_snapshot(payload: bytes) -> dict:
                 if pair else state['result_a'] == 0 and state['result_b'] == 0)
     state.update(time_us=state['time_low'] | state['time_high'] << 32,
                  native_rgb8_hex=native.hex(), submitted_grb48_hex=wire.hex(),
-                 wire_crc32=zlib.crc32(wire), scaling_byte_mismatches=mismatches,
+                 wire_crc32=zlib.crc32(wire), scaling_byte_mismatches=None if native16 else mismatches,
                  mirror_pixel_mismatches=mirror_mismatches, nonzero_pixels=lit,
                  lane_nonzero_counts=[sum(p//80 == lane for p in lit) for lane in (0, 1)],
-                 pass_wire=(mismatches == 0 and coherent),
+                 pass_wire=None if native16 else (mismatches == 0 and coherent),
                  attempted_generation=state['result_a'] if pair else None,
                  submission_accepted='UNKNOWN' if pair else coherent,
                  measured_waveform='UNKNOWN', optical='UNKNOWN',
-                 source_precision='RGB8_REPLICATED_TO_16',
+                 source_precision='NATIVE_RGB16' if native16 else 'RGB8_REPLICATED_TO_16',
+                 preview_precision='RGB8_PREVIEW_ONLY' if native16 else 'RGB8_SOURCE',
+                 scaling_validation='NOT_APPLICABLE_RGB8_PREVIEW_CANNOT_VALIDATE_NATIVE16' if native16 else 'RGB8_REPLICATION_AND_BRIGHTNESS',
+                 submitted_rgb16=[list((g[1], g[0], g[2])) for g in struct.iter_unpack('>3H', wire)],
                  evidence_level='ON_TARGET_SUBMISSION_BUFFER_NOT_GPIO_OR_PHOTONS')
     return state

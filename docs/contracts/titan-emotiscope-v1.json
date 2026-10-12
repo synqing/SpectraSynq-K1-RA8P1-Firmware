@@ -136,9 +136,10 @@
     3,
     4,
     5,
-    6
+    6,
+    32
   ],
-  "mode_ordinals": 7,
+  "mode_ordinals": 8,
   "mode_names": {
     "0": "Analog",
     "1": "Spectrum",
@@ -146,7 +147,8 @@
     "3": "Metronome",
     "4": "Spectronome",
     "5": "Hype",
-    "6": "Bloom"
+    "6": "Bloom",
+    "32": "Waveform Hybrid K1"
   },
   "palette_count": 44,
   "palette_ids": [
@@ -336,9 +338,19 @@
         "id": 9,
         "kind": "i32",
         "min": 0,
-        "max": 6,
+        "max": 32,
         "default": 1,
-        "scope": "selected whole-board scene; legacy request selects primary"
+        "scope": "selected board; 32 requires v6 capability128; 7,8,11,18 unavailable",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          32
+        ]
       },
       "mirror_mode": {
         "id": 10,
@@ -885,7 +897,7 @@
       "patch_max_bytes": 536,
       "patch_field_count": 63,
       "patch_field_mask": 9223372036854775807,
-      "profile_capabilities": 127,
+      "profile_capabilities": 255,
       "inherits": "feature_profile",
       "fields": {
         "scene": {
@@ -1097,7 +1109,73 @@
           424
         ]
       ],
-      "semantics": "Fields45..63 are requested configuration; active_scene/phase/pending report the render-boundary state separately. Validate every field of the merged complete config before applying any mixed patch. Legacy mode is independent. Choreography, initiator and answer delay are pair-owned. Dedup replays the original acknowledgement. Old legacy GET/PATCH remain v4; extended GET/PATCH return v6 on this image. Host retains v5 decoding for older images."
+      "semantics": "Fields45..63 are requested configuration; active_scene/phase/pending report the render-boundary state separately. Validate every field of the merged complete config before applying any mixed patch. Legacy mode is independent. Choreography, initiator and answer delay are pair-owned. Dedup replays the original acknowledgement. Old legacy GET/PATCH remain v4; extended GET/PATCH return v6 on this image. Host retains v5 decoding for older images.",
+      "inhouse_waveform_capability": 128
+    },
+    "renderer_families": {
+      "1": {
+        "id": "emotiscope",
+        "mode_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "2": {
+        "id": "inhouse_waveform",
+        "mode_ids": [
+          32
+        ],
+        "required_state_version": 6,
+        "required_capability": 128,
+        "native_pixels": 160,
+        "history_precision": "signed Q16",
+        "selection": "current_mode32 atomically selects family and effect; source ordinal is not a universal effect namespace",
+        "active_controls": [
+          "brightness",
+          "warmth",
+          "speed",
+          "mirror_mode",
+          "response_gain",
+          "palette",
+          "current_mode",
+          "output_brightness",
+          "emission",
+          "primary_intensity",
+          "secondary_intensity",
+          "secondary_output_enabled",
+          "inhouse_mood"
+        ]
+      }
+    },
+    "inhouse_profile": {
+      "version": 7,
+      "inherits": "composed_scene_profile",
+      "state_bytes": 428,
+      "get_sub": 1162674945,
+      "patch_sub": 1162674946,
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 544,
+      "patch_field_count": 64,
+      "patch_field_mask": 18446744073709551615,
+      "profile_capabilities": 255,
+      "fields": {
+        "inhouse_mood": {
+          "id": 64,
+          "kind": "f32",
+          "state_offset": 424,
+          "min": 0,
+          "max": 1,
+          "default": 0.05,
+          "required_capability": 128,
+          "scope": "selected inhouse board only; per-edge spectrum LPF and broadband AGC. Current/newselectedmode must32; no donor consumer."
+        }
+      },
+      "negotiation": "v6 GET remains424 bytes; cap128 permits probing distinct v7GET. v7 PATCH only admits field64."
     }
   },
   "mode_control": {

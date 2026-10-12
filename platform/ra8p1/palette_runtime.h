@@ -6,6 +6,7 @@
 #include "core/visual/ws2816_pack.h"
 #if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
 #include "emotiscope_port.h"
+#include "core/visual/inhouse_waveform.h"
 #endif
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
@@ -108,10 +109,16 @@ class PaletteRuntime {
   bool setOutputIntensity(unsigned lane, float intensity) noexcept;
   float outputIntensity(unsigned lane) const noexcept;
 #ifdef K1_TITAN_TOP_OUTPUT
+#ifdef K1_EMOTISCOPE_PORT
+  void setInhouseAudio(unsigned board,const core::visual::InhouseWaveformAudio& audio) noexcept {
+    if(board<2U)inhouse_audio_[board]=audio;
+  }
+#endif
   bool setBoardIntensity(unsigned board, float intensity) noexcept;
   float boardIntensity(unsigned board) const noexcept;
   void setSecondaryOutputEnabled(bool enabled) noexcept { secondary_output_enabled_ = enabled; }
   bool secondaryOutputEnabled() const noexcept { return secondary_output_enabled_; }
+  std::uint64_t lastBoardFrameUs(unsigned board) const noexcept {return board<2U?board_frame_us_[board]:0U;}
   bool lastBoardRenderValid(unsigned board) const noexcept {
     return board<2U && board_frame_valid_[board];
   }
@@ -120,6 +127,7 @@ class PaletteRuntime {
 #endif
   bool setEmissionEnabled(bool enabled) noexcept;
   void noteDonorMode(std::uint32_t mode, unsigned board = 0U) noexcept;
+  bool frameDue(std::uint64_t now_us) const noexcept { return active() && now_us>=next_us_; }
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
   void selectPerformanceMode(std::uint32_t mode) noexcept;
@@ -192,10 +200,18 @@ class PaletteRuntime {
   float output_intensity_[2]{1.0F, 1.0F};
   std::uint16_t output_intensity_q16_[2]{65535U, 65535U};
 #ifdef K1_TITAN_TOP_OUTPUT
+#ifdef K1_EMOTISCOPE_PORT
+  core::visual::InhouseWaveformRenderer inhouse_renderer_[2]{};
+  core::visual::InhouseWaveformAudio inhouse_audio_[2]{};
+  core::visual::InhouseWaveformAudio inhouse_observed_audio_[2]{};
+  std::uint64_t inhouse_render_us_[2]{};
+  bool renderInhouse(unsigned board,std::uint64_t now_us) noexcept;
+#endif
   float board_intensity_[2]{1.0F, 1.0F};
   std::uint16_t board_intensity_q16_[2]{65535U, 65535U};
   bool secondary_output_enabled_ = false;
   bool board_frame_valid_[2]{};
+  std::uint64_t board_frame_us_[2]{};
 #ifdef K1_EMOTISCOPE_PORT
   K1EmotiscopeAudioPublication donor_publication_{};
 #endif

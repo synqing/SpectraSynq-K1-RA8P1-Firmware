@@ -51,6 +51,24 @@ class SnapshotTests(unittest.TestCase):
             changed = bytearray(fixture()); struct.pack_into('<I', changed, offset, value)
             with self.assertRaises(ValueError): score_snapshot(changed)
 
+    def test_native16_preview_is_not_a_scaling_or_wire_pass(self):
+        changed = bytearray(fixture())
+        struct.pack_into('<I', changed, 8, 1)
+        struct.pack_into('<I', changed, 40, (1 << 31) | 23)
+        changed[544:550] = bytes.fromhex('0123abcd0042')
+        result = score_snapshot(changed)
+        self.assertEqual(result['output_channel'], 1)
+        self.assertEqual(result['source_precision'], 'NATIVE_RGB16')
+        self.assertIsNone(result['pass_wire'])
+        self.assertIsNone(result['scaling_byte_mismatches'])
+        self.assertEqual(result['submitted_rgb16'][0], [0xabcd, 0x0123, 0x0042])
+        # Independent byte-wise decoding retains emitted order and low bytes.
+        expected = []
+        for i in range(544,1504,6):
+            g=changed[i]*256+changed[i+1];r=changed[i+2]*256+changed[i+3];b=changed[i+4]*256+changed[i+5]
+            expected.append([r,g,b])
+        self.assertEqual(result['submitted_rgb16'], expected)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -111,6 +111,9 @@ void k1_emotiscope_ml_enable_board(unsigned board,bool enabled);
 void k1_emotiscope_set_ml_clocks(uint32_t (*cycles)(void),uint32_t (*clock_us)(void));
 void k1_emotiscope_get_ml_result(K1EmotiscopeMlResult *out);
 void k1_emotiscope_musical_state(uint32_t *cursor,float *value);
+/* Read-only, bounded records from the actual composed render. Native little-endian
+ * BLM1 header (version/count/record bytes), followed by chronological records. */
+uint32_t k1_emotiscope_bloom_trace(void *output,uint32_t capacity);
 void k1_emotiscope_default_config(K1EmotiscopeConfig *out);
 bool k1_emotiscope_set_config(const K1EmotiscopeConfig *configuration);
 void k1_emotiscope_get_config(K1EmotiscopeConfig *out);

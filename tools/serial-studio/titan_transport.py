@@ -172,10 +172,19 @@ class Transport:
             diagnostic = (self.campaign and op == 17 and
                           (payload in (b"LBRQ", b"HWST") or (len(payload) == 8 and payload[:4] == b"LBPG")))
             model_witness = op == 17 and payload == b"MLST"
-            if spec["payload"] is not None and payload != spec["payload"] and not diagnostic and not model_witness:
+            bloom_witness = self.campaign and op == 17 and payload in (
+                b"BLM1\x00\x00\x00\x00", b"BLM1\x01\x00\x00\x00")
+            wire_selector = self.campaign and op == 19 and payload in (
+                b"\x00\x00\x00\x00", b"\x01\x00\x00\x00")
+            if spec["payload"] is not None and payload != spec["payload"] and not diagnostic and not model_witness and not bloom_witness and not wire_selector:
                 raise ObserveDenied(f"opcode {op} payload not admitted")
             if spec["payload"] is None and not self.campaign:
                 raise ObserveDenied(f"opcode {op} requires campaign lease")
+            if op == 25 and len(payload) >= 4 and struct.unpack_from('<I', payload)[0] in (0x454D0301, 0x454D0302):
+                import emotiscope_control
+                code, _ = emotiscope_control.parse(payload, state_version=7)
+                if code != emotiscope_control.STATUS_OK:
+                    raise ObserveDenied('malformed in-house v7 request')
         if self.in_flight is not None:
             raise RuntimeError("one outstanding transaction only")
         self.next_req += 1

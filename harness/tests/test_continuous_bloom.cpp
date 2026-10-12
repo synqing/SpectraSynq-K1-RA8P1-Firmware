@@ -36,6 +36,22 @@ static void boundary_checks(){
   assert(composed_scene::audible(p,10000)); // squared-domain comparison
   p.pcm_peak_squared=.0004f;p.vu_level_raw=1;assert(!composed_scene::audible(p,10000));
   p.pcm_peak_squared=.001f;assert(!composed_scene::audible(p,50001));
+  composed_scene::BloomAdmission noise_gate;
+  // Observed steady-room band previously passed the rolling 90% floor.
+  for(float peak:{.00098f,.00165f,.00273f,.00336f}){
+    p.pcm_peak_squared=peak;p.vu_floor=.00123f;
+    assert(!noise_gate.update(p,10000));
+  }
+  p.pcm_peak_squared=.0052f;assert(noise_gate.update(p,10000)); // weak fresh attack
+  p.pcm_peak_squared=.004f;assert(noise_gate.update(p,10000)); // sustain in hysteresis band
+  p.pcm_peak_squared=.0033f;assert(!noise_gate.update(p,10000));
+  p.pcm_peak_squared=.004f;assert(!noise_gate.update(p,10000)); // no background chatter
+  p.pcm_peak_squared=.01f;assert(noise_gate.update(p,10000));
+  assert(!noise_gate.update(p,50001)); // stale input closes, no replay
+  composed_scene::Direction quiet_direction;
+  quiet_direction.update(p,10,0,true);assert(quiet_direction.admit());
+  quiet_direction.update(p,310,0,false);assert(quiet_direction.quiet()&&!quiet_direction.admit());
+  quiet_direction.update(p,320,0,true);assert(!quiet_direction.quiet()&&quiet_direction.admit());
   float hz[64];for(unsigned i=0;i<64;++i)hz[i]=300.f+30.f*i;
   K1MusicalConditioning a,b;assert(a.initialise_frequencies(hz)&&b.initialise_frequencies(hz));
   assert(a.configure({2,1,40,160})&&b.configure({2,1,40,160}));
@@ -68,19 +84,35 @@ int main(int argc,char** argv){
   assert(k1_emotiscope_set_musical_config(&body)&&k1_secondary_emotiscope_set_musical_config(&detail));
   K1EmotiscopeMlConfig ml{0,0};assert(k1_emotiscope_set_ml_config(&ml)&&k1_secondary_emotiscope_set_ml_config(&ml));
   auto scene=k1_composed_scene_defaults();scene.scene=3;scene.phrase=0;scene.choreography=0;scene.quiet_scope=1;scene.outgoing_ms=900;scene.return_ms=1300;
-  assert(k1_emotiscope_set_scene_config(&scene)&&k1_secondary_emotiscope_set_scene_config(&scene));
+  assert(k1_secondary_emotiscope_set_scene_config(&scene));
+  if(variant==5)scene.return_strength=.25f;
+  assert(k1_emotiscope_set_scene_config(&scene));
   k1::titan::PaletteRuntime runtime;k1::titan::PaletteConfig pc;pc.palette_a=pc.palette_b=0;pc.mode_a=pc.mode_b=6;pc.flags=5;pc.brightness=100;
   assert(runtime.configure(pc,0));assert(runtime.setBoardIntensity(0,.25f)&&runtime.setBoardIntensity(1,.25f));runtime.setSecondaryOutputEnabled(true);
   FILE* f=std::fopen(argv[2],"wb");assert(f);
   for(unsigned frame=0;frame<1200;++frame){const unsigned now=(frame+1)*10000;
     if(variant!=2||frame<500)for(unsigned half=0;half<2;++half){float pcm[64];
-      for(unsigned i=0;i<64;++i){double t=double(frame*128+half*64+i)/12800.;double pulse=std::fmod(t,.8)<.09?.75:0;
-        pcm[i]=t>.5&&t<5?float(pulse*std::sin(6.283185307*t*82)+.08*std::sin(6.283185307*t*2200)):0;}
+      for(unsigned i=0;i<64;++i){double t=double(frame*128+half*64+i)/12800.;double pulse=std::fmod(t,.8)<.09?(variant==3?.10:.75):0;
+        pcm[i]=t>.5&&t<5?float(pulse*std::sin(6.283185307*t*82)+.08*std::sin(6.283185307*t*2200)):0;
+        if(variant==4 && t>=5){
+          // Received ordinary-room range from observe-002, with changing peaks:
+          // donor residual AGC must not charge either hidden VU envelope.
+          const unsigned n=frame*128+half*64+i;
+          const float noise=float((n*1664525u+1013904223u)>>8)/8388607.5f-1.0f;
+          const float amplitude=.03f+.027f*float(frame%17)/16.f;
+          pcm[i]=noise*amplitude;
+        }}
       assert(k1_emotiscope_push_pcm64(pcm,now-5000+half*5000));}
     if(variant==1&&frame==300)assert(k1_emotiscope_set_edge_response(2,1));
     assert(runtime.step(now,nullptr));
     K1EmotiscopeAudioPublication p{};k1_emotiscope_audio_publication(&p);
     if(frame<500){assert(p.audio_time_us==now);assert(p.amplitude_valid);}
+    if(variant==4 && frame>1000){
+      unsigned char trace[3088];const auto bytes=k1_secondary_emotiscope_bloom_trace(trace,sizeof(trace));
+      assert(bytes==sizeof(trace));float conditioned=1;
+      std::memcpy(&conditioned,trace+bytes-48+36,sizeof(conditioned));
+      assert(conditioned<.000001f); // hidden noise cannot preload the next admission
+    }
     for(unsigned board=0;board<2;++board){unsigned char bytes[960];
       for(unsigned lane=0;lane<2;++lane)assert(runtime.packBoardGrb48Lane(bytes+480*lane,480,board,lane)==480);
       std::fwrite(bytes,1,960,f);

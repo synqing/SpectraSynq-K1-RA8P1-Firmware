@@ -220,7 +220,7 @@ static void draw_palette_dot(CRGBF* layer,uint16_t slot,float u,float value,
 
 void apply_background(float background_level){
   k1_draw_scope_end();
-  if(light_modes[configuration.current_mode].type == LIGHT_MODE_TYPE_SYSTEM)return;
+  if(configuration.current_mode>6 || light_modes[configuration.current_mode].type == LIGHT_MODE_TYPE_SYSTEM)return;
   // Same light as the donor's background at the same setting: its (0.25b) was
   // squared by the final gamma, which palettes skip.
   const float level=(0.25f*background_level)*(0.25f*background_level);
@@ -270,7 +270,7 @@ CRGBF hsv(float h,float s,float v){
 static CRGBF k1_screensaver_last[4];
 void run_screensaver(float elapsed_seconds){
   if(configuration.screensaver == false || !std::isfinite(elapsed_seconds) || elapsed_seconds < 0.0f){ return; }
-  if(light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
+  if(configuration.current_mode>6 || light_modes[configuration.current_mode].type != LIGHT_MODE_TYPE_ACTIVE){ return; }
   float mag_sum=0;
   for(uint16_t i=0;i<NUM_FREQS;i++)mag_sum+=frequencies_musical[i].magnitude;
   if(mag_sum<screensaver_threshold){
@@ -350,6 +350,13 @@ static K1EmotiscopeAudioPublication model_publication{},board_publication{};
 static K1EmotiscopeMlResult ml_observation{};
 static uint32_t conditioning_frame_us=0;
 static bool conditioning_frame_seen=false;
+struct BloomTraceRecord {
+  uint32_t sequence,now_us,audio_us,flags,injections,last_injection_ms;
+  float peak,floor,raw_vu,conditioned_vu,feed,body_peak;
+};
+static_assert(sizeof(BloomTraceRecord)==48u,"BLM1 record ABI");
+static BloomTraceRecord bloom_trace[64]{};
+static uint32_t bloom_trace_next=0,bloom_trace_count=0;
 #endif
 static K1EmotiscopeAudioPublication musical_publication{};
 static bool publication_seen=false;
@@ -446,10 +453,16 @@ extern "C" bool k1_emotiscope_init(uint32_t seed){
   initialized=true;
   return true;
 }
+static bool k1_emotiscope_mode_supported(int mode){
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(mode==32)return true;
+#endif
+  return mode>=0&&mode<=6;
+}
 extern "C" bool k1_emotiscope_set_config(const K1EmotiscopeConfig* input){
   using namespace emotiscope;
   // Neutral7 is an inactive full-strip lamp, not a musical visualisation.
-  if(!initialized || !input || input->current_mode<0 || input->current_mode>6)return false;
+  if(!initialized || !input || !k1_emotiscope_mode_supported(input->current_mode))return false;
   // Fixed HSV controls are obsolete in the permanent catalogue path. A full
   // read-modify-write may preserve their current values, including a drifting
   // auto-colour phase above1; it may not pretend an inert field is configurable.
@@ -490,7 +503,7 @@ extern "C" bool k1_emotiscope_patch(const K1EmotiscopePatch* patch,uint32_t* cha
   if(mask&32u && !emotiscope_unit_float(patch->speed))return false;
   if(mask&64u && !emotiscope_unit_float(patch->saturation))return false;
   if(mask&128u && !emotiscope_unit_float(patch->background))return false;
-  if(mask&256u && (patch->current_mode<0 || patch->current_mode>6))return false;
+  if(mask&256u && !k1_emotiscope_mode_supported(patch->current_mode))return false;
   const uint8_t flags[]={patch->mirror_mode,patch->screensaver,patch->temporal_dithering,
     patch->auto_color_cycle,patch->reverse_color_range};
   for(unsigned i=0;i<5;++i) if((mask&(1u<<(9+i))) && flags[i]>1u) return false;
@@ -659,6 +672,15 @@ static composed_motion::Rgb composed_palette(float u,void*){
 }
 static void run_composed(){
   t_now_us=micros();t_now_ms=millis();
+  const auto& p=musical_publication;
+  bloom_trace[bloom_trace_next]={p.sequence,p.now_us,p.audio_time_us,
+    uint32_t(p.valid)|(uint32_t(composed_board.injection_admitted)<<1),
+    composed_board.motion.injectionCount(),composed_board.motion.lastInjectionMs(),
+    p.pcm_peak_squared,p.vu_floor,p.vu_level_raw,board_publication.vu_level,
+    (composed_board.transition_pending||composed_board.pair_drain)?0.0f:
+      composed_board.level*composed_board.direction.injection(),p.body_peak_energy};
+  bloom_trace_next=(bloom_trace_next+1u)%64u;
+  if(bloom_trace_count<64u)++bloom_trace_count;
   const auto state=composed_board.status();
   const auto scope=composed_board.active.quiet_scope;
   const bool protected_quiet=composed_board.forced_quiet || (state.quiet && (scope==1u||scope==2u));
@@ -685,10 +707,22 @@ static void run_composed(){
 }
 extern "C" void k1_emotiscope_scene_prepare(uint32_t now_us){
   using namespace emotiscope;
+  if(configuration.current_mode==32)return;
   if(composed_board.observed && composed_board.now_us==now_us)return;
   if(!k1_emotiscope_prepare_frame(now_us))return;
   const auto frame_ml=ml_config;
   EmotiscopeMl::apply(musical_publication,ml_observation,frame_ml,now_us,model_publication);
+  const bool continuous=composed_board.requested.scene==3u;
+  const bool admitted=continuous?
+      composed_board.bloom_admission.update(musical_publication,now_us):
+      composed_scene::audible(musical_publication,now_us);
+  // Reject background before the board's level follower, as well as at history
+  // admission. Otherwise donor AGC charges a hidden envelope during quiet and
+  // the next small received peak releases that accumulated noise as a bright hit.
+  // Spectral observations and already transported RGB history remain intact.
+  if(continuous && !admitted){
+    model_publication.vu_level=model_publication.vu_level_raw=model_publication.vu_peak=0.0f;
+  }
   const float dt=conditioning_frame_seen?float(now_us-conditioning_frame_us)*.000001f:.01f;
   musical_conditioning.apply(model_publication,board_publication,dt,now_us);
   conditioning_frame_us=now_us;conditioning_frame_seen=true;
@@ -696,9 +730,9 @@ extern "C" void k1_emotiscope_scene_prepare(uint32_t now_us){
     EmotiscopeMl::palette_offset(musical_publication,ml_observation,frame_ml,now_us);
   k1_edge_begin_frame();
   composed_board.palette=&composed_palette;
-  composed_board.observe(musical_publication,ml_observation,frame_ml,now_us,millis());
+  composed_board.observe(musical_publication,ml_observation,frame_ml,now_us,millis(),admitted);
   // Existing per-board musical interpretation and response remain real scene consumers.
-  composed_board.level=composed_scene::audible(musical_publication,now_us)?
+  composed_board.level=admitted?
       composed_motion::unit(board_publication.vu_level*response_gain):0.0f;
   composed_board.strength=composed_scene::Board::gestureStrength(composed_board.level,composed_board.admission.value());
 }
@@ -706,6 +740,30 @@ extern "C" void k1_emotiscope_scene_prepare(uint32_t now_us){
 extern "C" void k1_emotiscope_scene_pair_frame(uint32_t now_us){
   k1_emotiscope_scene_prepare(now_us);
   k1_secondary_emotiscope_scene_prepare(now_us);
+  K1EmotiscopeConfig primary{},secondary{};
+  k1_emotiscope_get_config(&primary);k1_secondary_emotiscope_get_config(&secondary);
+  static bool was_mixed=false;
+  const bool mixed=primary.current_mode==32 || secondary.current_mode==32;
+  if(mixed!=was_mixed){
+    k1_scene_pair=composed_scene::Pair{};
+    float hz[NUM_TEMPI];for(unsigned i=0;i<NUM_TEMPI;++i)hz[i]=emotiscope::tempi[i].target_tempo_hz;
+    k1_scene_pair.configureTiming(hz);
+    for(auto* b:k1_scene_boards)if(b){b->forced_quiet=false;b->pair_drain=false;b->pair_held=false;}
+    was_mixed=mixed;
+  }
+  if(mixed){
+    // In-house output is not a participant in the retained composed-scene pair.
+    // A donor peer keeps its own travelling history and admits its own events.
+    for(unsigned board=0;board<2;++board){
+      auto* b=k1_scene_boards[board];
+      if(!b)continue;
+      b->forced_quiet=false;b->pair_drain=false;b->pair_held=false;
+      if((board?secondary.current_mode:primary.current_mode)==32)continue;
+      const bool launch=b->eligible()&&b->fresh_event;
+      b->render(launch?b->event:0u,b->strength);
+    }
+    return;
+  }
   k1_scene_pair.updateTiming(emotiscope::musical_publication,emotiscope::millis());
   k1_scene_pair.render(k1_scene_boards[0],k1_scene_boards[1],now_us);
 }
@@ -720,10 +778,13 @@ extern "C" bool k1_emotiscope_set_scene_config(const K1ComposedSceneConfig* c){
   return true;
 }
 extern "C" void k1_emotiscope_get_scene_config(K1ComposedSceneConfig* c){if(c)*c=emotiscope::composed_board.requested;}
-extern "C" void k1_emotiscope_scene_status(K1ComposedSceneStatus* s){if(s)*s=emotiscope::composed_board.status();}
+extern "C" void k1_emotiscope_scene_status(K1ComposedSceneStatus* s){if(s)*s=emotiscope::configuration.current_mode==32?K1ComposedSceneStatus{}:emotiscope::composed_board.status();}
 #endif
 extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
   using namespace emotiscope;
+  // Mode32 is rendered natively at160 by PaletteRuntime. Never index the
+  // seven-entry donor mode table with a source-family mode identifier.
+  if(configuration.current_mode==32)return false;
   if(!rgb || !k1_emotiscope_prepare_frame(now_us))return false;
 #ifdef K1_TITAN_TOP_OUTPUT
   k1_emotiscope_scene_prepare(now_us);
@@ -829,6 +890,22 @@ extern "C" void k1_emotiscope_get_ml_result(K1EmotiscopeMlResult* out){
   std::memset(out,0,sizeof(*out));
 #endif
 }
+extern "C" uint32_t k1_emotiscope_bloom_trace(void* output,uint32_t capacity){
+#ifdef K1_TITAN_TOP_OUTPUT
+  using namespace emotiscope;
+  const uint32_t bytes=16u+bloom_trace_count*sizeof(BloomTraceRecord);
+  if(!output || capacity<bytes)return 0u;
+  const uint32_t header[4]={0x314d4c42u,1u,bloom_trace_count,sizeof(BloomTraceRecord)};
+  auto* dest=static_cast<unsigned char*>(output);
+  std::memcpy(dest,header,16u);
+  for(uint32_t i=0;i<bloom_trace_count;++i)
+    std::memcpy(dest+16u+i*sizeof(BloomTraceRecord),
+      &bloom_trace[(bloom_trace_next+64u-bloom_trace_count+i)%64u],sizeof(BloomTraceRecord));
+  return bytes;
+#else
+  (void)output;(void)capacity;return 0u;
+#endif
+}
 extern "C" void k1_emotiscope_musical_state(uint32_t* cursor,float* value){
 #ifdef K1_TITAN_TOP_OUTPUT
   if(cursor)*cursor=emotiscope::musical_conditioning.event_cursor();
@@ -882,6 +959,7 @@ extern "C" void k1_emotiscope_snapshot(K1EmotiscopeSnapshot* out){
   std::memcpy(out->post_gamma_rgb,leds,sizeof(leds));
 }
 extern "C" const char* k1_emotiscope_mode_name(uint32_t mode){
+  if(mode==32u)return "Waveform Hybrid K1";
   return mode<9?emotiscope::get_light_mode_name(static_cast<int16_t>(mode)):"";
 }
 

@@ -67,7 +67,8 @@ inline bool livePathConsumesAcceptedRevision(const char* path) noexcept {
     return false;
   }
   return std::strcmp(path, "effect") == 0 || std::strcmp(path, "hold") == 0 ||
-         std::strcmp(path, "emotiscope") == 0 || std::strcmp(path, "emotiscope_history") == 0;
+         std::strcmp(path, "emotiscope") == 0 || std::strcmp(path, "emotiscope_history") == 0 ||
+         std::strcmp(path, "inhouse_waveform") == 0 || std::strcmp(path, "mixed_waveform_donor") == 0;
 }
 
 void liveNotePatchAccepted(LiveRenderReceipt* receipt, std::uint32_t request_id,

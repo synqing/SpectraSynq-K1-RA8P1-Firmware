@@ -10,7 +10,7 @@ records=[]
 def run(cmd):
     p=subprocess.run(cmd,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
     records.append({'argv':cmd,'exit_code':p.returncode,'output':p.stdout});print(p.stdout,end='');return p
-sources=['harness/tests/test_composed_donor.cpp','platform/ra8p1/palette_runtime.cpp','platform/ra8p1/emotiscope_port.cpp','platform/ra8p1/emotiscope_secondary.cpp','platform/ra8p1/emotiscope_ml.cpp','src/k1/core/visual/channel_render_state.cpp','src/k1/core/visual/audio_focus.cpp','src/k1/core/visual/product_palette.cpp','src/k1/core/visual/product_palette_data.cpp']
+sources=['harness/tests/test_composed_donor.cpp','platform/ra8p1/palette_runtime.cpp','platform/ra8p1/emotiscope_port.cpp','platform/ra8p1/emotiscope_secondary.cpp','platform/ra8p1/emotiscope_ml.cpp','src/k1/core/visual/channel_render_state.cpp','src/k1/core/visual/audio_focus.cpp','src/k1/core/visual/product_palette.cpp','src/k1/core/visual/product_palette_data.cpp','src/k1/core/visual/inhouse_waveform.cpp']
 cmd=['clang++','-std=c++17','-O1','-g','-Wno-narrowing','-fsanitize=address,undefined','-fno-omit-frame-pointer','-DK1_EMOTISCOPE_PORT=1','-DK1_PALETTE_MORPH=1','-DK1_TITAN_TOP_OUTPUT=1','-DK1_EMOTISCOPE_TEST_SEAM=1','-Isrc/k1','-Iplatform/ra8p1','-Iplatform/ra8p1/emotiscope_donor','-Iplatform/ra8p1/emotiscope_shims',*sources,'-o',str(OUT/'donor')]
 inputs=sources+['platform/ra8p1/composed_scene_runtime.h','platform/ra8p1/composed_motion.h','harness/tests/test_composed_donor.py']
 before={p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in inputs}

@@ -140,6 +140,8 @@ class Renderer {
   // Continuous RGB injection onto a 25 ms content clock. History stores colour,
   // not audio magnitude; later palette/level edits cannot recolour old material.
   // configure() drains old history by stopping injection before applying changes.
+  std::uint32_t injectionCount()const{return injection_count_;}
+  std::uint32_t lastInjectionMs()const{return last_injection_;}
   void renderBloom(std::uint32_t now,float level,Palette sampler,void* context,Rgb* output) {
     clear(output); edge_arrived_=false; phase_=Phase::Ready;
     if(!bloom_clock_ || !history_count_) { bloom_clock_=true; newest_=now; history_count_=1; history_[0]={}; next_=1; bucket_peak_=0; }
@@ -161,7 +163,7 @@ class Renderer {
       const float u=static_cast<float>(newest_%1600u)/1599.0f;
       const auto colour=scale(clean(sampler(u,context)),unit(level));
       history_[(next_+kHistory-1)%kHistory]=colour;bucket_peak_=unit(level);
-      if(colour.r+colour.g+colour.b>0){last_injection_=newest_;history_alive_=true;}
+      if(colour.r+colour.g+colour.b>0){last_injection_=newest_;history_alive_=true;++injection_count_;}
     }
     const auto& c=latched_;
     const std::uint32_t lifetime=(c.out_travel_ms+c.return_travel_ms)*c.trips+(c.trips?0:c.out_travel_ms )+c.trail_ms+kHopMs+static_cast<std::uint32_t>(c.out_width*static_cast<float>(c.out_travel_ms)+c.return_width*static_cast<float>(c.return_travel_ms));
@@ -249,7 +251,7 @@ class Renderer {
   Rgb history_[kHistory]{};
   unsigned next_=0,history_count_=0;
   Phase phase_=Phase::Ready;
-  std::uint32_t start_=0,last_event_=0,gesture_=0,newest_=0,last_injection_=0;
+  std::uint32_t start_=0,last_event_=0,gesture_=0,newest_=0,last_injection_=0,injection_count_=0;
   float reference_=0,bucket_peak_=0;
   bool quiet_hold_=false,quiet_released_=false;
   bool inward_=false,pending_=false,edge_arrived_=false,bloom_clock_=false,history_alive_=false;

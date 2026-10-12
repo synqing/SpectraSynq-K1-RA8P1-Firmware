@@ -7,6 +7,7 @@
 #include "core/audio/gdft_goertzel.h"
 #else
 #include "emotiscope_port.h"
+#include "inhouse_audio.h"
 #endif
 #include "core/visual/visual_audio_frame.h"
 #include "k1/core/audio/k1_audio_hop.h"
@@ -64,6 +65,16 @@ class LiveAudioRuntime final {
   LiveHopStatus consume(const k1_audio_hop_t& hop) noexcept;
   void invalidate(std::uint32_t reason) noexcept;
   const core::audio::AudioPipelineOutput* latest() const noexcept;
+#ifdef K1_EMOTISCOPE_PORT
+  bool acquireInhouse(InhouseAudioCursor& cursor, std::uint64_t now_us,
+      core::visual::InhouseWaveformAudio& output, unsigned board = 0U) const noexcept {
+    return inhouse_audio_.acquire(cursor, now_us, kLiveFeatureStaleUs, output, board);
+  }
+  bool setInhouseMood(unsigned board, float mood) noexcept {
+    return inhouse_audio_.setMood(board, mood);
+  }
+  float inhouseMood(unsigned board) const noexcept { return inhouse_audio_.mood(board); }
+#endif
   const core::visual::VisualWaveformHistory& waveform() const noexcept {
     return waveform_;
   }
@@ -109,6 +120,7 @@ class LiveAudioRuntime final {
   core::audio::AudioPipeline pipeline_{};
 #else
   K1EmotiscopeStatus donor_status_{};
+  InhouseAudio inhouse_audio_{};
   float pcm_rms_ = 0.0F;
 #endif
   bool tempo_field_enabled_ = true;
@@ -164,6 +176,7 @@ class LiveAudioRuntime final {
   bool warming_ = true;
   bool inflight_ = false;
   bool initialised_ = false;
+  bool capture_stamp_valid_ = false;
 };
 
 }  // namespace k1::titan

@@ -11,6 +11,17 @@ def test_transport_exact_campaign_reader():
     transport = Transport(serial,allowed={19},campaign=True)
     assert transport.transact(19)['body'] == payload()
 
+@pytest.mark.parametrize('selector',[b'',struct.pack('<I',0),struct.pack('<I',1)])
+def test_exact_board_selectors(selector):
+    serial=FakeSerial();serial.feed_response(0,1,0,payload())
+    assert Transport(serial,allowed={19},campaign=True).transact(19,selector)['ok']
+
+@pytest.mark.parametrize('selector',[b'\1',b'\0'*3,b'\0'*5,struct.pack('<I',2),struct.pack('>I',1)])
+def test_malformed_board_selector_never_writes(selector):
+    serial=FakeSerial()
+    with pytest.raises(ObserveDenied):Transport(serial,allowed={19},campaign=True).transact(19,selector)
+    assert not serial.tx
+
 @pytest.mark.parametrize('campaign,op,body',[
     (False,19,b''),(True,19,b'x'),(True,20,b''),(True,22,b'')])
 def test_unrelated_and_malformed_requests_stay_blocked(campaign,op,body):
@@ -100,6 +111,39 @@ def test_continuous_music_allows_one_bounded_observation_without_disarm(tmp_path
     assert not (tmp_path/'WIRE_SNAPSHOT_REQUEST').exists()
     assert not (tmp_path/'DIAGNOSTIC_FAULT').exists()
     assert b.emit_deadline is None
+
+@pytest.mark.parametrize('returned_board',[0,1])
+def test_top_snapshot_is_separate_and_checks_firmware_board(tmp_path,returned_board):
+    import json
+    from titan_broker import Broker
+    b=Broker.__new__(Broker);b.evidence=tmp_path;b.transport=object();b.replay_only=False
+    b.emit_deadline=None;b.continuous_output=True;b.control_enabled=True;b.bound={'accepted':True}
+    b.last_palette={'emit_enabled':True};b.errors=[]
+    raw=bytearray(payload());struct.pack_into('<I',raw,8,returned_board);struct.pack_into('<I',raw,40,1<<31)
+    calls=[];b.transact=lambda op,body:(calls.append((op,body)) or {'ok':True,'body':raw})
+    b.apply_emit=lambda enabled:calls.append(('emit',enabled))
+    (tmp_path/'wire-snapshot.bin').write_bytes(b'preserve bottom')
+    (tmp_path/'WIRE_SNAPSHOT_REQUEST').write_text('bounded-top')
+    b._service_emit_requests()
+    assert calls==[(19,struct.pack('<I',1))]
+    assert (tmp_path/'wire-snapshot.bin').read_bytes()==b'preserve bottom'
+    assert (tmp_path/'wire-snapshot-top.bin').exists()==bool(returned_board)
+    if returned_board:
+        record=json.loads((tmp_path/'wire-snapshot-top.json').read_text())
+        assert record['score']['output_channel']==1 and record['score']['pass_wire'] is None
+
+@pytest.mark.parametrize('accepted,valid',[(True,True),(True,False),(False,True)])
+def test_bounded_mir_snapshot_obeys_identity_and_requires_json_object(tmp_path,accepted,valid):
+    import json
+    from titan_broker import Broker
+    b=Broker.__new__(Broker);b.evidence=tmp_path;b.transport=object();b.replay_only=False
+    b.emit_deadline=None;b.continuous_output=True;b.control_enabled=True;b.bound={'accepted':accepted}
+    b.last_palette={'emit_enabled':True};b.errors=[]
+    calls=[];b.transact=lambda op,body:(calls.append((op,body)) or {'ok':True,'body':b'{"generation96":7}' if valid else b'[]'})
+    (tmp_path/'MIR_SNAPSHOT_REQUEST').touch();b._service_emit_requests();b._service_emit_requests()
+    assert calls==([(21,b'')] if accepted else [])
+    assert (tmp_path/'mir-snapshot.json').exists()==(accepted and valid)
+    if accepted and valid:assert json.loads((tmp_path/'mir-snapshot.json').read_text())['body']['generation96']==7
 
 
 @pytest.mark.parametrize('mismatch',[None,'uid','build','schema_sha256'])

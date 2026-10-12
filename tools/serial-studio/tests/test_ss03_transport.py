@@ -109,6 +109,23 @@ def test_campaign_payload_ops_require_lease():
     assert len(t.writes) > before
 
 
+def test_bloom_witness_requires_exact_board_and_campaign():
+    for campaign in (False, True):
+        for board in (0, 1, 2):
+            fake = FakeSerial()
+            t = Transport(fake, allowed={17}, campaign=campaign)
+            payload = b"BLM1" + board.to_bytes(4, "little")
+            if campaign and board < 2:
+                fake.feed_response(0, 1, 1, b"bounded-render-records")
+                assert t.transact(17, payload)["body"] == b"bounded-render-records"
+            else:
+                try:
+                    t.transact(17, payload)
+                    raise AssertionError("unadmitted trace must be denied")
+                except ObserveDenied:
+                    assert not t.writes
+
+
 def test_model_witness_admits_only_fixed_readonly_payload():
     for campaign in (False, True):
         fake = FakeSerial()

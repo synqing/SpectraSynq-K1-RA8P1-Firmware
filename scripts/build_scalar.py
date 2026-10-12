@@ -106,10 +106,12 @@ EMOTISCOPE_MANIFEST = ROOT / 'docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.jso
 EMOTISCOPE_CLOCK_DELTA = ROOT / 'docs/emotiscope-port-001/CLOCK-PORT-DELTA.json'
 EMOTISCOPE_PLATFORM_FILES = ['emotiscope_port.h', 'emotiscope_port.cpp',
                             'emotiscope_quantize.inc', 'emotiscope_output.h',
-                            'emotiscope_control.h', 'composed_scene_config.h', 'emotiscope_edge_response.h', 'emotiscope_edge_colour.h']
+                            'emotiscope_control.h', 'composed_scene_config.h', 'emotiscope_edge_response.h', 'emotiscope_edge_colour.h',
+                            'inhouse_audio.cpp', 'inhouse_audio.h']
 EMOTISCOPE_SECONDARY_FILES = ['emotiscope_secondary.cpp', 'emotiscope_secondary.h',
                               'musical_conditioning.h', 'emotiscope_ml.h', 'emotiscope_ml.cpp',
                               'composed_motion.h', 'composed_scene_runtime.h', 'composed_timing.h']
+INHOUSE_WAVEFORM_FILES = ['core/visual/inhouse_waveform.cpp', 'core/visual/inhouse_waveform.h']
 EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
 
 def emotiscope_inputs():
@@ -626,6 +628,7 @@ def main():
                 secondary_material = [ROOT/'platform/ra8p1'/name for name in EMOTISCOPE_SECONDARY_FILES]
                 assert all(path.is_file() for path in secondary_material), 'required secondary visual source missing'
                 port_material += secondary_material
+            material += [ROOT/'src/k1'/name for name in INHOUSE_WAVEFORM_FILES]
             material += port_material
             receipt['emotiscope_port'] = dict(
                 enabled=True, **port_provenance,
@@ -971,6 +974,11 @@ def main():
         for name in RA8P1_LOCAL_K1_FILES:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
+        if args.emotiscope_port:
+            for name in INHOUSE_WAVEFORM_FILES:
+                target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/name,target)
+            receipt['inhouse_waveform_sources']={'files':INHOUSE_WAVEFORM_FILES,'mode_ids':[32],'precision_bits':16,'pixels_per_board':160}
         if args.palette_runtime:
             for name in PRODUCT_OUTPUT_CHAIN_FILES:
                 target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)

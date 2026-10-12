@@ -51,6 +51,7 @@ void LiveAudioRuntime::resetAudioOwned() noexcept {
   pipeline_.reset();
 #else
   k1_emotiscope_status(&donor_status_);
+  inhouse_audio_.reset();
   pcm_rms_ = 0.0F;
   warmup_complete_us_ = 0U;
   last_publish_us_ = 0U;
@@ -67,6 +68,7 @@ void LiveAudioRuntime::resetAudioOwned() noexcept {
   committed_ = {};
   warmup_hops_ = 0;
   warming_ = true;
+  capture_stamp_valid_ = false;
 }
 
 std::uint64_t LiveAudioRuntime::nowUs() noexcept {
@@ -197,6 +199,11 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   private_.features.peak_scaled = peak;
   private_.features.vu_level = donor_status_.vu_level;
   private_.features.event_flags = peak == 0.0F ? k1::contract::kEventSilence : 0U;
+  // Bind capture chronology before analysing the SAME admitted PCM. This
+  // publication is completed below after both required feature views finish.
+  finalisePublication(private_, hop, nowUs());
+  (void)inhouse_audio_.consume(hop, private_.features.capture_time_us,
+      capture_stamp_valid_ && hop.capture_estimate_valid != 0U);
 #else
   const int accepted = k1_audio_hop_accept(&last_epoch_, &last_sequence_, &hop);
   if (accepted == -2 || accepted == -3) {
@@ -265,6 +272,9 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
                      peak, input.sequence);
 #endif
   finalisePublication(private_, hop, ap_finish_us);
+#ifdef K1_EMOTISCOPE_PORT
+  inhouse_audio_.stampPublication(ap_finish_us);
+#endif
   committed_ = private_;
   last_hop_ = hop;
   generation_ += 1U;
@@ -380,7 +390,8 @@ void LiveAudioRuntime::finalisePublication(core::audio::AudioPipelineOutput& out
   const auto source_capture = hop.capture_estimate_valid
       ? hop.newest_sample_capture_estimate_us : hop.supporting_dma_receipt_us;
   const auto mapped = k1_live_clock_capture_to_live(&capture_link_, source_capture, &mapped_ok);
-  output.features.capture_time_us = mapped_ok && mapped <= ap_finish_us ? mapped : 0U;
+  capture_stamp_valid_ = mapped_ok && mapped <= ap_finish_us;
+  output.features.capture_time_us = capture_stamp_valid_ ? mapped : 0U;
   output.predicted_next_beat_valid = false;
   (void)mediaFramesToMicros;
 }
@@ -742,6 +753,10 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
   }
   const LiveMirSnapshot row = snapshot();
 #ifdef K1_EMOTISCOPE_PORT
+  const auto& inhouse = inhouse_audio_.latest();
+  InhouseAudioCursor witness_cursor{};
+  core::visual::InhouseWaveformAudio witness{};
+  const bool inhouse_fresh = acquireInhouse(witness_cursor, observeNowUs(), witness);
   const int n = std::snprintf(
       out, capacity,
       "{\"version\":2,\"contract\":\"sr12800.hop64.bins64.emotiscope\","
@@ -752,7 +767,12 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       "\"spectrum_bins\":64,\"spectrum_origin_hz\":77.78175,"
       "\"chroma_origin\":\"D-sharp\",\"beat_locked\":false,"
       "\"donor_dominant_tempo_bpm\":%.6g,\"donor_tempo_confidence\":%.6g,"
-      "\"audio_gaps\":%lu,\"hops_recorded\":%lu,\"deadline_us\":5000}",
+      "\"audio_gaps\":%lu,\"hops_recorded\":%lu,\"deadline_us\":5000,"
+      "\"inhouse\":{\"contract\":\"sr12800.hop96.bins80.note12\","
+      "\"valid\":%s,\"generation\":%llu,\"sample_end\":%llu,"
+      "\"capture_us\":%llu,\"publish_us\":%llu,\"raw_peak_pcm\":%.6g,"
+      "\"drive_floor_pcm\":%.6g,\"peak_scaled\":%.6g,\"vu\":%.6g,"
+      "\"raw_rms\":%.6g,\"silence\":%s,\"mood\":[%.6g,%.6g]}}",
       row.valid ? "true" : "false", row.warming ? "true" : "false",
       static_cast<unsigned long long>(row.publication_generation),
       static_cast<unsigned long long>(row.stream_epoch),
@@ -765,7 +785,17 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       static_cast<double>(donor_status_.dominant_tempo_bpm),
       static_cast<double>(donor_status_.tempo_confidence),
       static_cast<unsigned long>(donor_status_.audio_gaps),
-      static_cast<unsigned long>(row.hops_recorded));
+      static_cast<unsigned long>(row.hops_recorded),
+      inhouse_fresh ? "true" : "false",
+      static_cast<unsigned long long>(inhouse.generation),
+      static_cast<unsigned long long>(inhouse.analysis_end_sample_exclusive),
+      static_cast<unsigned long long>(inhouse.capture_us),
+      static_cast<unsigned long long>(inhouse.publish_us),
+      static_cast<double>(inhouse.raw_peak_pcm),
+      static_cast<double>(inhouse_audio_.config().drive_floor_pcm),
+      static_cast<double>(inhouse.peak_scaled), static_cast<double>(inhouse.vu_level),
+      static_cast<double>(inhouse_audio_.rawRms()), inhouse.silence ? "true" : "false",
+      static_cast<double>(inhouse_audio_.mood(0U)), static_cast<double>(inhouse_audio_.mood(1U)));
 #else
   const int n = std::snprintf(
       out, capacity,

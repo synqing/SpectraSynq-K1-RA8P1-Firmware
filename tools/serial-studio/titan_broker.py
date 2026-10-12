@@ -515,7 +515,8 @@ class Broker:
             raise RuntimeError("no transport")
         with self._sched:
             if op == 25 and payload and len(payload) >= 4:
-                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12, donor_wire.PATCH_SUB):
+                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12, donor_wire.PATCH_SUB,
+                                            donor_wire.EXTENDED_PATCH_SUB, donor_wire.INHOUSE_PATCH_SUB):
                     if self.quiesced():
                         raise RestrictedControlError("paused", "quiesce.flag")
                     if not self.control_enabled:
@@ -817,6 +818,44 @@ class Broker:
                     "registers": decoded, "scope": "sequential off-state MMIO reads; audio remains live"
                 }, indent=2) + "\n")
                 registers.unlink()
+            bloom = self.evidence / "BLOOM_TRACE_REQUEST"
+            if bloom.exists():
+                if self.quiesced() or not self.control_enabled:
+                    return
+                admitted, reason = hardware_writes_admitted(self.evidence, self._control_bound(self.bound))
+                if not admitted:
+                    raise RuntimeError("Bloom trace requires accepted identity: " + reason)
+                for board in (0, 1):
+                    got = self.transact(17, b"BLM1" + board.to_bytes(4, "little"))
+                    if not got.get("ok"):
+                        raise RuntimeError("Bloom trace rejected")
+                    (self.evidence / f"bloom-trace-{board}.bin").write_bytes(got["body"])
+                (self.evidence / "bloom-trace.json").write_text(json.dumps({
+                    "identity": self.bound, "mono": time.monotonic(),
+                    "scope": "same-publication render feed and actual history writes; no acoustic classification"
+                }))
+                bloom.unlink()
+            mir = self.evidence / "MIR_SNAPSHOT_REQUEST"
+            if mir.exists():
+                if self.quiesced() or not self.control_enabled:
+                    return
+                if not self.bound:
+                    raise RuntimeError("MIR snapshot requires accepted identity")
+                if not self.bound.get("accepted"):
+                    admitted, reason = hardware_writes_admitted(self.evidence, self._control_bound(self.bound))
+                    if not admitted:
+                        raise RuntimeError("MIR snapshot requires accepted identity: " + reason)
+                got = self.transact(21, b"")
+                if not got.get("ok"):
+                    raise RuntimeError("MIR snapshot rejected")
+                body = json.loads(got["body"])
+                if not isinstance(body, dict):
+                    raise RuntimeError("MIR snapshot requires a JSON object")
+                (self.evidence / "mir-snapshot.json").write_text(json.dumps({
+                    "identity": self.bound, "mono": time.monotonic(), "body": body,
+                    "scope": "bounded producer observation; not matched input or optical proof"
+                }, indent=2) + "\n")
+                mir.unlink()
             wire = self.evidence / "WIRE_SNAPSHOT_REQUEST"
             if wire.exists():
                 if self.quiesced() or not self.control_enabled:
@@ -833,25 +872,32 @@ class Broker:
                 emitting = (self.last_palette or {}).get("emit_enabled")
                 # One immutable submission read is bounded independently of
                 # normal music output. Continuous operation has no emit timer.
-                bounded = (wire.read_text().strip() == "bounded" and
+                marker = wire.read_text().strip()
+                if marker not in ("", "bounded", "top", "bounded-top"):
+                    raise RuntimeError("invalid wire snapshot board selector")
+                board = 1 if marker in ("top", "bounded-top") else 0
+                bounded = (marker in ("bounded", "bounded-top") and
                            (getattr(self, "continuous_output", False) or
                             (self.emit_deadline is not None and time.monotonic() < self.emit_deadline)))
                 if emitting is not False and not (emitting is True and bounded):
                     raise RuntimeError("wire snapshot requires emission off or a bounded run")
                 from palette_wire_snapshot import score_snapshot
-                got = self.transact(19, b"")
+                got = self.transact(19, board.to_bytes(4, "little") if board else b"")
                 if not got.get("ok"):
                     raise RuntimeError("wire snapshot rejected")
                 raw = got["body"]
                 scored = score_snapshot(raw)
-                (self.evidence / "wire-snapshot.bin").write_bytes(raw)
+                if scored['output_channel'] != board:
+                    raise RuntimeError("wire snapshot returned the wrong board")
+                stem = "wire-snapshot-top" if board else "wire-snapshot"
+                (self.evidence / (stem + ".bin")).write_bytes(raw)
                 record = json.dumps({
                     "identity": self.bound, "mono": time.monotonic(),
                     "emission_active": emitting, "score": scored,
-                    "scope": "retained last submission attempt; not a completion receipt"
+                    "scope": "retained top accepted submission; not a completion receipt" if board else "retained last submission attempt; not a completion receipt"
                 }, indent=2) + "\n"
-                (self.evidence / "wire-snapshot.json").write_text(record)
-                archive = self.evidence / f"wire-snapshot-{scored['sequence']:010d}"
+                (self.evidence / (stem + ".json")).write_text(record)
+                archive = self.evidence / f"{stem}-{scored['sequence']:010d}"
                 if not archive.with_suffix(".bin").exists():
                     archive.with_suffix(".bin").write_bytes(raw)
                     archive.with_suffix(".json").write_text(record)
@@ -908,6 +954,8 @@ class Broker:
             arm.unlink(missing_ok=True)
             (self.evidence / "HWST_REQUEST").unlink(missing_ok=True)
             (self.evidence / "WIRE_SNAPSHOT_REQUEST").unlink(missing_ok=True)
+            (self.evidence / "MIR_SNAPSHOT_REQUEST").unlink(missing_ok=True)
+            (self.evidence / "BLOOM_TRACE_REQUEST").unlink(missing_ok=True)
             (self.evidence / "LOOPBACK_REQUEST").unlink(missing_ok=True)
             (self.evidence / "LOOPBACK_DUMP").unlink(missing_ok=True)
             (self.evidence / "DIAGNOSTIC_FAULT").write_text(str(exc) + "\n")

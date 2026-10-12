@@ -37,7 +37,11 @@ using namespace core::visual;
 namespace {
 bool supportedMode(std::uint32_t mode) noexcept {
 #ifdef K1_EMOTISCOPE_PORT
-  return mode <= 6U; // Donor active modes, from Analog through Bloom.
+  return mode <= 6U
+#ifdef K1_TITAN_TOP_OUTPUT
+      || mode == 32U
+#endif
+      ; // Atomic family/mode selector; only admitted effects.
 #endif
   if (mode == 0U || mode == kDiagnosticBounceMode) return true;
 #if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
@@ -228,8 +232,49 @@ bool PaletteRuntime::setEmissionEnabled(bool enabled) noexcept {
   else config_.flags &= ~4U;
   return was && !enabled;
 }
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept {
+  K1EmotiscopeConfig config{};
+  if(board)k1_secondary_emotiscope_get_config(&config);else k1_emotiscope_get_config(&config);
+  InhouseWaveformControls controls{};
+  const auto palette=board?k1_secondary_emotiscope_palette():k1_emotiscope_palette();
+  controls.palette_id=static_cast<std::uint16_t>(palette-1u);
+  controls.motion_scale=config.speed*2.0f;
+  controls.mirror=config.mirror_mode!=0;
+  auto input=inhouse_audio_[board];
+  const float response=board?k1_secondary_emotiscope_response_gain():k1_emotiscope_response_gain();
+  input.peak_scaled=std::clamp(input.peak_scaled*response,0.0f,1.0f);
+  input.vu_level=std::clamp(input.vu_level*response,0.0f,1.0f);
+  input.observed_peak_scaled=std::clamp(input.observed_peak_scaled*response,0.0f,1.0f);
+  if(!inhouse_renderer_[board].render(input,controls,now_us,wide_[board],kPixelsPerChannel))return false;
+  inhouse_observed_audio_[board]=input;inhouse_render_us_[board]=now_us;
+  // Existing display-only brightness, hue-preserving shoulder, warmth and
+  // white balance. Master/edge gains remain in the unchanged wire packer.
+  const float brightness=.3f+.7f*config.brightness;
+  const float warm[3]={1.0f,1.0f-config.warmth+config.warmth*std::sqrt(.1982f),
+      1.0f-config.warmth+config.warmth*std::sqrt(.0244f)};
+  const float white[3]={1.0f,.9375f,.84f};
+  auto frame=board?b_.frame():a_.frame();
+  for(unsigned i=0;i<kPixelsPerChannel;++i){
+    auto& p=wide_[board][i];
+    float c[3]={p.red/65535.0f*brightness,p.green/65535.0f*brightness,p.blue/65535.0f*brightness};
+    const float maximum=std::max(c[0],std::max(c[1],c[2]));
+    const float shoulder=maximum>.75f?(.75f+.25f*std::tanh((maximum-.75f)*4.0f))/maximum:1.0f;
+    std::uint16_t q[3];
+    for(unsigned k=0;k<3;++k)q[k]=static_cast<std::uint16_t>(std::clamp(c[k]*shoulder*warm[k]*white[k],0.0f,1.0f)*65535.0f+.5f);
+    p={q[0],q[1],q[2]};
+    // Preview only. History and actual wire output never pass through Pixel8.
+    frame[i]={std::uint8_t(q[0]>>8),std::uint8_t(q[1]>>8),std::uint8_t(q[2]>>8)};
+  }
+  return true;
+}
+#endif
 void PaletteRuntime::noteDonorMode(std::uint32_t mode, unsigned board) noexcept {
-  if (mode > 6U || board > 1U) return;
+  if (!supportedMode(mode) || board > 1U) return;
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+  const auto previous=board?config_.mode_b:config_.mode_a;
+  if(previous!=mode)inhouse_renderer_[board].reset();
+#endif
   if(board==0U){config_.mode_a=mode;a_.controls().mode_id=static_cast<std::uint16_t>(mode);}
   else{config_.mode_b=mode;b_.controls().mode_id=static_cast<std::uint16_t>(mode);}
 }
@@ -277,7 +322,7 @@ void PaletteRuntime::resetAudioState() noexcept {
 }
 bool PaletteRuntime::step(std::uint64_t now_us,
                           const VisualAudioFrameView* audio) noexcept {
-  if (!active() || now_us < next_us_) return false;
+  if (!frameDue(now_us)) return false;
   const std::uint64_t late = now_us - next_us_;
   skipped_ += late / kPalettePeriodUs;
   next_us_ += (late / kPalettePeriodUs + 1U) * kPalettePeriodUs;
@@ -318,32 +363,49 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   k1_secondary_emotiscope_accept_ml(&model);
   k1_emotiscope_scene_pair_frame(static_cast<std::uint32_t>(now_us));
 #endif
+#ifdef K1_TITAN_TOP_OUTPUT
+  K1EmotiscopeConfig primary_config{},secondary_config{};
+  k1_emotiscope_get_config(&primary_config);k1_secondary_emotiscope_get_config(&secondary_config);
+  const bool primary_inhouse=primary_config.current_mode==32;
+  const bool secondary_inhouse=secondary_config.current_mode==32;
+  const bool primary_valid=primary_inhouse?renderInhouse(0,now_us):
+      k1_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
+#else
   const bool primary_valid=k1_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
+#endif
   const bool candidate=output_precision_!=0U;
   if(primary_valid){
+#ifdef K1_TITAN_TOP_OUTPUT
+    if(!primary_inhouse){
+#endif
     k1_emotiscope_last_rgb16(rgb16);
     for(unsigned i=0;i<kPixelsPerChannel;++i){
       const unsigned p=emotiscopeSourceIndex(i)*3U;
       a_.frame()[i]={rgb[p],rgb[p+1U],rgb[p+2U]};
       wide_[0][i]=candidate?emotiscopeWirePixel16(rgb16,i):emotiscopeWirePixel(rgb,i);
     }
+#ifdef K1_TITAN_TOP_OUTPUT
+    }
+#endif
     wide_valid_[0]=true;
 #ifdef K1_TITAN_TOP_OUTPUT
-    board_frame_valid_[0]=true;
+    board_frame_valid_[0]=true;board_frame_us_[0]=now_us;
 #endif
   }
 #ifdef K1_TITAN_TOP_OUTPUT
   // A failed visual frame retains only that board's previous output. The
   // musical publication still advances and the other VP is independent.
-  const bool secondary_valid=k1_secondary_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
+  const bool secondary_valid=secondary_inhouse?renderInhouse(1,now_us):k1_secondary_emotiscope_render(static_cast<std::uint32_t>(now_us),rgb);
   if(secondary_valid){
+    if(!secondary_inhouse){
     k1_secondary_emotiscope_last_rgb16(rgb16);
     for(unsigned i=0;i<kPixelsPerChannel;++i){
       const unsigned p=emotiscopeSourceIndex(i)*3U;
       b_.frame()[i]={rgb[p],rgb[p+1U],rgb[p+2U]};
       wide_[1][i]=candidate?emotiscopeWirePixel16(rgb16,i):emotiscopeWirePixel(rgb,i);
     }
-    wide_valid_[1]=true;board_frame_valid_[1]=true;
+    }
+    wide_valid_[1]=true;board_frame_valid_[1]=true;board_frame_us_[1]=now_us;
   }
   if(!primary_valid&&!secondary_valid)return false;
 #else
@@ -355,6 +417,9 @@ bool PaletteRuntime::step(std::uint64_t now_us,
   last_musical_ = audio != nullptr;
   waiting_for_audio_ = audio == nullptr;
   visual_path_ = audio ? "emotiscope" : "emotiscope_history";
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(primary_inhouse||secondary_inhouse)visual_path_=primary_inhouse&&secondary_inhouse?"inhouse_waveform":"mixed_waveform_donor";
+#endif
   if (audio) {
     last_peak_milli_ = std::uint32_t(std::clamp(audio->audio.peak_scaled,0.0F,1.0F)*10000);
     last_vu_milli_ = std::uint32_t(std::clamp(audio->audio.vu_level,0.0F,1.0F)*10000);
@@ -514,11 +579,16 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
 #ifdef K1_EMOTISCOPE_PORT
   if (!out || !capacity) return 0U;
   const int n = std::snprintf(out, capacity,
+#ifdef K1_TITAN_TOP_OUTPUT
+      "{\"version\":1,\"engine\":\"dual_edge\",\"mode_count\":8,"
+      "\"supported_modes\":[0,1,2,3,4,5,6,32],\"board_capabilities\":255,"
+      "\"renderer_families\":{\"emotiscope\":[0,1,2,3,4,5,6],\"inhouse_waveform\":[32]},"
+      "\"palette_count\":44,\"mode_a_equals_mode_b\":false,\"configure_opcode\":25}");
+#else
       "{\"version\":1,\"engine\":\"emotiscope_v1.1\",\"mode_count\":7,"
-      "\"modes\":[\"Analog\",\"Spectrum\",\"Octave\",\"Metronome\","
-      "\"Spectronome\",\"Hype\",\"Bloom\"],\"palette_count\":0,"
-      "\"configure_opcode\":25,\"configure_version\":1,\"palette_configure_rejected\":true,"
-      "\"mode_a_equals_mode_b\":true,\"palettes_must_be_zero\":true}");
+      "\"supported_modes\":[0,1,2,3,4,5,6],\"palette_count\":44,"
+      "\"configure_opcode\":25,\"mode_a_equals_mode_b\":true}");
+#endif
   return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;
 #else
   if (!out || capacity == 0U) return 0U;
@@ -640,8 +710,13 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
 #if defined(K1_EMOTISCOPE_PORT)
       "\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,"
       "\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,"
+#ifdef K1_TITAN_TOP_OUTPUT
+      "\"physical_lanes\":4,\"source_precision\":\"per_renderer_rgb16\","
+      "\"renderer\":\"dual_edge\",\"renderer_a\":\"%s\",\"renderer_b\":\"%s\",\"donor_pixels\":128,\"physical_strips\":2,"
+#else
       "\"physical_lanes\":2,\"source_precision\":\"donor_rgb8_dither_expanded16\","
       "\"renderer\":\"emotiscope_v1.1\",\"donor_pixels\":128,\"physical_strips\":1,"
+#endif
       "\"wire_snapshot_version\":1,\"legacy_performance_controls\":false,"
 #elif defined(K1_DUAL_EDGE_DONOR)
       "\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,"
@@ -690,6 +765,9 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long long)emitted_, (unsigned long long)emit_errors_,
       (unsigned long)last_emit_cycles_, (unsigned long)maximum_emit_cycles_,
       (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
+      , config_.mode_a==32?"inhouse_waveform":"emotiscope",config_.mode_b==32?"inhouse_waveform":"emotiscope"
+#endif
 #if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),
       transitions_[1].progress(), transitions_[0].contributors(), transitions_[1].contributors(),
@@ -710,6 +788,10 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"chroma_milli\":%lu,\"wave_milli\":%lu,\"dwell_armed\":%s,"
       "\"dwell_reinit\":%s,\"effect_frames\":%llu,\"dwell_frames\":%llu,"
       "\"dwell_reinits\":%llu"
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
+      ",\"inhouse_frames\":[{\"board\":0,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu},"
+      "{\"board\":1,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu}]"
+#endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       ",\"pair_backend\":\"%s\",\"submitted_generation\":%lu,"
       "\"completed_generation\":%lu,\"pair_completions\":%lu,"
@@ -753,6 +835,16 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       last_dwell_reinit_ ? "true" : "false",
       (unsigned long long)effect_frames_, (unsigned long long)dwell_frames_,
       (unsigned long long)dwell_reinits_
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
+      , (unsigned long long)inhouse_render_us_[0],(unsigned long long)inhouse_observed_audio_[0].generation,
+      (unsigned long long)inhouse_observed_audio_[0].capture_us,unsigned(inhouse_renderer_[0].observation().input_fresh),
+      double(inhouse_renderer_[0].observation().peak_stage1),double(inhouse_renderer_[0].observation().position),
+      double(inhouse_renderer_[0].observation().deposit_strength),(unsigned long long)inhouse_renderer_[0].observation().injection_count
+      , (unsigned long long)inhouse_render_us_[1],(unsigned long long)inhouse_observed_audio_[1].generation,
+      (unsigned long long)inhouse_observed_audio_[1].capture_us,unsigned(inhouse_renderer_[1].observation().input_fresh),
+      double(inhouse_renderer_[1].observation().peak_stage1),double(inhouse_renderer_[1].observation().position),
+      double(inhouse_renderer_[1].observation().deposit_strength),(unsigned long long)inhouse_renderer_[1].observation().injection_count
+#endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       , k1_ws281x_gpt_dma_hw_pair_backend(),
       (unsigned long)k1_ws281x_gpt_dma_hw_pair_submitted_generation(),

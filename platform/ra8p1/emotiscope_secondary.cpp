@@ -47,4 +47,5 @@
 #define k1_emotiscope_scene_prepare k1_secondary_emotiscope_scene_prepare
 #define k1_emotiscope_get_ml_result k1_secondary_emotiscope_get_ml_result
 #define k1_emotiscope_musical_state k1_secondary_emotiscope_musical_state
+#define k1_emotiscope_bloom_trace k1_secondary_emotiscope_bloom_trace
 #include "emotiscope_port.cpp"

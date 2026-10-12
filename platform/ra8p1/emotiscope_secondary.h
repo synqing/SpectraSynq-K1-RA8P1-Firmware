@@ -32,6 +32,7 @@ void k1_secondary_emotiscope_scene_prepare(uint32_t now_us);
 void k1_secondary_emotiscope_get_ml_result(K1EmotiscopeMlResult *out);
 void k1_secondary_emotiscope_accept_ml(const K1EmotiscopeMlResult *result);
 void k1_secondary_emotiscope_musical_state(uint32_t *cursor,float *value);
+uint32_t k1_secondary_emotiscope_bloom_trace(void *output,uint32_t capacity);
 bool k1_secondary_emotiscope_accept_audio(const K1EmotiscopeAudioPublication *publication);
 bool k1_secondary_emotiscope_render(uint32_t now_us,uint8_t rgb[384]);
 void k1_secondary_emotiscope_last_rgb16(uint16_t rgb[384]);
