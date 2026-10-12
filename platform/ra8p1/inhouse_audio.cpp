@@ -22,6 +22,68 @@ float alpha(float reference, float dt) noexcept {
   const float tau = 0.010F * (1.0F - reference) / reference;
   return dt / (tau + dt);
 }
+
+struct InhouseLane final {
+  std::int32_t coefficient_q14 = 0;
+  std::uint16_t block_size = 0;
+  std::int32_t q1 = 0;
+  std::int32_t q2 = 0;
+};
+
+inline void stepInhouseLane(InhouseLane& lane, std::int32_t sample,
+                            std::uint32_t& overflows) noexcept {
+  const auto product = static_cast<std::int64_t>(lane.coefficient_q14) * lane.q1;
+  const auto q0 = (static_cast<std::int64_t>(sample) >> 6) + (product >> 14) - lane.q2;
+  if (q0 > INT32_MAX || q0 < INT32_MIN) ++overflows;
+  lane.q2 = lane.q1;
+  lane.q1 = core::audio::wrapToInt32(q0);
+}
+
+void analyseInhouseLane4(const core::audio::GdftSampleWindow& window,
+                        const core::audio::GdftConfiguration& frequencies,
+                        core::audio::GdftRawFrame& output) noexcept {
+  // Source audio/k1_gdft_core.cpp:151-242 and k1_gdft_lane4_exact.h.
+  // Four independent bins share each newest-sample load over their common
+  // prefix, then finish their own tails. Each bin's recurrence order and all
+  // final arithmetic are unchanged; the overflow witness counts every step.
+  output = {};
+  while (output.nyquist_safe_bin_high < frequencies.size() &&
+      frequencies[output.nyquist_safe_bin_high].target_frequency_hz <=
+          static_cast<float>(kInhouseSampleRate) * 0.5F)
+    ++output.nyquist_safe_bin_high;
+  for (std::size_t base = 0; base < output.nyquist_safe_bin_high; base += 4U) {
+    const auto count = std::min<std::size_t>(4U, output.nyquist_safe_bin_high - base);
+    std::array<InhouseLane, 4> lanes{};
+    std::uint16_t common = UINT16_MAX;
+    for (std::size_t j = 0; j < count; ++j) {
+      lanes[j].coefficient_q14 = frequencies[base + j].coefficient_q14;
+      lanes[j].block_size = frequencies[base + j].block_size;
+      common = std::min(common, lanes[j].block_size);
+    }
+    for (std::size_t age = 0; age < common; ++age) {
+      const auto sample = static_cast<std::int32_t>(window[window.size() - 1U - age]);
+      stepInhouseLane(lanes[0], sample, output.q0_overflow_count);
+      if (count > 1U) stepInhouseLane(lanes[1], sample, output.q0_overflow_count);
+      if (count > 2U) stepInhouseLane(lanes[2], sample, output.q0_overflow_count);
+      if (count > 3U) stepInhouseLane(lanes[3], sample, output.q0_overflow_count);
+    }
+    for (std::size_t j = 0; j < count; ++j) {
+      auto& lane = lanes[j];
+      for (std::size_t age = common; age < lane.block_size; ++age)
+        stepInhouseLane(lane, window[window.size() - 1U - age], output.q0_overflow_count);
+      const auto term = (static_cast<std::int64_t>(lane.coefficient_q14) * lane.q1) >> 14;
+      auto& result = output.bins[base + j];
+      result.q1 = lane.q1;
+      result.q2 = lane.q2;
+      result.magnitude_squared = std::max<std::int64_t>(0,
+          static_cast<std::int64_t>(lane.q2) * lane.q2 +
+          static_cast<std::int64_t>(lane.q1) * lane.q1 - term * lane.q2);
+      result.magnitude = static_cast<float>(static_cast<std::int32_t>(
+          std::sqrt(static_cast<float>(result.magnitude_squared))));
+      result.normalised_magnitude = result.magnitude * frequencies[base + j].inverse_block_size_half;
+    }
+  }
+}
 }  // namespace
 
 bool InhouseAudio::configure(const InhouseAudioConfig& config) noexcept {
@@ -173,32 +235,10 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   // Source k1_gdft_core.cpp INT64_RECURRENCE + INT64_MAGNITUDE, Cross40,
   // rectangular windows. The parked native kernel deliberately wraps int32
   // products, so only its configuration generator is reused here.
-  raw_ = {};
+  analyseInhouseLane4(window_, frequencies_, raw_);
   for (std::size_t bin = 0; bin < frequencies_.size(); ++bin) {
-    const auto& frequency = frequencies_[bin];
-    float normalised = 0.0F;
-    if (frequency.target_frequency_hz <= static_cast<float>(kInhouseSampleRate) * 0.5F) {
-      ++raw_.nyquist_safe_bin_high;
-      std::int32_t q1 = 0, q2 = 0;
-      for (std::size_t age = 0; age < frequency.block_size; ++age) {
-        const auto product = static_cast<std::int64_t>(frequency.coefficient_q14) * q1;
-        const auto q0 = (static_cast<std::int64_t>(window_[window_.size() - 1U - age]) >> 6) +
-            (product >> 14) - q2;
-        if (q0 > INT32_MAX || q0 < INT32_MIN) ++raw_.q0_overflow_count;
-        q2 = q1;
-        q1 = core::audio::wrapToInt32(q0);
-      }
-      const auto term = (static_cast<std::int64_t>(frequency.coefficient_q14) * q1) >> 14;
-      const auto magnitude_squared = std::max<std::int64_t>(0,
-          static_cast<std::int64_t>(q2) * q2 + static_cast<std::int64_t>(q1) * q1 - term * q2);
-      auto& result = raw_.bins[bin];
-      result.q1 = q1;
-      result.q2 = q2;
-      result.magnitude_squared = magnitude_squared;
-      result.magnitude = static_cast<float>(static_cast<std::int32_t>(std::sqrt(static_cast<float>(magnitude_squared))));
-      normalised = result.magnitude * frequency.inverse_block_size_half;
-      result.normalised_magnitude = normalised;
-      magnitude_average_[bin] = normalised * 0.3F + magnitude_average_[bin] * 0.7F;
+    if (bin < raw_.nyquist_safe_bin_high) {
+      magnitude_average_[bin] = raw_.bins[bin].normalised_magnitude * 0.3F + magnitude_average_[bin] * 0.7F;
     } else {
       magnitude_average_[bin] = 0.0F;
     }

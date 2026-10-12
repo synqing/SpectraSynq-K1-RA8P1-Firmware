@@ -69,5 +69,47 @@ int main(){
   r.advanceHostCycles(5000);assert(r.consume(make_hop(8,1))==LiveHopStatus::Ok);
   assert(r.warmupHops()==1);
   assert(!r.publicationFresh(r.observeNowUs()));
+  // Donor-only operation must not execute or publish the unused analyser.
+  InhouseAudioCursor cursor{};
+  k1::core::visual::InhouseWaveformAudio observed{};
+  assert(!r.inhouseActive());
+  assert(!r.acquireInhouse(cursor,r.observeNowUs(),observed));
+  assert(r.mirJson(json,sizeof(json))>0);
+  const char* witness=std::strstr(json,"\"inhouse\":");
+  assert(witness && std::strstr(witness,"\"generation\":0,"));
+  r.setInhouseActive(true);
+  for(unsigned seq=2;seq<=70;++seq){
+    r.advanceHostCycles(5000);
+    auto h=make_hop(8,seq);
+    h.newest_sample_capture_estimate_us=r.observeNowUs()-100;
+    h.supporting_dma_receipt_us=r.observeNowUs()-20;
+    assert(r.consume(h)==LiveHopStatus::Ok);
+    (void)r.acquireInhouse(cursor,r.observeNowUs(),observed);
+  }
+  assert(observed.valid && observed.generation>0 && observed.peak_scaled>0);
+  const auto generation=observed.generation;
+  r.setInhouseActive(false);
+  for(unsigned seq=71;seq<=80;++seq){
+    r.advanceHostCycles(5000);
+    auto h=make_hop(8,seq);
+    h.newest_sample_capture_estimate_us=r.observeNowUs()-100;
+    assert(r.consume(h)==LiveHopStatus::Ok);
+  }
+  assert(!r.acquireInhouse(cursor,r.observeNowUs(),observed) && !observed.valid);
+  assert(r.mirJson(json,sizeof(json))>0);
+  witness=std::strstr(json,"\"inhouse\":");
+  unsigned long long stopped_generation=0;
+  assert(witness && std::sscanf(std::strstr(witness,"\"generation\":"),
+      "\"generation\":%llu",&stopped_generation)==1);
+  assert(stopped_generation==generation);
+  r.setInhouseActive(true);
+  for(unsigned seq=81;seq<=150;++seq){
+    r.advanceHostCycles(5000);
+    auto h=make_hop(8,seq);
+    h.newest_sample_capture_estimate_us=r.observeNowUs()-100;
+    assert(r.consume(h)==LiveHopStatus::Ok);
+    (void)r.acquireInhouse(cursor,r.observeNowUs(),observed);
+  }
+  assert(observed.valid && observed.generation>generation);
   std::printf("EMOTISCOPE_LIVE_BRIDGE_PASS warmup64 media240 deadline5000 chroma_Dsharp no_legacy_features duplicate_drop gap_recovery bad_contract_rejected\n");
 }

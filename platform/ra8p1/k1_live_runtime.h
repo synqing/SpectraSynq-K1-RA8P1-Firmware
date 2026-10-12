@@ -66,8 +66,13 @@ class LiveAudioRuntime final {
   void invalidate(std::uint32_t reason) noexcept;
   const core::audio::AudioPipelineOutput* latest() const noexcept;
 #ifdef K1_EMOTISCOPE_PORT
+  // Only selected Waveform consumers pay for the additional analysis. Capture
+  // remains donor-owned; resumption uses the analyser's existing gap reset.
+  void setInhouseActive(bool active) noexcept { inhouse_active_ = active; }
+  bool inhouseActive() const noexcept { return inhouse_active_; }
   bool acquireInhouse(InhouseAudioCursor& cursor, std::uint64_t now_us,
       core::visual::InhouseWaveformAudio& output, unsigned board = 0U) const noexcept {
+    if (!inhouse_active_) { output = {}; return false; }
     return inhouse_audio_.acquire(cursor, now_us, kLiveFeatureStaleUs, output, board);
   }
   bool setInhouseMood(unsigned board, float mood) noexcept {
@@ -121,6 +126,7 @@ class LiveAudioRuntime final {
 #else
   K1EmotiscopeStatus donor_status_{};
   InhouseAudio inhouse_audio_{};
+  bool inhouse_active_ = false;
   float pcm_rms_ = 0.0F;
 #endif
   bool tempo_field_enabled_ = true;

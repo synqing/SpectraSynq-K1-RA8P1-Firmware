@@ -100,7 +100,8 @@ def main():
     paths = [source_path, platform / 'inhouse_audio.h',
              ROOT / 'src/k1/core/visual/inhouse_waveform.h',
              ROOT / 'src/k1/core/audio/gdft_goertzel.cpp',
-             ROOT / 'tests/host/test_inhouse_audio.cpp', Path(__file__)]
+             ROOT / 'tests/host/test_inhouse_audio.cpp',
+             ROOT / 'tests/host/test_inhouse_lane_overflow.cpp', Path(__file__)]
     receipt = {'scope': 'host arithmetic/chronology only; not latency, calibration or optical qualification',
                'source_sha256': {str(p.relative_to(ROOT)): sha(p) for p in paths},
                'reference_sha256': PINS, 'cases': []}
@@ -146,6 +147,23 @@ def main():
         case['expected_exit_observed'] = matched
         receipt['cases'].append(case)
         okay &= matched
+    normal_command = receipt['cases'][0]['command']
+    prefix = normal_command[:normal_command.index(str(output / 'normal.cpp'))]
+    boundary_command = prefix + [str(ROOT / 'tests/host/test_inhouse_lane_overflow.cpp'),
+                                 str(ROOT / 'src/k1/core/audio/gdft_goertzel.cpp'),
+                                 '-o', str(output / 'overflow-boundaries')]
+    build = subprocess.run(boundary_command, capture_output=True, text=True)
+    (output / 'overflow-build.log').write_text(build.stdout + build.stderr)
+    boundary = {'name': 'overflow_boundaries', 'command': boundary_command, 'build_exit': build.returncode}
+    matched = False
+    if build.returncode == 0:
+        run = subprocess.run([str(output / 'overflow-boundaries')], capture_output=True, text=True)
+        (output / 'overflow-run.log').write_text(run.stdout + run.stderr)
+        boundary.update(run_exit=run.returncode)
+        matched = run.returncode == 0
+    boundary['expected_exit_observed'] = matched
+    receipt['cases'].append(boundary)
+    okay &= matched
     receipt['source_unchanged'] = receipt['source_sha256'] == {str(p.relative_to(ROOT)): sha(p) for p in paths}
     okay &= receipt['source_unchanged']
     (output / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')

@@ -43,11 +43,25 @@ static void source_parity() {
   std::array<std::int16_t, 96> block{};
   std::size_t pending = 0;
   unsigned comparisons = 0;
-  for (std::uint64_t seq = 1; seq <= 180U; ++seq) {
+  std::uint32_t random = 0x41554449U;
+  for (std::uint64_t seq = 1; seq <= 360U; ++seq) {
     // Quiet, weak, high sustained resonance, isolated attack, then quiet.
     const float amplitude = seq < 15U ? 0.0F : seq < 35U ? 500.0F :
         seq < 100U ? 30000.0F : seq == 110U ? 20000.0F : 0.0F;
-    const auto h = hop(seq, amplitude);
+    auto h = hop(seq, amplitude);
+    // Retain the original 120 full-chain frames, then exercise boundary PCM,
+    // seeded full-range random PCM, and sustained positive/negative rails.
+    if (seq > 180U) {
+      for (unsigned i = 0; i < 64; ++i) {
+        random ^= random << 13;
+        random ^= random >> 17;
+        random ^= random << 5;
+        if (seq <= 240U) h.pcm[i] = i % 2U == 0U ? INT16_MIN : INT16_MAX;
+        else if (seq <= 300U) h.pcm[i] = static_cast<std::int16_t>(
+            static_cast<std::int32_t>(random & 65535U) - 32768);
+        else h.pcm[i] = seq <= 330U ? INT16_MAX : INT16_MIN;
+      }
+    }
     for (unsigned i = 0; i < 64; ++i) {
       block[pending++] = h.pcm[i];
       if (pending == 96U) {
@@ -70,8 +84,14 @@ static void source_parity() {
           static_cast<std::int64_t>(state.q2) * state.q2 +
           static_cast<std::int64_t>(state.q1) * state.q1 - coeff_term * state.q2);
       assert(raw.bins[i].magnitude_squared == mag2);
+      const auto magnitude = static_cast<float>(static_cast<std::int32_t>(std::sqrt(static_cast<float>(mag2))));
+      assert(raw.bins[i].magnitude == magnitude);
+      assert(raw.bins[i].normalised_magnitude == magnitude * config.inverse_block_size_half);
     }
-    for (unsigned i = 71; i < 80; ++i) assert(raw.bins[i].normalised_magnitude == 0.0F);
+    for (unsigned i = 71; i < 80; ++i) {
+      assert(raw.bins[i].q1 == 0 && raw.bins[i].q2 == 0 && raw.bins[i].magnitude_squared == 0);
+      assert(raw.bins[i].magnitude == 0.0F && raw.bins[i].normalised_magnitude == 0.0F);
+    }
     // The test runner extracts the actual broadband branch and time constants
     // from the pinned S3 source. FixedPoints is the independent arithmetic oracle.
     const auto expected = source_broadband(raw, audio.configuration(), comparisons == 1U);
@@ -85,7 +105,7 @@ static void source_parity() {
       assert(!audio.latest().valid); // no invented full spectral history at boot
     }
   }
-  assert(comparisons == 120U);
+  assert(comparisons == 240U);
 }
 
 static void chronology_and_levels() {

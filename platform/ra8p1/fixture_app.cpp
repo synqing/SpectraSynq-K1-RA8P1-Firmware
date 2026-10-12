@@ -2416,6 +2416,8 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   {
 #ifdef K1_LIVE_RUNTIME
 #ifdef K1_EMOTISCOPE_PORT
+    live_runtime.setInhouseActive(palettes.config().mode_a == 32U ||
+                                  palettes.config().mode_b == 32U);
     // At most three 5 ms donor chunks per pass. Service the paired DMA between
     // chunks; do not turn catch-up into an unbounded renderer starvation loop.
     for (unsigned catchup = 0; catchup < 3U; ++catchup) {
@@ -2428,6 +2430,9 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
 #ifdef K1_EMOTISCOPE_PORT
     palette_pair_poll();
     if (hop_status != k1::titan::LiveHopStatus::Ok) break;
+    // A second analyser can make the old three-hop burst overrun a due frame.
+    // Yield to the existing renderer/USB owner, without dropping queued PCM.
+    if (palettes.frameDue(live_runtime.nowUs())) break;
     }
 #endif
     live_runtime.setCaptureMeta(k1_pdm_target_first_capture_start_us(),

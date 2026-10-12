@@ -202,8 +202,10 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   // Bind capture chronology before analysing the SAME admitted PCM. This
   // publication is completed below after both required feature views finish.
   finalisePublication(private_, hop, nowUs());
-  (void)inhouse_audio_.consume(hop, private_.features.capture_time_us,
-      capture_stamp_valid_ && hop.capture_estimate_valid != 0U);
+  if (inhouse_active_) {
+    (void)inhouse_audio_.consume(hop, private_.features.capture_time_us,
+        capture_stamp_valid_ && hop.capture_estimate_valid != 0U);
+  }
 #else
   const int accepted = k1_audio_hop_accept(&last_epoch_, &last_sequence_, &hop);
   if (accepted == -2 || accepted == -3) {
