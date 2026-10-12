@@ -4,6 +4,17 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#ifdef K1_PDM_TARGET
+#include "pdm_target.h"
+extern "C" k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t*) {
+  return K1_AUDIO_READ_NOT_READY;
+}
+extern "C" k1_pdm_capture_service_t k1_pdm_target_capture_service(void) {
+  // Maximum-width numbers ensure the existing fixed reply buffer still fits.
+  return {UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX,
+          UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX};
+}
+#endif
 using namespace k1::titan;
 static k1_audio_hop_t make_hop(uint64_t e,uint64_t s) {
   k1_audio_hop_t h{};
@@ -45,6 +56,12 @@ int main(){
   assert(f.tempo_bpm==0&&f.beat_phase==0&&f.beat_confidence==0);
   assert(f.rms>0 && f.rms<1);
   char json[1536]; assert(r.mirJson(json,sizeof(json))>0);
+#ifdef K1_PDM_TARGET
+  assert(std::strstr(json,"\"capture_service\":{\"available\":true"));
+  assert(std::strstr(json,"\"reject_poll_cycles\":4294967295"));
+#else
+  assert(std::strstr(json,"\"capture_service\":{\"available\":false"));
+#endif
   assert(std::strstr(json,"\"chroma_origin\":\"D-sharp\""));
   assert(std::strstr(json,"\"deadline_us\":5000"));
   assert(std::strstr(json,"\"beat_locked\":false"));

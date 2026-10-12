@@ -57,6 +57,21 @@ extern "C" {
 int k1_pdm_target_initialise(void);
 void k1_pdm_target_poll(void);
 
+/* Sole-main-loop observation; cycle durations use unsigned 32-bit subtraction
+   across a counter wrap. Rejection fields describe the last failed ASRC push
+   before its logical-epoch reset; pair index is one-based within that poll. */
+typedef struct {
+    uint32_t poll_last_cycles;
+    uint32_t poll_max_cycles;
+    uint32_t poll_max_pairs;
+    uint32_t reject_count;
+    uint32_t reject_poll_entry_filled;
+    uint32_t reject_filled;
+    uint32_t reject_poll_pair_index;
+    uint32_t reject_poll_cycles;
+} k1_pdm_capture_service_t;
+k1_pdm_capture_service_t k1_pdm_target_capture_service(void);
+
 int k1_pdm_target_initialised(void);
 int k1_pdm_target_running(void);
 int32_t k1_pdm_target_last_fsp_error(void);

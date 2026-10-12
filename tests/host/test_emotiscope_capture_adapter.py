@@ -47,6 +47,12 @@ def main():
         ("reject_hidden_audio_loss", capture_harness(source.replace(
             "capture_discontinuity_pending = reason != 0u ? 1u : 0u;",
             "capture_discontinuity_pending = 0u;")), adapter, True),
+        ("reject_lost_queue_witness", capture_harness(source.replace(
+            "capture_service.reject_filled = capture_asrc.filled;",
+            "capture_service.reject_filled = 0u;")), adapter, True),
+        ("reject_wrong_poll_index", capture_harness(source.replace(
+            "capture_service.reject_poll_pair_index = capture_poll_pairs + 1u;",
+            "capture_service.reject_poll_pair_index = 1u;")), adapter, True),
     ]
     assert variants[2][2] != adapter
     results = []

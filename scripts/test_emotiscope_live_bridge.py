@@ -35,6 +35,7 @@ def main():
                 platform/"k1_live_schema.inc", platform/"emotiscope_edge_response.h",
                 root/"src/k1/core/visual/product_palette.cpp",
                 root/"src/k1/core/visual/product_palette_data.cpp"]
+    observed += [platform/"pdm_target.h"]
     observed += [p for p in (platform/"emotiscope_donor").rglob("*") if p.is_file()]
     observed += [p for p in (platform/"emotiscope_shims").rglob("*") if p.is_file()]
     observed = sorted(set(observed))
@@ -47,6 +48,7 @@ def main():
     passed = True
     variants = [
         ("normal", None, None),
+        ("capture_snapshot", None, None),
         ("missing_sample_contract", "hop.samples != K1_EMOTISCOPE_CHUNK ||", "false ||"),
         ("legacy_deadline", "fields->deadline_us = 5000U", "fields->deadline_us = 7500U"),
         ("wrong_media_rate", "last_hop_.hop_sequence * 240U", "last_hop_.hop_sequence * 360U"),
@@ -75,6 +77,8 @@ def main():
             str(platform/"k1_live_clock.c"), str(platform/"k1_live_protocol.cpp"),
             str(test), "-o", str(binary),
         ]
+        if name == "capture_snapshot":
+            command.insert(1, "-DK1_PDM_TARGET")
         build = subprocess.run(command, capture_output=True, text=True, timeout=120)
         (output/(name+"-build.log")).write_text(build.stdout + build.stderr)
         case = {"name": name, "build_command": command, "build_exit": build.returncode,

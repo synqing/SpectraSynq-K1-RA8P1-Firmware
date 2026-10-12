@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 P = ROOT / 'platform/ra8p1'
 
 def function(source, name):
-    match = re.search(r'^(?:static )?(?:void|int|k1_audio_read_result_t|const k1_capture_block_meta_t \*)\s*' + name + r'\([^;]*?\)\s*\{', source, re.M)
+    match = re.search(r'^(?:static )?(?:void|int|k1_audio_read_result_t|k1_pdm_capture_service_t|const k1_capture_block_meta_t \*)\s*' + name + r'\([^;]*?\)\s*\{', source, re.M)
     if not match:
         raise RuntimeError('definition missing: ' + name)
     end = source.index('{', match.start()) + 1
@@ -30,7 +30,8 @@ def function(source, name):
 def harness(source):
     state = source[source.index('typedef struct {'):source.index('static pdm_instance_ctrl_t capture_fall_pdm_ctrl;')]
     state += source[source.index('static volatile int capture_initialised;'):source.index('static uint64_t k1_pdm_target_now_cycles(void)')]
-    names = ['k1_pdm_target_reset_logical_stream', 'k1_pdm_target_meta_for', 'k1_pdm_target_retire_meta',
+    names = ['k1_pdm_target_finish_poll', 'k1_pdm_target_capture_service',
+             'k1_pdm_target_reset_logical_stream', 'k1_pdm_target_meta_for', 'k1_pdm_target_retire_meta',
              'k1_pdm_target_acquire', 'k1_pdm_target_release', 'k1_pdm_target_observe_rate',
              'k1_pdm_target_process_lane', 'k1_pdm_target_process_pair',
              'k1_pdm_target_poll_stale', 'k1_pdm_target_poll', 'k1_pdm_target_try_read_ap_hop']
@@ -46,8 +47,14 @@ typedef int fsp_err_t;
 #define FSP_SUCCESS 0
 '''
     seams = '''static uint64_t host_time_us = 1000000u;
+static uint64_t host_cycle_offset;
+static uint32_t host_cycle_step;
 static uint64_t k1_pdm_target_now_us(void) { return host_time_us; }
-static uint64_t k1_pdm_target_now_cycles(void) { return host_time_us * 1000u; }
+static uint64_t k1_pdm_target_now_cycles(void) {
+    const uint64_t now = host_time_us * 1000u + host_cycle_offset;
+    host_cycle_offset += host_cycle_step;
+    return now;
+}
 static void k1_pdm_target_invalidate_slot(uint32_t lane, uint32_t slot) {(void)lane;(void)slot;}
 static void k1_pdm_target_stop_drivers(void) { capture_running=0; }
 static int k1_pdm_target_start_drivers(void) { return 0; }

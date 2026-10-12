@@ -137,14 +137,20 @@ int k1_asrc24_push(k1_asrc24_t *st, const int16_t *src, uint32_t count)
     }
     for (i = 0; i < count; ++i) {
 #ifdef K1_EMOTISCOPE_PORT
-        uint32_t tap;
+        uint32_t tap = 0u;
         uint32_t cursor = st->filter_write_pos;
         float filtered = 0.0f;
         st->filter_history[cursor] = src[i];
-        for (tap = 0u; tap < K1_ASRC24_FILTER_TAPS; ++tap) {
-            filtered += st->filter_coefficients[tap] *
-                        (float)st->filter_history[cursor];
-            cursor = cursor == 0u ? K1_ASRC24_FILTER_TAPS - 1u : cursor - 1u;
+        /* Two contiguous spans preserve tap/float accumulation order exactly.
+           Move circular wrap selection out of the 95-tap inner loop. */
+        for (++cursor; cursor > 0u; --cursor) {
+            filtered += st->filter_coefficients[tap++] *
+                        (float)st->filter_history[cursor - 1u];
+        }
+        for (cursor = K1_ASRC24_FILTER_TAPS;
+             tap < K1_ASRC24_FILTER_TAPS; --cursor) {
+            filtered += st->filter_coefficients[tap++] *
+                        (float)st->filter_history[cursor - 1u];
         }
         st->filter_write_pos =
             (st->filter_write_pos + 1u) % K1_ASRC24_FILTER_TAPS;

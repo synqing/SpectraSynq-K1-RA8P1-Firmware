@@ -104,6 +104,10 @@ static uint64_t capture_rate_t0_us;
 static uint32_t capture_asrc_starved;
 static uint32_t capture_ap_hops;
 static uint32_t capture_asrc_push_drop;
+static k1_pdm_capture_service_t capture_service;
+static uint32_t capture_poll_start_cycles;
+static uint32_t capture_poll_entry_filled;
+static uint32_t capture_poll_pairs;
 static uint64_t capture_last_hop_us;
 static uint32_t capture_last_hop_dt_us;
 static uint32_t capture_last_hop_peak;
@@ -221,6 +225,19 @@ static uint64_t k1_pdm_target_now_cycles(void) {
 static uint64_t k1_pdm_target_now_us(void) {
     return (k1_pdm_target_now_cycles() * 1000000ull) /
            (uint64_t) SystemCoreClock;
+}
+
+static void k1_pdm_target_finish_poll(void) {
+    capture_service.poll_last_cycles =
+        (uint32_t)k1_pdm_target_now_cycles() - capture_poll_start_cycles;
+    if (capture_service.poll_last_cycles > capture_service.poll_max_cycles)
+        capture_service.poll_max_cycles = capture_service.poll_last_cycles;
+    if (capture_poll_pairs > capture_service.poll_max_pairs)
+        capture_service.poll_max_pairs = capture_poll_pairs;
+}
+
+k1_pdm_capture_service_t k1_pdm_target_capture_service(void) {
+    return capture_service;
 }
 
 static void k1_pdm_target_reset_logical_stream(uint32_t reason) {
@@ -534,6 +551,12 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
             const int status = k1_asrc24_push(&capture_asrc, capture_pcm,
                                              K1_PDM_TARGET_SLOT_ELEMENTS);
             if (status != k1_asrc24_ok) {
+                ++capture_service.reject_count;
+                capture_service.reject_poll_entry_filled = capture_poll_entry_filled;
+                capture_service.reject_filled = capture_asrc.filled;
+                capture_service.reject_poll_pair_index = capture_poll_pairs + 1u;
+                capture_service.reject_poll_cycles =
+                    (uint32_t)k1_pdm_target_now_cycles() - capture_poll_start_cycles;
                 /* Never hold up DMA draining on a full ASRC queue. Actual
                    loss is explicit: account the rejected block and buffered
                    tail, then tell AP about the new epoch before more PCM. */
@@ -686,6 +709,7 @@ int k1_pdm_target_initialise(void) {
     capture_asrc_starved = 0u;
     capture_ap_hops = 0u;
     capture_asrc_push_drop = 0u;
+    memset(&capture_service, 0, sizeof capture_service);
     capture_last_hop_peak = 0u;
     capture_last_hop_gain_q8 = 0u;
     capture_gain_clip_pos = 0u;
@@ -730,6 +754,9 @@ uint64_t k1_pdm_target_injection_end_us(void) { return capture_injection_end_us;
 void k1_pdm_target_poll(void) {
     uint32_t lane;
     if (!capture_initialised) return;
+    capture_poll_start_cycles = (uint32_t)k1_pdm_target_now_cycles();
+    capture_poll_entry_filled = capture_asrc.filled;
+    capture_poll_pairs = 0u;
     k1_pdm_target_poll_stale(k1_pdm_target_now_us());
 
     if (capture_restart_requested) {
@@ -742,18 +769,21 @@ void k1_pdm_target_poll(void) {
         for (lane = 0; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
             if (k1_pdm_stream_context_recover(&capture_stream[lane],
                                               capture_start_us) != K1_PDM_STREAM_OK) {
+                k1_pdm_target_finish_poll();
                 return;
             }
         }
         error = k1_pdm_target_start_drivers();
         if (error != FSP_SUCCESS) {
             capture_last_fsp_error = (int32_t) error;
+            k1_pdm_target_finish_poll();
             return;
         }
         capture_discard_next_pair = 1u;
         capture_restart_requested = 0;
         k1_pdm_target_reset_logical_stream(1u);
         capture_running = 1;
+        k1_pdm_target_finish_poll();
         return;
     }
 
@@ -765,7 +795,9 @@ void k1_pdm_target_poll(void) {
         (void) k1_pdm_target_acquire(K1_PDM_TARGET_MEASUREMENT_LANE);
         k1_pdm_target_process_pair();
         if (capture_paired_slots == before) break;
+        ++capture_poll_pairs;
     }
+    k1_pdm_target_finish_poll();
 }
 
 static int k1_pdm_target_lane_valid(uint32_t lane) {

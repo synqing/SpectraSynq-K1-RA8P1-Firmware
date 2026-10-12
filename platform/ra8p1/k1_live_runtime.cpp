@@ -774,6 +774,22 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
   const LiveMirSnapshot row = snapshot();
 #ifdef K1_EMOTISCOPE_PORT
   const auto& inhouse = inhouse_audio_.latest();
+  // Sample the sole capture owner only while servicing this existing query.
+  // Host-only runs have no peripheral timing to report.
+  std::uint32_t capture_service[8]{};
+  const char* capture_available = "false";
+#ifdef K1_PDM_TARGET
+  const auto capture = k1_pdm_target_capture_service();
+  capture_service[0] = capture.poll_last_cycles;
+  capture_service[1] = capture.poll_max_cycles;
+  capture_service[2] = capture.poll_max_pairs;
+  capture_service[3] = capture.reject_count;
+  capture_service[4] = capture.reject_poll_entry_filled;
+  capture_service[5] = capture.reject_filled;
+  capture_service[6] = capture.reject_poll_pair_index;
+  capture_service[7] = capture.reject_poll_cycles;
+  capture_available = "true";
+#endif
   InhouseAudioCursor witness_cursor{};
   core::visual::InhouseWaveformAudio witness{};
   const bool inhouse_fresh = acquireInhouse(witness_cursor, observeNowUs(), witness);
@@ -790,6 +806,10 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       "\"audio_gaps\":%lu,\"hops_recorded\":%lu,\"deadline_us\":5000,"
       "\"processing_cycles\":{\"donor\":%lu,\"inhouse\":%lu,"
       "\"donor_boot_max\":%lu,\"inhouse_boot_max\":%lu,\"render\":%lu},"
+      "\"capture_service\":{\"available\":%s,\"poll_last_cycles\":%lu,"
+      "\"poll_max_cycles\":%lu,\"poll_max_pairs\":%lu,\"reject_count\":%lu,"
+      "\"reject_poll_entry_filled\":%lu,\"reject_filled\":%lu,"
+      "\"reject_poll_pair_index\":%lu,\"reject_poll_cycles\":%lu},"
       "\"inhouse\":{\"contract\":\"sr12800.hop96.bins80.note12\","
       "\"valid\":%s,\"generation\":%llu,\"sample_end\":%llu,"
       "\"capture_us\":%llu,\"publish_us\":%llu,\"raw_peak_pcm\":%.6g,"
@@ -811,6 +831,15 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       static_cast<unsigned long>(donor_cycles_), static_cast<unsigned long>(inhouse_cycles_),
       static_cast<unsigned long>(donor_max_cycles_), static_cast<unsigned long>(inhouse_max_cycles_),
       static_cast<unsigned long>(last_vp_cycles_),
+      capture_available,
+      static_cast<unsigned long>(capture_service[0]),
+      static_cast<unsigned long>(capture_service[1]),
+      static_cast<unsigned long>(capture_service[2]),
+      static_cast<unsigned long>(capture_service[3]),
+      static_cast<unsigned long>(capture_service[4]),
+      static_cast<unsigned long>(capture_service[5]),
+      static_cast<unsigned long>(capture_service[6]),
+      static_cast<unsigned long>(capture_service[7]),
       inhouse_fresh ? "true" : "false",
       static_cast<unsigned long long>(inhouse.generation),
       static_cast<unsigned long long>(inhouse.analysis_end_sample_exclusive),

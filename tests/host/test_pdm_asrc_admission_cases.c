@@ -11,6 +11,9 @@ static void initialise_host(void) {
     capture_ap_hops=0;capture_last_hop_us=0;
     capture_pair_epoch_drops=0;capture_pair_skew_drops=0;
     capture_asrc_push_drop=0;
+    memset(&capture_service,0,sizeof capture_service);
+    capture_poll_start_cycles=capture_poll_entry_filled=capture_poll_pairs=0;
+    host_cycle_offset=0;host_cycle_step=0;
     k1_pdm_target_reset_logical_stream(0);
     host_time_us=1000000u;
     for(lane=0;lane<2;++lane) {

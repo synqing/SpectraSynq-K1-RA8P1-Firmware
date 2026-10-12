@@ -53,11 +53,55 @@ static void port_pressure_and_recovery(void) {
     assert(!capture_owner[0].valid && !capture_owner[1].valid);
     puts("pressure:explicit rejected/queued loss,new epoch,cleared FIR,raw DMA ownership preserved");
 }
+static void service_observation_before_reset(void) {
+    int16_t tail[734]={0};
+    assert(sizeof(k1_pdm_capture_service_t)==32u);
+    for(unsigned blocks=1;blocks<=3;++blocks) {
+        initialise_host();
+        const uint32_t entry=734u-(blocks-1u)*296u;
+        assert(k1_asrc24_push(&capture_asrc,tail,entry)==k1_asrc24_ok);
+        for(unsigned i=0;i<blocks;++i) raw_pair(i+1u);
+        /* Controlled host clock: exercise wrap arithmetic, not target cost. */
+        host_cycle_offset=UINT32_MAX-10ull-host_time_us*1000ull;
+        host_cycle_step=17u;
+        k1_pdm_target_poll();
+        k1_pdm_capture_service_t observed=k1_pdm_target_capture_service();
+        assert(observed.reject_count==1u);
+        assert(observed.reject_poll_entry_filled==entry);
+        assert(observed.reject_filled==734u);
+        assert(observed.reject_poll_pair_index==blocks);
+        assert(observed.poll_max_pairs==blocks);
+        assert(observed.reject_poll_cycles>0u);
+        assert(observed.poll_last_cycles==observed.reject_poll_cycles+17u);
+        assert(observed.poll_max_cycles==observed.poll_last_cycles);
+        assert(capture_poll_start_cycles==UINT32_MAX-10u);
+        assert(capture_asrc.filled==0u && capture_stream_epoch==2u);
+        assert(capture_asrc.discarded_samples==1030u);
+        observed.reject_filled=0u;
+        assert(k1_pdm_target_capture_service().reject_filled==734u);
+        const uint32_t maximum=capture_service.poll_max_cycles;
+        k1_pdm_target_poll(); /* Empty poll keeps maxima and rejection latch. */
+        observed=k1_pdm_target_capture_service();
+        assert(observed.poll_last_cycles==17u);
+        assert(observed.poll_max_cycles==maximum);
+        assert(observed.poll_max_pairs==blocks && observed.reject_filled==734u);
+    }
+    initialise_host();
+    raw_pair(1u);raw_pair(2u);
+    host_cycle_step=11u;
+    k1_pdm_target_poll();
+    k1_pdm_capture_service_t observed=k1_pdm_target_capture_service();
+    assert(observed.poll_max_pairs==2u && observed.reject_count==0u);
+    assert(observed.poll_last_cycles>0u && observed.poll_max_cycles==observed.poll_last_cycles);
+    assert(capture_asrc.filled==592u && capture_stream_epoch==1u);
+    puts("service:32-byte copy,last/max host cycles,wrap,pair count,734+296 pre-reset latch");
+}
 int main(void) {
     contract_and_timestamps();
     port_pressure_and_recovery();
     rate_ignores_downstream_admission();
     metadata_loss_requires_discontinuity();
+    service_observation_before_reset();
     puts("EMOTISCOPE_CAPTURE_ADMISSION=PASS");
     return 0;
 }
