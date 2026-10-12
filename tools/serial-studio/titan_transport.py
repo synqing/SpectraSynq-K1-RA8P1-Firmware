@@ -233,6 +233,11 @@ class Transport:
                 "cycles": cycles,
                 "body": body,
             }
+        except (RuntimeError, OSError):
+            # An incomplete exchange can still deliver a late response. Block
+            # the next write before releasing the outstanding transaction.
+            self.quarantine = True
+            raise
         finally:
             self.in_flight = None
 

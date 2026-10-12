@@ -5,6 +5,8 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
 from titan_transport import (  # noqa: E402
@@ -175,3 +177,37 @@ if __name__ == "__main__":
     test_partial_reads_succeed()
     test_coalesced_two_responses()
     print("ss03_transport_ok")
+
+
+@pytest.mark.parametrize("serial_reader", [False, True])
+@pytest.mark.parametrize("received_bytes", [0, 8, 35])
+def test_read_timeout_quarantines_before_late_response_or_next_write(serial_reader, received_bytes):
+    # A subclass takes the same run_led_smoke.read_exact path as real serial;
+    # plain FakeSerial also exercises the transport's local reader.
+    class SerialReader(FakeSerial):
+        pass
+
+    fake = (SerialReader if serial_reader else FakeSerial)(chunk=4096, timeout=0.001)
+    fake.feed_response(0, 1, 0, b'{"generation":7}')
+    response = bytes(fake.rx)
+    fake.rx[:] = response[:received_bytes]
+    transport = Transport(fake, allowed={1, 21, 25}, campaign=True)
+    with pytest.raises(RuntimeError, match="timeout"):
+        transport.transact(21, timeout=0.01)
+    assert transport.quarantine
+    assert transport.in_flight is None
+    assert transport.next_req == 1
+    sent = bytes(fake.tx)
+    assert len(transport.writes) == 1
+
+    # The old response may arrive after the deadline. No new request can be
+    # sent or consume it on this uncertain stream, including an INFO request.
+    fake.feed(response[received_bytes:])
+    pending = bytes(fake.rx)
+    for op in (25, 1):
+        with pytest.raises(FramingError, match="quarantined until re-identify"):
+            transport.transact(op, timeout=0.01)
+        assert bytes(fake.tx) == sent
+        assert bytes(fake.rx) == pending
+        assert len(transport.writes) == 1
+        assert transport.next_req == 1
