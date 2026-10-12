@@ -2,21 +2,22 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
 
-## Current physical evidence — 12 October 2026, evening
+## Current physical delivery — 12 October 2026, evening
 
-The EiP camera is restored. A matched physical baseline/candidate recording and a
-controlled bass/detail/silence probe were captured and inspected through the actual
-assembled stack. Installed firmware remains `4c94653ddc3d...` / source `7ae880e`.
-The comparison retained the operator's current master 255/255 and both board gains
-0.25; no output-chain changes. Both recorded passages had stable SQ4 settings.
+Installed candidate `4c94653ddc3d...` / firmware source `7ae880e` is running.
+Captain cleared the competing-control conflict. A clean body-spacing comparison
+retained width 0.08/0.08 and trail 40 ms on body only; detail remains 0.20/0.14,
+trail 120 ms. Complete two-board SQ4 save/edit/recall passes. Master 255/255,
+both gains 0.25, secondary and emission ON; broker/mixer healthy, no LED faults.
 
-The later body-spacing comparison was contaminated by external palette, mode,
-ML and scene changes. Hardware writes stopped pending resolution of that control
-ownership conflict. The last observed state is Ribbons on both boards, emission
-ON; the attempted body width/trail edits are unsaved. Do not mistake the earlier
-SQ4 leave-state below for this latest readback. Full delivery is unfinished.
+The final same-session physical baseline/candidate recording includes current
+render timing (maximum sampled 1.768 ms against the 10 ms period, no added
+publication misses or skipped releases). A second causal probe was also inspected.
+Overall acceptance remains incomplete: faint new material after digital silence
+coincides with nonzero microphone input; an actually below-floor physical quiet
+interval is not qualified. Aesthetic preference is PENDING Captain's judgement.
 
-[Physical clips, settings, failure evidence and remaining work](CONTINUOUS-BLOOM-PHYSICAL-20261012.md).
+[Final clips, identity/settings, fixed criteria and exact remaining closure](CONTINUOUS-BLOOM-PHYSICAL-20261012.md).
 
 ## Retained deployed correction: continuous body/detail Bloom — 12 October 2026
 

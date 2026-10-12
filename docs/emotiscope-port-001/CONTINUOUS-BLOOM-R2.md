@@ -2,7 +2,7 @@
 
 THE TITAN MUST ALWAYS BE VISUALISING MUSIC.
 
-[Latest physical comparison and live-state update](CONTINUOUS-BLOOM-PHYSICAL-20261012.md): camera restored; paired footage captured; subsequent spacing run stopped for competing control activity.
+[Latest physical comparison and live-state update](CONTINUOUS-BLOOM-PHYSICAL-20261012.md): final matched footage and current-image timing delivered; narrowed body preset saved and recalled. Physical quiet qualification and aesthetic preference remain open.
 
 ## Retained deployed correction — 12 October 2026, 04:09 Perth
 
