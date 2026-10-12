@@ -36,7 +36,7 @@ float follow(float value, float target, float dt, float up, float down) noexcept
 }
 std::uint16_t outputChannel(std::int32_t channel) noexcept {
   return static_cast<std::uint16_t>((static_cast<std::uint64_t>(
-      std::max(0, std::min(one, channel))) * 65535U) / 65536U);
+      std::max<std::int32_t>(0, std::min(one, channel))) * 65535U) / 65536U);
 }
 PaletteLinearRgb sample(std::uint16_t id, float coordinate, float brightness) noexcept {
   // Match palette_manual_colour's SQ15x16 coordinate/colour/level boundaries.
@@ -108,7 +108,7 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
   float x = 0.0F, y = 0.0F, total_weight = 0.0F;
   for (unsigned i = 0; i < 12U; ++i) {
     observation_.chroma_pregate[i] = maximum > q(0.08F) ? f(chroma[i]) : 0.0F;
-    observation_.chroma[i] = f(std::min(one, mul(std::max(0, chroma[i] - q(0.1F)), gate)));
+    observation_.chroma[i] = f(std::min(one, mul(std::max<std::int32_t>(0, chroma[i] - q(0.1F)), gate)));
     const float weight = clamp01(observation_.chroma_pregate[i]);
     x += ::cosf(static_cast<float>(i) / 12.0F * tau) * weight;
     y += ::sinf(static_cast<float>(i) / 12.0F * tau) * weight;

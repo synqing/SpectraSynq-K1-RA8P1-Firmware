@@ -147,7 +147,7 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
     square_sum += f(mul(normalised_q16, normalised_q16));
   }
   const float rms = f(q(std::sqrt(square_sum / static_cast<float>(kInhouseHopSamples))));
-  publication_.vu_level = f(divq(std::max(0, q(rms) - q(config_.vu_floor)),
+  publication_.vu_level = f(divq(std::max<std::int32_t>(0, q(rms) - q(config_.vu_floor)),
       q(1.0F - config_.vu_floor)));
   const float drive = std::max(0.0F, publication_.raw_peak_pcm - config_.drive_floor_pcm);
   // Source's first dt-clock call uses 10 ms; later calls use sample chronology.
@@ -246,7 +246,7 @@ void InhouseAudio::condition(Conditioning& state, float dt) noexcept {
       const auto excess = value - q(0.5F);
       value = q(0.5F) + divq(excess, kOne + excess);
     }
-    state.spectrum[bin] = f(std::clamp(value, 0, kOne));
+    state.spectrum[bin] = f(std::clamp<std::int32_t>(value, 0, kOne));
   }
 }
 
