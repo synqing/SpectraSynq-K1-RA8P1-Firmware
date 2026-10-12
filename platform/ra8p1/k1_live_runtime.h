@@ -128,6 +128,10 @@ class LiveAudioRuntime final {
   InhouseAudio inhouse_audio_{};
   bool inhouse_active_ = false;
   float pcm_rms_ = 0.0F;
+  // Last admitted hop and boot maxima, retained across capture gaps so a
+  // failed analyser cannot erase the cost that caused its discontinuity.
+  std::uint32_t donor_cycles_ = 0, inhouse_cycles_ = 0;
+  std::uint32_t donor_max_cycles_ = 0, inhouse_max_cycles_ = 0;
 #endif
   bool tempo_field_enabled_ = true;
   bool tempo_phase_enabled_ = true;

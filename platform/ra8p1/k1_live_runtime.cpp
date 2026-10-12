@@ -25,6 +25,9 @@ using k1::core::visual::pushVisualWaveform;
 
 void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
   resetAudioOwned();
+#ifdef K1_EMOTISCOPE_PORT
+  donor_cycles_ = inhouse_cycles_ = donor_max_cycles_ = inhouse_max_cycles_ = 0U;
+#endif
   hop_ = {};
   last_hop_ = {};
   last_epoch_ = 0;
@@ -202,10 +205,25 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   // Bind capture chronology before analysing the SAME admitted PCM. This
   // publication is completed below after both required feature views finish.
   finalisePublication(private_, hop, nowUs());
+#ifdef K1_RA8P1_TARGET
+  const std::uint32_t inhouse_begin = k1_cycle_count();
+  donor_cycles_ = inhouse_begin - ap_t0;
+#else
+  const std::uint32_t inhouse_begin = host_cycles_;
+  donor_cycles_ = inhouse_begin - ap_begin;
+#endif
+  inhouse_cycles_ = 0U;
   if (inhouse_active_) {
     (void)inhouse_audio_.consume(hop, private_.features.capture_time_us,
         capture_stamp_valid_ && hop.capture_estimate_valid != 0U);
+#ifdef K1_RA8P1_TARGET
+    inhouse_cycles_ = k1_cycle_count() - inhouse_begin;
+#else
+    inhouse_cycles_ = host_cycles_ - inhouse_begin;
+#endif
   }
+  if (donor_cycles_ > donor_max_cycles_) donor_max_cycles_ = donor_cycles_;
+  if (inhouse_cycles_ > inhouse_max_cycles_) inhouse_max_cycles_ = inhouse_cycles_;
 #else
   const int accepted = k1_audio_hop_accept(&last_epoch_, &last_sequence_, &hop);
   if (accepted == -2 || accepted == -3) {
@@ -770,6 +788,8 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       "\"chroma_origin\":\"D-sharp\",\"beat_locked\":false,"
       "\"donor_dominant_tempo_bpm\":%.6g,\"donor_tempo_confidence\":%.6g,"
       "\"audio_gaps\":%lu,\"hops_recorded\":%lu,\"deadline_us\":5000,"
+      "\"processing_cycles\":{\"donor\":%lu,\"inhouse\":%lu,"
+      "\"donor_boot_max\":%lu,\"inhouse_boot_max\":%lu,\"render\":%lu},"
       "\"inhouse\":{\"contract\":\"sr12800.hop96.bins80.note12\","
       "\"valid\":%s,\"generation\":%llu,\"sample_end\":%llu,"
       "\"capture_us\":%llu,\"publish_us\":%llu,\"raw_peak_pcm\":%.6g,"
@@ -788,6 +808,9 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       static_cast<double>(donor_status_.tempo_confidence),
       static_cast<unsigned long>(donor_status_.audio_gaps),
       static_cast<unsigned long>(row.hops_recorded),
+      static_cast<unsigned long>(donor_cycles_), static_cast<unsigned long>(inhouse_cycles_),
+      static_cast<unsigned long>(donor_max_cycles_), static_cast<unsigned long>(inhouse_max_cycles_),
+      static_cast<unsigned long>(last_vp_cycles_),
       inhouse_fresh ? "true" : "false",
       static_cast<unsigned long long>(inhouse.generation),
       static_cast<unsigned long long>(inhouse.analysis_end_sample_exclusive),

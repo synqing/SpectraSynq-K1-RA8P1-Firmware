@@ -32,7 +32,19 @@ struct InhouseLane final {
 
 inline void stepInhouseLane(InhouseLane& lane, std::int32_t sample,
                             std::uint32_t& overflows) noexcept {
+#if defined(__arm__) && defined(__thumb__)
+  // GCC 13 widens the four-lane loop into mul/mla/umull sign reconstruction.
+  // SMULL computes this same signed 32 x 32 -> 64 product in one instruction.
+  // Early-clobber outputs keep both input registers intact; no flags change.
+  std::uint32_t low;
+  std::int32_t high;
+  __asm__("smull %0, %1, %2, %3"
+          : "=&r"(low), "=&r"(high)
+          : "r"(lane.coefficient_q14), "r"(lane.q1));
+  const auto product = static_cast<std::int64_t>(high) * 4294967296LL + low;
+#else
   const auto product = static_cast<std::int64_t>(lane.coefficient_q14) * lane.q1;
+#endif
   const auto q0 = (static_cast<std::int64_t>(sample) >> 6) + (product >> 14) - lane.q2;
   if (q0 > INT32_MAX || q0 < INT32_MIN) ++overflows;
   lane.q2 = lane.q1;
