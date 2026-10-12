@@ -9,10 +9,12 @@ from pathlib import Path
 import hashlib
 import json
 import subprocess
+import argparse
 
 ROOT = Path(__file__).resolve().parents[2]
 REF = Path('/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE')
-OUT = ROOT / '_scratch/inhouse-waveform-host'
+parser=argparse.ArgumentParser();parser.add_argument('--output',type=Path);args=parser.parse_args()
+OUT = (args.output or ROOT / '_scratch/inhouse-waveform-host').resolve()
 OUT.mkdir(parents=True, exist_ok=True)
 visual = (REF / 'visual/lightshow_modes.h').read_text()
 effect = REF / 'effects/light_mode_waveform_hybrid_k1.cpp'
@@ -113,9 +115,11 @@ for name in ['k1_emo_controls.h','k1_emo_waveform_audio.h','k1_audio_snapshot.h'
 (OUT/'oracle.h').write_text('#include "lightshow_modes.h"\n#include "'+str(effect)+'"\n')
 fixed = REF.parent/'.pio/libdeps/k1_bench_scheduling_gdft_cross80_probe/FixedPoints/src'
 sources = ['harness/tests/test_inhouse_waveform.cpp','src/k1/core/visual/inhouse_waveform.cpp',
-           'src/k1/core/visual/product_palette.cpp','src/k1/core/visual/product_palette_data.cpp']
+           'src/k1/core/visual/product_palette.cpp','src/k1/core/visual/product_palette_data.cpp',
+           'platform/ra8p1/inhouse_audio.cpp','src/k1/core/audio/gdft_goertzel.cpp']
 cmd=['/opt/homebrew/bin/g++-16','-std=c++17','-O1','-g','-fsanitize=undefined','-fno-sanitize-recover=all',
-     '-Isrc/k1','-I'+str(OUT),'-I'+str(fixed),*sources,'-o',str(OUT/'check')]
+     '-ffp-contract=off','-Iplatform/ra8p1','-Isrc','-Isrc/k1','-I'+str(OUT),'-I'+str(fixed),*sources,'-o',str(OUT/'check')]
+source_hashes={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
 rows=[]
 for args in [cmd,[str(OUT/'check'),str(OUT/'frames.rgb16')]]:
     p=subprocess.run(args,cwd=ROOT,capture_output=True,text=True)
@@ -142,3 +146,6 @@ ax.axhline(7,color='white',alpha=.5,linewidth=.5)
 ax.set(xlabel='Logical pixel (centre 79/80)',ylabel='Elapsed seconds',
        title='Hybrid K1 actual host RGB16 output | palette edit 3 s | silence 7 s\nSynthetic feature stream; display gamma 2.2; no optical or music-quality claim')
 fig.tight_layout();fig.savefig(OUT/'actual-output.png',dpi=150);plt.close(fig)
+
+assert source_hashes=={name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in sources}
+(OUT/'receipt.json').write_text(json.dumps({'pass':True,'sources':source_hashes,'reference_effect_sha256':hashlib.sha256(effect.read_bytes()).hexdigest(),'commands':rows,'audible_frames_exact':700,'quiet_frames_intentional_deviation':200,'reference_oracle_unchanged':True,'output_fault_rejected':fault.returncode==2,'scope':'host arithmetic/output and PCM classifier only; no physical quiet or weak-music qualification'},indent=2)+'\n')

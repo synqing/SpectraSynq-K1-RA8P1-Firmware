@@ -1,11 +1,65 @@
 #include "core/visual/inhouse_waveform.h"
 #include "oracle.h"
+#include "inhouse_audio.h"
 #include <cassert>
 #include <cstdio>
 #include <limits>
 
 using namespace k1::core::visual;
 static unsigned level(const Pixel16& p){return unsigned(p.red)+p.green+p.blue;}
+static void confirmed_quiet_and_wake(){
+ InhouseWaveformRenderer r, peer, control;InhouseWaveformAudio a;InhouseWaveformControls c;
+ Pixel16 out[160]{}, other[160]{}, expected_peer[160]{};
+ a.valid=true;a.epoch=9;a.analysis_end_sample_exclusive=96;a.peak_scaled=1.f;a.vu_level=.025f;
+ a.observed_peak_scaled=1.f;a.peak_summary_valid=true;a.spectrum.fill(.4f);
+ for(unsigned frame=1;frame<=250;++frame){
+   const uint64_t now=frame*10000ULL;
+   a.generation=frame;a.capture_us=now-2000;a.publish_us=now-1000;
+   a.silence=frame>20;
+   const auto births=r.observation().injection_count;
+   assert(r.render(a,c,now,out,160));
+   if(a.silence){assert(r.observation().injection_count==births);assert(r.observation().deposit_strength==0.f);}
+   auto live=a;live.silence=false;
+   assert(peer.render(live,c,now,other,160));assert(control.render(live,c,now,expected_peer,160));
+   assert(std::memcmp(other,expected_peer,sizeof(other))==0);
+ }
+ for(const auto& p:out)assert(level(p)==0);
+ // A fresh weak publication reopens births immediately, without waiting on VU/chroma.
+ a.silence=false;a.peak_scaled=.021f;a.vu_level=0.f;a.spectrum.fill(0.f);a.peak_summary_valid=false;
+ a.generation=251;a.capture_us=2508000;a.publish_us=2509000;
+ const auto before=r.observation().injection_count;
+ assert(r.render(a,c,2510000,out,160));assert(r.observation().injection_count>before);
+ assert(r.observation().deposit_strength>0.f);
+}
+static void real_pcm_quiet_and_wake(){
+ k1::titan::InhouseAudio producer;assert(producer.configure({}));
+ InhouseWaveformRenderer renderer;Pixel16 out[160]{};uint64_t seq=0;
+ auto push=[&](int16_t value){
+   k1_audio_hop_t h{};h.contract_version=2;h.samples=64;h.analysis_rate_hz=12800;h.stream_epoch=1;
+   h.hop_sequence=++seq;h.analysis_begin=(seq-1)*64;h.analysis_end_exclusive=seq*64;
+   for(auto& pcm:h.pcm)pcm=value;
+   const bool ready=producer.consume(h,seq*5000,true);producer.stampPublication(seq*5000);
+   if(ready){const auto births=renderer.observation().injection_count;
+     assert(renderer.render(producer.latest(),{},seq*5000,out,160));
+     if(producer.latest().silence)assert(renderer.observation().injection_count==births);
+   }
+   return ready;
+ };
+ // The measured quiet failure has positive RMS and a healthy normalised peak.
+ for(unsigned i=0;i<1300;++i)push(655); // raw RMS about .02, >5 s dwell
+ assert(producer.latest().silence && producer.latest().peak_scaled>.02f);
+ for(const auto& p:out)assert(level(p)==0);
+ for(unsigned i=0;i<30;++i)push(2588); // RMS .079 stays below declared .08 exit
+ assert(producer.latest().silence); // Honest limitation: this weak level cannot wake.
+ unsigned analyses=0;const auto attack_begin=seq;const auto births=renderer.observation().injection_count;
+ while(producer.latest().silence && analyses<3)if(push(2654))++analyses; // RMS .081
+ // Partial 64-to-96 assembly can first publish a mixed below-threshold block;
+ // the source classifier then uses the previous full block's RMS.
+ assert(!producer.latest().silence && analyses<=3);
+ std::printf("PCM wake: .079 remains quiet; .081 clears after %u analyses / %llu us at this hop alignment\n",analyses,(unsigned long long)((seq-attack_begin)*5000));
+ assert(renderer.observation().injection_count>births);
+ for(unsigned i=0;i<300;++i){push(655);assert(!producer.latest().silence);} // 1.5 s inter-beat gap
+}
 int main(int argc,char** argv){
  assert(argc==2 || argc==3);FILE* frames=std::fopen(argv[1],"wb");assert(frames);
  InhouseWaveformRenderer renderer, peer, peer_control;
@@ -13,6 +67,7 @@ int main(int argc,char** argv){
  Pixel16 output[160]{}, other[160]{}, control[160]{};
  ChannelEffectState source_state;source_state.wfhyb_last_ms=10;CRGB16 source_history[160]{};
  unsigned maximum_error=0,lit_subbyte=0;
+ uint32_t quiet_births=0;uint64_t quiet_energy=UINT64_MAX;unsigned quiet_differences=0;
  for(unsigned frame=0;frame<900;++frame){
    if(frame==300)controls.palette_id=11;
    const uint64_t time=10000ULL*(frame+2U);
@@ -37,15 +92,20 @@ int main(int argc,char** argv){
    clock_ms=uint32_t(time/1000);palette_id=controls.palette_id;
    light_mode_waveform_hybrid_k1(source_history,source_state);
    assert(std::abs(source_state.wfhyb_peak_last-observed.peak_stage2)<.000001f);
+   if(frame==700)quiet_births=observed.injection_count;
+   if(frame>=700){assert(observed.deposit_strength==0.f);assert(observed.injection_count==quiet_births);}
+   uint64_t frame_energy=0;
    for(unsigned i=0;i<160;++i){
+     frame_energy+=level(output[i]);
      const unsigned expected[3]={unsigned(float(leds_16[i].r)*65535.f),unsigned(float(leds_16[i].g)*65535.f),unsigned(float(leds_16[i].b)*65535.f)};
      const unsigned actual[3]={output[i].red,output[i].green,output[i].blue};
-     for(unsigned c=0;c<3;++c){const unsigned error=unsigned(std::abs(int(expected[c])-int(actual[c])));maximum_error=std::max(maximum_error,error);if(error!=0){std::fprintf(stderr,"frame=%u pixel=%u c=%u expected=%u actual=%u error=%u\n",frame,i,c,expected[c],actual[c],error);std::fprintf(stderr,"source dot %.9f %.9f %.9f actual %.9f %.9f %.9f\n",source_state.wfhyb_dot_r,source_state.wfhyb_dot_g,source_state.wfhyb_dot_b,observed.smoothed_colour.red,observed.smoothed_colour.green,observed.smoothed_colour.blue);return 2;}if(actual[c]>0 && actual[c]<257)++lit_subbyte;}
+     for(unsigned c=0;c<3;++c){const unsigned error=unsigned(std::abs(int(expected[c])-int(actual[c])));if(frame<700)maximum_error=std::max(maximum_error,error);if(error!=0 && frame>=700)++quiet_differences;if(error!=0 && frame<700){std::fprintf(stderr,"frame=%u pixel=%u c=%u expected=%u actual=%u error=%u\n",frame,i,c,expected[c],actual[c],error);std::fprintf(stderr,"source dot %.9f %.9f %.9f actual %.9f %.9f %.9f\n",source_state.wfhyb_dot_r,source_state.wfhyb_dot_g,source_state.wfhyb_dot_b,observed.smoothed_colour.red,observed.smoothed_colour.green,observed.smoothed_colour.blue);return 2;}if(actual[c]>0 && actual[c]<257)++lit_subbyte;}
      assert(std::memcmp(&output[i],&output[159-i],sizeof(Pixel16))==0);
    }
+   if(frame>=700){assert(frame_energy<=quiet_energy);quiet_energy=frame_energy;}
    std::fwrite(output,sizeof(output),1,frames);
  }
- std::fclose(frames);assert(lit_subbyte>100);
+ std::fclose(frames);assert(lit_subbyte>100);assert(quiet_differences>0);assert(quiet_energy==0);
  // Stale/regressive inputs drain instead of keeping the last loud sample live.
  for(unsigned i=902;i<1200;++i)assert(renderer.render(audio,controls,i*10000ULL,output,160));
  for(const auto& pixel:output)assert(level(pixel)==0);
@@ -71,7 +131,7 @@ int main(int argc,char** argv){
  for(const auto& p:output)assert(level(p)==0);
  // Retained interval summary carries a missed narrow peak without inventing VU.
  InhouseWaveformRenderer interval;audio.capture_us=49000;audio.publish_us=49500;
- audio.peak_scaled=0.f;audio.vu_level=0.f;audio.silence=true;
+ audio.peak_scaled=0.f;audio.vu_level=0.f;audio.silence=false;
  audio.observed_peak_scaled=.8f;audio.peak_summary_valid=true;
  assert(interval.render(audio,controls,50000,output,160));
  assert(std::abs(interval.observation().peak_stage2-expected)<1e-6f);
@@ -89,5 +149,7 @@ int main(int argc,char** argv){
  audio.spectrum.fill(std::numeric_limits<float>::infinity());
  assert(nonfinite.render(audio,controls,70000,output,160));
  for(const auto& p:output)assert(level(p)==0);
- std::printf("actual source effect: 900 frames, 432000 RGB comparisons, max u16 error=%u; subbyte=%u; independent state, two-pixel deposit, stale drain verified\n",maximum_error,lit_subbyte);
+ confirmed_quiet_and_wake();
+ real_pcm_quiet_and_wake();
+ std::printf("actual source effect: 900 frames, exact audible comparison 700 frames, deliberate quiet divergence 200 frames; max audible u16 error=%u; subbyte=%u; quiet differing channels=%u; confirmed quiet stops births, weak wake, PCM classifier and peer state verified\n",maximum_error,lit_subbyte,quiet_differences);
 }

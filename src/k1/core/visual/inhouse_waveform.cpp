@@ -80,7 +80,11 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
   const float peak = fresh ? std::max(clamp01(audio.peak_scaled),
       audio.peak_summary_valid ? clamp01(audio.observed_peak_scaled) : 0.0F) : 0.0F;
   const float vu = fresh ? clamp01(audio.vu_level) : 0.0F;
-  const bool silent = !fresh || (audio.silence && peak < 0.02F);
+  // Coherent Titan publications make the producer's confirmed quiet decisive.
+  // The legacy peak veto defended torn snapshots; AGC-normalised room noise
+  // must not override this flag or keep replenishing the trail.
+  const bool silent = !fresh || audio.silence;
+  const bool active = !silent && (peak > 0.02F || vu > 0.02F);
 
   // Reference get_smooth_spectrogram has symmetric .75 per-render coefficients.
   // The approved reconstruction cadence is 100 Hz. This explicit basis converts
@@ -123,7 +127,7 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
   }
   observation_.held_coordinate_valid = held_valid_;
 
-  hold_ = follow(hold_, peak > 0.02F || vu > 0.02F ? 1.0F : 0.0F, dt, 0.02F, 0.50F);
+  hold_ = follow(hold_, active ? 1.0F : 0.0F, dt, 0.02F, 0.50F);
   silence_scale_ = follow(silence_scale_, silent ? 0.0F : 1.0F, dt, 0.05F, 0.30F);
   observation_.peak_stage1 = ema(observation_.peak_stage1, peak, dt, 0.016F);
   observation_.peak_stage2 = ema(observation_.peak_stage2, observation_.peak_stage1, dt, 0.023F);
@@ -134,7 +138,6 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
   float blend = clamp01(energy * 2.0F);
   if (energy < 0.15F && peak > 0.02F) blend = std::min(blend, 0.25F);
   const float seed_level = std::max(peak, std::max(vu, observation_.peak_stage2));
-  const bool active = peak > 0.02F || vu > 0.02F;
   const float fallback_bright = active ? seed_level : 0.0F;
   const float walk = observation_.peak_stage2 * 0.25F;
   // Source manual colour offset belongs to fallback; particle colour is the
@@ -194,7 +197,7 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
   observation_.position = std::min(159.0F, 80.0F + observation_.peak_stage2*0.7F*80.0F);
   const unsigned position = static_cast<unsigned>(observation_.position);
   const float fraction = observation_.position-static_cast<float>(position);
-  const FixedRgb deposit = fresh ? FixedRgb{q(dot_.red*gain), q(dot_.green*gain), q(dot_.blue*gain)} : FixedRgb{};
+  const FixedRgb deposit = !silent ? FixedRgb{q(dot_.red*gain), q(dot_.green*gain), q(dot_.blue*gain)} : FixedRgb{};
   observation_.deposit_strength = f(deposit.red + deposit.green + deposit.blue);
   for (unsigned i = 0; i < 2U && position+i < 160U; ++i) {
     const auto weight = q(i == 0 ? 1.0F-fraction : fraction);
