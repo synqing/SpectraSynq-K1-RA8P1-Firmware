@@ -1381,3 +1381,13 @@ All six sampled closed admission frames report deposit 0; all eight open music f
 | Full M00–M24 migration | INCOMPLETE; M13 not accepted, M14–M17 not started; retained downstream acceptance tasks remain binding |
 
 Final runtime analysis SHA256 `9856c7eb010f8afa75d42258eb383abf59df523c0852b4134fe61bd848aa129c`; copied unchanged to `evidence/waveform-migration-001/hybrid-009-runtime-evidence-analysis.json`. Root's limited visual review is alongside it. No broad promotion, preference verdict, push or source-repository migration occurred. Resume at M13's concrete full-speed audiovisual operation, correct any observed fault, preserve the accepted checkpoint, then execute the original remaining tasks. Do not request the ESP32-S3 as an automatic substitute for missing review capability.
+
+### Operator correction — 13 October 2026, Hybrid retained as the live lower renderer
+
+Captain rejected the unchanged show after root had restored Bloom on both boards. That restoration was root's decision, not a request from Captain. Review capability limits should have remained an evidence limitation rather than undoing the requested live candidate.
+
+Root verified the existing UID/build/schema and both boards through fresh device reads, then sent one existing Surface control: board 0 `current_mode=32`. Board 1 remains mode 1 / scene 3 detail Bloom. All other authored fields on both boards and physical settings were compared with the fresh before-state and are unchanged. No firmware was reflashed, preset slot overwritten or output limit altered. The actual selected runtime is now lower Hybrid 32 / upper detail Bloom, master 255, gains 0.25, both outputs enabled. Full correction readback: `evidence/waveform-migration-001/hybrid-009-operator-correction-active.json`.
+
+The existing eight-second camera observation and two independent wire/MIR samples are in `_scratch/waveform-migration-001/operator-correction-physical-001/`. Wire readbacks identify mode 32 below/mode 1 above, and MIR has zero audio gaps. Root viewed actual plate frames at 2 s and 6 s: first largely unlit, later bilateral lower violet and upper pink/violet. This observation used ambient input, no additional playback, and is not musical quality acceptance. Hybrid remains selected after observation; no cleanup restored Bloom below.
+
+Live Surface `http://127.0.0.1:8767/`: `Board configuration · direct live controls` → `Control bank` → `Renderer / effect`. Installed supported modes are 0–6 and 32 only. Waveform Tempo 18, Waveform 8, Waveform Fast 7 and Waveform Hybrid 11 are still unimplemented on Titan and unavailable in the selector. Full migration is unfinished. The original plan and earlier failed/limited evidence remain preserved.

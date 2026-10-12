@@ -1,3 +1,9 @@
+## 13 October 2026 — operator correction: lower Hybrid active
+
+Captain rejected the unchanged show after root restored both Bloom renderers. Root has corrected the selection through one existing live control: bottom mode 32 (Waveform Hybrid K1), top mode 1 / scene 3 detail Bloom. All other authored fields and actual output settings are unchanged: master 255, gains 0.25, both outputs enabled. Firmware remains d33945a / build 95499e22… / UID 545433931bd25436593630352d068363. No reflash or SQ4 overwrite.
+
+Fresh before/after readback: [active correction](evidence/waveform-migration-001/hybrid-009-operator-correction-active.json). Root inspected an actual short plate recording, retained with two wire/MIR samples under `_scratch/waveform-migration-001/operator-correction-physical-001/`. Hybrid remains selected. This supersedes the preceding Bloom leave-state; visual/music qualification and the other four Waveform ports remain unfinished.
+
 ## 13 October 2026 — Hybrid 009 installed; working two-board Bloom restored
 
 Firmware source `d33945a3f3df6b20064909a890046c604f373f92`, build `95499e22d9bc761171535a33c51c7e06c1bd93b87795e6a9eaeffbe70823a9e4`, schema `ce1b968f85c4f6a4ef0f1e56db5564c31c3b9c2feab0bde2c5cc13a817940787`, UID `545433931bd25436593630352d068363`. Verified programme/readback on existing E2 Lite 1 MHz route with target power OFF. Candidate 009 reuses the existing Titan acoustic admission independently per Hybrid renderer, retaining source audio numerics. Source/FIR throughput repairs and host boundary checks are in the full migration record.
