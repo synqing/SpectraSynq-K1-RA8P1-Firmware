@@ -19,6 +19,7 @@ from tempo_dtcm_overlay import (
     apply_tempo_placement,
     verify_tempo_elf_placement,
     verify_tempo_placement_receipt,
+    validate_tempo_placement_owner,
 )
 
 from repo_layout import sibling
@@ -480,7 +481,7 @@ def main():
     parser.add_argument('--tempo-acf-slice',action='store_true',
                         help='split tempo ACF lag rows across hops; DualMCU files stay unmodified on disk')
     parser.add_argument('--tempo-placement',choices=('empty-tcm','dtcm'),default=None,
-                        help='resident hot-array placement; empty-tcm is the original timing brief, dtcm is the named historical overlay')
+                        help='explicit ACF scratch placement for resident timing or live Emotiscope with --tempo-field')
     parser.add_argument('--live-runtime',action='store_true',
                         help='named live K1 AP/VP owner; first candidate defaults emit off')
     parser.add_argument('--live-emit',action='store_true',
@@ -523,8 +524,11 @@ def main():
     if args.palette_ws2816 and not args.palette_runtime: parser.error('--palette-ws2816 requires --palette-runtime')
     if args.palette_ws2816 and (args.pdm_target or args.resident_controls):
         parser.error('--palette-ws2816 is a standalone LED bench image')
-    if bool(args.resident_controls) != bool(args.tempo_placement):
-        parser.error('--tempo-placement empty-tcm|dtcm is required with --resident-controls and forbidden without it')
+    try:
+        validate_tempo_placement_owner(args.tempo_placement, bool(args.resident_controls),
+                                       args.emotiscope_port, args.tempo_field, args.live_runtime)
+    except ValueError as error:
+        parser.error(str(error))
     if args.live_runtime and not (
             args.pdm_target and args.palette_runtime and args.palette_morph and
             gpt_output and args.palette_autostart):
@@ -563,7 +567,7 @@ def main():
             material.append(ROOT/'scripts/palette_renderer_overlay.py')
         if args.tempo_acf_slice:
             material.append(ROOT/'scripts/tempo_acf_slice_overlay.py')
-        if args.resident_controls:
+        if args.tempo_placement:
             material.append(ROOT/'scripts/tempo_dtcm_overlay.py')
         if args.resident_controls:
             if not args.resident_controls.is_file(): raise RuntimeError('resident controls missing')
@@ -997,7 +1001,7 @@ def main():
         # Probes must match imported ACF text. DTCM then rewrites the arrays.
         if args.stage_profile:
             receipt['instrumented_sources']=instrument_stage_sources(stage/'src/k1')
-        if args.resident_controls:
+        if args.tempo_placement:
             placement=apply_tempo_placement(stage/'src/k1', args.tempo_placement)
             receipt['tempo_placement_sources']=placement
             if args.tempo_placement=='dtcm':
@@ -1072,7 +1076,9 @@ def main():
         if args.resident_controls:
             for symbol in ['k1_fixture_schedule_step','k1_resident_pcm','k1_resident_crc','k1_resident_length']:
                 assert symbol in symbols, f'missing resident schedule symbol {symbol}'
-            receipt['tempo_placement_evidence']=verify_tempo_elf_placement(symbols, args.tempo_placement)
+        if args.tempo_placement:
+            receipt['tempo_placement_evidence']=verify_tempo_elf_placement(
+                symbols, args.tempo_placement, scratch_only=args.emotiscope_port)
         if args.npu_model:
             for symbol in ['RM_ETHOSU_Open','sub_0001_invoke','k1_npu_invoke']:
                 assert symbol in dump, f'missing NPU execution symbol {symbol}'
@@ -1220,7 +1226,7 @@ def main():
             }
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])
-        if args.resident_controls:
+        if args.tempo_placement:
             receipt['tempo_placement_evidence']['size']=receipt['size']
         receipt['artifacts']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in args.output.iterdir() if p.is_file()}
         if args.emotiscope_port:

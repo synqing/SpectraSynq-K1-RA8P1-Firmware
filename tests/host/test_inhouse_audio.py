@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import resource
 import subprocess
+import sys
 
 ROOT = Path(__file__).resolve().parents[2]
 REFERENCE = Path('/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE')
@@ -123,6 +124,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--reference', default=REFERENCE, type=Path)
+    parser.add_argument('--tempo-placement', choices=('dtcm',))
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
@@ -140,6 +142,25 @@ def main():
     receipt = {'scope': 'host arithmetic/chronology only; not latency, calibration or optical qualification',
                'source_sha256': {str(p.relative_to(ROOT)): sha(p) for p in paths},
                'reference_sha256': PINS, 'cases': []}
+    acf_source = ROOT / 'src/k1/core/audio/tempo_acf.cpp'
+    if args.tempo_placement:
+        sys.path.insert(0, str(ROOT / 'scripts'))
+        from tempo_dtcm_overlay import apply_tempo_placement
+        paths.append(ROOT / 'scripts/tempo_dtcm_overlay.py')
+        receipt['source_sha256'][str(paths[-1].relative_to(ROOT))] = sha(paths[-1])
+        staged_root = output / 'staged'
+        acf_source = staged_root / 'core/audio/tempo_acf.cpp'
+        acf_source.parent.mkdir(parents=True)
+        acf_source.write_bytes((ROOT / 'src/k1/core/audio/tempo_acf.cpp').read_bytes())
+        receipt['tempo_placement'] = apply_tempo_placement(staged_root, args.tempo_placement)
+        if sys.platform == 'darwin':
+            # Mach-O requires segment,section spelling. Storage duration/reset
+            # and every numerical statement remain the actual staged code.
+            host_acf = output / 'tempo_acf.host.cpp'
+            host_acf.write_text(acf_source.read_text().replace('section(".dtcm")', 'section("__DATA,__dtcm")'))
+            receipt['host_section_spelling'] = {'source_sha256': sha(acf_source),
+                                                'host_sha256': sha(host_acf)}
+            acf_source = host_acf
     variants = [('normal', None, None),
                 ('wrong_rate', 'makeGdftConfiguration(core::audio::kLegacy12800AudioRate)',
                  'makeGdftConfiguration(core::audio::kProductionAudioRate)'),
@@ -172,7 +193,7 @@ def main():
                    '-I' + str(ROOT / 'tests/reference/vendor/FixedPoints/src'),
                    str(variant), str(ROOT / 'src/k1/core/audio/gdft_goertzel.cpp'),
                    str(ROOT/'src/k1/core/audio/tempo_tracker.cpp'),
-                   str(ROOT/'src/k1/core/audio/tempo_acf.cpp'),str(output/'k1_tempo.cpp'),
+                   str(acf_source),str(output/'k1_tempo.cpp'),
                    str(output / 'inhouse_source_oracle.cpp'),
                    str(ROOT / 'tests/host/test_inhouse_audio.cpp'), '-o', str(binary)]
         build = subprocess.run(command, capture_output=True, text=True)
@@ -192,7 +213,7 @@ def main():
     boundary_command = prefix + [str(ROOT / 'tests/host/test_inhouse_lane_overflow.cpp'),
                                  str(ROOT / 'src/k1/core/audio/gdft_goertzel.cpp'),
                                  str(ROOT/'src/k1/core/audio/tempo_tracker.cpp'),
-                                 str(ROOT/'src/k1/core/audio/tempo_acf.cpp'),
+                                 str(acf_source),
                                  '-o', str(output / 'overflow-boundaries')]
     build = subprocess.run(boundary_command, capture_output=True, text=True)
     (output / 'overflow-build.log').write_text(build.stdout + build.stderr)
