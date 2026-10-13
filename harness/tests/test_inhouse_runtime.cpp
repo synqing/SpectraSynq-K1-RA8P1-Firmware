@@ -32,7 +32,11 @@ int main(int argc,char** argv){
   DonorDedup legacy{};intent.sub=kDonorCfgPatchExtended;intent.request_id=8;donorApply(&legacy,intent,observed,&applied);assert(applied.status==kDonorStatusInvalid&&!applied.changed);
   intent.sub=kDonorCfgPatchInhouse;intent.board=2;intent.request_id=9;DonorDedup other{};donorApply(&other,intent,observed,&applied);assert(applied.status==kDonorStatusInvalid&&!applied.changed);
   }
-  auto scene=k1_composed_scene_defaults();scene.scene=3;scene.quiet_scope=2;scene.choreography=1;
+  auto scene=k1_composed_scene_defaults();
+  // The ordered mode matrix must reach the selected donor renderer, not the
+  // composed Bloom override. Keep that override only in the legacy isolation
+  // and peak-overload cases, which explicitly exercise bypass behaviour.
+  scene.scene=(argc==5?0:3);scene.quiet_scope=2;scene.choreography=1;
   assert(k1_emotiscope_set_scene_config(&scene));assert(k1_secondary_emotiscope_set_scene_config(&scene));
   std::uint8_t dummy[384];if(k1_emotiscope_is_inhouse_mode(cfg.current_mode))assert(!(selected?k1_secondary_emotiscope_render(1,dummy):k1_emotiscope_render(1,dummy)));
   std::uint32_t hashes[2]={2166136261u,2166136261u};unsigned lit[2]={},lowbits=0;
@@ -42,7 +46,7 @@ int main(int argc,char** argv){
     float pcm[64];for(unsigned half=0;half<2;++half){for(unsigned i=0;i<64;++i)pcm[i]=.35f*std::sin(float((frame*128+half*64+i)*6.283185307179586*220/12800));assert(k1_emotiscope_push_pcm64(pcm,std::uint32_t(now-5000+half*5000)));}
     k1::core::visual::InhouseWaveformAudio a{};a.valid=true;a.analysis_begin_sample=frame*128;a.analysis_end_sample_exclusive=frame*128+96;a.silence=false;a.epoch=1;a.generation=frame+1;a.capture_us=now-5000;a.publish_us=now;a.peak_scaled=.3f+.2f*std::sin(frame*.07f);a.vu_level=.3f;a.raw_peak_pcm=12000;
     for(unsigned i=0;i<80;++i)a.spectrum[i]=.08f+.3f*float((i+frame/30)%12==0);
-    a.vu_average=a.vu_level;a.spectral_energy=.4f;a.novelty=.1f;
+    a.raw_rms=.25f;a.vu_average=a.vu_level;a.spectral_energy=.4f;a.novelty=.1f;
     a.pcm_history_valid=true;a.tempo_valid=true;a.tempo_bpm=128.f;
     a.tempo_phase01=std::fmod(float(frame)*.01f*128.f/60.f,1.f);a.tempo_confidence=.8f;a.tempo_capture_us=a.capture_us;
     for(unsigned h=0;h<4;++h)for(unsigned i=0;i<96;++i)a.pcm_history[h][i]=std::int16_t(12000.f*std::sin((frame*128+h*96+i)*.08f));

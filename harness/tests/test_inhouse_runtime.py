@@ -71,5 +71,7 @@ for first in modes:
             if (first,second)[board] in (32,18,8,7,11):
                 assert baseline['crc'][board]!=changed['crc'][board], f'Brightness inert: {pair_modes} board {board}'
         results.append({'modes':[first,second], 'baseline':baseline,'peer_isolation':True})
-(OUT/'receipt.json').write_text(json.dumps({'scope':'host dispatch and payload only; physical qualification required','results':results},indent=2)+'\n')
+# Preserve the exact compiled sources, including the quiet-admission contract.
+inputs=sources+['src/k1/core/visual/inhouse_waveform.h','platform/ra8p1/palette_runtime.h',str(Path(__file__).relative_to(ROOT))]
+(OUT/'receipt.json').write_text(json.dumps({'scope':'production C++ runtime dispatch and payload only; not full host transport or physical qualification','commands':[cmd],'source_sha256':{name:hashlib.sha256((ROOT/name).read_bytes()).hexdigest() for name in inputs},'matrix_composed_scene':0,'results':results},indent=2)+'\n')
 print(json.dumps(results,indent=2))

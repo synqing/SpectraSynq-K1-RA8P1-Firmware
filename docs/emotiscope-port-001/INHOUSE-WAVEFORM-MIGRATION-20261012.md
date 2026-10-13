@@ -1403,3 +1403,69 @@ Recovery image `95499e22d9bc761171535a33c51c7e06c1bd93b87795e6a9eaeffbe70823a9e4
 
 **Current operating state:** bottom mode32 / palette32; top mode6 / scene3 / palette41; master255, both gains0.25, emission ON and secondary enabled. These are the latest captured operator settings, superseding the earlier palette1/topmode1 entries. SQ4 unchanged. Health confirms advancing frames (~100 Hz), no LED faults, accepted/rendered controls; the deliberately disconnected SMC-Mixer remains absent, while Surface controls work. Camera was reconnected with both plate ends in frame. Further five-effect deployment requires correcting the observed timing failure; all original M00–M24 assignments and failures remain below.
 
+
+
+### Follow-up — family-004 timing failure and host negotiation repair
+
+Exact four-lag ACF load reuse (`f048cab`) preserves 268,752 bitwise row comparisons and the original 4,000-generation tempo oracle. Family-004 build `9ddb76b5f6e86918d11e1c2c3739886d63b83049135df1e3b7a5f2acd2f0f3bf` matched all 211 source inputs and was installed. The first attempt (`family-physical-tempo-004`) completed the Hybrid/Bloom passage but the host retained v7 negotiation from the recovery image and refused Tempo. A normal controller restart negotiated v8; the failed capture is preserved. Host repair `f46c137` resets v8-first negotiation on admitted attachment and verifies upgrade/rollback through the actual transport fence; the full host runner passed and the service was reloaded after rollback.
+
+The corrected-control trial (`family-physical-tempo-005`) completed the passages but dual Tempo still failed capture: sampled audio gaps 7→252, ASRC rejections 0→233, maximum in-house analysis 4,563,048 cycles. There were no new sampled skipped releases (69→69). This improves computation but does not qualify reliable music response. Root rejected family-004, restored recovery009 through the authorised route, and read back the complete latest operator composition again (`rollback-family-004-restored.json`).
+
+Next scoped mechanism is placement of only the existing 2,848-byte ACF temporary arrays in existing DTCM, retaining arithmetic, cadence, tracker histories, output settings and the normal donor runtime. Producer polling between tracker calls was inspected and rejected as the immediate repair: it adds ASRC samples without draining them and can worsen the measured queue pressure. No new renderer, audio stack or queue framework is authorised by this checkpoint.
+
+
+## Finalisation checkpoint — 13 October 2026 (five ports retained)
+
+Captain's finalisation handover continues M00–M24: retain lower Hybrid K1 / upper Tempo, both outputs on, master255 and gains0.25; close physical quiet/motion acceptance, correct demonstrated defects, retain144 ordered host pairings, then present qualified recordings for Captain's final boot selection. No port restart, replacement effects, NVM project or automatic selection is authorised. Original assignments and all rejected candidates above remain intact.
+
+### Installed identity and recovery
+
+Family005/source8f069dc successfully places only2848B ACF scratch in DTCM. Across six reported passages the tested workloads added no capture gaps, microphone rejections or missed render releases; observed analysis maximum1611184 cycles. This does not qualify every pairing. Family003/004 remain rejected, never recovery targets. Immediate recovery is family005 build `2d49264a4c462a51497eb5a20e3f67120c8becc9b2995db8c1bf5565bf853f21`.
+
+Family006/sourcecb09979 remains installed: build `d8e11f5ed9c775267b5ef5ff00baa2a1893c31628f1877a6d9fb3f0b07b459bf`, schema `e99c1ec147288a7beaed728fc91e42530efc91c26f223164e03d07745b68c2da`, UID `545433931bd25436593630352d068363`. Its212 source inputs matched the source checkpoint. HEX SHA256 `d2654d4f99ce1781e3e1527a41038a43c11ddf69c44ef4de0e18be981f204f10`; ELF `117be6aa215418f6eff1a6c2d84d31691aa6e872acbe4fb82ade8ffc3d90699a`. Text342972/data191128/bss499476. Receipts: `_scratch/waveform-migration-001/arm-family-006/`, `family-006-admission.json`, `programme-family-006/`.
+
+On resumption the Renesas USB device enumerated without an IOSerial endpoint. The unrelated ESP32 serial port was not opened. Existing E2 Lite `-run -sig` recovery identified the exact UID, target-power OFF/1MHz, restarted the application and restored CDC. This caused an application restart, not a new flash. Root immediately restored both outputs and recalled SQ5; `finalise-recovery-sq5.json` binds lower32/palette32, upper18/palette41, master255, gains0.25 and both outputs on. It also demonstrates the old embedded startup is still Spectrum, not SQ5. Hostf46c137 remains loaded; mixer hardware is deliberately absent.
+
+### Quiet correction and minimum observation
+
+Installed006 admits through the existing Bloom boundary, then vetoes only when coherent source silence is true AND raw RMS is below the existing0.04 entry threshold. Source wake threshold0.08 and5s dwell are unchanged. Below0.04 music after confirmed quiet is a known limitation; qualifying acoustic transients can still admit. No universal music/noise classifier is claimed.
+
+Source-only follow-up adds `raw_rms` and `quiet_entry_rms` from the exact per-board consumed generation to existing `inhouse_frames` JSON. This removes ambiguity from comparing cached host RMS with another generation's deposit. No rendering, palette, gain or history change. Production host regression passed .079 wake, .0447 sustain, quiet spike rejection, dwell, stale/invalid drain and unchanged peer bytes. Conservative status bound7093/16384bytes. Owner opened the actual resulting plot: it shows the specified admission transitions and rendered output; it is explicitly host evidence, not a plate comparison. Evidence `finalise-quiet-trace-001/receipt.json`. Default Python failed with known pyexpat loader error before compilation; miniforge rerun passed. Both logs retained.
+
+### Corrected M22 coverage
+
+Earlier C++144-pair test left composed scene3 active for donor modes, which could replace the named donor renderer with composed Bloom. That evidence did not prove all twelve named renderer paths. The corrected matrix explicitly disables composed override for matrix rows, retains the separate active-scene bypass cases, and binds source hashes/command. All144 ordered production C++ runtime pairs pass with peer byte preservation; all seven donor outputs are now distinct in the deterministic fixture. Receipt `finalise-runtime-001/`. This is not physical144-pair qualification.
+
+Separately the production host engine/codec test now covers all144 ordered pairs with exact board-targeted patches, selected readback and unchanged peer state during mode/palette/response edits. The device is a test double; it does not claim firmware execution. Focused174tests and the required full host runner443tests passed. `/tmp/waveform-m22.diff` and `/tmp/waveform-finalise-host-full.log` retain the review and execution. Together these close the identified host/runtime coverage gap without claiming an end-to-end physical matrix.
+
+### Camera, timing and unclosed physical criteria
+
+The blurred-desk006 movie is retained as REJECTED optical evidence, never analysed as the plate. New three-second preview `/tmp/k1-finalise-preview-001.mov` and its inspected PNG show the whole plate, both ends with margin and useful focus/colour. Camera lock reports exposure/WB/focus locked; numeric exposure is not exposed. No new music passage was run solely to create another silent recording.
+
+Complete playback-speed review with audible approved music is unavailable through the current agent review route. Therefore musical readability, weak-input physical qualification, continuous motion review, white-highlight diagnosis and Hybrid blending remain BLOCKED. Existing sampled appearances are limited observations: Waveform narrower/darker spaces, Fast broader, Hybrid pink/red overlap, mixed32/18 distinguishable material. They are not preference acceptance. The next executable dependent operation is functioning audiovisual review, then a locked normal0.25/reduced0.08 approved passage with consumed-generation RMS/admission/deposit trace and post-music interval. If reconstructed audio is used, retain measured alignment and uncertainty; process-start offsets are not acoustic synchronisation.
+
+Existing006 telemetry remains useful despite its rejected camera view. Deduplicated request/response records: normal op6 median90.292ms/max149.879ms, op17 median144.277ms/max190.922ms; reduced op6 median90.347ms/max118.884ms, op17 median164.551ms/max204.161ms,14 records each. These requests completed and no control failure was established in these passages. They do not prove acceptable interaction under every workflow or microphone-to-light latency. Evidence `finalise-diagnostic-timing.json`; no broad optimisation started.
+
+Boot delivery remains conditional on the original M23 sequence: qualified recordings → Captain's selection → complete defaults image → authorised install → independent startup/cold-start and host-recall checks. SQ5 remains verified host persistence, not embedded startup. No aesthetic verdict or complete migration is claimed.
+
+### Boot support completed in source; final startup still unselected
+
+The existing `--live-defaults` build mechanism now optionally accepts a complete schema-bound v8 composition. Both boards, pair-owned fields, inactive settings, musical/ML controls and physical settings are validated and applied through existing owning setters after live initialisation. Contradictory pair-owned values and missing/invalid fields are rejected. The original Spectrum defaults path remains compatible. Canonical fixture: `presets/UNSELECTED-sq5-live-defaults-v8.json`, copied from agreed SQ5 readbacks; it is not Captain's final selection. Adjacent dependencies are `scripts/live_boot_composition.py` (validation/header generation), `scripts/build_scalar.py` (existing build consumer) and `fixture_app.cpp` (startup application point). No NVM implementation.
+
+Actual host ASan/UBSan owning-setter readbacks passed,237 invalid inputs rejected, legacy/new builder branches checked, and failed secondary admission keeps primary emission on. ARM build002 passed, exact build `226448ae9b9429bcfff6da30a7f1be0d3b02f51df529220f00217a54ed6ba77b`; text344468/data191128/bss499476, unchanged2848B DTCM scratch. This image is compiled and UNINSTALLED. Build001 was rejected because the helper changed while compilation was in flight; its log and output remain retained. Production files were frozen before build002. No rejected image was flashed.
+
+Receipts are copied into the existing `evidence/waveform-migration-001/` directory with `boot-support-*` and `finalise-*` names. The final live readback `finalise-leave.json` confirms32/18,palettes32/41,master255,both gains0.25,both outputs enabled. Existing006 remains installed. Host tests443PASS; no host runtime change or restart was necessary for test-only coverage.
+
+| Acceptance | Current result |
+|---|---|
+| Five implementations available | PASS on installed006; full aesthetic acceptance open |
+|144 ordered host/runtime pairs and peer preservation | PASS in separately identified host-codec and production-C++ scopes |
+| Quiet correction | Host PASS; physical weak-music/room balance BLOCKED by complete audiovisual review |
+| Musical readability, separation and motion | BLOCKED for continuous musical judgement; sampled plate evidence retained |
+| White highlights/Hybrid blending | Unresolved; no speculative palette/gain repair |
+| SQ5 host recall/controller restart | Previously verified PASS; current fresh recall/readback preserved |
+| Boot-support build | PASS, unselected/uninstalled |
+| Selected embedded defaults, cold-start | NOT RUN; requires qualified choices and Captain selection per M23 |
+| Installed operation | PASS for current readback and bounded captured workload; no claim of universal pairing/timing qualification |
+
+Remaining sequence is concrete: restore a usable audiovisual perception route; inspect matched approved normal/reduced music and post interval with coherent trace; correct only observed mechanisms; present qualified choices; obtain final boot selection; build/install selected settings and verify autonomous restart/cold-start separately from host recall. No request for Captain to perform engineering visual inspection, no ESP32 prerequisite and no follow-on campaign.

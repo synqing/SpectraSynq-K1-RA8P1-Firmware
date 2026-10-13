@@ -36,6 +36,7 @@ rows=[];frames=[]
 for variant in range(2):
  status=json.loads(run([str(O/'check'),str(variant),str(O/f'{variant}.csv'),str(O/f'{variant}.grb48')]))
  assert all(x['source_silence']==1 and x['admission_open']==1 for x in status['inhouse_frames'])
+ assert all(abs(x['raw_rms']-.079)<.001 and abs(x['quiet_entry_rms']-.04)<1e-6 for x in status['inhouse_frames']), 'Renderer trace lost coherent RMS/quiet threshold'
  assert status['inhouse_donor_sequence']==701 and status['inhouse_donor_peak_squared']>.0048
  rows.append(list(csv.DictReader((O/f'{variant}.csv').open())))
  frames.append(np.fromfile(O/f'{variant}.grb48',dtype='>u2').reshape(2400,2,160,3))

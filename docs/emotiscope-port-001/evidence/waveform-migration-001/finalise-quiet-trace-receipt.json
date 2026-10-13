@@ -1,0 +1,140 @@
+{
+  "sources": {
+    "harness/tests/test_inhouse_admission.cpp": "22ddbf58028b320afc50d3d6300038b6fce069b1d65456ef35d282423eb8dff3",
+    "platform/ra8p1/palette_runtime.cpp": "54855d31007c91b54f254775742ab523a94607de8b07db417c550a7ae0791bb9",
+    "platform/ra8p1/emotiscope_port.cpp": "9949e2dd50f47d1542ea055199bd482188a4082b57db728c993d2b95816feabc",
+    "platform/ra8p1/emotiscope_secondary.cpp": "797876f077f6bd03c6b8bb5dca7bcc926cde151b340d8bf18d7e172f9d15d88d",
+    "platform/ra8p1/emotiscope_ml.cpp": "948e1195d69020a59fe006000a0f077f26262480cadc08dcbac8e4ffa4ac8fc8",
+    "platform/ra8p1/inhouse_audio.cpp": "fda98de9626c8ed2b91f398d1b76cb63c9e7b7ae01ef0f7653303a420a89f751",
+    "src/k1/core/audio/gdft_goertzel.cpp": "284d8ab56e235b5ebdaf780edae633e0ca726daf37e98ead8ac4622987ad8084",
+    "src/k1/core/audio/tempo_tracker.cpp": "8a27516c98c0cdd3f83a8dfb6c6683a334808165b1fdf8773b99dd02e816ad24",
+    "src/k1/core/audio/tempo_acf.cpp": "401cfee7437ef06c3137d8eda3e75aae1894c4b58e5c1b5ab238f64070a9ee9f",
+    "src/k1/core/visual/channel_render_state.cpp": "565b601a0a7286d9519b3cce447410b4db699e1204d1dcdcd6e98ff3aa53c15a",
+    "src/k1/core/visual/audio_focus.cpp": "92400bf0d04709cf6aa3cd19b48a186cdee37aa174468b55acb8b77525098fb0",
+    "src/k1/core/visual/product_palette.cpp": "9325af165bc9efb2fbbad71333da1dc030741441a412acf2d0052dbc000360df",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060",
+    "src/k1/core/visual/inhouse_waveform.cpp": "10968d3e82a0f24a6a617aeae2f231dc610d39b2d9ccb9341ba31ed246b88557",
+    "platform/ra8p1/palette_runtime.h": "3f1c43998243d0ecbccf0fb601aa6290209ee52c4e357d5a9f7dc16d72ed24e3",
+    "platform/ra8p1/composed_scene_runtime.h": "caf045276d018f52c97e27b33c96b1ad225c7a1a2fd27005822dfda3feb0218d",
+    "platform/ra8p1/inhouse_audio.h": "a72bdd549313c65b5a723e254fb87c296896295bf6631a24817f0b5cfcb4c35b",
+    "src/k1/core/visual/inhouse_waveform.h": "e0e4175068cdd4e1d92e3241aa6788f1b2c07ef0def66fdbc8f6fa9d513ca45d",
+    "platform/ra8p1/fixture_app.cpp": "90b5cf09a9538fe494e9f1e35514ea0eb9ce000902ac80bdc571ae281e6235a1",
+    "tests/target/trajectory.h": "5df34bcc836992da207db5b9537557572ff3db7cfee65ba181dd2c4bcabf7a9f",
+    "harness/tests/test_inhouse_admission.py": "c139a0ec6e9fa91b61773771345e2d3c5a0141dfc23cb0291e31d4e93ff139d6"
+  },
+  "commands": [
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "-O1",
+        "-g",
+        "-Wno-narrowing",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-ffp-contract=off",
+        "-DK1_EMOTISCOPE_PORT=1",
+        "-DK1_PALETTE_MORPH=1",
+        "-DK1_TITAN_TOP_OUTPUT=1",
+        "-DK1_EMOTISCOPE_TEST_SEAM=1",
+        "-Isrc",
+        "-Isrc/k1",
+        "-Iplatform/ra8p1",
+        "-Iplatform/ra8p1/emotiscope_donor",
+        "-Iplatform/ra8p1/emotiscope_shims",
+        "harness/tests/test_inhouse_admission.cpp",
+        "platform/ra8p1/palette_runtime.cpp",
+        "platform/ra8p1/emotiscope_port.cpp",
+        "platform/ra8p1/emotiscope_secondary.cpp",
+        "platform/ra8p1/emotiscope_ml.cpp",
+        "platform/ra8p1/inhouse_audio.cpp",
+        "src/k1/core/audio/gdft_goertzel.cpp",
+        "src/k1/core/audio/tempo_tracker.cpp",
+        "src/k1/core/audio/tempo_acf.cpp",
+        "src/k1/core/visual/channel_render_state.cpp",
+        "src/k1/core/visual/audio_focus.cpp",
+        "src/k1/core/visual/product_palette.cpp",
+        "src/k1/core/visual/product_palette_data.cpp",
+        "src/k1/core/visual/inhouse_waveform.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/check"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": "In file included from platform/ra8p1/emotiscope_port.cpp:138:\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]\n  532 |     CRGBF temp_pixels[num_pixels];\n      |                       ^~~~~~~~~~\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression\nplatform/ra8p1/emotiscope_donor/leds.h:522:45: note: declared here\n  522 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {\n      |                                             ^\n1 warning generated.\nIn file included from platform/ra8p1/emotiscope_secondary.cpp:51:\nIn file included from platform/ra8p1/emotiscope_port.cpp:138:\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]\n  532 |     CRGBF temp_pixels[num_pixels];\n      |                       ^~~~~~~~~~\nplatform/ra8p1/emotiscope_donor/leds.h:532:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression\nplatform/ra8p1/emotiscope_donor/leds.h:522:45: note: declared here\n  522 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {\n      |                                             ^\n1 warning generated.\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/check",
+        "0",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/0.csv",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/0.grb48"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"version\":1,\"palette_count\":0,\"active\":true,\"automatic_cycle\":false,\"emit_enabled\":true,\"configured_backend\":\"unknown\",\"output_backend\":\"unknown\",\"physical_admission\":\"unproven\",\"waiting_for_audio\":true,\"palette_a\":0,\"palette_b\":0,\"name_a\":\"Waveform Hybrid K1\",\"name_b\":\"Waveform Hybrid K1\",\"mode_a\":32,\"mode_b\":32,\"brightness\":255,\"output_channel\":0,\"period_us\":10000,\"frames\":701,\"skipped_releases\":1,\"emitted\":0,\"emit_errors\":0,\"last_emit_cycles\":0,\"maximum_emit_cycles\":0,\"frame_a_crc\":3177171854,\"frame_b_crc\":3177171854,\"native_pixels_per_channel\":160,\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,\"physical_lanes\":4,\"source_precision\":\"per_renderer_rgb16\",\"renderer\":\"dual_edge\",\"renderer_a\":\"inhouse_waveform\",\"renderer_b\":\"inhouse_waveform\",\"donor_pixels\":128,\"physical_strips\":2,\"wire_snapshot_version\":1,\"legacy_performance_controls\":false,\"host_pixel_stream_required\":false,\"morph_supported\":false,\"visual_path\":\"inhouse_waveform\",\"musical\":false,\"in_dwell\":false,\"live_age_us\":0,\"peak_milli\":0,\"vu_milli\":0,\"chroma_milli\":0,\"wave_milli\":0,\"dwell_armed\":false,\"dwell_reinit\":false,\"effect_frames\":701,\"dwell_frames\":0,\"dwell_reinits\":0,\"inhouse_donor_sequence\":701,\"inhouse_donor_peak_squared\":0.012482,\"inhouse_frames\":[{\"board\":0,\"render_us\":7010000,\"generation\":934,\"capture_us\":7005000,\"fresh\":1,\"source_silence\":1,\"raw_rms\":0.078949,\"quiet_entry_rms\":0.040000,\"admission_open\":1,\"peak\":1.000000,\"position\":136.000000,\"deposit_strength\":0.781357,\"injection_count\":531},{\"board\":1,\"render_us\":7010000,\"generation\":934,\"capture_us\":7005000,\"fresh\":1,\"source_silence\":1,\"raw_rms\":0.078949,\"quiet_entry_rms\":0.040000,\"admission_open\":1,\"peak\":1.000000,\"position\":136.000000,\"deposit_strength\":0.781357,\"injection_count\":531}],\"output_precision\":0,\"output_source\":\"donor_rgb8_dither_expanded16\"}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/check",
+        "1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/1.csv",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/1.grb48"
+      ],
+      "exit_code": 0,
+      "stdout": "{\"version\":1,\"palette_count\":0,\"active\":true,\"automatic_cycle\":false,\"emit_enabled\":true,\"configured_backend\":\"unknown\",\"output_backend\":\"unknown\",\"physical_admission\":\"unproven\",\"waiting_for_audio\":true,\"palette_a\":0,\"palette_b\":0,\"name_a\":\"Waveform Hybrid K1\",\"name_b\":\"Waveform Hybrid K1\",\"mode_a\":32,\"mode_b\":32,\"brightness\":255,\"output_channel\":0,\"period_us\":10000,\"frames\":701,\"skipped_releases\":1,\"emitted\":0,\"emit_errors\":0,\"last_emit_cycles\":0,\"maximum_emit_cycles\":0,\"frame_a_crc\":3177171854,\"frame_b_crc\":3177171854,\"native_pixels_per_channel\":160,\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,\"physical_lanes\":4,\"source_precision\":\"per_renderer_rgb16\",\"renderer\":\"dual_edge\",\"renderer_a\":\"inhouse_waveform\",\"renderer_b\":\"inhouse_waveform\",\"donor_pixels\":128,\"physical_strips\":2,\"wire_snapshot_version\":1,\"legacy_performance_controls\":false,\"host_pixel_stream_required\":false,\"morph_supported\":false,\"visual_path\":\"inhouse_waveform\",\"musical\":false,\"in_dwell\":false,\"live_age_us\":0,\"peak_milli\":0,\"vu_milli\":0,\"chroma_milli\":0,\"wave_milli\":0,\"dwell_armed\":false,\"dwell_reinit\":false,\"effect_frames\":701,\"dwell_frames\":0,\"dwell_reinits\":0,\"inhouse_donor_sequence\":701,\"inhouse_donor_peak_squared\":0.012482,\"inhouse_frames\":[{\"board\":0,\"render_us\":7010000,\"generation\":934,\"capture_us\":7005000,\"fresh\":1,\"source_silence\":1,\"raw_rms\":0.078949,\"quiet_entry_rms\":0.040000,\"admission_open\":1,\"peak\":1.000000,\"position\":136.000000,\"deposit_strength\":0.781357,\"injection_count\":531},{\"board\":1,\"render_us\":7010000,\"generation\":934,\"capture_us\":7005000,\"fresh\":1,\"source_silence\":1,\"raw_rms\":0.078949,\"quiet_entry_rms\":0.040000,\"admission_open\":1,\"peak\":1.000000,\"position\":136.000000,\"deposit_strength\":0.781357,\"injection_count\":531}],\"output_precision\":0,\"output_source\":\"donor_rgb8_dither_expanded16\"}\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "clang++",
+        "-E",
+        "-P",
+        "-x",
+        "c++",
+        "-DK1_EMOTISCOPE_PORT=1",
+        "-DK1_TITAN_TOP_OUTPUT=1",
+        "-DK1_PALETTE_MORPH=1",
+        "-DK1_LIVE_RUNTIME=1",
+        "-DK1_PALETTE_WS2816_GPT_PAIR=1",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/status-formats.cpp"
+      ],
+      "exit_code": 0,
+      "stdout": "const char* f0=\n\"{\\\"version\\\":1,\\\"palette_count\\\":%u,\\\"active\\\":%s,\\\"automatic_cycle\\\":%s,\"\n      \"\\\"emit_enabled\\\":%s,\\\"configured_backend\\\":\\\"%s\\\",\\\"output_backend\\\":\\\"%s\\\",\"\n      \"\\\"physical_admission\\\":\\\"unproven\\\",\"\n      \"\\\"waiting_for_audio\\\":%s,\\\"palette_a\\\":%u,\\\"palette_b\\\":%u,\"\n      \"\\\"name_a\\\":\\\"%s\\\",\\\"name_b\\\":\\\"%s\\\",\\\"mode_a\\\":%lu,\\\"mode_b\\\":%lu,\"\n      \"\\\"brightness\\\":%lu,\\\"output_channel\\\":%lu,\\\"period_us\\\":%lu,\"\n      \"\\\"frames\\\":%llu,\\\"skipped_releases\\\":%llu,\\\"emitted\\\":%llu,\\\"emit_errors\\\":%llu,\"\n      \"\\\"last_emit_cycles\\\":%lu,\\\"maximum_emit_cycles\\\":%lu,\"\n      \"\\\"frame_a_crc\\\":%lu,\\\"frame_b_crc\\\":%lu,\\\"native_pixels_per_channel\\\":160,\"\n      \"\\\"bench_pixels\\\":160,\\\"wire_profile\\\":3,\\\"wire_bits_per_pixel\\\":48,\"\n      \"\\\"din_a\\\":\\\"P601\\\",\\\"din_b\\\":\\\"P604\\\",\\\"pixels_per_din\\\":80,\"\n      \"\\\"physical_lanes\\\":4,\\\"source_precision\\\":\\\"per_renderer_rgb16\\\",\"\n      \"\\\"renderer\\\":\\\"dual_edge\\\",\\\"renderer_a\\\":\\\"%s\\\",\\\"renderer_b\\\":\\\"%s\\\",\\\"donor_pixels\\\":128,\\\"physical_strips\\\":2,\"\n      \"\\\"wire_snapshot_version\\\":1,\\\"legacy_performance_controls\\\":false,\"\n      \"\\\"host_pixel_stream_required\\\":false\"\n      \",\\\"morph_supported\\\":false\"\n      \"}\"\n;\nconst char* f1=\n\",\\\"visual_path\\\":\\\"%s\\\",\\\"musical\\\":%s,\\\"in_dwell\\\":%s,\"\n      \"\\\"live_age_us\\\":%llu,\\\"peak_milli\\\":%lu,\\\"vu_milli\\\":%lu,\"\n      \"\\\"chroma_milli\\\":%lu,\\\"wave_milli\\\":%lu,\\\"dwell_armed\\\":%s,\"\n      \"\\\"dwell_reinit\\\":%s,\\\"effect_frames\\\":%llu,\\\"dwell_frames\\\":%llu,\"\n      \"\\\"dwell_reinits\\\":%llu\"\n      \",\\\"inhouse_donor_sequence\\\":%lu,\\\"inhouse_donor_peak_squared\\\":%.6f\"\n      \",\\\"inhouse_frames\\\":[{\\\"board\\\":0,\\\"render_us\\\":%llu,\\\"generation\\\":%llu,\\\"capture_us\\\":%llu,\\\"fresh\\\":%u,\\\"source_silence\\\":%u,\\\"raw_rms\\\":%.6f,\\\"quiet_entry_rms\\\":%.6f,\\\"admission_open\\\":%u,\\\"peak\\\":%.6f,\\\"position\\\":%.6f,\\\"deposit_strength\\\":%.6f,\\\"injection_count\\\":%llu},\"\n      \"{\\\"board\\\":1,\\\"render_us\\\":%llu,\\\"generation\\\":%llu,\\\"capture_us\\\":%llu,\\\"fresh\\\":%u,\\\"source_silence\\\":%u,\\\"raw_rms\\\":%.6f,\\\"quiet_entry_rms\\\":%.6f,\\\"admission_open\\\":%u,\\\"peak\\\":%.6f,\\\"position\\\":%.6f,\\\"deposit_strength\\\":%.6f,\\\"injection_count\\\":%llu}]\"\n      \",\\\"pair_backend\\\":\\\"%s\\\",\\\"submitted_generation\\\":%lu,\"\n      \"\\\"completed_generation\\\":%lu,\\\"pair_completions\\\":%lu,\"\n      \"\\\"pending_replacements\\\":%lu,\\\"lane_a0_dma\\\":%lu,\\\"lane_a1_dma\\\":%lu,\"\n      \"\\\"lane_a0_stop\\\":%lu,\\\"lane_a1_stop\\\":%lu,\\\"lane_a0_fault\\\":%lu,\"\n      \"\\\"lane_a1_fault\\\":%lu,\\\"pair_fault\\\":%lu,\"\n      \"\\\"pair_fault_site\\\":%lu,\\\"pair_fault_lane\\\":%lu,\"\n      \"\\\"pair_fault_generation\\\":%lu,\\\"pair_fault_dmcra\\\":%lu,\"\n      \"\\\"pair_fault_dmcra_a\\\":%lu,\\\"pair_fault_cyccnt\\\":%lu,\"\n      \"\\\"pair_fault_gpt8_gtcr\\\":%lu,\\\"pair_fault_gpt1_gtcnt\\\":%lu,\"\n      \"\\\"pair_fault_dma_irqs_b\\\":%lu,\\\"pair_fault_stop_irqs_b\\\":%lu,\"\n      \"\\\"pair_last_stop_valid_a\\\":%lu,\\\"pair_last_stop_pwm_running_a\\\":%lu,\"\n      \"\\\"pair_last_stop_gtcnt_a\\\":%lu,\\\"pair_last_stop_gtccr_a\\\":%lu,\"\n      \"\\\"pair_last_stop_dmcra_a\\\":%lu,\\\"pair_last_stop_valid_b\\\":%lu,\"\n      \"\\\"pair_last_stop_pwm_running_b\\\":%lu,\\\"pair_last_stop_gtcnt_b\\\":%lu,\"\n      \"\\\"pair_last_stop_gtccr_b\\\":%lu,\\\"pair_last_stop_dmcra_b\\\":%lu,\"\n      \"\\\"p601_loopback_valid\\\":%lu,\\\"p601_loopback_open\\\":%lu,\"\n      \"\\\"p601_loopback_samples\\\":%lu,\\\"p601_loopback_expected\\\":%lu,\"\n      \"\\\"p601_loopback_rising\\\":%lu,\\\"p601_loopback_falling\\\":%lu,\"\n      \"\\\"p601_loopback_extra\\\":%lu,\\\"p601_loopback_high_after\\\":%lu,\"\n      \"\\\"p601_loopback_first_rise\\\":%lu,\\\"p601_loopback_last_fall\\\":%lu,\"\n      \"\\\"p601_loopback_start\\\":%lu,\\\"p601_loopback_min_high\\\":%lu,\"\n      \"\\\"p601_loopback_max_high\\\":%lu,\\\"p601_loopback_peek_head\\\":%lu,\"\n      \"\\\"p601_loopback_peek_tail\\\":%lu,\"\n      \"\\\"pair_frame_max_ch\\\":%lu,\\\"pair_frame_white\\\":%lu,\\\"pair_frame_crc\\\":%lu,\"\n      \"\\\"pair_elc_a\\\":%lu,\\\"pair_elc_b\\\":%lu\"\n      \",\\\"reset_admissions\\\":%lu,\\\"reset_min_cycles\\\":%lu,\\\"reset_last_cycles\\\":%lu,\"\n      \"\\\"reset_required_cycles\\\":%lu,\\\"reset_stale_rejections\\\":%lu,\"\n      \"\\\"reset_generation\\\":%lu,\\\"reset_cpu_hz\\\":%lu\"\n      \",\\\"start_samples\\\":%lu,\\\"start_min_cycles\\\":%lu,\\\"start_previous_generation\\\":%lu,\"\n      \"\\\"start_next_generation\\\":%lu,\\\"start_stop_a\\\":%lu,\\\"start_stop_b\\\":%lu,\"\n      \"\\\"start_before\\\":%lu,\\\"start_after\\\":%lu,\\\"reset_admission_cycle\\\":%lu\"\n      \"}\"\n;\nconst char* f2=\n\",\\\"output_precision\\\":%lu,\\\"output_source\\\":\\\"%s\\\"}\"\n;\nconst char* f3=\n\",\\\"control_queued\\\":%lu,\\\"control_applied\\\":%lu,\\\"control_queue_depth\\\":%u,\"\n      \"\\\"control_while_pair_active\\\":%lu,\\\"command_started_pair\\\":%lu,\\\"owner_reentry_rejected\\\":%lu\"\n      \",\\\"secondary_output\\\":{\\\"initialised\\\":%lu,\\\"enabled\\\":%u,\"\n      \"\\\"submitted_generation\\\":%lu,\\\"completed_generation\\\":%lu,\"\n      \"\\\"completions\\\":%lu,\\\"errors\\\":%lu,\\\"fault\\\":%lu,\\\"pfs_p603\\\":%lu,\\\"pfs_p714\\\":%lu,\"\n      \"\\\"lanes\\\":[{\\\"fault\\\":%lu,\\\"dma_complete\\\":%lu,\\\"hw_stopped\\\":%lu,\\\"stop_generation\\\":%lu,\\\"stop_valid\\\":%lu},\"\n      \"{\\\"fault\\\":%lu,\\\"dma_complete\\\":%lu,\\\"hw_stopped\\\":%lu,\\\"stop_generation\\\":%lu,\\\"stop_valid\\\":%lu}]}\"\n      \"}\"\n;\n",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/status-capacity.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/status-capacity"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-quiet-trace-001/status-capacity"
+      ],
+      "exit_code": 0,
+      "stdout": "7093\n",
+      "stderr": ""
+    }
+  ],
+  "frames_per_run": 2400,
+  "peer_bytes_identical": true,
+  "weak_rms_079_birth_next_frame": true,
+  "original_source_silence_preserved": true,
+  "room_no_new_material": true,
+  "history_drained": true,
+  "invalid_stale_regressive_epoch_mode_checks": true,
+  "donor_stale_gap_rewarm_checked": true,
+  "production_status_capacity": 16384,
+  "status_conservative_max_bytes": 7093,
+  "confirmed_quiet_peak_spikes_blocked": true,
+  "existing_source_dwell_preserved": true,
+  "limitation": "After source-confirmed quiet, sub-.04 RMS music remains blocked by the inherited source quiet classification. Existing Bloom peak admission also applies. No universal noise/music discrimination or physical qualification claim."
+}

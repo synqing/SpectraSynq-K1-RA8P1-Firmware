@@ -22,6 +22,8 @@ from tempo_dtcm_overlay import (
     validate_tempo_placement_owner,
 )
 
+from live_boot_composition import validate_composition, render_composition
+
 from repo_layout import sibling
 
 BSP = sibling(ROOT, 'sdk-bsp-ra8p1-titan-mini')
@@ -623,6 +625,7 @@ def main():
                 if not args.live_defaults.is_file():
                     raise RuntimeError('live defaults missing')
                 material.append(args.live_defaults)
+                material.append(ROOT/'scripts/live_boot_composition.py')
         if args.dual_edge_donor:
             material += [ROOT/'platform/ra8p1/k1_dual_edge_donor.cpp',ROOT/'platform/ra8p1/k1_dual_edge_donor.h']
             material += [p for p in (ROOT/'platform/ra8p1/donor_fixed').rglob('*') if p.is_file()]
@@ -781,15 +784,23 @@ def main():
                 raise RuntimeError('live boot brightness must be an integer in 100..255 (user mandate)')
             defines.append(f'-DK1_LIVE_BOOT_BRIGHTNESS={brightness}u')
             receipt['live_boot_brightness']=brightness
+            composition=validate_composition(defaults,json.loads(schema),schema)
+            if composition is not None:
+                if not (args.emotiscope_port and args.titan_top_output and args.palette_autostart and args.live_emit and args.palette_ws2816_gpt_pair):
+                    raise RuntimeError('composition requires donor, top output, palette autostart and live pair emitter')
+                generated=render_composition(composition)
+                (stage/'src/live_boot_composition.h').write_text(generated)
+                defines.append('-DK1_LIVE_BOOT_COMPOSITION=1')
+                receipt['live_boot_composition']={'settings':composition,'generated_sha256':hashlib.sha256(generated.encode()).hexdigest(),'consumer':'owning setters after live_runtime.initialise'}
             if args.emotiscope_port:
                 if emit_default != 'on':
                     raise RuntimeError('Emotiscope port must restore autonomous emission on application return')
-                if boot_mode != 1 or defaults.get('mode_b') != 1:
+                if composition is None and (boot_mode != 1 or defaults.get('mode_b') != 1):
                     raise RuntimeError('initial Emotiscope profile must select donor Spectrum mode 1 on both controls')
-                if type(defaults.get('donor_palette')) is not int or defaults['donor_palette'] != 1:
+                if composition is None and (type(defaults.get('donor_palette')) is not int or defaults['donor_palette'] != 1):
                     raise RuntimeError('Emotiscope boot defaults must bind curated palette 1 Sunset_Real_gp')
-                receipt['emotiscope_port']['boot_donor_palette'] = 1
-                receipt['emotiscope_port']['boot_palette_consumer'] = 'source-enforced k1_emotiscope_init; palette_a/b retain compatibility metadata'
+                receipt['emotiscope_port']['boot_donor_palette'] = 1 if composition is None else [composition['boards'][str(i)]['palette'] for i in range(2)]
+                receipt['emotiscope_port']['boot_palette_consumer'] = ('source-enforced k1_emotiscope_init; palette_a/b retain compatibility metadata' if composition is None else 'generated full composition owning setters')
                 receipt['emotiscope_port']['global_gain'] = f'{brightness}/255 once in final hardware packer'
         def _define_value(name):
             prefix = f'-D{name}='

@@ -1,0 +1,2986 @@
+{
+  "scope": "production C++ runtime dispatch and payload only; not full host transport or physical qualification",
+  "commands": [
+    [
+      "clang++",
+      "-std=c++17",
+      "-O1",
+      "-g",
+      "-Wno-narrowing",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer",
+      "-DK1_EMOTISCOPE_PORT=1",
+      "-DK1_PALETTE_MORPH=1",
+      "-DK1_TITAN_TOP_OUTPUT=1",
+      "-DK1_EMOTISCOPE_TEST_SEAM=1",
+      "-Isrc/k1",
+      "-Iplatform/ra8p1",
+      "-Iplatform/ra8p1/emotiscope_donor",
+      "-Iplatform/ra8p1/emotiscope_shims",
+      "harness/tests/test_inhouse_runtime.cpp",
+      "platform/ra8p1/palette_runtime.cpp",
+      "platform/ra8p1/k1_live_protocol.cpp",
+      "platform/ra8p1/emotiscope_port.cpp",
+      "platform/ra8p1/emotiscope_secondary.cpp",
+      "platform/ra8p1/emotiscope_ml.cpp",
+      "src/k1/core/visual/channel_render_state.cpp",
+      "src/k1/core/visual/audio_focus.cpp",
+      "src/k1/core/visual/product_palette.cpp",
+      "src/k1/core/visual/product_palette_data.cpp",
+      "src/k1/core/visual/inhouse_waveform.cpp",
+      "-o",
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/finalise-runtime-001/runtime"
+    ]
+  ],
+  "source_sha256": {
+    "harness/tests/test_inhouse_runtime.cpp": "161874a9be634037516d4f193b573a73b173bc610ab4c0e31ec9100858d405cd",
+    "platform/ra8p1/palette_runtime.cpp": "97ce043cdf4782d1800a87ee2d01687e2f9f4719900c5ee4ca144af8ebd0cbed",
+    "platform/ra8p1/k1_live_protocol.cpp": "301a455162e0b51df82a44135ecfb43092feeaf6ac37594e0ef491a0c81e15eb",
+    "platform/ra8p1/emotiscope_port.cpp": "9949e2dd50f47d1542ea055199bd482188a4082b57db728c993d2b95816feabc",
+    "platform/ra8p1/emotiscope_secondary.cpp": "797876f077f6bd03c6b8bb5dca7bcc926cde151b340d8bf18d7e172f9d15d88d",
+    "platform/ra8p1/emotiscope_ml.cpp": "948e1195d69020a59fe006000a0f077f26262480cadc08dcbac8e4ffa4ac8fc8",
+    "src/k1/core/visual/channel_render_state.cpp": "565b601a0a7286d9519b3cce447410b4db699e1204d1dcdcd6e98ff3aa53c15a",
+    "src/k1/core/visual/audio_focus.cpp": "92400bf0d04709cf6aa3cd19b48a186cdee37aa174468b55acb8b77525098fb0",
+    "src/k1/core/visual/product_palette.cpp": "9325af165bc9efb2fbbad71333da1dc030741441a412acf2d0052dbc000360df",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060",
+    "src/k1/core/visual/inhouse_waveform.cpp": "10968d3e82a0f24a6a617aeae2f231dc610d39b2d9ccb9341ba31ed246b88557",
+    "src/k1/core/visual/inhouse_waveform.h": "e0e4175068cdd4e1d92e3241aa6788f1b2c07ef0def66fdbc8f6fa9d513ca45d",
+    "platform/ra8p1/palette_runtime.h": "3f1c43998243d0ecbccf0fb601aa6290209ee52c4e357d5a9f7dc16d72ed24e3",
+    "harness/tests/test_inhouse_runtime.py": "c5a97d2fa75f6e97a8309f83c829bce60acc622966e26ef847a368ee26f9ef39"
+  },
+  "matrix_composed_scene": 0,
+  "results": [
+    {
+      "selected": 0,
+      "change": 0,
+      "crc": [
+        3432154349,
+        3538455321
+      ],
+      "lit_bytes": [
+        129246,
+        419012
+      ],
+      "wide_precision_samples": 80482
+    },
+    {
+      "selected": 0,
+      "change": 1,
+      "crc": [
+        2939585561,
+        3538455321
+      ],
+      "lit_bytes": [
+        119742,
+        419012
+      ],
+      "wide_precision_samples": 80294
+    },
+    {
+      "selected": 1,
+      "change": 0,
+      "crc": [
+        3538455321,
+        3432154349
+      ],
+      "lit_bytes": [
+        419012,
+        129246
+      ],
+      "wide_precision_samples": 80482
+    },
+    {
+      "selected": 1,
+      "change": 1,
+      "crc": [
+        3538455321,
+        2939585561
+      ],
+      "lit_bytes": [
+        419012,
+        119742
+      ],
+      "wide_precision_samples": 80294
+    },
+    {
+      "modes": [
+        0,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          571809230
+        ],
+        "lit_bytes": [
+          8457,
+          8457
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          3728136065
+        ],
+        "lit_bytes": [
+          8457,
+          64012
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          162542565
+        ],
+        "lit_bytes": [
+          8457,
+          230344
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          3893239725
+        ],
+        "lit_bytes": [
+          8457,
+          8446
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          4156915309
+        ],
+        "lit_bytes": [
+          8457,
+          54498
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          1991913069
+        ],
+        "lit_bytes": [
+          8457,
+          9694
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          1074097005
+        ],
+        "lit_bytes": [
+          8457,
+          84220
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          3432154349
+        ],
+        "lit_bytes": [
+          8457,
+          129246
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          2031552609
+        ],
+        "lit_bytes": [
+          8457,
+          189806
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          2012896073
+        ],
+        "lit_bytes": [
+          8457,
+          284786
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          1038670177
+        ],
+        "lit_bytes": [
+          8457,
+          180976
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        0,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          571809230,
+          3103268173
+        ],
+        "lit_bytes": [
+          8457,
+          355520
+        ],
+        "wide_precision_samples": 4737
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          571809230
+        ],
+        "lit_bytes": [
+          64012,
+          8457
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          3728136065
+        ],
+        "lit_bytes": [
+          64012,
+          64012
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          162542565
+        ],
+        "lit_bytes": [
+          64012,
+          230344
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          3893239725
+        ],
+        "lit_bytes": [
+          64012,
+          8446
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          4156915309
+        ],
+        "lit_bytes": [
+          64012,
+          54498
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          1991913069
+        ],
+        "lit_bytes": [
+          64012,
+          9694
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          1074097005
+        ],
+        "lit_bytes": [
+          64012,
+          84220
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          3432154349
+        ],
+        "lit_bytes": [
+          64012,
+          129246
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          2031552609
+        ],
+        "lit_bytes": [
+          64012,
+          189806
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          2012896073
+        ],
+        "lit_bytes": [
+          64012,
+          284786
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          1038670177
+        ],
+        "lit_bytes": [
+          64012,
+          180976
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        1,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3728136065,
+          3103268173
+        ],
+        "lit_bytes": [
+          64012,
+          355520
+        ],
+        "wide_precision_samples": 51638
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          571809230
+        ],
+        "lit_bytes": [
+          230344,
+          8457
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          3728136065
+        ],
+        "lit_bytes": [
+          230344,
+          64012
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          162542565
+        ],
+        "lit_bytes": [
+          230344,
+          230344
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          3893239725
+        ],
+        "lit_bytes": [
+          230344,
+          8446
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          4156915309
+        ],
+        "lit_bytes": [
+          230344,
+          54498
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          1991913069
+        ],
+        "lit_bytes": [
+          230344,
+          9694
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          1074097005
+        ],
+        "lit_bytes": [
+          230344,
+          84220
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          3432154349
+        ],
+        "lit_bytes": [
+          230344,
+          129246
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          2031552609
+        ],
+        "lit_bytes": [
+          230344,
+          189806
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          2012896073
+        ],
+        "lit_bytes": [
+          230344,
+          284786
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          1038670177
+        ],
+        "lit_bytes": [
+          230344,
+          180976
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        2,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          162542565,
+          3103268173
+        ],
+        "lit_bytes": [
+          230344,
+          355520
+        ],
+        "wide_precision_samples": 119070
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          571809230
+        ],
+        "lit_bytes": [
+          8446,
+          8457
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          3728136065
+        ],
+        "lit_bytes": [
+          8446,
+          64012
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          162542565
+        ],
+        "lit_bytes": [
+          8446,
+          230344
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          3893239725
+        ],
+        "lit_bytes": [
+          8446,
+          8446
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          4156915309
+        ],
+        "lit_bytes": [
+          8446,
+          54498
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          1991913069
+        ],
+        "lit_bytes": [
+          8446,
+          9694
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          1074097005
+        ],
+        "lit_bytes": [
+          8446,
+          84220
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          3432154349
+        ],
+        "lit_bytes": [
+          8446,
+          129246
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          2031552609
+        ],
+        "lit_bytes": [
+          8446,
+          189806
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          2012896073
+        ],
+        "lit_bytes": [
+          8446,
+          284786
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          1038670177
+        ],
+        "lit_bytes": [
+          8446,
+          180976
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        3,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3893239725,
+          3103268173
+        ],
+        "lit_bytes": [
+          8446,
+          355520
+        ],
+        "wide_precision_samples": 4346
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          571809230
+        ],
+        "lit_bytes": [
+          54498,
+          8457
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          3728136065
+        ],
+        "lit_bytes": [
+          54498,
+          64012
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          162542565
+        ],
+        "lit_bytes": [
+          54498,
+          230344
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          3893239725
+        ],
+        "lit_bytes": [
+          54498,
+          8446
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          4156915309
+        ],
+        "lit_bytes": [
+          54498,
+          54498
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          1991913069
+        ],
+        "lit_bytes": [
+          54498,
+          9694
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          1074097005
+        ],
+        "lit_bytes": [
+          54498,
+          84220
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          3432154349
+        ],
+        "lit_bytes": [
+          54498,
+          129246
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          2031552609
+        ],
+        "lit_bytes": [
+          54498,
+          189806
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          2012896073
+        ],
+        "lit_bytes": [
+          54498,
+          284786
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          1038670177
+        ],
+        "lit_bytes": [
+          54498,
+          180976
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        4,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          4156915309,
+          3103268173
+        ],
+        "lit_bytes": [
+          54498,
+          355520
+        ],
+        "wide_precision_samples": 42058
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          571809230
+        ],
+        "lit_bytes": [
+          9694,
+          8457
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          3728136065
+        ],
+        "lit_bytes": [
+          9694,
+          64012
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          162542565
+        ],
+        "lit_bytes": [
+          9694,
+          230344
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          3893239725
+        ],
+        "lit_bytes": [
+          9694,
+          8446
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          4156915309
+        ],
+        "lit_bytes": [
+          9694,
+          54498
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          1991913069
+        ],
+        "lit_bytes": [
+          9694,
+          9694
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          1074097005
+        ],
+        "lit_bytes": [
+          9694,
+          84220
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          3432154349
+        ],
+        "lit_bytes": [
+          9694,
+          129246
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          2031552609
+        ],
+        "lit_bytes": [
+          9694,
+          189806
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          2012896073
+        ],
+        "lit_bytes": [
+          9694,
+          284786
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          1038670177
+        ],
+        "lit_bytes": [
+          9694,
+          180976
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        5,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1991913069,
+          3103268173
+        ],
+        "lit_bytes": [
+          9694,
+          355520
+        ],
+        "wide_precision_samples": 4864
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          571809230
+        ],
+        "lit_bytes": [
+          84220,
+          8457
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          3728136065
+        ],
+        "lit_bytes": [
+          84220,
+          64012
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          162542565
+        ],
+        "lit_bytes": [
+          84220,
+          230344
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          3893239725
+        ],
+        "lit_bytes": [
+          84220,
+          8446
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          4156915309
+        ],
+        "lit_bytes": [
+          84220,
+          54498
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          1991913069
+        ],
+        "lit_bytes": [
+          84220,
+          9694
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          1074097005
+        ],
+        "lit_bytes": [
+          84220,
+          84220
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          3432154349
+        ],
+        "lit_bytes": [
+          84220,
+          129246
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          2031552609
+        ],
+        "lit_bytes": [
+          84220,
+          189806
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          2012896073
+        ],
+        "lit_bytes": [
+          84220,
+          284786
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          1038670177
+        ],
+        "lit_bytes": [
+          84220,
+          180976
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        6,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1074097005,
+          3103268173
+        ],
+        "lit_bytes": [
+          84220,
+          355520
+        ],
+        "wide_precision_samples": 78952
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          571809230
+        ],
+        "lit_bytes": [
+          129246,
+          8457
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          3728136065
+        ],
+        "lit_bytes": [
+          129246,
+          64012
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          162542565
+        ],
+        "lit_bytes": [
+          129246,
+          230344
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          3893239725
+        ],
+        "lit_bytes": [
+          129246,
+          8446
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          4156915309
+        ],
+        "lit_bytes": [
+          129246,
+          54498
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          1991913069
+        ],
+        "lit_bytes": [
+          129246,
+          9694
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          1074097005
+        ],
+        "lit_bytes": [
+          129246,
+          84220
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          3432154349
+        ],
+        "lit_bytes": [
+          129246,
+          129246
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          2031552609
+        ],
+        "lit_bytes": [
+          129246,
+          189806
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          2012896073
+        ],
+        "lit_bytes": [
+          129246,
+          284786
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          1038670177
+        ],
+        "lit_bytes": [
+          129246,
+          180976
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        32,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3432154349,
+          3103268173
+        ],
+        "lit_bytes": [
+          129246,
+          355520
+        ],
+        "wide_precision_samples": 80482
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          571809230
+        ],
+        "lit_bytes": [
+          189806,
+          8457
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          3728136065
+        ],
+        "lit_bytes": [
+          189806,
+          64012
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          162542565
+        ],
+        "lit_bytes": [
+          189806,
+          230344
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          3893239725
+        ],
+        "lit_bytes": [
+          189806,
+          8446
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          4156915309
+        ],
+        "lit_bytes": [
+          189806,
+          54498
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          1991913069
+        ],
+        "lit_bytes": [
+          189806,
+          9694
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          1074097005
+        ],
+        "lit_bytes": [
+          189806,
+          84220
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          3432154349
+        ],
+        "lit_bytes": [
+          189806,
+          129246
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          2031552609
+        ],
+        "lit_bytes": [
+          189806,
+          189806
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          2012896073
+        ],
+        "lit_bytes": [
+          189806,
+          284786
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          1038670177
+        ],
+        "lit_bytes": [
+          189806,
+          180976
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        18,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2031552609,
+          3103268173
+        ],
+        "lit_bytes": [
+          189806,
+          355520
+        ],
+        "wide_precision_samples": 106402
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          571809230
+        ],
+        "lit_bytes": [
+          284786,
+          8457
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          3728136065
+        ],
+        "lit_bytes": [
+          284786,
+          64012
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          162542565
+        ],
+        "lit_bytes": [
+          284786,
+          230344
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          3893239725
+        ],
+        "lit_bytes": [
+          284786,
+          8446
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          4156915309
+        ],
+        "lit_bytes": [
+          284786,
+          54498
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          1991913069
+        ],
+        "lit_bytes": [
+          284786,
+          9694
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          1074097005
+        ],
+        "lit_bytes": [
+          284786,
+          84220
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          3432154349
+        ],
+        "lit_bytes": [
+          284786,
+          129246
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          2031552609
+        ],
+        "lit_bytes": [
+          284786,
+          189806
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          2012896073
+        ],
+        "lit_bytes": [
+          284786,
+          284786
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          1038670177
+        ],
+        "lit_bytes": [
+          284786,
+          180976
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        8,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          2012896073,
+          3103268173
+        ],
+        "lit_bytes": [
+          284786,
+          355520
+        ],
+        "wide_precision_samples": 157226
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          571809230
+        ],
+        "lit_bytes": [
+          180976,
+          8457
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          3728136065
+        ],
+        "lit_bytes": [
+          180976,
+          64012
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          162542565
+        ],
+        "lit_bytes": [
+          180976,
+          230344
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          3893239725
+        ],
+        "lit_bytes": [
+          180976,
+          8446
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          4156915309
+        ],
+        "lit_bytes": [
+          180976,
+          54498
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          1991913069
+        ],
+        "lit_bytes": [
+          180976,
+          9694
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          1074097005
+        ],
+        "lit_bytes": [
+          180976,
+          84220
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          3432154349
+        ],
+        "lit_bytes": [
+          180976,
+          129246
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          2031552609
+        ],
+        "lit_bytes": [
+          180976,
+          189806
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          2012896073
+        ],
+        "lit_bytes": [
+          180976,
+          284786
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          1038670177
+        ],
+        "lit_bytes": [
+          180976,
+          180976
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        7,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          1038670177,
+          3103268173
+        ],
+        "lit_bytes": [
+          180976,
+          355520
+        ],
+        "wide_precision_samples": 97394
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        0
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          571809230
+        ],
+        "lit_bytes": [
+          355520,
+          8457
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        1
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          3728136065
+        ],
+        "lit_bytes": [
+          355520,
+          64012
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        2
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          162542565
+        ],
+        "lit_bytes": [
+          355520,
+          230344
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        3
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          3893239725
+        ],
+        "lit_bytes": [
+          355520,
+          8446
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        4
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          4156915309
+        ],
+        "lit_bytes": [
+          355520,
+          54498
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        5
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          1991913069
+        ],
+        "lit_bytes": [
+          355520,
+          9694
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        6
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          1074097005
+        ],
+        "lit_bytes": [
+          355520,
+          84220
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        32
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          3432154349
+        ],
+        "lit_bytes": [
+          355520,
+          129246
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        18
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          2031552609
+        ],
+        "lit_bytes": [
+          355520,
+          189806
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        8
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          2012896073
+        ],
+        "lit_bytes": [
+          355520,
+          284786
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        7
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          1038670177
+        ],
+        "lit_bytes": [
+          355520,
+          180976
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    },
+    {
+      "modes": [
+        11,
+        11
+      ],
+      "baseline": {
+        "selected": 0,
+        "change": 0,
+        "crc": [
+          3103268173,
+          3103268173
+        ],
+        "lit_bytes": [
+          355520,
+          355520
+        ],
+        "wide_precision_samples": 228248
+      },
+      "peer_isolation": true
+    }
+  ]
+}

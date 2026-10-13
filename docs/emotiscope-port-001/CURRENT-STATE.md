@@ -1,3 +1,25 @@
+## 13 October 2026, finalisation — installed show preserved; boot support ready, physical acceptance blocked
+
+Live readback: lower Hybrid K1 mode32/palette32, upper Tempo18/palette41, master255, both gains0.25, both outputs on. Installed006 build `d8e11f5ed9c775267b5ef5ff00baa2a1893c31628f1877a6d9fb3f0b07b459bf`, UID `545433931bd25436593630352d068363`. E2 signature/run recovered a missing CDC endpoint; SQ5 was then restored. Camera preview now shows the complete focused plate. No new music recording was substituted for unavailable full audiovisual review.
+
+Source follow-up: corrected144-pair C++ matrix (old donor rows had composed override), added144 host/codec pairs, added exact consumed RMS/threshold trace, implemented complete optional v8 boot defaults. Host443tests and focused firmware checks passed; actual unselected ARM build passed with unchanged2848B DTCM scratch. It has NOT been installed or selected. Current embedded startup remains old Spectrum; SQ5 remains host persistence.
+
+Full physical quiet/weak-input, continuous motion/music, white/blending acceptance remain BLOCKED at playback-speed audiovisual review. Then Captain selects final boot and authorised install/startup checks follow. See latest finalisation sections and receipts in `INHOUSE-WAVEFORM-MIGRATION-20261012.md`; all old assignments/failures retained below.
+
+## 13 October 2026, 17:14 AWST — latest optical comparison blocked by camera framing
+
+Family006 normal/weak captures finished without new sampled timing failures, but owner inspection of actual frames48–55s and78–85s shows a blurred desk area, not the K1. No physical quiet-repair acceptance claimed. Preserve `family-physical-quiet-after-001/root-visual-inspection.json` and original movie. Captain asked to restore camera framing; both edges remain running32/18 with preserved output settings.
+
+## 13 October 2026, 17:11 AWST — five Waveforms installed; quiet correction in physical comparison
+
+Installed source cb09979, build `d8e11f5ed9c775267b5ef5ff00baa2a1893c31628f1877a6d9fb3f0b07b459bf`, schema `e99c1ec147288a7beaed728fc91e42530efc91c26f223164e03d07745b68c2da`, UID `545433931bd25436593630352d068363`. All212 receipt inputs match source. E2 Lite target-power OFF/1MHz installation succeeded; programming17:09:39–17:10:07 interrupted output, identity verified17:10:18. Both-edge settings restored and SQ5 recalled: bottom32/palette32, top18/palette41, master255, gains0.25, emission and secondary ON. Hostf46c137 renegotiates v8/capability511 after upgrades. SMC-Mixer is deliberately absent; existing Surface works.
+
+All five effects32/18/8/7/11 are implemented and selectable. Family005/source8f069dc fixed Tempo throughput using exact four-lag autocorrelation and only2848B temporary DTCM scratch. DualTempo observed maximum analysis1611184 cycles; six captured music passages had no new audio gaps, PDM rejects or skipped render releases. Preserve failed003/004 receipts. Successful movies remain under `_scratch/waveform-migration-001/family-physical-tempo-006/`, `family-physical-wave-fast-001/`, `family-physical-hybrid-mixed-001/`.
+
+SQ5 complete two-board save/recall and fresh controller persistence were verified; SQ1–4 unchanged. Host persistence is not boot NVM. Root inspected actual extracted plate sequences: Waveform8 clearest darker space; Fast broader/brighter; Hybrid11 broad pink/red blending remains a weakness; mixed32/18 distinguishable material and central space. White camera cores remain unresolved optical-versus-camera clipping. Continuous playback-speed review with synchronised music remains unproved. Final boot/default selection is unfinished.
+
+Current quiet repair excludes births when source quiet is confirmed and coherent raw RMS remains below its existing entry threshold. Production-path checks preserve .079 wake, .0447 sustain, original dwell, independent peer bytes and stale/zero drain. Sub-.04 music after confirmed quiet remains excluded; stronger acoustic transients can still create deposits. Physical normal/weak comparison is in progress at `_scratch/waveform-migration-001/family-physical-quiet-after-001/`; acceptance PENDING. Family005 remains immediate rollback. Full original M00–M24 plan and historical evidence are preserved; migration completion is not claimed.
+
 ## 13 October 2026, 16:21 AWST — five-mode candidate rejected for Tempo timing; recovery restored
 
 The full five-mode implementation is in source (`07ce1cd`, storage repair `14d31d3`, public readback repair `91cd16d`); this supersedes earlier statements that M14–M17 have not started. Host production `69eda75` exposes all five when the installed firmware advertises them. No physical qualification or completed migration is claimed.

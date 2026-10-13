@@ -825,8 +825,8 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"dwell_reinits\":%llu"
 #if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
       ",\"inhouse_donor_sequence\":%lu,\"inhouse_donor_peak_squared\":%.6f"
-      ",\"inhouse_frames\":[{\"board\":0,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"source_silence\":%u,\"admission_open\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu},"
-      "{\"board\":1,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"source_silence\":%u,\"admission_open\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu}]"
+      ",\"inhouse_frames\":[{\"board\":0,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"source_silence\":%u,\"raw_rms\":%.6f,\"quiet_entry_rms\":%.6f,\"admission_open\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu},"
+      "{\"board\":1,\"render_us\":%llu,\"generation\":%llu,\"capture_us\":%llu,\"fresh\":%u,\"source_silence\":%u,\"raw_rms\":%.6f,\"quiet_entry_rms\":%.6f,\"admission_open\":%u,\"peak\":%.6f,\"position\":%.6f,\"deposit_strength\":%.6f,\"injection_count\":%llu}]"
 #endif
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
       ",\"pair_backend\":\"%s\",\"submitted_generation\":%lu,"
@@ -875,12 +875,14 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       , (unsigned long)inhouseDonorSequence(),double(inhouseDonorPeakSquared())
       , (unsigned long long)inhouse_render_us_[0],(unsigned long long)inhouse_observed_audio_[0].generation,
       (unsigned long long)inhouse_observed_audio_[0].capture_us,unsigned(inhouse_renderer_[0].observation().input_fresh),
-      unsigned(inhouseSourceSilence(0)),unsigned(inhouseAdmissionOpen(0)),
+      unsigned(inhouseSourceSilence(0)),double(inhouse_observed_audio_[0].raw_rms),
+      double(inhouse_observed_audio_[0].quiet_entry_rms),unsigned(inhouseAdmissionOpen(0)),
       double(inhouse_renderer_[0].observation().peak_stage1),double(inhouse_renderer_[0].observation().position),
       double(inhouse_renderer_[0].observation().deposit_strength),(unsigned long long)inhouse_renderer_[0].observation().injection_count
       , (unsigned long long)inhouse_render_us_[1],(unsigned long long)inhouse_observed_audio_[1].generation,
       (unsigned long long)inhouse_observed_audio_[1].capture_us,unsigned(inhouse_renderer_[1].observation().input_fresh),
-      unsigned(inhouseSourceSilence(1)),unsigned(inhouseAdmissionOpen(1)),
+      unsigned(inhouseSourceSilence(1)),double(inhouse_observed_audio_[1].raw_rms),
+      double(inhouse_observed_audio_[1].quiet_entry_rms),unsigned(inhouseAdmissionOpen(1)),
       double(inhouse_renderer_[1].observation().peak_stage1),double(inhouse_renderer_[1].observation().position),
       double(inhouse_renderer_[1].observation().deposit_strength),(unsigned long long)inhouse_renderer_[1].observation().injection_count
 #endif

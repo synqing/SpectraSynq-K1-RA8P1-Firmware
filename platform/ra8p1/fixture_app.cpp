@@ -2206,6 +2206,9 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
   }
 }
 #endif
+#ifdef K1_LIVE_BOOT_COMPOSITION
+#include "live_boot_composition.h"
+#endif
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   k1_ws2816_set_clock(hz);
@@ -2297,6 +2300,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
   std::uint8_t build_sha[32]{};
   live_hex32(K1_BUILD_ID, build_sha);
   live_runtime.setIdentity(uid, build_sha);
+#ifdef K1_LIVE_BOOT_COMPOSITION
+  if (!k1_apply_live_boot_composition(palettes, live_runtime, secondary_admit)) ++rejected;
+#endif
   live_runtime.setControlMeta(static_cast<std::uint16_t>(palettes.config().mode_a),
                               static_cast<std::uint16_t>(palettes.config().palette_a),
                               palettes.emitEnabled() ? 1 : 0, live_cfg_revision,
