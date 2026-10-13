@@ -722,7 +722,16 @@ std::size_t PaletteRuntime::packBoardGrb48Lane(std::uint8_t* out, std::size_t ca
     return static_cast<std::uint16_t>((std::uint32_t(component) * gain + 32767U) / 65535U);
   };
   for (unsigned i = 0; i < pixels_per_lane; ++i) {
-    const auto pixel = source[lane * kPixelsPerHalf + i];
+    // Assembled top edge: P603/DIN0 serves the physical right half and
+    // P714/DIN1 the left. One-sided on-plate capture establishes this mapping.
+    // Retain pixel order within each half; renderer/history stay left-to-right.
+    const unsigned source_half =
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+        board == 1U ? 1U - lane : lane;
+#else
+        lane;
+#endif
+    const auto pixel = source[source_half * kPixelsPerHalf + i];
     packPixel(Pixel16{attenuate(scale16(pixel.red, config_.brightness)),
                       attenuate(scale16(pixel.green, config_.brightness)),
                       attenuate(scale16(pixel.blue, config_.brightness))},

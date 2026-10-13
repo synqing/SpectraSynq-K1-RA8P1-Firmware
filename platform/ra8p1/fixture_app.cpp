@@ -696,7 +696,9 @@ void palette_step(bool emit) {
           auto top_word=[](unsigned index,std::uint32_t value){for(unsigned byte=0;byte<4;++byte)palette_top_wire_snapshot[index*4U+byte]=value>>(8U*byte);};
           top_word(1,++palette_top_wire_sequence);top_word(2,1U);
           top_word(8,config.mode_b);top_word(9,palettes.channel(1U).controls().palette_id);
-          top_word(10,config.flags | ((k1_emotiscope_is_inhouse_mode(config.mode_b) || palettes.outputPrecision()!=0U)?0x80000000U:0U));
+          // Snapshot bit30 binds top DIN0/right, DIN1/left. Old captures without
+          // this flag retain their historical raw lane interpretation.
+          top_word(10,config.flags | 0x40000000U | ((k1_emotiscope_is_inhouse_mode(config.mode_b) || palettes.outputPrecision()!=0U)?0x80000000U:0U));
           top_word(12,generation);top_word(13,generation);
           const auto top_frame_us=palettes.lastBoardFrameUs(1U);
           top_word(14,static_cast<std::uint32_t>(top_frame_us));top_word(15,static_cast<std::uint32_t>(top_frame_us>>32U));

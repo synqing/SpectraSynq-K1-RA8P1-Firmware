@@ -12,6 +12,23 @@ def fixture(brightness=128):
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_top_mapping_keeps_raw_lanes_and_recovers_logical_pixels(self):
+        native = b''.join(bytes((i, 255-i, 31)) for i in range(160))
+        logical = b''.join(struct.pack('>3H', *(native[p*3+i]*257 for i in (1,0,2))) for p in range(160))
+        wire = logical[480:] + logical[:480]
+        payload = struct.pack('<16I',1,1,1,255,2,80,48,3,32,31,1<<30,10000,9,9,99,0)+native+wire
+        score = score_snapshot(payload)
+        self.assertTrue(score['pass_wire'])
+        self.assertEqual(score['pixel_order'],'TOP_DIN0_RIGHT_DIN1_LEFT')
+        self.assertEqual(score['submitted_grb48_hex'],wire.hex())
+        self.assertEqual(score['logical_rgb16'][0],[0,65535,31*257])
+        self.assertEqual(score['submitted_rgb16'][0],[80*257,175*257,31*257])
+        # Wrong wiring model must not be made to pass by recolouring the preview.
+        wrong = payload[:544]+logical
+        self.assertFalse(score_snapshot(wrong)['pass_wire'])
+        invalid = bytearray(payload);struct.pack_into('<I',invalid,8,0)
+        with self.assertRaises(ValueError):score_snapshot(invalid)
+
     def test_positive_and_black(self):
         for brightness in (0, 24, 128, 255):
             result = score_snapshot(fixture(brightness))

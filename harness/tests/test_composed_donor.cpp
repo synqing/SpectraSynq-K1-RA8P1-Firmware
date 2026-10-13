@@ -47,7 +47,7 @@ int main(int argc,char** argv){
       // Both complete-board gains remain exactly the requested attenuation.
       assert(runtime.config().brightness==100);assert(std::fabs(runtime.boardIntensity(0)-.25f)<.00002f);assert(std::fabs(runtime.boardIntensity(1)-.4f)<.00002f);
       unsigned char wire[480];for(unsigned lane=0;lane<2;++lane){assert(runtime.packBoardGrb48Lane(wire,sizeof(wire),board,lane)==480);
-        for(unsigned i=0;i<80;++i){const auto& pixel=pixels[lane*80+i];unsigned vals[3]={pixel.green,pixel.red,pixel.blue};
+        for(unsigned i=0;i<80;++i){const auto& pixel=pixels[(board?1-lane:lane)*80+i];unsigned vals[3]={pixel.green,pixel.red,pixel.blue};
           for(unsigned c=0;c<3;++c){unsigned packed=unsigned(wire[6*i+2*c])<<8|wire[6*i+2*c+1];
             const double upper=double(vals[c])*257.*100./255.*(board?.4:.25)+2.;assert(double(packed)<=upper);}}}
       K1EmotiscopeConfig read{};if(board)k1_secondary_emotiscope_get_config(&read);else k1_emotiscope_get_config(&read);assert(read.current_mode==6);
