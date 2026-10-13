@@ -17,6 +17,7 @@ sources=['harness/tests/test_inhouse_admission.cpp','platform/ra8p1/palette_runt
  'src/k1/core/visual/channel_render_state.cpp','src/k1/core/visual/audio_focus.cpp',
  'src/k1/core/visual/product_palette.cpp','src/k1/core/visual/product_palette_data.cpp','src/k1/core/visual/inhouse_waveform.cpp']
 inputs=sources+['platform/ra8p1/palette_runtime.h','platform/ra8p1/composed_scene_runtime.h',
+ 'platform/ra8p1/inhouse_audio.h','src/k1/core/visual/inhouse_waveform.h',
  'platform/ra8p1/fixture_app.cpp','tests/target/trajectory.h',str(Path(__file__).relative_to(R))]
 hashes={x:hashlib.sha256((R/x).read_bytes()).hexdigest() for x in inputs}
 cmd=['clang++','-std=c++17','-O1','-g','-Wno-narrowing','-fsanitize=address,undefined',
@@ -37,7 +38,7 @@ for variant in range(2):
  assert all(x['source_silence']==1 and x['admission_open']==1 for x in status['inhouse_frames'])
  assert status['inhouse_donor_sequence']==701 and status['inhouse_donor_peak_squared']>.0048
  rows.append(list(csv.DictReader((O/f'{variant}.csv').open())))
- frames.append(np.fromfile(O/f'{variant}.grb48',dtype='>u2').reshape(1530,2,160,3))
+ frames.append(np.fromfile(O/f'{variant}.grb48',dtype='>u2').reshape(2400,2,160,3))
 assert np.array_equal(frames[0][:,1],frames[1][:,1]),'Peer output changed under invalid/mode/epoch edits'
 assert np.any(frames[0][1452:,0]!=frames[1][1452:,0]),'Boundary edits did not reach output'
 base=rows[0]
@@ -47,6 +48,9 @@ for board in range(2):
  assert births[849]>births[750],'Hysteresis sustain did not create material'
  assert np.all(births[850:1450]==births[849]),'Room created new material'
  assert not np.any(frames[0][1200:1450,board]),'History failed to drain'
+ assert births[1999]>births[1552],'Brief low-RMS musical gaps lost source dwell'
+ assert np.all(births[2120:]==births[2119]),'Confirmed quiet with strong peak spikes created material'
+ assert not np.any(frames[0][2380:,board]),'Confirmed quiet spike history failed to drain'
 changed=rows[1]
 for start,stop in [(1452,1453),(1455,1456),(1461,1462),(1464,1465),(1467,1468)]:
  assert int(changed[stop]['injection0'])==int(changed[start-1]['injection0']),'Rejected input created material'
@@ -86,22 +90,24 @@ worst_bytes=int(run([str(O/'status-capacity')]))
 assert worst_bytes<capacity
 
 fig,ax=plt.subplots(3,1,figsize=(11,7),sharex=True)
-t=(np.arange(1450)+1)*.01
-ax[0].plot(t,[float(x['raw_rms']) for x in base[:1450]],label='Original source RMS')
+t=(np.arange(2400)+1)*.01
+ax[0].plot(t,[float(x['raw_rms']) for x in base],label='Original source RMS')
+ax[0].axhline(.04,color='grey',ls=':',label='Existing quiet entry (after source dwell)')
 ax[0].axhline(.08,color='grey',ls='--',label='Unchanged source wake threshold')
 ax[0].legend(loc='upper right');ax[0].set_ylabel('RMS / full scale')
-ax[1].plot(t,[int(x['admission0']) for x in base[:1450]],label='Titan admission')
-ax[1].plot(t,[int(x['source_silence']) for x in base[:1450]],ls='--',label='Original source silence')
+ax[1].plot(t,[int(x['admission0']) for x in base],label='Titan admission')
+ax[1].plot(t,[int(x['source_silence']) for x in base],ls='--',label='Original source silence')
 ax[1].legend(loc='upper right');ax[1].set_ylabel('Boolean')
-rgb=frames[0][:1450,0,:,[1,0,2]].transpose(1,2,0).astype(float);rgb=(rgb/max(1,rgb.max()))**.45
-ax[2].imshow(rgb.transpose(1,0,2),aspect='auto',origin='lower',extent=[.01,14.5,0,160])
+rgb=frames[0][:,0,:,[1,0,2]].transpose(1,2,0).astype(float);rgb=(rgb/max(1,rgb.max()))**.45
+ax[2].imshow(rgb.transpose(1,0,2),aspect='auto',origin='lower',extent=[.01,24,0,160])
 ax[2].set_ylabel('Actual edge pixel');ax[2].set_xlabel('Seconds')
-fig.suptitle('Host PCM → Hybrid: room, .079 RMS attack, sustain, room\nActual final RGB; display gain/gamma for visibility, no physical quality claim')
+fig.suptitle('Host PCM → Hybrid: spiky room, .079 RMS wake, sustain, source quiet dwell\nActual final RGB; display gain/gamma for visibility, no physical quality claim')
 fig.tight_layout();fig.savefig(O/'actual-output.png',dpi=150);plt.close(fig)
 assert hashes=={x:hashlib.sha256((R/x).read_bytes()).hexdigest() for x in inputs},'Inputs changed during test'
-receipt=dict(sources=hashes,commands=commands,frames_per_run=1530,peer_bytes_identical=True,
+receipt=dict(sources=hashes,commands=commands,frames_per_run=2400,peer_bytes_identical=True,
  weak_rms_079_birth_next_frame=True,original_source_silence_preserved=True,
  room_no_new_material=True,history_drained=True,invalid_stale_regressive_epoch_mode_checks=True,
  donor_stale_gap_rewarm_checked=True,production_status_capacity=capacity,status_conservative_max_bytes=worst_bytes,
- limitation='Existing Titan peak gate; signals below its opening threshold still cannot wake. Host output only; physical qualification remains open.')
+ confirmed_quiet_peak_spikes_blocked=True,existing_source_dwell_preserved=True,
+ limitation='After source-confirmed quiet, sub-.04 RMS music remains blocked by the inherited source quiet classification. Existing Bloom peak admission also applies. No universal noise/music discrimination or physical qualification claim.')
 (O/'receipt.json').write_text(json.dumps(receipt,indent=2)+'\n');print(json.dumps({k:v for k,v in receipt.items() if k not in ['sources','commands']},indent=2))

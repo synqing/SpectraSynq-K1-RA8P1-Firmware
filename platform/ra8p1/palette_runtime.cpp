@@ -255,7 +255,13 @@ bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept
   // admission on this prepared donor publication. The source RMS silence remains
   // in the producer/MIR; only this local render view uses Titan admission. Keep
   // legacy feature values and travelling history intact.
-  input.silence=!inhouse_admission_[board].update(donor_publication_,static_cast<std::uint32_t>(now_us));
+  const bool bloom_admitted=inhouse_admission_[board].update(donor_publication_,static_cast<std::uint32_t>(now_us));
+  // Once the source has confirmed quiet through its existing dwell, isolated
+  // room peaks cannot reopen births below that same quiet-entry RMS. A weak
+  // attack above entry still wakes locally without needing the old .08 exit;
+  // brief musical gaps retain the source's unmodified quiet dwell.
+  const bool confirmed_quiet=input.silence && input.raw_rms<input.quiet_entry_rms;
+  input.silence=!bloom_admitted || confirmed_quiet;
   const float response=board?k1_secondary_emotiscope_response_gain():k1_emotiscope_response_gain();
   // The source 7/8/11 peak follower carries ratios above unity; its
   // consumers clamp light level independently from displacement/history.

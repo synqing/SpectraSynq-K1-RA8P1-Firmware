@@ -11,12 +11,15 @@ namespace k1::core::visual {
 // Source tracker emits every third 96-sample observation at 12,800 Hz. A held
 // event can therefore precede a still-fresh AP observation by this interval.
 inline constexpr std::uint64_t kInhouseTempoUpdatePeriodUs = 22500U;
+inline constexpr float kInhouseQuietEntryRms = 0.04F;
 
 // One coherent producer observation; spectrum is the source 80-note bank after
 // audio gain/tilt, BEFORE visual smoothing. PCM peak is in signed-16 units.
 struct InhouseWaveformAudio final {
   std::array<float, 80> spectrum{};
   float raw_peak_pcm = 0.0F;
+  float raw_rms = 0.0F;
+  float quiet_entry_rms = kInhouseQuietEntryRms;
   float raw_floor_pcm = 350.0F;  // Reconstructed producer drive floor, not room calibration.
   float peak_scaled = 0.0F;
   float observed_peak_scaled = 0.0F;

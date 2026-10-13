@@ -24,7 +24,7 @@ struct InhouseAudioConfig final {
   float follower_floor_pcm = 350.0F;
   float vu_floor = 0.0F;
   float mood = 0.05F;
-  float silence_rms_enter = 0.04F;
+  float silence_rms_enter = core::visual::kInhouseQuietEntryRms;
   float silence_rms_exit = 0.08F;
   std::uint32_t silence_dwell_ms = 5000U;
   // SYSTEM_FPS was a visual clock in the source. Explicit 100 Hz reconstructed

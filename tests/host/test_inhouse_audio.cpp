@@ -109,6 +109,8 @@ static void source_parity() {
     assert(audio.latest().pcm_history==history);
     assert(audio.latest().pcm_history_valid==(comparisons>=4));
     assert(audio.latest().raw_floor_pcm==audio.config().drive_floor_pcm);
+    assert(audio.latest().raw_rms==audio.rawRms());
+    assert(audio.latest().quiet_entry_rms==audio.config().silence_rms_enter);
     assert(std::isfinite(audio.latest().peak_scaled));
     if (seq == 2U) {
       assert(audio.latest().analysis_begin_sample == 0U);

@@ -217,6 +217,8 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
     square_sum += f(mul(normalised_q16, normalised_q16));
   }
   const float rms = f(q(std::sqrt(square_sum / static_cast<float>(kInhouseHopSamples))));
+  publication_.raw_rms = rms;
+  publication_.quiet_entry_rms = config_.silence_rms_enter;
   publication_.vu_level = f(divq(std::max<std::int32_t>(0, q(rms) - q(config_.vu_floor)),
       q(1.0F - config_.vu_floor)));
   publication_.vu_average = f((q(publication_.vu_level) + q(previous_vu_)) / 2);
