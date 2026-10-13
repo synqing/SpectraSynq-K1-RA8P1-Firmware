@@ -868,13 +868,15 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     if(intent.sub!=kDonorCfgPatchExtended && intent.sub!=kDonorCfgPatchInhouse && intent.sub!=kDonorCfgPatchWaveforms && (intent.mask>>27u))valid=false;
     const auto effective_mode=(intent.mask&(1u<<8))?intent.mode:selected_config.current_mode;
     if(!donorModeAdmitted(effective_mode,observed.response_version,observed.board_capabilities))valid=false;
+    // Retained source parameters belong to the complete board composition.
+    // Inactive values may be recalled; renderer applicability remains separate.
     if(intent.mask_extra && (intent.sub!=kDonorCfgPatchWaveforms || !(observed.board_capabilities&256u) || (intent.mask_extra&~7u)))valid=false;
-    if((intent.mask_extra&1u) && (effective_mode!=8 || !donorValidRange(intent.inhouse_sensitivity,.10f,20.0f)))valid=false;
-    if((intent.mask_extra&2u) && ((effective_mode!=7&&effective_mode!=8&&effective_mode!=11) || !donorValidRange(intent.inhouse_square_iter,0.0f,8.0f)))valid=false;
-    if((intent.mask_extra&4u) && (effective_mode!=8 || !donorValidRange(intent.inhouse_injection_photons,.05f,1.0f)))valid=false;
+    if((intent.mask_extra&1u) && !donorValidRange(intent.inhouse_sensitivity,.10f,20.0f))valid=false;
+    if((intent.mask_extra&2u) && !donorValidRange(intent.inhouse_square_iter,0.0f,8.0f))valid=false;
+    if((intent.mask_extra&4u) && !donorValidRange(intent.inhouse_injection_photons,.05f,1.0f))valid=false;
     if((intent.mask&(std::uint64_t{1}<<63u)) &&
        ((intent.sub!=kDonorCfgPatchInhouse&&intent.sub!=kDonorCfgPatchWaveforms) || !donorValidUnitFloat(intent.inhouse_mood) ||
-        !k1_emotiscope_is_inhouse_mode(effective_mode) || !donorModeAdmitted(effective_mode,observed.response_version,observed.board_capabilities)))valid=false;
+        !(observed.board_capabilities&(128u|256u))))valid=false;
     if((intent.mask&(std::uint64_t{1}<<27u)) && (intent.edge_colour_enabled>1u))valid=false;
     if((intent.mask&(std::uint64_t{1}<<28u)) && (intent.edge_colour_mode>6u))valid=false;
     if((intent.mask&(std::uint64_t{1}<<29u)) && (!donorValidRange(intent.edge_colour_strength,0.0f,1.0f)))valid=false;

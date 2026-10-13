@@ -200,6 +200,12 @@ static void build_get(std::uint8_t out[16], std::uint32_t id, std::uint32_t boot
   ec::donorPutU32(out + 8, boot);
 }
 
+#ifdef K1_TITAN_TOP_OUTPUT
+// Fixture-owned retained source settings, mirrored here for wire corpus replay.
+struct RetainedInhouse {float mood=.05f,sensitivity=2.4f,contrast=1.f,photons=1.f;};
+static RetainedInhouse retained_inhouse[2];
+#endif
+
 static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, const ec::DonorApplyResult& result) {
   if (result.revision_changed) {
     observed->revision = result.revision;
@@ -220,6 +226,11 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
   if (result.intensity_a_changed) observed->output_intensity_a = result.output_intensity_a;
   if (result.intensity_b_changed) observed->output_intensity_b = result.output_intensity_b;
 #ifdef K1_TITAN_TOP_OUTPUT
+  auto& retained=retained_inhouse[result.board];
+  if(result.inhouse_mood_changed)retained.mood=result.inhouse_mood;
+  if(result.inhouse_sensitivity_changed)retained.sensitivity=result.inhouse_sensitivity;
+  if(result.inhouse_square_iter_changed)retained.contrast=result.inhouse_square_iter;
+  if(result.inhouse_injection_photons_changed)retained.photons=result.inhouse_injection_photons;
   if (result.primary_intensity_changed) observed->primary_intensity = result.primary_intensity;
   if (result.secondary_intensity_changed) observed->secondary_intensity = result.secondary_intensity;
   if (result.secondary_output_enabled_changed) observed->secondary_output_enabled = result.secondary_output_enabled;
@@ -235,6 +246,9 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
 static void observe_scene(ec::DonorObserved* observed, const ec::DonorIntent& intent) {
 #ifdef K1_TITAN_TOP_OUTPUT
   observed->board = intent.board;
+  const auto& retained=retained_inhouse[intent.board];
+  observed->inhouse_mood=retained.mood;observed->inhouse_sensitivity=retained.sensitivity;
+  observed->inhouse_square_iter=retained.contrast;observed->inhouse_injection_photons=retained.photons;
   const bool secondary = intent.board == 1u;
   observed->palette = secondary ? k1_secondary_emotiscope_palette() : k1_emotiscope_palette();
   observed->response_gain = secondary ? k1_secondary_emotiscope_response_gain() : k1_emotiscope_response_gain();
@@ -998,7 +1012,7 @@ static int corpus(const char* path) {
   int index = 0;
   while (std::fgets(line, sizeof(line), file)) {
     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
-    std::uint8_t bytes[536];
+    std::uint8_t bytes[568];
     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
     if (size < 0) { std::fclose(file); return 2; }
     ec::DonorIntent intent{};

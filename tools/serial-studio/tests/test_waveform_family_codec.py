@@ -83,3 +83,16 @@ def test_original_v7_client_accepts_unchanged_reply():
         old=original.decode_state(wire);new=c.decode_state(wire)
         for key in ('version','mode','renderer_family','board_capabilities','inhouse_mood'):
             assert old[key]==new[key]
+
+
+@pytest.mark.parametrize('mode',list(range(7))+[32,18,8,7,11])
+def test_complete_storage_patch_keeps_inactive_controls_inactive(mode):
+    values={'current_mode':mode,'inhouse_mood':.05,'inhouse_sensitivity':2.4,'inhouse_square_iter':1.,'inhouse_injection_photons':1.}
+    packet=c.encode_patch(1,2,3,values,state_version=8,board_capabilities=511)
+    status,parsed=c.parse(packet,state_version=8)
+    assert status==0 and parsed['fields'][9]==mode
+    readback=c.decode_state(full_state(mode=mode,engine=1 if mode<7 else 2))
+    if mode>=7:
+        active=readback['active_controls']
+        if mode!=8:assert 'inhouse_sensitivity' not in active and 'inhouse_injection_photons' not in active
+        if mode not in (7,8,11):assert 'inhouse_square_iter' not in active

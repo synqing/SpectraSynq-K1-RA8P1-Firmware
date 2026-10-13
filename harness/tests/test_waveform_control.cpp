@@ -36,6 +36,37 @@ int main(int argc,char** argv){
    donorApply(&cache,legacy,observed,&result);assert(result.status==0&&result.mode==0&&result.response_bytes==428);
    assert(donorGetU32(result.response+164)==255u);
  }
+ // Complete saved composition recall includes inactive source parameters.
+ for(unsigned board=0;board<2;++board)for(int destination:{0,1,2,3,4,5,6,32,18,7,11}){
+   DonorObserved observed{};observed.boot_id=42;observed.board=board;
+   DonorIntent edit{};edit.sub=kDonorCfgPatchWaveforms;edit.boot_id=42;edit.request_id=200;edit.board=board;
+   edit.mask=(1u<<8)|(std::uint64_t{1}<<63);edit.mask_extra=7;edit.mode=8;
+   edit.inhouse_mood=.7f;edit.inhouse_sensitivity=4.f;edit.inhouse_square_iter=3.f;edit.inhouse_injection_photons=.3f;
+   DonorDedup cache{};DonorApplyResult result{};
+   auto adopt=[&](){observed.revision=result.revision;observed.inhouse_mood=result.inhouse_mood;
+     observed.inhouse_sensitivity=result.inhouse_sensitivity;observed.inhouse_square_iter=result.inhouse_square_iter;
+     observed.inhouse_injection_photons=result.inhouse_injection_photons;};
+   K1EmotiscopeConfig peer_before{},peer_after{};donorSceneGetConfig(1-board,&peer_before);
+   donorApply(&cache,edit,observed,&result);assert(result.status==0);adopt();
+   auto restore=edit;restore.request_id=201;restore.expected_revision=observed.revision;restore.mode=destination;
+   restore.inhouse_mood=.05f;restore.inhouse_sensitivity=2.4f;restore.inhouse_square_iter=1.f;restore.inhouse_injection_photons=1.f;
+   donorApply(&cache,restore,observed,&result);
+   assert(result.status==0&&result.affected_boards==(1u<<board));
+   assert(result.inhouse_mood_changed&&result.inhouse_sensitivity_changed&&result.inhouse_square_iter_changed&&result.inhouse_injection_photons_changed);adopt();
+   DonorIntent get{};get.sub=kDonorCfgGetWaveforms;get.boot_id=42;get.request_id=202;get.board=board;
+   donorApply(&cache,get,observed,&result);assert(result.status==0);
+   assert(donorGetU32(result.response+60)==unsigned(destination));
+   assert(donorGetF32(result.response+424)==.05f&&donorGetF32(result.response+428)==2.4f&&donorGetF32(result.response+432)==1.f&&donorGetF32(result.response+436)==1.f);
+   for(unsigned field=0;field<4;++field){
+     auto bad=restore;bad.request_id=210+field;bad.expected_revision=observed.revision;bad.mask|=1u;bad.brightness=.27f;
+     if(field==0)bad.inhouse_mood=NAN;else if(field==1)bad.inhouse_sensitivity=21.f;else if(field==2)bad.inhouse_square_iter=-1.f;else bad.inhouse_injection_photons=INFINITY;
+     K1EmotiscopeConfig before{},after{};donorSceneGetConfig(board,&before);
+     donorApply(&cache,bad,observed,&result);assert(result.status==kDonorStatusInvalid&&!result.changed);
+     assert(!result.inhouse_mood_changed&&!result.inhouse_sensitivity_changed&&!result.inhouse_square_iter_changed&&!result.inhouse_injection_photons_changed);
+     donorSceneGetConfig(board,&after);assert(!std::memcmp(&before,&after,sizeof(before)));
+   }
+   donorSceneGetConfig(1-board,&peer_after);assert(!std::memcmp(&peer_before,&peer_after,sizeof(peer_before)));
+ }
  assert(donorResponseBytes(kDonorCfgGetState)==208&&donorResponseBytes(kDonorCfgGetExtended)==424&&donorResponseBytes(kDonorCfgGetInhouse)==428&&donorResponseBytes(kDonorCfgGetWaveforms)==440);
  std::puts("waveform v8 control and both-edge atomic rejection passed");
 }

@@ -1264,7 +1264,7 @@
           "max": 1,
           "default": 0.05,
           "required_capability": 128,
-          "scope": "selected inhouse board only; all five Waveforms use per-edge spectrum LPF and broadband AGC; new selections require their version/capability"
+          "scope": "selected board retained configuration; storable for any admitted destination mode with capability128 or256; active only for five Waveforms using per-edge spectrum LPF and broadband AGC; donor controls remain inactive"
         }
       },
       "negotiation": "v7 retains428 bytes and capability mask255 for existing clients. Host requests v8 first with explicit unsupported-version fallback; new modes, capability256 and fields65..67 require v8."
@@ -1303,7 +1303,7 @@
           "applicable_mode_ids": [
             8
           ],
-          "scope": "selected board; validation uses atomically requested or current mode",
+          "scope": "selected board retained configuration; storable for any admitted destination mode, consumed only by applicable_mode_ids; version, capability and finite range checks remain atomic",
           "source_reference": "system/config_types.h:55-56; system/globals_config.cpp:72"
         },
         "inhouse_square_iter": {
@@ -1319,7 +1319,7 @@
             8,
             11
           ],
-          "scope": "selected board; validation uses atomically requested or current mode",
+          "scope": "selected board retained configuration; storable for any admitted destination mode, consumed only by applicable_mode_ids; version, capability and finite range checks remain atomic",
           "source_reference": "control/k1_control_facade.cpp:540; system/globals_config.cpp:59"
         },
         "inhouse_injection_photons": {
@@ -1333,7 +1333,7 @@
           "applicable_mode_ids": [
             8
           ],
-          "scope": "selected board; validation uses atomically requested or current mode",
+          "scope": "selected board retained configuration; storable for any admitted destination mode, consumed only by applicable_mode_ids; version, capability and finite range checks remain atomic",
           "source_reference": "control/k1_control_facade.cpp:512; system/globals_config.cpp:50"
         }
       }
