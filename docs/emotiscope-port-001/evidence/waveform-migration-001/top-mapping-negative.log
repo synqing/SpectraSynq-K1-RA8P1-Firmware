@@ -1,0 +1,28 @@
+In file included from platform/ra8p1/emotiscope_port.cpp:138:
+platform/ra8p1/emotiscope_donor/leds.h:532:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  532 |     CRGBF temp_pixels[num_pixels];
+      |                       ^~~~~~~~~~
+platform/ra8p1/emotiscope_donor/leds.h:532:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression
+platform/ra8p1/emotiscope_donor/leds.h:522:45: note: declared here
+  522 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {
+      |                                             ^
+1 warning generated.
+In file included from platform/ra8p1/emotiscope_secondary.cpp:51:
+In file included from platform/ra8p1/emotiscope_port.cpp:138:
+platform/ra8p1/emotiscope_donor/leds.h:532:23: warning: variable length arrays in C++ are a Clang extension [-Wvla-cxx-extension]
+  532 |     CRGBF temp_pixels[num_pixels];
+      |                       ^~~~~~~~~~
+platform/ra8p1/emotiscope_donor/leds.h:532:23: note: function parameter 'num_pixels' with unknown value cannot be used in a constant expression
+platform/ra8p1/emotiscope_donor/leds.h:522:45: note: declared here
+  522 | void apply_box_blur(CRGBF* pixels, uint16_t num_pixels, int kernel_size) {
+      |                                             ^
+1 warning generated.
+Assertion failed: ((unsigned(out[i*6+ch*2])<<8|out[i*6+ch*2+1])==expected[ch]), function main, file test_top_output_mapping.cpp, line 21.
+Traceback (most recent call last):
+  File "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/harness/tests/test_top_output_mapping.py", line 8, in <module>
+    subprocess.run(cmd,cwd=R,check=True);subprocess.run([str(O/'mapping')],cwd=R,check=True)
+                                         ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.8/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/top-direction-001/mapping-host/mapping']' died with <Signals.SIGABRT: 6>.

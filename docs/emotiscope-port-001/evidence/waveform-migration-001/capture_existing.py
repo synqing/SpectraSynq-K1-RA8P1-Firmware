@@ -236,6 +236,10 @@ def external_camera(pid, log_path, reserve_seconds):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    approved_audio = read_json(F / "docs/emotiscope-port-001/evidence/audio-windows-001/manifest.json")
+    audio_windows = {Path(row['wav']).stem: row for row in approved_audio}
+    parser.add_argument('--audio-window', choices=sorted(audio_windows), default=AUDIO.stem,
+                        help='Approved source-bound window; saved observation records its exact cue and hash')
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--expected-build", required=True)
     parser.add_argument("--readback-only", action="store_true")
@@ -252,6 +256,10 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="Validate local inputs only; no HTTP, camera or service access")
     args = parser.parse_args()
+    audio_record = audio_windows[args.audio_window]
+    audio_path = Path(audio_record['wav'])
+    if hashlib.sha256(audio_path.read_bytes()).hexdigest() != audio_record['wav_sha256']:
+        raise RuntimeError('approved audio window hash mismatch')
     if not 0.0 < args.audio_gain <= 1.0:
         parser.error("audio gain must be greater than zero and at most one")
     if bool(args.external_camera_pid is not None) != bool(args.external_camera_log):
@@ -260,7 +268,7 @@ def main():
         parser.error("pre-seconds must be 0..2 (0..10 with external camera) and post-seconds 1..12")
     if len(args.expected_build) != 64 or any(c not in "0123456789abcdef" for c in args.expected_build):
         parser.error("expected build must be a complete lowercase SHA-256")
-    with wave.open(str(AUDIO)) as source:
+    with wave.open(str(audio_path)) as source:
         duration = source.getnframes() / source.getframerate()
     if abs(duration - 24) > 0.02:
         raise RuntimeError(f"approved passage has unexpected duration: {duration}")
@@ -360,7 +368,7 @@ def main():
                     player_command = ["/usr/bin/afplay"]
                     if args.audio_gain != 1.0:
                         player_command += ["-v", str(args.audio_gain)]
-                    player = subprocess.Popen(player_command + [str(AUDIO)])
+                    player = subprocess.Popen(player_command + [str(audio_path)])
                     player_started = time.monotonic()
                     log("audio_process_started", pid=player.pid, audio_gain=args.audio_gain)
                 if player is not None and ended is None and player.poll() is not None:
@@ -414,7 +422,8 @@ def main():
         (args.output_dir / "capture.json").write_text(json.dumps(samples, indent=2) + "\n")
         (args.output_dir / "observation.json").write_text(json.dumps({
             "expected_uid": UID, "expected_build": args.expected_build,
-            "audio_gain": args.audio_gain, "audio": str(AUDIO), "audio_sha256": hashlib.sha256(AUDIO.read_bytes()).hexdigest(),
+            "audio_gain": args.audio_gain, "audio": str(audio_path), "audio_sha256": audio_record['wav_sha256'],
+            "audio_window": audio_record,
             "camera_uid": CAMERA_UID, "readback_only": args.readback_only,
             "external_camera": attached,
             "pre_seconds_requested": args.pre_seconds, "post_seconds_requested": args.post_seconds,

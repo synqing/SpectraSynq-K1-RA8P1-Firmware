@@ -1,0 +1,104 @@
+..FFFF                                                                   [100%]
+=================================== FAILURES ===================================
+_ test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes1-order0] _
+
+composition = (<tests.test_composition_authoring.ComposedDonor object at 0x10a22c2d0>, <smc_titan_control.emotiscope_engine.EmotiscopeEngine object at 0x10a22c410>, <smc_titan_control.emotiscope_store.EmotiscopeStore object at 0x10a22c190>)
+order = ('1', '0'), scenes = (3, 0)
+
+    @pytest.mark.parametrize('order',[('1','0'),('0','1')])
+    @pytest.mark.parametrize('scenes',[(3,3),(3,0),(0,3)])
+    def test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults(composition,order,scenes):
+        donor,e,store=composition
+        desired=copy.deepcopy(e.authoring.document)
+        desired['boards']['0'].update(scene=scenes[0],scene_phrase=0,scene_return_strength=.25)
+        desired['boards']['1'].update(scene=scenes[1],scene_phrase=0,scene_return_strength=.55)
+        # Matches restore-entry: complete fields for each board, then one apply.
+        for board in order:
+            author(e,'edit',scope=board,fields=desired['boards'][board])
+>       assert e.authoring.document==desired
+E       AssertionError: assert {'boards': {'...sion': 6, ...} == {'boards': {'...sion': 6, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}} != {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}}
+E         Use -v to get more diff
+
+host/titan_control/tests/test_composition_authoring.py:288: AssertionError
+_ test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes1-order1] _
+
+composition = (<tests.test_composition_authoring.ComposedDonor object at 0x10a236d70>, <smc_titan_control.emotiscope_engine.EmotiscopeEngine object at 0x10a22c550>, <smc_titan_control.emotiscope_store.EmotiscopeStore object at 0x10a236c40>)
+order = ('0', '1'), scenes = (3, 0)
+
+    @pytest.mark.parametrize('order',[('1','0'),('0','1')])
+    @pytest.mark.parametrize('scenes',[(3,3),(3,0),(0,3)])
+    def test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults(composition,order,scenes):
+        donor,e,store=composition
+        desired=copy.deepcopy(e.authoring.document)
+        desired['boards']['0'].update(scene=scenes[0],scene_phrase=0,scene_return_strength=.25)
+        desired['boards']['1'].update(scene=scenes[1],scene_phrase=0,scene_return_strength=.55)
+        # Matches restore-entry: complete fields for each board, then one apply.
+        for board in order:
+            author(e,'edit',scope=board,fields=desired['boards'][board])
+>       assert e.authoring.document==desired
+E       AssertionError: assert {'boards': {'...sion': 6, ...} == {'boards': {'...sion': 6, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}} != {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}}
+E         Use -v to get more diff
+
+host/titan_control/tests/test_composition_authoring.py:288: AssertionError
+_ test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes2-order0] _
+
+composition = (<tests.test_composition_authoring.ComposedDonor object at 0x10a237230>, <smc_titan_control.emotiscope_engine.EmotiscopeEngine object at 0x10a22c910>, <smc_titan_control.emotiscope_store.EmotiscopeStore object at 0x10a237100>)
+order = ('1', '0'), scenes = (0, 3)
+
+    @pytest.mark.parametrize('order',[('1','0'),('0','1')])
+    @pytest.mark.parametrize('scenes',[(3,3),(3,0),(0,3)])
+    def test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults(composition,order,scenes):
+        donor,e,store=composition
+        desired=copy.deepcopy(e.authoring.document)
+        desired['boards']['0'].update(scene=scenes[0],scene_phrase=0,scene_return_strength=.25)
+        desired['boards']['1'].update(scene=scenes[1],scene_phrase=0,scene_return_strength=.55)
+        # Matches restore-entry: complete fields for each board, then one apply.
+        for board in order:
+            author(e,'edit',scope=board,fields=desired['boards'][board])
+>       assert e.authoring.document==desired
+E       AssertionError: assert {'boards': {'...sion': 6, ...} == {'boards': {'...sion': 6, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}} != {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}}
+E         Use -v to get more diff
+
+host/titan_control/tests/test_composition_authoring.py:288: AssertionError
+_ test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes2-order1] _
+
+composition = (<tests.test_composition_authoring.ComposedDonor object at 0x10a225a30>, <smc_titan_control.emotiscope_engine.EmotiscopeEngine object at 0x10a22d1d0>, <smc_titan_control.emotiscope_store.EmotiscopeStore object at 0x10a2257f0>)
+order = ('0', '1'), scenes = (0, 3)
+
+    @pytest.mark.parametrize('order',[('1','0'),('0','1')])
+    @pytest.mark.parametrize('scenes',[(3,3),(3,0),(0,3)])
+    def test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults(composition,order,scenes):
+        donor,e,store=composition
+        desired=copy.deepcopy(e.authoring.document)
+        desired['boards']['0'].update(scene=scenes[0],scene_phrase=0,scene_return_strength=.25)
+        desired['boards']['1'].update(scene=scenes[1],scene_phrase=0,scene_return_strength=.55)
+        # Matches restore-entry: complete fields for each board, then one apply.
+        for board in order:
+            author(e,'edit',scope=board,fields=desired['boards'][board])
+>       assert e.authoring.document==desired
+E       AssertionError: assert {'boards': {'...sion': 6, ...} == {'boards': {'...sion': 6, ...}
+E         
+E         Omitting 5 identical items, use -vv to show
+E         Differing items:
+E         {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}} != {'boards': {'0': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}, '1': {'auto_color_cycle': False, 'background': 0.25, 'brightness': 1.0, 'current_mode': 1, ...}}}
+E         Use -v to get more diff
+
+host/titan_control/tests/test_composition_authoring.py:288: AssertionError
+=========================== short test summary info ============================
+FAILED host/titan_control/tests/test_composition_authoring.py::test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes1-order0]
+FAILED host/titan_control/tests/test_composition_authoring.py::test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes1-order1]
+FAILED host/titan_control/tests/test_composition_authoring.py::test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes2-order0]
+FAILED host/titan_control/tests/test_composition_authoring.py::test_complete_board_restore_keeps_explicit_phrase_without_peer_preset_defaults[scenes2-order1]
+4 failed, 2 passed, 20 deselected in 0.11s
