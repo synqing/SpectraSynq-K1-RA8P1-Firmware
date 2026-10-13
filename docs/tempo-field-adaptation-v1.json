@@ -26,6 +26,10 @@
     "core/visual/visual_audio_frame.h": {
       "base_sha256": "9a7d13c40045c2ebfd37fc5a7104be3d28ff48796543d879e1412099bde0505e",
       "candidate_sha256": "203310469d165f8f9086cf89536395f794f7a3ad319b3cfe8fc2624c3b04cce3"
+    },
+    "core/audio/tempo_acf.cpp": {
+      "base_sha256": "c70a9bfa30a7c716fa4028791ba845b2d3837f11db35f7ab7f7bd35d97caaceb",
+      "candidate_sha256": "401cfee7437ef06c3137d8eda3e75aae1894c4b58e5c1b5ab238f64070a9ee9f"
     }
   },
   "local": {
@@ -45,5 +49,11 @@
     "purpose": "Copy pre-AGC magnitudes into the immutable committed visual publication; repair donor pitch ratios lost in the legacy clipped spectrum. Existing AudioFeaturesV1, onset and tempo algorithms unchanged.",
     "evidence": "docs/effects-language-001/evidence/captain-donor-response-20260929-01/host-replay/final-receipt.json",
     "source_review": "Three-file additive sidecar; fixed import allowlist, pinned base hashes and strict verifier unchanged."
+  },
+  "acf_load_reuse_revision": {
+    "date": "2026-10-13",
+    "purpose": "Repair measured Tempo capture overruns by interleaving four autocorrelation lag rows and reusing delayed samples. Each row retains source multiplication and addition order; cadence, window, normalisation and selected tempo semantics unchanged.",
+    "evidence": "_scratch/waveform-migration-001/tempo-acf-four-lag-001/direct-parity.log; _scratch/waveform-migration-001/family-audio-host-007/receipt.json",
+    "qualification": "Host exact arithmetic and ARM loop inspection pass. Target dual-Tempo timing and physical qualification pending; family-003 failed and was rolled back."
   }
 }

@@ -8,7 +8,7 @@ MANIFEST = 'docs/tempo-field-adaptation-v1.json'
 ADAPTED = frozenset({
     'core/audio/tempo_tracker.h', 'core/audio/tempo_tracker.cpp',
     'core/audio/audio_pipeline.h', 'core/audio/audio_pipeline.cpp',
-    'core/visual/visual_audio_frame.h',
+    'core/visual/visual_audio_frame.h', 'core/audio/tempo_acf.cpp',
 })
 LOCAL_FILES = (
     'contract/tempo_field_v1.h',
