@@ -67,6 +67,32 @@ int main(int argc,char** argv){
    }
    donorSceneGetConfig(1-board,&peer_after);assert(!std::memcmp(&peer_before,&peer_after,sizeof(peer_before)));
  }
+ // A direct effect selection must not inherit a retained composed renderer.
+ // Explicit scene selection in the same transaction remains authorable/recallable.
+ for(unsigned board=0;board<2;++board)for(int mode:{0,1,2,3,4,5,6,32,18,8,7,11}){
+   K1EmotiscopeConfig cfg{};donorSceneGetConfig(board,&cfg);cfg.current_mode=mode;
+   assert(board?k1_secondary_emotiscope_set_config(&cfg):k1_emotiscope_set_config(&cfg));
+   auto scene=k1_composed_scene_defaults();scene.scene=3;scene.outgoing_width=.2f;scene.trail_ms=120.f;
+   assert(board?k1_secondary_emotiscope_set_scene_config(&scene):k1_emotiscope_set_scene_config(&scene));
+   K1ComposedSceneConfig peer_before{},peer_after{};
+   if(board)k1_emotiscope_get_scene_config(&peer_before);else k1_secondary_emotiscope_get_scene_config(&peer_before);
+   DonorObserved obs{};obs.boot_id=42;obs.board=board;obs.composed=scene;
+   DonorIntent select{};select.sub=kDonorCfgPatchWaveforms;select.boot_id=42;select.request_id=300;select.board=board;select.mask=1u<<8;select.mode=mode;
+   DonorDedup cache{};DonorApplyResult applied{};donorApply(&cache,select,obs,&applied);
+   assert(applied.status==0 && applied.changed && applied.composed_changed);
+   assert(applied.composed.scene==0 && applied.composed.outgoing_width==.2f && applied.composed.trail_ms==120.f);
+   assert(!applied.mode_transition && applied.affected_boards==(1u<<board));
+   // Fixture owns result application, as in fixture_app.cpp.
+   assert(board?k1_secondary_emotiscope_set_scene_config(&applied.composed):k1_emotiscope_set_scene_config(&applied.composed));
+   if(board)k1_emotiscope_get_scene_config(&peer_after);else k1_secondary_emotiscope_get_scene_config(&peer_after);
+   assert(!std::memcmp(&peer_before,&peer_after,sizeof(peer_before)));
+   obs.composed=applied.composed;obs.revision=applied.revision;
+   select.request_id=301;select.expected_revision=obs.revision;select.mask|=std::uint64_t{1}<<44;select.composed=scene;
+   donorApply(&cache,select,obs,&applied);assert(applied.status==0&&applied.composed_changed&&applied.composed.scene==3);
+   // Invalid selection cannot mutate donor config or implicitly clear a scene.
+   select.request_id=302;select.mode=9;select.mask=1u<<8;
+   donorApply(&cache,select,obs,&applied);assert(applied.status==kDonorStatusInvalid&&!applied.composed_changed&&!applied.changed);
+ }
  assert(donorResponseBytes(kDonorCfgGetState)==208&&donorResponseBytes(kDonorCfgGetExtended)==424&&donorResponseBytes(kDonorCfgGetInhouse)==428&&donorResponseBytes(kDonorCfgGetWaveforms)==440);
  std::puts("waveform v8 control and both-edge atomic rejection passed");
 }

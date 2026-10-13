@@ -904,6 +904,12 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
 #endif
 #ifdef K1_TITAN_TOP_OUTPUT
   K1ComposedSceneConfig merged_composed=observed.composed;
+  // Selecting an effect selects its own renderer, including reselecting the
+  // current mode. Retained motion parameters remain authored; only the active
+  // composed override is released unless this packet explicitly selects it.
+  const bool select_renderer=donorIsPatch(intent.sub) && (intent.mask&(1u<<8)) &&
+      !(intent.mask&(std::uint64_t{1}<<44u));
+  if(select_renderer)merged_composed.scene=0u;
   if(donorIsPatch(intent.sub) && (intent.mask&kDonorComposedMask)){
     if(!(observed.board_capabilities&64u)) {finish(kDonorStatusInvalid,0,0,0);return;}
     for(unsigned field=45;field<=63;++field)
@@ -993,7 +999,7 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     }
 #ifdef K1_TITAN_TOP_OUTPUT
     const bool scene_changed = changed != 0u;
-    if(intent.mask&kDonorComposedMask){
+    if((intent.mask&kDonorComposedMask) || select_renderer){
       for(unsigned field=45;field<=63;++field)
         if(donorComposedRaw(merged_composed,field)!=donorComposedRaw(observed.composed,field))result->composed_changed=1u;
       if(result->composed_changed){result->composed=merged_composed;changed=1u;}
