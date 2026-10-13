@@ -88,3 +88,15 @@ def test_v8_control_server_negotiates_and_routes_actual_extra_field(tmp_path, mo
     assert plane.handle(patch)["ok"]
     assert int.from_bytes(calls[-1][1][:4],"little")==donor.WAVEFORMS_PATCH_SUB
     assert donor.parse(calls[-1][1],state_version=8)[0]==donor.STATUS_OK
+
+
+def test_v8_public_readback_preserves_complete_source_configuration():
+    from test_inhouse_codec import state
+    from titan_control_server import _decode_donor_body
+    raw=state(2,32);raw.extend(struct.pack('<ffff',.05,2.4,1.,.7))
+    struct.pack_into('<I',raw,4,8);struct.pack_into('<I',raw,164,511)
+    actual=_decode_donor_body(raw)
+    assert actual['inhouse_sensitivity']==pytest.approx(2.4)
+    assert actual['inhouse_square_iter']==1.
+    assert actual['inhouse_injection_photons']==pytest.approx(.7)
+    assert actual['waveform_family_supported'] is True

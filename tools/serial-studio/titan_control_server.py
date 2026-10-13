@@ -629,6 +629,7 @@ def donor_public_state(state: dict) -> dict:
         "scene_gesture_id", "scene_phrase_state", "scene_quiet",
         "renderer_family", "inhouse_waveform_supported", "latest_state_version",
         "supported_modes", "active_controls", "inhouse_mood", "inhouse_mood_supported",
+        "inhouse_sensitivity", "inhouse_square_iter", "inhouse_injection_photons", "waveform_family_supported",
     )
     for key in feature_keys:
         public[key] = state.get(key)
