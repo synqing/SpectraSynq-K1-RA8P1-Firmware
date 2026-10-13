@@ -9,6 +9,9 @@ namespace k1::titan {
 namespace {
 constexpr std::int32_t kOne = 65536;
 constexpr float kDt = static_cast<float>(kInhouseHopSamples) / kInhouseSampleRate;
+// The source tracker emits after three admitted 96-sample generations.
+static_assert(core::visual::kInhouseTempoUpdatePeriodUs ==
+              kInhouseHopSamples * 3U * 1000000U / kInhouseSampleRate);
 std::int32_t q(float value) noexcept { return static_cast<std::int32_t>(value * 65536.0F); }
 float f(std::int32_t value) noexcept { return static_cast<float>(value) / 65536.0F; }
 std::int32_t mul(std::int32_t a, std::int32_t b) noexcept {
@@ -103,6 +106,15 @@ bool InhouseAudio::setMood(unsigned board, float mood) noexcept {
   return true;
 }
 
+void InhouseAudio::setTempoDemand(unsigned board, bool enabled) noexcept {
+  if (board >= tempo_.size() || tempo_demand_[board] == enabled) return;
+  tempo_demand_[board] = enabled;
+  tempo_capture_us_[board] = 0;
+  if (enabled)
+    core::audio::initialiseTempoTracker(tempo_[board], core::audio::kLegacy12800AudioRate);
+  else core::audio::resetTempoTracker(tempo_[board]);
+}
+
 void InhouseAudio::reset() noexcept {
   frequencies_ = core::audio::makeGdftConfiguration(core::audio::kLegacy12800AudioRate);
   window_ = {};
@@ -113,7 +125,12 @@ void InhouseAudio::reset() noexcept {
     const float mood = conditioning_[board].mood;
     conditioning_[board] = {};
     (void)setMood(board, mood);
+    core::audio::resetTempoTracker(tempo_[board]);
   }
+  tempo_capture_us_ = {};
+  pcm_history_ = {};
+  pcm_history_index_ = pcm_history_count_ = 0;
+  previous_vu_ = 0.0F;
   peaks_ = {};
   publication_ = {};
   // Publication generations never repeat across a gap within one capture epoch.
@@ -181,6 +198,15 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   publication_.analysis_end_sample_exclusive = end_sample;
   publication_.capture_us = capture_us;
   publication_.valid = capture_valid && admitted_samples_ >= support_samples_;
+  publication_.raw_floor_pcm = config_.drive_floor_pcm;
+  // Source i2s_audio.h increments the four-row physical ring before copying
+  // each completed 96-sample frame. Mode 11 sums all four rows, not a waveform
+  // invented from spectrum bins. Never join partial frames across an epoch.
+  pcm_history_index_ = (pcm_history_index_ + 1U) % pcm_history_.size();
+  pcm_history_[pcm_history_index_] = pending_;
+  pcm_history_count_ = std::min(pcm_history_count_ + 1U, 4U);
+  publication_.pcm_history = pcm_history_;
+  publication_.pcm_history_valid = pcm_history_count_ == 4U;
 
   float square_sum = 0.0F;
   for (const auto sample : pending_) {
@@ -193,6 +219,8 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   const float rms = f(q(std::sqrt(square_sum / static_cast<float>(kInhouseHopSamples))));
   publication_.vu_level = f(divq(std::max<std::int32_t>(0, q(rms) - q(config_.vu_floor)),
       q(1.0F - config_.vu_floor)));
+  publication_.vu_average = f((q(publication_.vu_level) + q(previous_vu_)) / 2);
+  previous_vu_ = publication_.vu_level;
   const float drive = std::max(0.0F, publication_.raw_peak_pcm - config_.drive_floor_pcm);
   // Source's first dt-clock call uses 10 ms; later calls use sample chronology.
   const float dt = admitted_samples_ == kInhouseHopSamples ? 0.010F : kDt;
@@ -225,8 +253,32 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
       magnitude_average_[bin] = 0.0F;
     }
   }
-  for (auto& state : conditioning_) condition(state, dt);
+  for (unsigned board = 0; board < conditioning_.size(); ++board) {
+    condition(conditioning_[board], dt);
+    if (tempo_demand_[board]) {
+      if (!capture_valid || raw_.q0_overflow_count != 0U) {
+        // No phase continuity through an unclocked/rejected analysis. Repeated
+        // invalid input has no live tempo state to reset a second time.
+        if (tempo_[board].input_primed) core::audio::resetTempoTracker(tempo_[board]);
+        tempo_capture_us_[board] = 0;
+        continue;
+      }
+      // k1_tempo_update receives one source novelty/silence observation per
+      // 96-sample AP frame. The existing V2 tracker owns its 3-frame peak hold,
+      // actual BPM/phase and silence-attenuated confidence; no synthetic beat.
+      // Do not mark the optional native TempoField evidence valid: that API
+      // uses canonical 48 kHz frames. Our 12.8 kHz chronology stays in this
+      // publication's epoch/sample interval and actual tempo capture stamp.
+      core::audio::updateTempoTracker(tempo_[board], {
+          static_cast<std::uint32_t>(capture_us / 1000U), conditioning_[board].novelty,
+          silence_});
+      if (core::audio::readTempoTracker(tempo_[board]).updated)
+        tempo_capture_us_[board] = capture_us;
+    }
+  }
   publication_.spectrum = conditioning_[0].spectrum;
+  publication_.spectral_energy = conditioning_[0].spectral_energy;
+  publication_.novelty = conditioning_[0].novelty;
   if (raw_.q0_overflow_count != 0U) publication_.valid = false;
   peaks_[generation_ % peaks_.size()] = Peak{generation_, peak_scaled_};
   unstamped_ = true;
@@ -260,6 +312,8 @@ void InhouseAudio::condition(Conditioning& state, float dt) noexcept {
     const auto target = std::clamp(divq(q(0.25F), state.envelope_q16 + q(0.001F)), q(0.1F), q(10.0F));
     state.gain_q16 += mul(target - state.gain_q16, q(alpha(0.05F, dt)));
   }
+  std::int32_t novelty_sum = 0;
+  float low_sum = 0.0F, mid_sum = 0.0F, high_sum = 0.0F;
   for (std::size_t bin = 0; bin < frequencies_.size(); ++bin) {
     const float hz = frequencies_[bin].target_frequency_hz;
     const auto tilt = q(hz < 200.0F ? 1.30F : (hz > 3000.0F ? 0.85F : 1.0F));
@@ -268,8 +322,18 @@ void InhouseAudio::condition(Conditioning& state, float dt) noexcept {
       const auto excess = value - q(0.5F);
       value = q(0.5F) + divq(excess, kOne + excess);
     }
-    state.spectrum[bin] = f(std::clamp<std::int32_t>(value, 0, kOne));
+    const auto current = std::clamp<std::int32_t>(value, 0, kOne);
+    novelty_sum += std::max<std::int32_t>(0, current - q(state.spectrum[bin]));
+    state.spectrum[bin] = f(current);
+    // k1_audio_snapshot.cpp retains three separate sums before their final add.
+    if (bin < 80U / 3U) low_sum += state.spectrum[bin];
+    else if (bin < 80U * 2U / 3U) mid_sum += state.spectrum[bin];
+    else high_sum += state.spectrum[bin];
   }
+  state.spectral_energy = (low_sum + mid_sum + high_sum) / 80.0F;
+  // Source calculate_novelty: positive SQ15x16 difference, average then sqrt,
+  // stored back into SQ15x16. Only the preceding row is consumed here.
+  state.novelty = f(q(std::sqrt(f(novelty_sum / 80))));
 }
 
 void InhouseAudio::stampPublication(std::uint64_t publish_us) noexcept {
@@ -285,10 +349,27 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
   out = publication_;
   if (board >= conditioning_.size()) { out.valid = false; return false; }
   out.spectrum = conditioning_[board].spectrum;
+  out.spectral_energy = conditioning_[board].spectral_energy;
+  out.novelty = conditioning_[board].novelty;
+  const auto tempo = core::audio::readTempoTracker(tempo_[board]);
+  out.tempo_bpm = tempo.bpm;
+  out.tempo_phase01 = tempo.phase01;
+  out.tempo_confidence = tempo.confidence;
+  out.tempo_capture_us = tempo_capture_us_[board];
+  // A held tracker event may precede the latest fresh audio publication by one
+  // 22.5 ms update period. Subtract the period rather than adding to stale_us
+  // so even an unrestricted caller allowance cannot overflow.
+  const auto tempo_age = now_us >= out.tempo_capture_us ? now_us - out.tempo_capture_us : 0U;
+  out.tempo_valid = out.valid && !unstamped_ && tempo_demand_[board] && out.tempo_capture_us != 0U &&
+      now_us >= out.tempo_capture_us &&
+      (tempo_age <= core::visual::kInhouseTempoUpdatePeriodUs ||
+       tempo_age - core::visual::kInhouseTempoUpdatePeriodUs <= stale_us);
   out.observed_peak_scaled = 0.0F;
   out.peak_summary_valid = false;
-  if (unstamped_ || !out.valid || now_us < out.publish_us || now_us - out.publish_us > stale_us) {
+  if (unstamped_ || !out.valid || now_us < out.publish_us || now_us - out.publish_us > stale_us ||
+      now_us < out.capture_us || now_us - out.capture_us > stale_us) {
     out.valid = false;
+    out.tempo_valid = false;
     cursor = {epoch_, generation_};
     return false;
   }
@@ -297,6 +378,7 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
     // Reader missed the bounded summary: one invalid read resynchronises it,
     // rather than falsely announcing a complete attack history.
     out.valid = false;
+    out.tempo_valid = false;
     cursor = {epoch_, generation_};
     return false;
   }
@@ -309,6 +391,7 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
     }
   }
   cursor = {epoch_, generation_};
+  out.tempo_valid = out.tempo_valid && out.valid;
   return out.valid;
 }
 

@@ -114,8 +114,12 @@ class PaletteRuntime {
   void setInhouseAudio(unsigned board,const core::visual::InhouseWaveformAudio& audio) noexcept {
     if(board<2U)inhouse_audio_[board]=audio;
   }
+  bool setInhouseParameters(unsigned board, float sensitivity, float square_iter, float photons) noexcept;
+  core::visual::InhouseWaveformControls inhouseParameters(unsigned board) const noexcept {
+    return board<2U?inhouse_controls_[board]:core::visual::InhouseWaveformControls{};
+  }
   bool inhouseAdmissionOpen(unsigned board) const noexcept {
-    return board<2U && (board?config_.mode_b:config_.mode_a)==32U &&
+    return board<2U && k1_emotiscope_is_inhouse_mode(board?config_.mode_b:config_.mode_a) &&
         inhouse_renderer_[board].observation().input_fresh && !inhouse_observed_audio_[board].silence;
   }
   bool inhouseSourceSilence(unsigned board) const noexcept {
@@ -212,6 +216,7 @@ class PaletteRuntime {
 #ifdef K1_TITAN_TOP_OUTPUT
 #ifdef K1_EMOTISCOPE_PORT
   core::visual::InhouseWaveformRenderer inhouse_renderer_[2]{};
+  core::visual::InhouseWaveformControls inhouse_controls_[2]{};
   composed_scene::BloomAdmission inhouse_admission_[2]{};
   core::visual::InhouseWaveformAudio inhouse_audio_[2]{};
   core::visual::InhouseWaveformAudio inhouse_observed_audio_[2]{};

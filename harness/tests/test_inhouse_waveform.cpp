@@ -60,7 +60,150 @@ static void real_pcm_quiet_and_wake(){
  assert(renderer.observation().injection_count>births);
  for(unsigned i=0;i<300;++i){push(655);assert(!producer.latest().silence);} // 1.5 s inter-beat gap
 }
+
+
+static void family_boundaries(unsigned mode) {
+ InhouseWaveformAudio a; a.valid=true;a.epoch=1;a.generation=1;a.analysis_end_sample_exclusive=96;
+ a.capture_us=8000;a.publish_us=9000;a.silence=false;a.peak_scaled=.6f;a.raw_peak_pcm=12000.f;
+ a.vu_level=.4f;a.vu_average=.4f;a.spectral_energy=.2f;a.novelty=.2f;a.spectrum.fill(.2f);
+ a.pcm_history_valid=true;for(auto& b:a.pcm_history)b.fill(4000);
+ InhouseWaveformControls c;c.mode=uint8_t(mode);Pixel16 out[160]{},expected[160]{};
+ InhouseWaveformRenderer invalid;
+ auto bad=a;bad.valid=false;
+ assert(invalid.render(bad,c,10000,out,160));assert(invalid.observation().injection_count==0);
+ bad=a;bad.capture_us=0;bad.publish_us=1000;
+ assert(invalid.render(bad,c,40000,out,160));assert(!invalid.observation().input_fresh);
+ assert(invalid.observation().injection_count==0);
+ // Mode changes clear only the selected renderer; ordinary controls retain source history.
+ InhouseWaveformRenderer changed,clean;
+ assert(changed.render(a,{},10000,out,160));
+ a.generation=2;a.capture_us=18000;a.publish_us=19000;
+ assert(changed.render(a,c,20000,out,160));assert(clean.render(a,c,20000,expected,160));
+ assert(std::memcmp(out,expected,sizeof(out))==0);
+ if(mode==18) {
+  InhouseWaveformRenderer unavailable,unlocked;
+  for(unsigned i=0;i<30;++i) {
+   const uint64_t now=(i+3ULL)*10000;a.generation=i+3;a.capture_us=now-2000;a.publish_us=now-1000;
+   a.tempo_bpm=120;a.tempo_phase01=.5f;a.tempo_confidence=1;a.tempo_valid=false;
+   assert(unavailable.render(a,c,now,out,160));
+   a.tempo_valid=true;a.tempo_capture_us=a.capture_us;a.tempo_confidence=0;
+   assert(unlocked.render(a,c,now,expected,160));assert(std::memcmp(out,expected,sizeof(out))==0);
+  }
+  assert(unavailable.observation().scroll_steps<=1); // Authored 30 px/s fallback, no fabricated beat.
+  // A real decimated tempo event can be 34 ms old while its coherent AP view
+  // is only11.5 ms old. It still owns the72px/s phase-zero velocity.
+  InhouseWaveformRenderer held_event,expired_event,stale_ap;
+  a.generation=40;a.capture_us=122500;a.publish_us=130000;
+  a.tempo_valid=true;a.tempo_capture_us=100000;a.tempo_bpm=120;
+  a.tempo_phase01=0;a.tempo_confidence=1;
+  assert(held_event.render(a,c,134000,out,160));
+  assert(held_event.observation().input_fresh);
+  assert(std::fabs(held_event.observation().scroll_remainder-.72f)<1e-6f);
+  a.capture_us=150000;a.publish_us=151000;
+  assert(expired_event.render(a,c,152501,out,160));
+  assert(expired_event.observation().input_fresh);
+  assert(std::fabs(expired_event.observation().scroll_remainder-.30f)<1e-6f);
+  a.capture_us=100000;a.publish_us=130000;
+  assert(stale_ap.render(a,c,134000,out,160));
+  assert(!stale_ap.observation().input_fresh && stale_ap.observation().injection_count==0);
+ } else if(mode==8) {
+  InhouseWaveformRenderer speed_zero,speed_high;
+  for(unsigned i=0;i<30;++i) {
+   const uint64_t now=(i+3ULL)*10000;a.generation=i+3;a.capture_us=now-2000;a.publish_us=now-1000;
+   c.motion_scale=0;assert(speed_zero.render(a,c,now,out,160));
+   c.motion_scale=4;assert(speed_high.render(a,c,now,expected,160));
+   assert(std::memcmp(out,expected,sizeof(out))==0);
+  }
+ } else {
+  InhouseWaveformRenderer below,above;
+  a.capture_us=28000;a.publish_us=29000;a.raw_peak_pcm=std::nextafter(a.raw_floor_pcm*1.1f,0.f);
+  assert(below.render(a,c,30000,out,160));assert(below.observation().injection_count==0);
+  a.raw_peak_pcm=std::nextafter(a.raw_floor_pcm*1.1f,std::numeric_limits<float>::infinity());
+  assert(above.render(a,c,30000,out,160));assert(above.observation().injection_count>0);
+  if(mode==11) {
+   InhouseWaveformRenderer missing,zero,shaped;
+   a.raw_peak_pcm=32768;a.pcm_history_valid=false;
+   assert(missing.render(a,c,30000,out,160));assert(missing.observation().injection_count==0);
+   a.pcm_history_valid=true;for(auto& b:a.pcm_history)b.fill(0);
+   assert(zero.render(a,c,30000,out,160));assert(zero.observation().injection_count==0);
+   a.pcm_history[3].fill(std::numeric_limits<int16_t>::min());
+   assert(shaped.render(a,c,30000,expected,160));assert(shaped.observation().injection_count>0);
+   assert(std::memcmp(out,expected,sizeof(out))!=0);
+  }
+ }
+}
+static int family_oracle(unsigned mode,const char* path,bool corrupt=false) {
+ InhouseWaveformRenderer renderer,peer,untouched; InhouseWaveformControls controls;controls.mode=uint8_t(mode);
+ InhouseWaveformAudio a;Pixel16 actual[160]{},peer_pixels[160]{},untouched_pixels[160]{};
+ CRGB16 previous[160]{},last_colour{};float smooth_peak=0,accum=0;uint32_t last_ms=10;
+ ChannelEffectState state;state.tempo_last_ms=10;
+ FILE* file=std::fopen(path,"wb");assert(file);unsigned subbyte=0,quiet_differences=0;
+ for(unsigned frame=0;frame<900;++frame) {
+  const uint64_t now=(frame+2ULL)*10000;clock_ms=uint32_t(now/1000);
+  a.valid=true;a.epoch=1;a.generation=frame+1;a.analysis_begin_sample=frame*96;a.analysis_end_sample_exclusive=(frame+1)*96;
+  a.capture_us=now-2000;a.publish_us=now-1000;a.silence=frame>=700;
+  a.peak_scaled=frame<700 ? .03f+.92f*std::abs(std::sin(float(frame)*.041f)) : .8f;
+  a.vu_level=a.peak_scaled*.7f;a.vu_average=a.vu_level;
+  a.raw_peak_pcm=frame%79<4 ? 200.f : 4000.f+8000.f*a.peak_scaled;
+  a.spectral_energy=.15f;a.novelty=.12f;
+  a.tempo_valid=true;a.tempo_capture_us=a.capture_us;a.tempo_bpm=120.f;
+  a.tempo_phase01=std::fmod(float(frame)*.02f,1.f);
+  a.tempo_confidence=frame<100 ? 0.f : frame<200 ? .45f : .8f;
+  a.pcm_history_valid=true;
+  for(unsigned block=0;block<4;++block)for(unsigned i=0;i<96;++i)
+    a.pcm_history[block][i]=int16_t(std::sin(float(i)*.2f+float(block)*.7f)*a.raw_peak_pcm*.8f);
+  if(frame==300)controls.palette_id=11;
+  if(frame==400)controls.square_iter=2.5f;
+  if(frame==450){controls.sensitivity=.5f;controls.photons=.4f;}
+  if(frame==500)controls.mirror=false;
+  if(frame==600)controls.motion_scale=.4f;
+  for(unsigned i=0;i<80;++i)a.spectrum[i]=frame<700 ? .02f+.7f*std::max(0.f,std::sin(float(i)*.43f+float(frame)*.02f)) : 0.f;
+  assert(renderer.render(a,controls,now,actual,160));
+  if(corrupt && frame==0)actual[0].red=65535;
+  auto peer_control=controls;peer_control.palette_id=40;
+  assert(peer.render(a,peer_control,now,peer_pixels,160));assert(untouched.render(a,peer_control,now,untouched_pixels,160));
+  assert(std::memcmp(peer_pixels,untouched_pixels,sizeof(peer_pixels))==0);
+  for(unsigned i=0;i<80;++i)k1_vp_spectrogram[i]=SQ15x16(a.spectrum[i]);
+  get_smooth_spectrogram();make_smooth_chromagram();
+  palette_id=controls.palette_id;params.MIRROR_ENABLED=controls.mirror;params.SQUARE_ITER=controls.square_iter;
+  params.SENSITIVITY=controls.sensitivity;params.PHOTONS=controls.photons;
+  snap={a.peak_scaled,a.vu_level,a.silence};snap.spectral_energy=a.spectral_energy;snap.novelty=a.novelty;
+  input.peak=waveform_peak_scaled=a.peak_scaled;input.raw_peak=max_waveform_val_raw=a.raw_peak_pcm;
+  input.vu_average=a.vu_average;input.history_valid=true;audio_vu_level=a.vu_level;
+  for(unsigned b=0;b<4;++b)for(unsigned i=0;i<96;++i)input.history[b][i]=a.pcm_history[b][i];
+  motion=controls.motion_scale;VP_WAVEFORM_SHIFT_RATE=mode==7 ? 120.f*controls.motion_scale : 120.f;
+  tempo.bpm=a.tempo_bpm;tempo.phase01=a.tempo_phase01;tempo.confidence=a.tempo_confidence;
+  if(mode==18)light_mode_waveform_tempo(state);
+  else if(mode==8)light_mode_waveform(previous,last_colour,smooth_peak,accum,last_ms);
+  else if(mode==7)light_mode_waveform_fast(previous,last_colour,smooth_peak,accum,last_ms);
+  else light_mode_waveform_hybrid(previous,last_colour,smooth_peak,accum,last_ms);
+  for(unsigned i=0;i<160;++i){
+   const unsigned expected[3]={unsigned(float(leds_16[i].r)*65535.f),unsigned(float(leds_16[i].g)*65535.f),unsigned(float(leds_16[i].b)*65535.f)};
+   const unsigned values[3]={actual[i].red,actual[i].green,actual[i].blue};
+   for(unsigned c=0;c<3;++c){
+    if(values[c]>0&&values[c]<257)++subbyte;
+    if(expected[c]!=values[c]){
+     if(frame>=700){++quiet_differences;continue;}
+     std::fprintf(stderr,"mode=%u frame=%u pixel=%u channel=%u source=%u candidate=%u; position%.3f peak%.9f sourcepeak%.9f accum%.9f sourceaccum%.9f\n",mode,frame,i,c,expected[c],values[c],renderer.observation().position,renderer.observation().peak_stage1,smooth_peak,renderer.observation().scroll_remainder,mode==18?state.tempo_scroll_accum:accum);std::fprintf(stderr,"colour source %.9f %.9f %.9f candidate %.9f %.9f %.9f raw %.9f vu %.9f\n",float(last_colour.r),float(last_colour.g),float(last_colour.b),renderer.observation().smoothed_colour.red,renderer.observation().smoothed_colour.green,renderer.observation().smoothed_colour.blue,a.raw_peak_pcm,a.vu_average);
+return 2;
+    }
+   }
+  }
+  if(frame>=700)assert(renderer.observation().deposit_strength==0.f);
+  std::fwrite(actual,sizeof(actual),1,file);
+ }
+ std::fclose(file);assert(subbyte>0);assert(quiet_differences>0);
+ const auto births=renderer.observation().injection_count;
+ for(unsigned frame=902;frame<1500;++frame)assert(renderer.render(a,controls,frame*10000ULL,actual,160));
+ assert(renderer.observation().injection_count==births);
+ for(const auto& p:actual)assert(level(p)==0);
+ family_boundaries(mode);
+ std::printf("mode %u: actual source exact 700 audible frames; 200 intentional confirmed-quiet differences (%u channels); subbyte %u; stale drainage and peer independence verified\n",mode,quiet_differences,subbyte);
+ return 0;
+}
+
 int main(int argc,char** argv){
+ if((argc==4 || argc==5) && std::strcmp(argv[2],"--mode")==0)return family_oracle(unsigned(std::atoi(argv[3])),argv[1],argc==5);
  assert(argc==2 || argc==3);FILE* frames=std::fopen(argv[1],"wb");assert(frames);
  InhouseWaveformRenderer renderer, peer, peer_control;
  InhouseWaveformControls controls;InhouseWaveformAudio audio;

@@ -10,6 +10,10 @@ enum { K1_EMOTISCOPE_PIXELS=128, K1_EMOTISCOPE_CHUNK=64,
        K1_EMOTISCOPE_SAMPLE_RATE=12800, K1_EMOTISCOPE_RENDER_HZ=100,
        K1_EMOTISCOPE_FREQS=64, K1_EMOTISCOPE_TEMPI=96,
        K1_EMOTISCOPE_NOVELTY=1024 };
+// Source-family IDs are disjoint from the retained donor modes 0..6.
+static inline bool k1_emotiscope_is_inhouse_mode(int32_t mode) {
+  return mode == 7 || mode == 8 || mode == 11 || mode == 18 || mode == 32;
+}
 typedef struct {
   float brightness, softness, color, warmth, color_range, speed, saturation, background;
   int32_t current_mode;

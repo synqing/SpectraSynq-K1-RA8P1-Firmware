@@ -455,7 +455,7 @@ extern "C" bool k1_emotiscope_init(uint32_t seed){
 }
 static bool k1_emotiscope_mode_supported(int mode){
 #ifdef K1_TITAN_TOP_OUTPUT
-  if(mode==32)return true;
+  if(k1_emotiscope_is_inhouse_mode(mode))return true;
 #endif
   return mode>=0&&mode<=6;
 }
@@ -707,7 +707,7 @@ static void run_composed(){
 }
 extern "C" void k1_emotiscope_scene_prepare(uint32_t now_us){
   using namespace emotiscope;
-  if(configuration.current_mode==32)return;
+  if(k1_emotiscope_is_inhouse_mode(configuration.current_mode))return;
   if(composed_board.observed && composed_board.now_us==now_us)return;
   if(!k1_emotiscope_prepare_frame(now_us))return;
   const auto frame_ml=ml_config;
@@ -743,7 +743,7 @@ extern "C" void k1_emotiscope_scene_pair_frame(uint32_t now_us){
   K1EmotiscopeConfig primary{},secondary{};
   k1_emotiscope_get_config(&primary);k1_secondary_emotiscope_get_config(&secondary);
   static bool was_mixed=false;
-  const bool mixed=primary.current_mode==32 || secondary.current_mode==32;
+  const bool mixed=k1_emotiscope_is_inhouse_mode(primary.current_mode) || k1_emotiscope_is_inhouse_mode(secondary.current_mode);
   if(mixed!=was_mixed){
     k1_scene_pair=composed_scene::Pair{};
     float hz[NUM_TEMPI];for(unsigned i=0;i<NUM_TEMPI;++i)hz[i]=emotiscope::tempi[i].target_tempo_hz;
@@ -758,7 +758,7 @@ extern "C" void k1_emotiscope_scene_pair_frame(uint32_t now_us){
       auto* b=k1_scene_boards[board];
       if(!b)continue;
       b->forced_quiet=false;b->pair_drain=false;b->pair_held=false;
-      if((board?secondary.current_mode:primary.current_mode)==32)continue;
+      if(k1_emotiscope_is_inhouse_mode(board?secondary.current_mode:primary.current_mode))continue;
       const bool launch=b->eligible()&&b->fresh_event;
       b->render(launch?b->event:0u,b->strength);
     }
@@ -778,13 +778,13 @@ extern "C" bool k1_emotiscope_set_scene_config(const K1ComposedSceneConfig* c){
   return true;
 }
 extern "C" void k1_emotiscope_get_scene_config(K1ComposedSceneConfig* c){if(c)*c=emotiscope::composed_board.requested;}
-extern "C" void k1_emotiscope_scene_status(K1ComposedSceneStatus* s){if(s)*s=emotiscope::configuration.current_mode==32?K1ComposedSceneStatus{}:emotiscope::composed_board.status();}
+extern "C" void k1_emotiscope_scene_status(K1ComposedSceneStatus* s){if(s)*s=k1_emotiscope_is_inhouse_mode(emotiscope::configuration.current_mode)?K1ComposedSceneStatus{}:emotiscope::composed_board.status();}
 #endif
 extern "C" bool k1_emotiscope_render(uint32_t now_us,uint8_t* rgb){
   using namespace emotiscope;
-  // Mode32 is rendered natively at160 by PaletteRuntime. Never index the
+  // In-house modes render natively at160 by PaletteRuntime. Never index the
   // seven-entry donor mode table with a source-family mode identifier.
-  if(configuration.current_mode==32)return false;
+  if(k1_emotiscope_is_inhouse_mode(configuration.current_mode))return false;
   if(!rgb || !k1_emotiscope_prepare_frame(now_us))return false;
 #ifdef K1_TITAN_TOP_OUTPUT
   k1_emotiscope_scene_prepare(now_us);
@@ -960,6 +960,12 @@ extern "C" void k1_emotiscope_snapshot(K1EmotiscopeSnapshot* out){
 }
 extern "C" const char* k1_emotiscope_mode_name(uint32_t mode){
   if(mode==32u)return "Waveform Hybrid K1";
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(mode==18u)return "Waveform Tempo";
+  if(mode==8u)return "Waveform";
+  if(mode==7u)return "Waveform Fast";
+  if(mode==11u)return "Waveform Hybrid";
+#endif
   return mode<9?emotiscope::get_light_mode_name(static_cast<int16_t>(mode)):"";
 }
 

@@ -13,6 +13,7 @@ O=a.output.resolve();O.mkdir(parents=True,exist_ok=True)
 sources=['harness/tests/test_inhouse_admission.cpp','platform/ra8p1/palette_runtime.cpp',
  'platform/ra8p1/emotiscope_port.cpp','platform/ra8p1/emotiscope_secondary.cpp','platform/ra8p1/emotiscope_ml.cpp',
  'platform/ra8p1/inhouse_audio.cpp','src/k1/core/audio/gdft_goertzel.cpp',
+ 'src/k1/core/audio/tempo_tracker.cpp','src/k1/core/audio/tempo_acf.cpp',
  'src/k1/core/visual/channel_render_state.cpp','src/k1/core/visual/audio_focus.cpp',
  'src/k1/core/visual/product_palette.cpp','src/k1/core/visual/product_palette_data.cpp','src/k1/core/visual/inhouse_waveform.cpp']
 inputs=sources+['platform/ra8p1/palette_runtime.h','platform/ra8p1/composed_scene_runtime.h',

@@ -34,12 +34,16 @@ def run_ml_tests(root, output, compiler="/usr/bin/clang++"):
         "fixture_app.cpp", "emotiscope_ml.cpp", "emotiscope_ml.h",
         "emotiscope_port.cpp", "emotiscope_port.h", "musical_conditioning.h",
         "k1_live_runtime.cpp", "k1_live_runtime.h", "k1_live_clock.c",
-        "k1_live_clock.h", "palette_clock.h")]
+        "k1_live_clock.h", "palette_clock.h", "inhouse_audio.cpp", "inhouse_audio.h")]
     paths += [root / "tests/host/test_emotiscope_ml.cpp",
               root / "tests/host/test_emotiscope_ml_clock.cpp",
               Path(__file__).resolve(), root / "scripts/test_emotiscope_controls.py",
               root / "src/k1/core/visual/product_palette.cpp",
-              root / "src/k1/core/visual/product_palette_data.cpp"]
+              root / "src/k1/core/visual/product_palette_data.cpp",
+              root / "src/k1/core/audio/gdft_goertzel.cpp",
+              root / "src/k1/core/audio/gdft_goertzel.h",
+              root / "src/k1/core/audio/tempo_tracker.cpp",
+              root / "src/k1/core/audio/tempo_tracker.h"]
     paths += sorted((platform / "emotiscope_donor").rglob("*.h"))
     bindings = {str(path.relative_to(root)): sha(path) for path in paths}
     observations = {"scope": "host admission/actual callback regression; no device or physical ML claim",
@@ -85,12 +89,15 @@ def run_ml_tests(root, output, compiler="/usr/bin/clang++"):
         donor_objects = []
         for name, source in (
                 ("port", platform / "emotiscope_port.cpp"),
+                ("inhouse-audio", platform / "inhouse_audio.cpp"),
+                ("gdft", root / "src/k1/core/audio/gdft_goertzel.cpp"),
+                ("tempo", root / "src/k1/core/audio/tempo_tracker.cpp"),
                 ("palette", root / "src/k1/core/visual/product_palette.cpp"),
                 ("palette-data", root / "src/k1/core/visual/product_palette_data.cpp")):
             obj = output / (name + ".o")
             build([compiler, "-std=c++17", "-O2", "-Wno-narrowing", "-fno-fast-math",
                    "-fsanitize=address,undefined", "-ffunction-sections", "-fdata-sections",
-                   "-I" + str(platform), "-I" + str(root / "src/k1"),
+                   "-I" + str(platform), "-I" + str(root / "src/k1"), "-I" + str(root / "src"),
                    "-I" + str(platform / "emotiscope_donor"),
                    "-I" + str(platform / "emotiscope_shims"),
                    "-c", source, "-o", obj], name + "-build")

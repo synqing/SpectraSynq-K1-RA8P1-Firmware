@@ -24,7 +24,7 @@ def test_malformed_v7_is_atomic_before_serial(mutation):
     with pytest.raises(ObserveDenied):Transport(serial,allowed={25},campaign=True).transact(25,wire)
     assert not serial.tx
 
-@pytest.mark.parametrize('sub',[donor.PATCH_SUB,donor.EXTENDED_PATCH_SUB,donor.INHOUSE_PATCH_SUB])
+@pytest.mark.parametrize('sub',[donor.PATCH_SUB,donor.EXTENDED_PATCH_SUB,donor.INHOUSE_PATCH_SUB,donor.WAVEFORMS_PATCH_SUB])
 def test_all_patch_generations_preserve_broker_observe_only_hold(tmp_path,sub):
     from titan_broker import Broker
     from titan_control_server import RestrictedControlError
@@ -64,3 +64,27 @@ def test_v7_control_server_negotiates_and_preserves_atomic_rejection(tmp_path,mo
     count=len(calls)
     assert not plane.handle(dict(patch,fields={'board':1,'inhouse_mood':float('nan')}))['ok']
     assert len(calls)==count
+
+
+def test_v8_control_server_negotiates_and_routes_actual_extra_field(tmp_path, monkeypatch):
+    import json
+    from test_inhouse_codec import state
+    from test_titan_control_server import UID, BUILD, SCHEMA, _bound
+    from titan_control_server import RestrictedControlPlane
+    monkeypatch.setenv("TITAN_LIVE_CONTROL_ADMITTED", "1")
+    (tmp_path / "accepted-checkpoint.json").write_text(json.dumps(dict(uid=UID, build=BUILD, schema_sha256=SCHEMA, ops=["emotiscope_patch"])))
+    raw=state(2,32)
+    raw.extend(struct.pack("<ffff", .05, 2.4, 1., 1.))
+    struct.pack_into("<I",raw,4,8)
+    struct.pack_into("<I",raw,12,2)
+    struct.pack_into("<I",raw,164,511)
+    calls=[]
+    plane=RestrictedControlPlane(transact=lambda op,wire:(calls.append((op,wire)) or {"ok":True,"status":0,"body":bytes(raw)}),evidence=tmp_path,bound=_bound())
+    session=plane.handle({"op":"hello"})["session"]
+    request=dict(op="emotiscope_get",session=session,request_id=8,boot_id=2,revision=0,state_version=8)
+    got=plane.handle(request)
+    assert got["ok"] and got["state"]["supported_modes"]==list(range(7))+[32,18,8,7,11]
+    patch=dict(request,op="emotiscope_patch",fields={"board":1,"current_mode":8,"inhouse_sensitivity":3.})
+    assert plane.handle(patch)["ok"]
+    assert int.from_bytes(calls[-1][1][:4],"little")==donor.WAVEFORMS_PATCH_SUB
+    assert donor.parse(calls[-1][1],state_version=8)[0]==donor.STATUS_OK

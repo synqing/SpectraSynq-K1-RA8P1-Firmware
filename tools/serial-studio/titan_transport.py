@@ -180,11 +180,12 @@ class Transport:
                 raise ObserveDenied(f"opcode {op} payload not admitted")
             if spec["payload"] is None and not self.campaign:
                 raise ObserveDenied(f"opcode {op} requires campaign lease")
-            if op == 25 and len(payload) >= 4 and struct.unpack_from('<I', payload)[0] in (0x454D0301, 0x454D0302):
+            if op == 25 and len(payload) >= 4 and struct.unpack_from('<I', payload)[0] in (0x454D0301, 0x454D0302, 0x454D0401, 0x454D0402):
                 import emotiscope_control
-                code, _ = emotiscope_control.parse(payload, state_version=7)
+                version = 8 if struct.unpack_from('<I', payload)[0] in (0x454D0401, 0x454D0402) else 7
+                code, _ = emotiscope_control.parse(payload, state_version=version)
                 if code != emotiscope_control.STATUS_OK:
-                    raise ObserveDenied('malformed in-house v7 request')
+                    raise ObserveDenied('malformed in-house request')
         if self.in_flight is not None:
             raise RuntimeError("one outstanding transaction only")
         self.next_req += 1

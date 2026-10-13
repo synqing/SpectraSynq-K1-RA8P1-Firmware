@@ -137,9 +137,13 @@
     4,
     5,
     6,
-    32
+    32,
+    18,
+    8,
+    7,
+    11
   ],
-  "mode_ordinals": 8,
+  "mode_ordinals": 12,
   "mode_names": {
     "0": "Analog",
     "1": "Spectrum",
@@ -148,7 +152,11 @@
     "4": "Spectronome",
     "5": "Hype",
     "6": "Bloom",
-    "32": "Waveform Hybrid K1"
+    "32": "Waveform Hybrid K1",
+    "18": "Waveform Tempo",
+    "8": "Waveform",
+    "7": "Waveform Fast",
+    "11": "Waveform Hybrid"
   },
   "palette_count": 44,
   "palette_ids": [
@@ -340,7 +348,7 @@
         "min": 0,
         "max": 32,
         "default": 1,
-        "scope": "selected board; 32 requires v6 capability128; 7,8,11,18 unavailable",
+        "scope": "selected board; 32 requires v6 capability128; 18/8/7/11 require v8 capability256",
         "enum": [
           0,
           1,
@@ -349,7 +357,11 @@
           4,
           5,
           6,
-          32
+          32,
+          18,
+          8,
+          7,
+          11
         ]
       },
       "mirror_mode": {
@@ -1128,28 +1140,108 @@
       "2": {
         "id": "inhouse_waveform",
         "mode_ids": [
-          32
+          32,
+          18,
+          8,
+          7,
+          11
         ],
         "required_state_version": 6,
         "required_capability": 128,
         "native_pixels": 160,
         "history_precision": "signed Q16",
         "selection": "current_mode32 atomically selects family and effect; source ordinal is not a universal effect namespace",
-        "active_controls": [
-          "brightness",
-          "warmth",
-          "speed",
-          "mirror_mode",
-          "response_gain",
-          "palette",
-          "current_mode",
-          "output_brightness",
-          "emission",
-          "primary_intensity",
-          "secondary_intensity",
-          "secondary_output_enabled",
-          "inhouse_mood"
-        ]
+        "mode_admission": {
+          "32": {
+            "minimum_version": 6,
+            "capability": 128
+          },
+          "18,8,7,11": {
+            "minimum_version": 8,
+            "capability": 256
+          }
+        },
+        "active_controls_by_mode": {
+          "32": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed"
+          ],
+          "18": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed"
+          ],
+          "8": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "inhouse_square_iter",
+            "inhouse_sensitivity",
+            "inhouse_injection_photons"
+          ],
+          "7": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed",
+            "inhouse_square_iter"
+          ],
+          "11": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed",
+            "inhouse_square_iter"
+          ]
+        }
       }
     },
     "inhouse_profile": {
@@ -1172,10 +1264,79 @@
           "max": 1,
           "default": 0.05,
           "required_capability": 128,
-          "scope": "selected inhouse board only; per-edge spectrum LPF and broadband AGC. Current/newselectedmode must32; no donor consumer."
+          "scope": "selected inhouse board only; all five Waveforms use per-edge spectrum LPF and broadband AGC; new selections require their version/capability"
         }
       },
-      "negotiation": "v6 GET remains424 bytes; cap128 permits probing distinct v7GET. v7 PATCH only admits field64."
+      "negotiation": "v7 retains428 bytes and capability mask255 for existing clients. Host requests v8 first with explicit unsupported-version fallback; new modes, capability256 and fields65..67 require v8."
+    },
+    "waveform_family_profile": {
+      "version": 8,
+      "inherits": "inhouse_profile",
+      "state_bytes": 440,
+      "get_sub": 1162675201,
+      "patch_sub": 1162675202,
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 568,
+      "patch_field_count": 67,
+      "patch_field_mask": 147573952589676412927,
+      "profile_capabilities": 511,
+      "patch_header_words": [
+        "subcommand",
+        "boot_id",
+        "request_id",
+        "expected_revision",
+        "mask_fields1_32",
+        "mask_fields33_64",
+        "field_count",
+        "mask_fields65_67"
+      ],
+      "extra_mask_valid": 7,
+      "fields": {
+        "inhouse_sensitivity": {
+          "id": 65,
+          "kind": "f32",
+          "state_offset": 428,
+          "min": 0.1,
+          "max": 20.0,
+          "default": 2.4,
+          "required_capability": 256,
+          "applicable_mode_ids": [
+            8
+          ],
+          "scope": "selected board; validation uses atomically requested or current mode",
+          "source_reference": "system/config_types.h:55-56; system/globals_config.cpp:72"
+        },
+        "inhouse_square_iter": {
+          "id": 66,
+          "kind": "f32",
+          "state_offset": 432,
+          "min": 0.0,
+          "max": 8.0,
+          "default": 1.0,
+          "required_capability": 256,
+          "applicable_mode_ids": [
+            7,
+            8,
+            11
+          ],
+          "scope": "selected board; validation uses atomically requested or current mode",
+          "source_reference": "control/k1_control_facade.cpp:540; system/globals_config.cpp:59"
+        },
+        "inhouse_injection_photons": {
+          "id": 67,
+          "kind": "f32",
+          "state_offset": 436,
+          "min": 0.05,
+          "max": 1.0,
+          "default": 1.0,
+          "required_capability": 256,
+          "applicable_mode_ids": [
+            8
+          ],
+          "scope": "selected board; validation uses atomically requested or current mode",
+          "source_reference": "control/k1_control_facade.cpp:512; system/globals_config.cpp:50"
+        }
+      }
     }
   },
   "mode_control": {

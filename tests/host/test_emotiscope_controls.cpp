@@ -89,7 +89,7 @@ static void check_extended_protocol() {
   CHECK(ec::donorParse(get,20,&intent)==0 && intent.board==1);
   ec::donorApply(&cache,intent,observed,&result);
   CHECK(result.status==0 && result.response_bytes==424);
-  CHECK(ec::donorGetU32(result.response+4)==6 && ec::donorGetU32(result.response+164)==127 && ec::donorGetU32(result.response+176)==1);
+  CHECK(ec::donorGetU32(result.response+4)==6 && ec::donorGetU32(result.response+164)==255 && ec::donorGetU32(result.response+176)==1);
   for(unsigned i=312;i<320;++i)CHECK(result.response[i]==0);
   const Entry features[]={{24,4,1},{28,2,1},{29,4,2},{30,1,fbits(.5f)},{31,1,fbits(60.f)},
     {32,4,1},{39,4,2},{40,1,fbits(.75f)},{41,1,fbits(20.f)},{42,1,fbits(250.f)},{43,2,1},{44,1,fbits(.5f)}};
@@ -501,8 +501,13 @@ static int behavioral() {
   const char* names[] = {"Analog", "Spectrum", "Octave", "Metronome", "Spectronome", "Hype", "Bloom"};
   for (std::uint32_t mode = 0; mode < 7u; ++mode)
     CHECK(std::strcmp(k1_emotiscope_mode_name(mode), names[mode]) == 0);
+#ifdef K1_TITAN_TOP_OUTPUT
+  CHECK(std::strcmp(k1_emotiscope_mode_name(7u), "Waveform Fast") == 0);
+  CHECK(std::strcmp(k1_emotiscope_mode_name(8u), "Waveform") == 0);
+#else
   CHECK(std::strcmp(k1_emotiscope_mode_name(7u), "Neutral") == 0);
   CHECK(std::strcmp(k1_emotiscope_mode_name(8u), "Self Test") == 0);
+#endif
 
   const std::uint8_t crc_sample[] = {'1','2','3','4','5','6','7','8','9'};
   const std::uint32_t crc_vector = ec::donorCrc32(crc_sample, 9);
@@ -538,9 +543,9 @@ static int behavioral() {
   CHECK(!k1_emotiscope_patch(&rejected, &changed, &transition));
   rejected = {};
   rejected.mask = 256u;
-  rejected.current_mode = 7;
+  rejected.current_mode = 9;
   CHECK(!k1_emotiscope_patch(&rejected, &changed, &transition));
-  rejected.current_mode = 8;
+  rejected.current_mode = 10;
   CHECK(!k1_emotiscope_patch(&rejected, &changed, &transition));
   rejected.current_mode = -1;
   CHECK(!k1_emotiscope_patch(&rejected, &changed, &transition));

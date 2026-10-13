@@ -17,6 +17,11 @@ INHOUSE_PATCH_SUB = 0x454D0302
 INHOUSE_STATE_BYTES = 428
 INHOUSE_PATCH_MAX = 544
 INHOUSE_FIELD_COUNT = 64
+WAVEFORMS_GET_SUB = 0x454D0401
+WAVEFORMS_PATCH_SUB = 0x454D0402
+WAVEFORMS_STATE_BYTES = 440
+WAVEFORMS_PATCH_MAX = 568
+WAVEFORMS_FIELD_COUNT = 67
 STATE_MAGIC = 0x454D5354
 STATE_BYTES = 160
 GET_BYTES = 16
@@ -42,6 +47,8 @@ CAP_MUSICAL_CONDITIONING = 16
 CAP_ML = 32
 CAP_COMPOSED_SCENES = 64
 CAP_INHOUSE_WAVEFORM = 128
+CAP_WAVEFORM_FAMILY = 256
+INHOUSE_MODES = (32, 18, 8, 7, 11)
 COMPOSED_STATE_BYTES = 424
 COMPOSED_PATCH_MAX = 536
 COMPOSED_FIELD_COUNT = 63
@@ -138,6 +145,10 @@ FLOAT_RANGES.update({46: (.02, .8), 47: (200., 8000.), 48: (0., 5000.),
                      49: (0., 8000.), 50: (.02, .8), 51: (200., 8000.),
                      52: (0., .95), 53: (0., 2000.), 57: (0., 8000.), 60: (0., 8000.)})
 FIELDS[64] = ("inhouse_mood", KIND_F32)
+FIELDS[65] = ("inhouse_sensitivity", KIND_F32)
+FIELDS[66] = ("inhouse_square_iter", KIND_F32)
+FIELDS[67] = ("inhouse_injection_photons", KIND_F32)
+FLOAT_RANGES.update({65:(.10,20.),66:(0.,8.),67:(.05,1.)})
 
 NAMES = {name: field for field, (name, _kind) in FIELDS.items()}
 
@@ -169,17 +180,34 @@ def golden_patch() -> bytes:
     )
 
 
+def _cap_mask(version):
+    return 511 if version >= 8 else COMPOSED_CAP_MASK if version >= 6 else FEATURE_CAP_MASK if version == 5 else 7 if version == 4 else 3
+
+
+def _mode_admitted(mode, version, capabilities):
+    return mode in range(7) or (mode == 32 and version >= 6 and bool(capabilities & CAP_INHOUSE_WAVEFORM)) or (mode in (18,8,7,11) and version >= 8 and bool(capabilities & CAP_WAVEFORM_FAMILY))
+
+
+def _active_controls(mode, version):
+    controls=["brightness","warmth","mirror_mode","response_gain","palette","current_mode","output_brightness","emission","primary_intensity","secondary_intensity","secondary_output_enabled"]
+    if mode != 8: controls.append("speed")
+    if version >= 7: controls.append("inhouse_mood")
+    if version >= 8 and mode in (7,8,11): controls.append("inhouse_square_iter")
+    if version >= 8 and mode == 8: controls.extend(("inhouse_sensitivity","inhouse_injection_photons"))
+    return controls
+
+
 def encode_get(request_id: int, boot_id: int, board: int = 0, *,
                state_version: int = 2, board_capabilities: int = 0) -> bytes:
     if int(request_id) == 0:
         raise ValueError("request_id")
     if board not in (0, 1):
         raise ValueError("board")
-    if state_version not in (1, 2, 3, 4, 5, 6, 7):
+    if state_version not in (1, 2, 3, 4, 5, 6, 7, 8):
         raise ValueError("state version")
-    if board_capabilities & ~(COMPOSED_CAP_MASK if state_version >= 6 else FEATURE_CAP_MASK if state_version == 5 else 7 if state_version == 4 else 3):
+    if board_capabilities & ~_cap_mask(state_version):
         raise ValueError("board capabilities")
-    sub = INHOUSE_GET_SUB if state_version == 7 else EXTENDED_GET_SUB if state_version >= 5 else GET_SUB
+    sub = WAVEFORMS_GET_SUB if state_version == 8 else INHOUSE_GET_SUB if state_version == 7 else EXTENDED_GET_SUB if state_version >= 5 else GET_SUB
     body = struct.pack("<IIII", sub, int(request_id) & 0xFFFFFFFF, int(boot_id) & 0xFFFFFFFF, 0)
     if board:
         if state_version < 4 or not board_capabilities & CAP_INDEPENDENT_SCENES:
@@ -207,7 +235,7 @@ def _raw_value(field: int, value):
         raw = 1 if value else 0
     elif kind == KIND_I32:
         raw = int(value)
-        if raw not in (0, 1, 2, 3, 4, 5, 6, 32):
+        if raw not in (0, 1, 2, 3, 4, 5, 6, 32, 18, 8, 7, 11):
             raise ValueError(field)
         raw &= 0xFFFFFFFF
     elif kind == KIND_U32:
@@ -224,21 +252,23 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
     if int(request_id) == 0:
         raise ValueError("request_id")
     items = []
-    if state_version not in (1, 2, 3, 4, 5, 6, 7):
+    if state_version not in (1, 2, 3, 4, 5, 6, 7, 8):
         raise ValueError("state version")
     top_profile = state_version >= 3
     dual_profile = state_version >= 4
     feature_profile = state_version >= 5
-    if board_capabilities & ~(COMPOSED_CAP_MASK if state_version >= 6 else FEATURE_CAP_MASK if feature_profile else 7 if dual_profile else 3) or (board_capabilities and not top_profile):
+    if board_capabilities & ~_cap_mask(state_version) or (board_capabilities and not top_profile):
         raise ValueError("board capabilities")
     for key, value in fields.items():
         field = key if isinstance(key, int) else NAMES[key]
-        if field == 9 and int(value) == 32 and (state_version < 6 or not board_capabilities & CAP_INHOUSE_WAVEFORM):
+        if field == 9 and not _mode_admitted(int(value),state_version,board_capabilities):
             raise ValueError("unsupported inhouse renderer")
-        if field == 64 and (state_version < 7 or not board_capabilities & CAP_INHOUSE_WAVEFORM):
+        if field >= 65 and (state_version < 8 or not board_capabilities & CAP_WAVEFORM_FAMILY):
+            raise ValueError("unsupported Waveform control")
+        if field == 64 and (state_version < 7 or not board_capabilities & (CAP_INHOUSE_WAVEFORM | CAP_WAVEFORM_FAMILY)):
             raise ValueError("unsupported inhouse Mood")
         if field >= 28:
-            required = CAP_INHOUSE_WAVEFORM if field == 64 else CAP_EDGE_COLOUR if field <= 38 else CAP_MUSICAL_CONDITIONING if field <= 42 else CAP_ML if field <= 44 else CAP_COMPOSED_SCENES
+            required = CAP_WAVEFORM_FAMILY if field>=65 else (CAP_INHOUSE_WAVEFORM|CAP_WAVEFORM_FAMILY) if field == 64 else CAP_EDGE_COLOUR if field <= 38 else CAP_MUSICAL_CONDITIONING if field <= 42 else CAP_ML if field <= 44 else CAP_COMPOSED_SCENES
             if (field >= 45 and state_version < 6) or not feature_profile or not board_capabilities & required:
                 raise ValueError("unsupported feature control")
         if state_version == 1 and field in (19, 20):
@@ -266,12 +296,12 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
         previous = field
         mask |= 1 << (field - 1)
         blob += struct.pack("<HHI", field, kind, raw)
-    if mask > (((1 << INHOUSE_FIELD_COUNT) - 1) if state_version == 7 else ((1 << COMPOSED_FIELD_COUNT) - 1) if state_version >= 6 else FEATURE_FIELD_MASK if feature_profile else DUAL_FIELD_MASK if dual_profile else TOP_FIELD_MASK if top_profile else FIELD_MASK) or len(items) > (INHOUSE_FIELD_COUNT if state_version == 7 else COMPOSED_FIELD_COUNT if state_version >= 6 else FEATURE_FIELD_COUNT if feature_profile else DUAL_FIELD_COUNT if dual_profile else TOP_FIELD_COUNT if top_profile else FIELD_COUNT):
+    if mask > (((1 << WAVEFORMS_FIELD_COUNT) - 1) if state_version == 8 else ((1 << INHOUSE_FIELD_COUNT) - 1) if state_version == 7 else ((1 << COMPOSED_FIELD_COUNT) - 1) if state_version >= 6 else FEATURE_FIELD_MASK if feature_profile else DUAL_FIELD_MASK if dual_profile else TOP_FIELD_MASK if top_profile else FIELD_MASK) or len(items) > (WAVEFORMS_FIELD_COUNT if state_version == 8 else INHOUSE_FIELD_COUNT if state_version == 7 else COMPOSED_FIELD_COUNT if state_version >= 6 else FEATURE_FIELD_COUNT if feature_profile else DUAL_FIELD_COUNT if dual_profile else TOP_FIELD_COUNT if top_profile else FIELD_COUNT):
         raise ValueError("mask")
     if feature_profile:
-        body = struct.pack("<IIIIIIII", INHOUSE_PATCH_SUB if state_version == 7 else EXTENDED_PATCH_SUB, int(boot_id) & 0xFFFFFFFF,
+        body = struct.pack("<IIIIIIII", WAVEFORMS_PATCH_SUB if state_version == 8 else INHOUSE_PATCH_SUB if state_version == 7 else EXTENDED_PATCH_SUB, int(boot_id) & 0xFFFFFFFF,
                            int(request_id) & 0xFFFFFFFF, int(expected_revision) & 0xFFFFFFFF,
-                           mask & 0xFFFFFFFF, mask >> 32, len(items), 0) + bytes(blob)
+                           mask & 0xFFFFFFFF, (mask >> 32)&0xFFFFFFFF, len(items), (mask>>64) if state_version==8 else 0) + bytes(blob)
     else:
         body = struct.pack(
         "<IIIIII",
@@ -282,7 +312,7 @@ def encode_patch(request_id: int, boot_id: int, expected_revision: int, fields: 
         mask,
         len(items),
     ) + bytes(blob)
-    if len(body) > (INHOUSE_PATCH_MAX if state_version == 7 else COMPOSED_PATCH_MAX if state_version >= 6 else FEATURE_PATCH_MAX if feature_profile else DUAL_PATCH_MAX if dual_profile else TOP_PATCH_MAX if top_profile else PATCH_MAX):
+    if len(body) > (WAVEFORMS_PATCH_MAX if state_version == 8 else INHOUSE_PATCH_MAX if state_version == 7 else COMPOSED_PATCH_MAX if state_version >= 6 else FEATURE_PATCH_MAX if feature_profile else DUAL_PATCH_MAX if dual_profile else TOP_PATCH_MAX if top_profile else PATCH_MAX):
         raise ValueError("size")
     return body
 
@@ -308,17 +338,19 @@ def raw_patch(request_id: int, boot_id: int, expected_revision: int, mask: int, 
 
 
 def parse(body: bytes, *, state_version: int = 2):
-    if state_version not in (1, 2, 3, 4, 5, 6, 7):
+    if state_version not in (1, 2, 3, 4, 5, 6, 7, 8):
         return STATUS_INVALID, None
     if len(body) < 4:
         return STATUS_INVALID, None
     sub = struct.unpack_from("<I", body, 0)[0]
-    extended = sub in (EXTENDED_GET_SUB, EXTENDED_PATCH_SUB, INHOUSE_GET_SUB, INHOUSE_PATCH_SUB)
-    if sub not in (GET_SUB, PATCH_SUB, EXTENDED_GET_SUB, EXTENDED_PATCH_SUB, INHOUSE_GET_SUB, INHOUSE_PATCH_SUB) or (extended and state_version < 5):
+    extended = sub in (EXTENDED_GET_SUB, EXTENDED_PATCH_SUB, INHOUSE_GET_SUB, INHOUSE_PATCH_SUB, WAVEFORMS_GET_SUB, WAVEFORMS_PATCH_SUB)
+    if sub not in (GET_SUB, PATCH_SUB, EXTENDED_GET_SUB, EXTENDED_PATCH_SUB, INHOUSE_GET_SUB, INHOUSE_PATCH_SUB, WAVEFORMS_GET_SUB, WAVEFORMS_PATCH_SUB) or (extended and state_version < 5):
         return STATUS_INVALID, None
+    if sub in (WAVEFORMS_GET_SUB,WAVEFORMS_PATCH_SUB) and state_version<8:
+        return STATUS_INVALID,None
     if sub in (INHOUSE_GET_SUB,INHOUSE_PATCH_SUB) and state_version<7:
         return STATUS_INVALID,None
-    if sub in (GET_SUB, EXTENDED_GET_SUB, INHOUSE_GET_SUB):
+    if sub in (GET_SUB, EXTENDED_GET_SUB, INHOUSE_GET_SUB, WAVEFORMS_GET_SUB):
         if len(body) != GET_BYTES and not (state_version >= 4 and len(body) == DUAL_GET_BYTES):
             return STATUS_INVALID, None
         request, boot, tail = struct.unpack_from("<III", body, 4)
@@ -331,14 +363,17 @@ def parse(body: bytes, *, state_version: int = 2):
     top_profile = state_version >= 3
     dual_profile = state_version >= 4
     header = FEATURE_PATCH_HEADER if extended else PATCH_HEADER
-    field_count = INHOUSE_FIELD_COUNT if sub==INHOUSE_PATCH_SUB else COMPOSED_FIELD_COUNT if extended and state_version >= 6 else FEATURE_FIELD_COUNT if extended else DUAL_FIELD_COUNT if dual_profile else TOP_FIELD_COUNT if top_profile else FIELD_COUNT
+    field_count = WAVEFORMS_FIELD_COUNT if sub==WAVEFORMS_PATCH_SUB else INHOUSE_FIELD_COUNT if sub==INHOUSE_PATCH_SUB else COMPOSED_FIELD_COUNT if extended and state_version >= 6 else FEATURE_FIELD_COUNT if extended else DUAL_FIELD_COUNT if dual_profile else TOP_FIELD_COUNT if top_profile else FIELD_COUNT
     field_mask = (1 << field_count) - 1
     if len(body) < header or len(body) > header + field_count * ENTRY_BYTES:
         return STATUS_INVALID, None
     if extended:
         boot, request, revision, lo, hi, count, reserved = struct.unpack_from("<IIIIIII", body, 4)
         mask = lo | (hi << 32)
-        if reserved:
+        if sub==WAVEFORMS_PATCH_SUB:
+            if reserved&~7:return STATUS_INVALID,None
+            mask |= reserved<<64
+        elif reserved:
             return STATUS_INVALID, None
     else:
         revision, request, boot, mask, count = struct.unpack_from("<IIIII", body, 4)
@@ -368,7 +403,7 @@ def parse(body: bytes, *, state_version: int = 2):
             value = int(raw)
         elif kind == KIND_I32:
             value = struct.unpack("<i", struct.pack("<I", raw))[0]
-            if value not in (0, 1, 2, 3, 4, 5, 6, 32) or (value == 32 and (state_version < 6 or not extended)):
+            if value not in (0, 1, 2, 3, 4, 5, 6, 32, 18, 8, 7, 11) or (value == 32 and (state_version < 6 or not extended)) or (value in (7,8,11,18) and sub!=WAVEFORMS_PATCH_SUB):
                 return STATUS_INVALID, None
         else:
             if raw < (1 if field == 18 else 0) or raw > U32_MAX[field]:
@@ -416,16 +451,16 @@ def decode_ml_state(body: bytes) -> dict:
 
 
 def decode_state(body: bytes) -> dict:
-    if len(body) not in (STATE_BYTES, TOP_STATE_BYTES, DUAL_STATE_BYTES, FEATURE_STATE_BYTES, COMPOSED_STATE_BYTES, INHOUSE_STATE_BYTES):
+    if len(body) not in (STATE_BYTES, TOP_STATE_BYTES, DUAL_STATE_BYTES, FEATURE_STATE_BYTES, COMPOSED_STATE_BYTES, INHOUSE_STATE_BYTES, WAVEFORMS_STATE_BYTES):
         raise ValueError("state length %s" % len(body))
     def u32(offset):
         return struct.unpack_from("<I", body, offset)[0]
     def f32(offset):
         return struct.unpack_from("<f", body, offset)[0]
     version = u32(4)
-    if u32(0) != STATE_MAGIC or version not in (1, 2, 3, 4, 5, 6, 7):
+    if u32(0) != STATE_MAGIC or version not in (1, 2, 3, 4, 5, 6, 7, 8):
         raise ValueError("unsupported state framing")
-    if len(body) != (INHOUSE_STATE_BYTES if version == 7 else COMPOSED_STATE_BYTES if version >= 6 else FEATURE_STATE_BYTES if version == 5 else DUAL_STATE_BYTES if version == 4 else TOP_STATE_BYTES if version == 3 else STATE_BYTES):
+    if len(body) != (WAVEFORMS_STATE_BYTES if version == 8 else INHOUSE_STATE_BYTES if version == 7 else COMPOSED_STATE_BYTES if version >= 6 else FEATURE_STATE_BYTES if version == 5 else DUAL_STATE_BYTES if version == 4 else TOP_STATE_BYTES if version == 3 else STATE_BYTES):
         raise ValueError("state version length")
     intensity_supported = version >= 2
     intensity_a = f32(144) if intensity_supported else None
@@ -436,10 +471,10 @@ def decode_state(body: bytes) -> dict:
     ):
         raise ValueError("invalid output intensity")
     board_capabilities = u32(164) if version >= 3 else 0
-    if board_capabilities & ~(COMPOSED_CAP_MASK if version >= 6 else FEATURE_CAP_MASK if version == 5 else 7 if version == 4 else 3):
+    if board_capabilities & ~_cap_mask(version):
         raise ValueError("unknown board capability")
     engine, mode = u32(8), struct.unpack_from("<i", body, 60)[0]
-    if engine not in (1, 2) or (engine == 1 and mode not in range(7)) or (engine == 2 and (mode != 32 or version < 6 or not board_capabilities & CAP_INHOUSE_WAVEFORM)):
+    if engine not in (1, 2) or (engine == 1 and mode not in range(7)) or (engine == 2 and (mode not in INHOUSE_MODES or not _mode_admitted(mode,version,board_capabilities))):
         raise ValueError("unsupported renderer family/mode")
     primary_intensity = f32(152) if version >= 3 else None
     secondary_intensity = f32(156) if version >= 3 else None
@@ -506,10 +541,16 @@ def decode_state(body: bytes) -> dict:
             features[name] = u32(396 + 4 * index)
         if features["active_scene"] > 3 or features["scene_pending"] > 1 or features["scene_quiet"] > 1:
             raise ValueError("invalid composed scene status")
-    mood=f32(424) if version==7 else None
+    mood=f32(424) if version>=7 else None
     if mood is not None and (not math.isfinite(mood) or not 0<=mood<=1):
         raise ValueError("invalid inhouse Mood")
-    features.update(inhouse_mood=mood,inhouse_mood_supported=version==7 and bool(board_capabilities&CAP_INHOUSE_WAVEFORM))
+    features.update(inhouse_mood=mood,inhouse_mood_supported=version>=7 and bool(board_capabilities&(CAP_INHOUSE_WAVEFORM|CAP_WAVEFORM_FAMILY)))
+    for name,offset,lower,upper in (("inhouse_sensitivity",428,.10,20.),("inhouse_square_iter",432,0.,8.),("inhouse_injection_photons",436,.05,1.)):
+        value=f32(offset) if version>=8 else None
+        if value is not None and (not math.isfinite(value) or not struct.unpack("<f",struct.pack("<f",lower))[0]<=value<=upper):
+            raise ValueError("invalid Waveform control")
+        features[name]=value
+    features["waveform_family_supported"]=version>=8 and bool(board_capabilities&CAP_WAVEFORM_FAMILY)
     features.update(composed_scenes_supported=bool(board_capabilities & CAP_COMPOSED_SCENES))
     features.update(edge_colour_supported=bool(board_capabilities & CAP_EDGE_COLOUR),
                     musical_conditioning_supported=bool(board_capabilities & CAP_MUSICAL_CONDITIONING),
@@ -520,9 +561,9 @@ def decode_state(body: bytes) -> dict:
         "engine": u32(8),
         "renderer_family": "inhouse_waveform" if engine == 2 else "emotiscope",
         "inhouse_waveform_supported": bool(board_capabilities & CAP_INHOUSE_WAVEFORM),
-        "latest_state_version": 7 if board_capabilities&CAP_INHOUSE_WAVEFORM else version,
-        "supported_modes": list(range(7)) + ([32] if board_capabilities & CAP_INHOUSE_WAVEFORM else []),
-        "active_controls": (["brightness", "warmth", "speed", "mirror_mode", "response_gain", "palette", "current_mode", *( ["inhouse_mood"] if version==7 else []), "output_brightness", "emission", "primary_intensity", "secondary_intensity", "secondary_output_enabled"] if engine == 2 else None),
+        "latest_state_version": 8 if board_capabilities&CAP_WAVEFORM_FAMILY else 7 if board_capabilities&CAP_INHOUSE_WAVEFORM else version,
+        "supported_modes": list(range(7)) + [m for m in INHOUSE_MODES if _mode_admitted(m,version,board_capabilities)],
+        "active_controls": _active_controls(mode,version) if engine==2 else None,
         "boot_id": u32(12),
         "revision": u32(16),
         "request_id": u32(20),

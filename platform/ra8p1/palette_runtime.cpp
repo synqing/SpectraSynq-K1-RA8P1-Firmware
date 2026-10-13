@@ -39,7 +39,7 @@ bool supportedMode(std::uint32_t mode) noexcept {
 #ifdef K1_EMOTISCOPE_PORT
   return mode <= 6U
 #ifdef K1_TITAN_TOP_OUTPUT
-      || mode == 32U
+      || k1_emotiscope_is_inhouse_mode(static_cast<std::int32_t>(mode))
 #endif
       ; // Atomic family/mode selector; only admitted effects.
 #endif
@@ -233,10 +233,18 @@ bool PaletteRuntime::setEmissionEnabled(bool enabled) noexcept {
   return was && !enabled;
 }
 #if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+bool PaletteRuntime::setInhouseParameters(unsigned board, float sensitivity, float square_iter, float photons) noexcept {
+  if(board>1U || !std::isfinite(sensitivity) || sensitivity<.10f || sensitivity>20.0f ||
+      !std::isfinite(square_iter) || square_iter<0.0f || square_iter>8.0f ||
+      !std::isfinite(photons) || photons<.05f || photons>1.0f)return false;
+  auto& c=inhouse_controls_[board];c.sensitivity=sensitivity;c.square_iter=square_iter;c.photons=photons;
+  return true;
+}
 bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept {
   K1EmotiscopeConfig config{};
   if(board)k1_secondary_emotiscope_get_config(&config);else k1_emotiscope_get_config(&config);
-  InhouseWaveformControls controls{};
+  auto controls=inhouse_controls_[board];
+  controls.mode=static_cast<std::uint16_t>(config.current_mode);
   const auto palette=board?k1_secondary_emotiscope_palette():k1_emotiscope_palette();
   controls.palette_id=static_cast<std::uint16_t>(palette-1u);
   controls.motion_scale=config.speed*2.0f;
@@ -249,8 +257,12 @@ bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept
   // legacy feature values and travelling history intact.
   input.silence=!inhouse_admission_[board].update(donor_publication_,static_cast<std::uint32_t>(now_us));
   const float response=board?k1_secondary_emotiscope_response_gain():k1_emotiscope_response_gain();
-  input.peak_scaled=std::clamp(input.peak_scaled*response,0.0f,1.0f);
+  // The source 7/8/11 peak follower carries ratios above unity; its
+  // consumers clamp light level independently from displacement/history.
+  const float peak_limit=(config.current_mode==7 || config.current_mode==8 || config.current_mode==11)?32767.0f:1.0f;
+  input.peak_scaled=std::clamp(input.peak_scaled*response,0.0f,peak_limit);
   input.vu_level=std::clamp(input.vu_level*response,0.0f,1.0f);
+  input.vu_average=std::clamp(input.vu_average*response,0.0f,1.0f);
   input.observed_peak_scaled=std::clamp(input.observed_peak_scaled*response,0.0f,1.0f);
   if(!inhouse_renderer_[board].render(input,controls,now_us,wide_[board],kPixelsPerChannel))return false;
   // The core renderer remains authoritative for Inhouse chronology/validity.
@@ -381,8 +393,8 @@ bool PaletteRuntime::step(std::uint64_t now_us,
 #ifdef K1_TITAN_TOP_OUTPUT
   K1EmotiscopeConfig primary_config{},secondary_config{};
   k1_emotiscope_get_config(&primary_config);k1_secondary_emotiscope_get_config(&secondary_config);
-  const bool primary_inhouse=primary_config.current_mode==32;
-  const bool secondary_inhouse=secondary_config.current_mode==32;
+  const bool primary_inhouse=k1_emotiscope_is_inhouse_mode(primary_config.current_mode);
+  const bool secondary_inhouse=k1_emotiscope_is_inhouse_mode(secondary_config.current_mode);
   if(!primary_inhouse)inhouse_admission_[0]={};
   if(!secondary_inhouse)inhouse_admission_[1]={};
   const bool primary_valid=primary_inhouse?renderInhouse(0,now_us):
@@ -597,9 +609,9 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
   if (!out || !capacity) return 0U;
   const int n = std::snprintf(out, capacity,
 #ifdef K1_TITAN_TOP_OUTPUT
-      "{\"version\":1,\"engine\":\"dual_edge\",\"mode_count\":8,"
-      "\"supported_modes\":[0,1,2,3,4,5,6,32],\"board_capabilities\":255,"
-      "\"renderer_families\":{\"emotiscope\":[0,1,2,3,4,5,6],\"inhouse_waveform\":[32]},"
+      "{\"version\":1,\"engine\":\"dual_edge\",\"mode_count\":12,"
+      "\"supported_modes\":[0,1,2,3,4,5,6,32,18,8,7,11],\"board_capabilities\":511,"
+      "\"renderer_families\":{\"emotiscope\":[0,1,2,3,4,5,6],\"inhouse_waveform\":[32,18,8,7,11]},"
       "\"palette_count\":44,\"mode_a_equals_mode_b\":false,\"configure_opcode\":25}");
 #else
       "{\"version\":1,\"engine\":\"emotiscope_v1.1\",\"mode_count\":7,"
@@ -783,7 +795,7 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       (unsigned long)last_emit_cycles_, (unsigned long)maximum_emit_cycles_,
       (unsigned long)frameCrc(a_.frame()), (unsigned long)frameCrc(b_.frame())
 #if defined(K1_EMOTISCOPE_PORT) && defined(K1_TITAN_TOP_OUTPUT)
-      , config_.mode_a==32?"inhouse_waveform":"emotiscope",config_.mode_b==32?"inhouse_waveform":"emotiscope"
+      , k1_emotiscope_is_inhouse_mode(config_.mode_a)?"inhouse_waveform":"emotiscope",k1_emotiscope_is_inhouse_mode(config_.mode_b)?"inhouse_waveform":"emotiscope"
 #endif
 #if defined(K1_PALETTE_MORPH) && !defined(K1_EMOTISCOPE_PORT)
       , (unsigned long)config_.transition_ms, transitions_[0].progress(),

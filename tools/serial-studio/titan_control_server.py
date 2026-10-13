@@ -473,13 +473,13 @@ class RestrictedControlPlane:
         # Extended readback is explicitly negotiated. A new broker does not
         # silently enlarge a legacy client's request or trust caller caps.
         requested_version = request.get("state_version", min(observed.get("version", 2), 4) if same_boot else 2)
-        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5, 6, 7):
+        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5, 6, 7, 8):
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "state_version"}
         try:
             wire = donor.encode_get(
                 request_id, boot_id, board,
                 state_version=requested_version,
-                board_capabilities=(observed.get("board_capabilities", 0) if same_boot else 0) & (255 if requested_version==7 else 127 if requested_version==6 else 63 if requested_version==5 else 7 if requested_version==4 else 3),
+                board_capabilities=(observed.get("board_capabilities", 0) if same_boot else 0) & (511 if requested_version>=8 else 255 if requested_version>=6 else 63 if requested_version==5 else 7 if requested_version==4 else 3),
             )
         except (ValueError, TypeError, OverflowError) as exc:
             self.forbidden_attempts += 1
@@ -515,7 +515,7 @@ class RestrictedControlPlane:
         # Capability comes from this bound device's GET/reply, never the caller.
         same_boot = observed.get("boot_id") == boot_id
         requested_version = request.get("state_version", min(observed.get("version", 2), 4) if same_boot else 2)
-        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5, 6, 7):
+        if type(requested_version) is not int or requested_version not in (1, 2, 3, 4, 5, 6, 7, 8):
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": "state_version"}
         try:
             wire = donor.encode_patch(
@@ -526,7 +526,7 @@ class RestrictedControlPlane:
         except (ValueError, TypeError, OverflowError, KeyError) as exc:
             self.forbidden_attempts += 1
             return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
-        if int.from_bytes(wire[:4], "little") not in (donor.PATCH_SUB, donor.EXTENDED_PATCH_SUB, donor.INHOUSE_PATCH_SUB):
+        if int.from_bytes(wire[:4], "little") not in (donor.PATCH_SUB, donor.EXTENDED_PATCH_SUB, donor.INHOUSE_PATCH_SUB, donor.WAVEFORMS_PATCH_SUB):
             self.forbidden_attempts += 1
             return {"ok": False, "error": "would_emit_whole_config"}
         if (self.evidence / "quiesce.flag").exists():
@@ -647,7 +647,7 @@ _DONOR_STATUS = {
 
 
 def _decode_donor_body(body: bytes) -> dict | None:
-    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES, donor.FEATURE_STATE_BYTES, donor.COMPOSED_STATE_BYTES, donor.INHOUSE_STATE_BYTES):
+    if len(body) not in (donor.STATE_BYTES, donor.TOP_STATE_BYTES, donor.DUAL_STATE_BYTES, donor.FEATURE_STATE_BYTES, donor.COMPOSED_STATE_BYTES, donor.INHOUSE_STATE_BYTES, donor.WAVEFORMS_STATE_BYTES):
         return None
     try:
         state = donor.decode_state(body)

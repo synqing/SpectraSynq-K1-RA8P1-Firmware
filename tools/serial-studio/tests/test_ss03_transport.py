@@ -211,3 +211,19 @@ def test_read_timeout_quarantines_before_late_response_or_next_write(serial_read
         assert bytes(fake.rx) == pending
         assert len(transport.writes) == 1
         assert transport.next_req == 1
+
+
+def test_waveform_v8_transport_admits_valid_and_rejects_malformed_before_write():
+    import struct
+    import emotiscope_control as wire
+    valid = wire.encode_get(1, 42, state_version=8, board=1, board_capabilities=511)
+    fake = FakeSerial()
+    fake.feed_response(0, 1, 1, b"v8-readback")
+    transport = Transport(fake, allowed={25}, campaign=True)
+    assert transport.transact(25, valid)["body"] == b"v8-readback"
+    for malformed in (struct.pack("<I", wire.WAVEFORMS_GET_SUB),
+                      struct.pack("<I", wire.WAVEFORMS_PATCH_SUB) + bytes(28)):
+        transport = Transport(FakeSerial(), allowed={25}, campaign=True)
+        with pytest.raises(ObserveDenied, match="malformed in-house"):
+            transport.transact(25, malformed)
+        assert not transport.writes

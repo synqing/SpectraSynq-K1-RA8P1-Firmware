@@ -526,7 +526,8 @@ class Broker:
         with self._sched:
             if op == 25 and payload and len(payload) >= 4:
                 if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12, donor_wire.PATCH_SUB,
-                                            donor_wire.EXTENDED_PATCH_SUB, donor_wire.INHOUSE_PATCH_SUB):
+                                            donor_wire.EXTENDED_PATCH_SUB, donor_wire.INHOUSE_PATCH_SUB,
+                                            donor_wire.WAVEFORMS_PATCH_SUB):
                     if self.quiesced():
                         raise RestrictedControlError("paused", "quiesce.flag")
                     if not self.control_enabled:

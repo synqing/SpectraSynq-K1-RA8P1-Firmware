@@ -70,6 +70,9 @@ class LiveAudioRuntime final {
   // remains donor-owned; resumption uses the analyser's existing gap reset.
   void setInhouseActive(bool active) noexcept { inhouse_active_ = active; }
   bool inhouseActive() const noexcept { return inhouse_active_; }
+  void setInhouseTempoDemand(unsigned board, bool enabled) noexcept {
+    inhouse_audio_.setTempoDemand(board, enabled);
+  }
   bool acquireInhouse(InhouseAudioCursor& cursor, std::uint64_t now_us,
       core::visual::InhouseWaveformAudio& output, unsigned board = 0U) const noexcept {
     if (!inhouse_active_) { output = {}; return false; }

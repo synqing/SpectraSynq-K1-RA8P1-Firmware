@@ -21,10 +21,12 @@ inline constexpr std::uint32_t kDonorCfgGetExtended = 0x454D0201u;
 inline constexpr std::uint32_t kDonorCfgPatchExtended = 0x454D0202u;
 inline constexpr std::uint32_t kDonorCfgGetInhouse = 0x454D0301u;
 inline constexpr std::uint32_t kDonorCfgPatchInhouse = 0x454D0302u;
-inline constexpr std::uint32_t kDonorStateVersion = 7u;
-inline constexpr std::uint32_t kDonorStateBytes = 428u;
-inline constexpr std::uint32_t kDonorPatchMaxBytes = 544u;
-inline constexpr std::uint32_t kDonorFieldCount = 64u;
+inline constexpr std::uint32_t kDonorCfgGetWaveforms = 0x454D0401u;
+inline constexpr std::uint32_t kDonorCfgPatchWaveforms = 0x454D0402u;
+inline constexpr std::uint32_t kDonorStateVersion = 8u;
+inline constexpr std::uint32_t kDonorStateBytes = 440u;
+inline constexpr std::uint32_t kDonorPatchMaxBytes = 568u;
+inline constexpr std::uint32_t kDonorFieldCount = 67u;
 inline constexpr std::uint64_t kDonorFieldMask = ~std::uint64_t{0};
 #else
 inline constexpr std::uint32_t kDonorStateVersion = 2u;
@@ -36,9 +38,14 @@ inline constexpr std::uint32_t kDonorFieldMask = 0xfffffu;
 inline constexpr std::uint32_t kDonorEngineId = 1u;
 inline bool donorSupportedMode(std::int32_t mode) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
-  if(mode==32)return true;
+  if(k1_emotiscope_is_inhouse_mode(mode))return true;
 #endif
   return mode>=0 && mode<=6;
+}
+inline bool donorModeAdmitted(std::int32_t mode,std::uint32_t version,std::uint32_t caps) noexcept {
+  if(mode>=0&&mode<=6)return true;
+  if(mode==32)return version>=6u&&(caps&128u);
+  return k1_emotiscope_is_inhouse_mode(mode)&&version>=8u&&(caps&256u);
 }
 inline constexpr std::uint32_t kDonorGetBytes = 16u;
 inline constexpr std::uint32_t kDonorPatchHeaderBytes = 24u;
@@ -79,6 +86,7 @@ inline bool donorProfileAcceptsConfigSub(std::uint32_t sub) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
       || sub == kDonorCfgPatchExtended || sub == kDonorCfgGetExtended
       || sub == kDonorCfgPatchInhouse || sub == kDonorCfgGetInhouse
+      || sub == kDonorCfgPatchWaveforms || sub == kDonorCfgGetWaveforms
 #endif
       ;
 }
@@ -86,13 +94,14 @@ inline bool donorProfileAcceptsConfigSub(std::uint32_t sub) noexcept {
 inline bool donorIsGet(std::uint32_t sub) noexcept {
   return sub==kDonorCfgGetState
 #ifdef K1_TITAN_TOP_OUTPUT
-      || sub==kDonorCfgGetExtended || sub==kDonorCfgGetInhouse
+      || sub==kDonorCfgGetExtended || sub==kDonorCfgGetInhouse || sub==kDonorCfgGetWaveforms
 #endif
       ;
 }
 inline std::uint32_t donorResponseBytes(std::uint32_t sub) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
-  return (sub==kDonorCfgGetInhouse||sub==kDonorCfgPatchInhouse)?428u:
+  return (sub==kDonorCfgGetWaveforms||sub==kDonorCfgPatchWaveforms)?440u:
+      (sub==kDonorCfgGetInhouse||sub==kDonorCfgPatchInhouse)?428u:
       (sub==kDonorCfgGetExtended||sub==kDonorCfgPatchExtended)?424u:208u;
 #else
   (void)sub;return 160u;
@@ -101,7 +110,7 @@ inline std::uint32_t donorResponseBytes(std::uint32_t sub) noexcept {
 inline bool donorIsPatch(std::uint32_t sub) noexcept {
   return sub==kDonorCfgPatch
 #ifdef K1_TITAN_TOP_OUTPUT
-      || sub==kDonorCfgPatchExtended || sub==kDonorCfgPatchInhouse
+      || sub==kDonorCfgPatchExtended || sub==kDonorCfgPatchInhouse || sub==kDonorCfgPatchWaveforms
 #endif
       ;
 }
@@ -229,7 +238,7 @@ inline std::uint32_t donorPopcount(std::uint64_t mask) noexcept {
 }
 inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
 #ifdef K1_TITAN_TOP_OUTPUT
-  if(field==64u)return kDonorKindF32;
+  if(field>=64u&&field<=67u)return kDonorKindF32;
 #endif
 #ifdef K1_TITAN_TOP_OUTPUT
   if (field>=45u && field<=63u) {
@@ -254,6 +263,7 @@ inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
 struct DonorIntent {
 #ifdef K1_TITAN_TOP_OUTPUT
   float inhouse_mood=.05f;
+  float inhouse_sensitivity=2.4f,inhouse_square_iter=1.0f,inhouse_injection_photons=1.0f;
   K1ComposedSceneConfig composed = k1_composed_scene_defaults();
   std::uint32_t edge_colour_enabled = 0;
   std::uint32_t edge_colour_mode = 0;
@@ -279,6 +289,7 @@ struct DonorIntent {
 #endif
   std::uint32_t sub = 0, request_id = 0, boot_id = 0, expected_revision = 0;
   std::uint64_t mask = 0;
+  std::uint32_t mask_extra = 0;
   std::uint32_t payload_crc = 0;
   float brightness = 0, softness = 0, color = 0, warmth = 0;
   float color_range = 0, speed = 0, saturation = 0, background = 0;
@@ -307,6 +318,7 @@ struct DonorDedup {
 struct DonorObserved {
 #ifdef K1_TITAN_TOP_OUTPUT
   float inhouse_mood=.05f;
+  float inhouse_sensitivity=2.4f,inhouse_square_iter=1.0f,inhouse_injection_photons=1.0f;
   K1ComposedSceneConfig composed = k1_composed_scene_defaults();
   K1ComposedSceneStatus composed_status{};
   std::uint32_t edge_colour_enabled = 0;
@@ -326,8 +338,8 @@ struct DonorObserved {
   float musical_release_ms = 160.0f;
   std::uint32_t ml_enabled = 0;
   float ml_strength = 0.0f;
-  std::uint32_t board_capabilities = 255u;
-  std::uint32_t response_version=7u;
+  std::uint32_t board_capabilities = 511u;
+  std::uint32_t response_version=8u;
   K1EmotiscopeMlResult ml_result{};
   std::uint32_t publication_sequence=0,event_cursor=0;
   float conditioning_value=0.0f;
@@ -346,8 +358,10 @@ struct DonorObserved {
 struct DonorApplyResult {
 #ifdef K1_TITAN_TOP_OUTPUT
   float inhouse_mood=.05f;
+  float inhouse_sensitivity=2.4f,inhouse_square_iter=1.0f,inhouse_injection_photons=1.0f;
   K1ComposedSceneConfig composed = k1_composed_scene_defaults();
   std::uint8_t inhouse_mood_changed=0;
+  std::uint8_t inhouse_sensitivity_changed=0,inhouse_square_iter_changed=0,inhouse_injection_photons_changed=0;
   std::uint8_t composed_changed=0;
   std::uint32_t edge_colour_enabled = 0;
   std::uint32_t edge_colour_mode = 0;
@@ -394,7 +408,7 @@ struct DonorApplyResult {
 inline std::uint32_t donorApplicability(const K1EmotiscopeConfig& config) noexcept {
   // Preserve legacy bits 0..15; precision, palette and DIN intensities are
   // always applicable in state version 2, with no new applicability bits.
-  if(config.current_mode==32) return (1u<<0)|(1u<<3)|(1u<<5)|(1u<<8)|(1u<<9)|(1u<<14)|(1u<<15);
+  if(k1_emotiscope_is_inhouse_mode(config.current_mode)) return (1u<<0)|(1u<<3)|(config.current_mode==8?0u:(1u<<5))|(1u<<8)|(1u<<9)|(1u<<14)|(1u<<15);
   std::uint32_t bits = 0xffffu & ~kDonorUnsupportedHsvMask;
   if (config.current_mode != 0) bits &= ~(1u << 5);
   // Palette reversal is independent of the retained, unsupported HSV range.
@@ -414,7 +428,7 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
       kDonorStateVersion
 #endif
       );
-  donorPutU32(out + 8, config.current_mode==32?2u:kDonorEngineId);
+  donorPutU32(out + 8, k1_emotiscope_is_inhouse_mode(config.current_mode)?2u:kDonorEngineId);
   donorPutU32(out + 12, observed.boot_id);
   donorPutU32(out + 16, observed.revision);
   donorPutU32(out + 20, request_id);
@@ -460,7 +474,7 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
   donorPutF32(out + 152, observed.primary_intensity);
   donorPutF32(out + 156, observed.secondary_intensity);
   donorPutU32(out + 160, observed.secondary_output_enabled);
-  donorPutU32(out + 164, observed.board_capabilities & (observed.response_version>=6u?255u:observed.response_version>=5u?63u:7u));
+  donorPutU32(out + 164, observed.board_capabilities & (observed.response_version>=8u?511u:observed.response_version>=6u?255u:observed.response_version>=5u?63u:7u));
   // Legacy reserved bytes168..175 remain zero. New v4 scene identity/response.
   donorPutU32(out+176,observed.board);donorPutF32(out+180,observed.response_gain);
   donorPutU32(out+184,observed.edge_response);donorPutF32(out+188,observed.edge_depth);
@@ -496,6 +510,7 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
   donorPutU32(out+304,observed.ml_result.max_cycles);
   donorPutU32(out+308,observed.ml_result.rejected_results);
   if(observed.response_version>=7u)donorPutF32(out+424,observed.inhouse_mood);
+  if(observed.response_version>=8u){donorPutF32(out+428,observed.inhouse_sensitivity);donorPutF32(out+432,observed.inhouse_square_iter);donorPutF32(out+436,observed.inhouse_injection_photons);}
   if(observed.response_version>=6u){
     for(unsigned field=45;field<=63;++field)donorPutU32(out+320+4*(field-45),donorComposedRaw(observed.composed,field));
     donorPutU32(out+396,observed.composed_status.active_scene);
@@ -534,9 +549,10 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
     return kDonorStatusOk;
   }
   if (size < kDonorPatchHeaderBytes || size > kDonorPatchMaxBytes) return kDonorStatusInvalid;
-  bool extended=false;
+  bool extended=false,waveforms=false;
 #ifdef K1_TITAN_TOP_OUTPUT
-  extended=sub==kDonorCfgPatchExtended || sub==kDonorCfgPatchInhouse;
+  waveforms=sub==kDonorCfgPatchWaveforms;
+  extended=sub==kDonorCfgPatchExtended || sub==kDonorCfgPatchInhouse || waveforms;
 #endif
   const std::uint32_t header_bytes=extended?32u:kDonorPatchHeaderBytes;
   if(size<header_bytes)return kDonorStatusInvalid;
@@ -544,8 +560,9 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
   const std::uint64_t mask=donorGetU32(bytes+16) |
       (extended ? (std::uint64_t{donorGetU32(bytes+20)}<<32u) : 0u);
   const std::uint32_t count=donorGetU32(bytes+(extended?24u:20u));
-  if(extended && donorGetU32(bytes+28)!=0u)return kDonorStatusInvalid;
-  const std::uint32_t maximum_fields=extended?kDonorFieldCount:
+  const std::uint32_t mask_extra=waveforms?donorGetU32(bytes+28):0u;
+  if((mask_extra&~7u) || (extended && !waveforms && donorGetU32(bytes+28)!=0u))return kDonorStatusInvalid;
+  const std::uint32_t maximum_fields=extended?(waveforms?67u:sub==0x454D0302u?64u:63u):
 #ifdef K1_TITAN_TOP_OUTPUT
       27u;
 #else
@@ -555,19 +572,25 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
   if(count>maximum_fields || (!extended && (mask>>maximum_fields)))return kDonorStatusInvalid;
   if (request == 0u || (mask & ~kDonorFieldMask) || (mask&kDonorUnsupportedHsvMask) || count > kDonorFieldCount ||
       size != header_bytes + count * kDonorEntryBytes ||
-      count != donorPopcount(mask)) return kDonorStatusInvalid;
-  std::uint64_t built = 0;
+      count != donorPopcount(mask)+donorPopcount(mask_extra)) return kDonorStatusInvalid;
+  std::uint64_t built = 0;std::uint32_t built_extra=0;
   std::uint16_t previous = 0;
   for (std::uint32_t i = 0; i < count; ++i) {
     const std::uint8_t* entry = bytes + header_bytes + i * kDonorEntryBytes;
     const std::uint16_t field = donorGetU16(entry);
     const std::uint16_t kind = donorGetU16(entry + 2);
     const std::uint32_t raw = donorGetU32(entry + 4);
-    if (field < 1u || field > kDonorFieldCount || field <= previous || kind != donorFieldKind(field))
+    if (field < 1u || field > maximum_fields || field <= previous || kind != donorFieldKind(field))
       return kDonorStatusInvalid;
     previous = field;
-    built |= std::uint64_t{1} << (field - 1u);
+    if(field<=64u)built |= std::uint64_t{1} << (field - 1u);else built_extra|=1u<<(field-65u);
 #ifdef K1_TITAN_TOP_OUTPUT
+    if(field>=65u){
+      const float value=donorGetF32(entry+4);
+      if(!donorValidRange(value,field==65u?.10f:field==67u?.05f:0.0f,field==65u?20.0f:field==66u?8.0f:1.0f))return kDonorStatusInvalid;
+      if(field==65u)out->inhouse_sensitivity=value;else if(field==66u)out->inhouse_square_iter=value;else out->inhouse_injection_photons=value;
+      continue;
+    }
     if(field==64u){out->inhouse_mood=donorGetF32(entry+4);if(!donorValidUnitFloat(out->inhouse_mood))return kDonorStatusInvalid;continue;}
     if(field>=45u){
       if(!donorComposedPut(out->composed,field,raw))return kDonorStatusInvalid;
@@ -633,7 +656,7 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
       if (dest) *dest = static_cast<std::uint8_t>(raw);
     } else if (kind == kDonorKindI32) {
       const std::int32_t mode = static_cast<std::int32_t>(raw);
-      if (!donorSupportedMode(mode) || (mode==32 && !extended)) return kDonorStatusInvalid;
+      if (!donorSupportedMode(mode) || (k1_emotiscope_is_inhouse_mode(mode) && !extended) || (mode!=32 && k1_emotiscope_is_inhouse_mode(mode) && !waveforms)) return kDonorStatusInvalid;
       out->mode = mode;
 #ifdef K1_TITAN_TOP_OUTPUT
     } else if(field>=28u){
@@ -658,7 +681,7 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
       out->hardware_brightness = raw;
     }
   }
-  if (built != mask) return kDonorStatusInvalid;
+  if (built != mask || built_extra!=mask_extra) return kDonorStatusInvalid;
 #ifdef K1_TITAN_TOP_OUTPUT
   if(out->board==1u && (mask&((1u<<18)|(1u<<19))))return kDonorStatusInvalid;
 #endif
@@ -666,7 +689,7 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
   out->request_id = request;
   out->boot_id = donorGetU32(bytes + (extended?4u:12u));
   out->expected_revision = donorGetU32(bytes + (extended?12u:4u));
-  out->mask = mask;
+  out->mask = mask;out->mask_extra=mask_extra;
   out->payload_crc = donorCrc32(bytes, size);
   return kDonorStatusOk;
 }
@@ -714,8 +737,9 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
   result->output_intensity_a = observed.output_intensity_a;
   result->output_intensity_b = observed.output_intensity_b;
 #ifdef K1_TITAN_TOP_OUTPUT
-  observed.response_version=result->response_bytes==428u?7u:result->response_bytes==424u?6u:4u;
+  observed.response_version=result->response_bytes==440u?8u:result->response_bytes==428u?7u:result->response_bytes==424u?6u:4u;
   result->inhouse_mood=observed.inhouse_mood;
+  result->inhouse_sensitivity=observed.inhouse_sensitivity;result->inhouse_square_iter=observed.inhouse_square_iter;result->inhouse_injection_photons=observed.inhouse_injection_photons;
   result->composed=observed.composed;
   result->edge_colour_enabled=observed.edge_colour_enabled;
   result->edge_colour_mode=observed.edge_colour_mode;
@@ -774,6 +798,7 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     encoded.edge_pair_spread_degrees=result->edge_pair_spread_degrees;
     encoded.edge_pair_spatial=result->edge_pair_spatial;
     encoded.inhouse_mood=result->inhouse_mood;
+    encoded.inhouse_sensitivity=result->inhouse_sensitivity;encoded.inhouse_square_iter=result->inhouse_square_iter;encoded.inhouse_injection_photons=result->inhouse_injection_photons;
     encoded.musical_role=result->musical_role;
     encoded.musical_strength=result->musical_strength;
     encoded.musical_attack_ms=result->musical_attack_ms;
@@ -824,8 +849,7 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
     return;
   }
 #ifdef K1_TITAN_TOP_OUTPUT
-  if(((intent.mask&(1u<<8)) && intent.mode==32 &&
-      (observed.response_version<6u || !(observed.board_capabilities&128u))) ||
+  if(((intent.mask&(1u<<8)) && !donorModeAdmitted(intent.mode,observed.response_version,observed.board_capabilities)) ||
       intent.board>1u || (intent.board==1u && !(observed.board_capabilities&4u)) ||
       (intent.board==1u && (intent.mask&((1u<<18)|(1u<<19)))) ||
       ((intent.mask&(1u<<24))&&!donorValidResponseGain(intent.response_gain)) ||
@@ -841,10 +865,16 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
   if(donorIsPatch(intent.sub)){
     K1EmotiscopeConfig selected_config{};donorSceneGetConfig(intent.board,&selected_config);
     bool valid=true;
-    if(intent.sub!=kDonorCfgPatchExtended && intent.sub!=kDonorCfgPatchInhouse && (intent.mask>>27u))valid=false;
+    if(intent.sub!=kDonorCfgPatchExtended && intent.sub!=kDonorCfgPatchInhouse && intent.sub!=kDonorCfgPatchWaveforms && (intent.mask>>27u))valid=false;
+    const auto effective_mode=(intent.mask&(1u<<8))?intent.mode:selected_config.current_mode;
+    if(!donorModeAdmitted(effective_mode,observed.response_version,observed.board_capabilities))valid=false;
+    if(intent.mask_extra && (intent.sub!=kDonorCfgPatchWaveforms || !(observed.board_capabilities&256u) || (intent.mask_extra&~7u)))valid=false;
+    if((intent.mask_extra&1u) && (effective_mode!=8 || !donorValidRange(intent.inhouse_sensitivity,.10f,20.0f)))valid=false;
+    if((intent.mask_extra&2u) && ((effective_mode!=7&&effective_mode!=8&&effective_mode!=11) || !donorValidRange(intent.inhouse_square_iter,0.0f,8.0f)))valid=false;
+    if((intent.mask_extra&4u) && (effective_mode!=8 || !donorValidRange(intent.inhouse_injection_photons,.05f,1.0f)))valid=false;
     if((intent.mask&(std::uint64_t{1}<<63u)) &&
-       (intent.sub!=kDonorCfgPatchInhouse || !(observed.board_capabilities&128u) || !donorValidUnitFloat(intent.inhouse_mood) ||
-        ((intent.mask&(1u<<8))?intent.mode:selected_config.current_mode)!=32))valid=false;
+       ((intent.sub!=kDonorCfgPatchInhouse&&intent.sub!=kDonorCfgPatchWaveforms) || !donorValidUnitFloat(intent.inhouse_mood) ||
+        !k1_emotiscope_is_inhouse_mode(effective_mode) || !donorModeAdmitted(effective_mode,observed.response_version,observed.board_capabilities)))valid=false;
     if((intent.mask&(std::uint64_t{1}<<27u)) && (intent.edge_colour_enabled>1u))valid=false;
     if((intent.mask&(std::uint64_t{1}<<28u)) && (intent.edge_colour_mode>6u))valid=false;
     if((intent.mask&(std::uint64_t{1}<<29u)) && (!donorValidRange(intent.edge_colour_strength,0.0f,1.0f)))valid=false;
@@ -1007,6 +1037,9 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
       changed = 1u;
     }
 #ifdef K1_TITAN_TOP_OUTPUT
+    if((intent.mask_extra&1u)&&intent.inhouse_sensitivity!=observed.inhouse_sensitivity){result->inhouse_sensitivity=intent.inhouse_sensitivity;result->inhouse_sensitivity_changed=1u;changed=1u;}
+    if((intent.mask_extra&2u)&&intent.inhouse_square_iter!=observed.inhouse_square_iter){result->inhouse_square_iter=intent.inhouse_square_iter;result->inhouse_square_iter_changed=1u;changed=1u;}
+    if((intent.mask_extra&4u)&&intent.inhouse_injection_photons!=observed.inhouse_injection_photons){result->inhouse_injection_photons=intent.inhouse_injection_photons;result->inhouse_injection_photons_changed=1u;changed=1u;}
     if((intent.mask&(std::uint64_t{1}<<63u)) && intent.inhouse_mood!=observed.inhouse_mood){result->inhouse_mood=intent.inhouse_mood;result->inhouse_mood_changed=1u;changed=1u;}
     if((intent.mask&(std::uint64_t{1}<<27u)) && intent.edge_colour_enabled!=observed.edge_colour_enabled){result->edge_colour_enabled=intent.edge_colour_enabled;result->edge_colour_changed=1u;changed=1u;}
     if((intent.mask&(std::uint64_t{1}<<28u)) && intent.edge_colour_mode!=observed.edge_colour_mode){result->edge_colour_mode=intent.edge_colour_mode;result->edge_colour_changed=1u;changed=1u;}
@@ -1057,7 +1090,7 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
       result->mode = config.current_mode;
     }
 #ifdef K1_TITAN_TOP_OUTPUT
-    if(scene_changed || result->inhouse_mood_changed || result->palette_changed || result->response_gain_changed ||
+    if(scene_changed || result->inhouse_sensitivity_changed || result->inhouse_square_iter_changed || result->inhouse_injection_photons_changed || result->inhouse_mood_changed || result->palette_changed || result->response_gain_changed ||
         result->edge_response_changed || result->edge_depth_changed ||
         result->edge_colour_changed || result->musical_changed || result->ml_changed)
       result->affected_boards|=static_cast<std::uint8_t>(1u<<intent.board);

@@ -14,6 +14,9 @@ PINS = {
     'audio/k1_gdft_lane4_exact.h': '01c7e5519f9338e38bb58e910007d31b0cbd895bb27d72ea7d0c81ff561742fc',
     'audio/k1_agc_dt_clock.h': 'f9d51c9f0cdca9675e242b61d45bb03727c011c4c12ba57e105df2a37cd971f9',
     'system/utilities.h': 'e40b3290e096afbef27db51996ec9dbe5aa06b87234521f5c177dcb0fcbc345a',
+    'audio/k1_tempo.cpp': 'a86e9b0ba6fc0fdc21fb36689ee9230fdf65e2f5cc75206437c3690932be13e3',
+    'audio/k1_tempo.h': 'c9a785f9fc160200663cd8b102c28e6763605f0bbc4d6a37471a865e44d93f45',
+    'audio/k1_audio_snapshot.cpp': 'db367baf1aa79ade68dba1345be6c5f19b596f2502f2305354889ed1d8b324c2',
 }
 
 
@@ -42,6 +45,8 @@ def oracle(reference, output):
 #include <array>
 std::array<float,80> source_broadband(const k1::core::audio::GdftRawFrame&,
     const k1::core::audio::GdftConfiguration&, bool);
+void source_features(const std::array<float,80>&, float*, float*);
+float source_vu_average(float, float);
 '''
     (output / 'inhouse_source_oracle.h').write_text(header)
     wrapper = '''#include "inhouse_source_oracle.h"
@@ -83,6 +88,35 @@ static int64_t esp_timer_get_time() { return source_now_us; }
 }
 '''
     (output / 'inhouse_source_oracle.cpp').write_text(wrapper)
+    novelty = source[source.index('void calculate_novelty('):]
+    novelty = novelty[:novelty.index('\n}')+2]
+    energy = (reference/'audio/k1_audio_snapshot.cpp').read_text().split('  float low_sum =',1)[1]
+    energy = '  float low_sum =' + energy.split('  const uint8_t nyquist_safe_bin_hi',1)[0]
+    with (output/'inhouse_source_oracle.cpp').open('a') as file:
+        file.write('''
+static constexpr unsigned NUM_FREQS=80,SPECTRAL_HISTORY_LENGTH=2;
+static int spectral_history_index=0;
+static SQ15x16 spectrogram[80],spectral_history[2][80],novelty_curve[2];
+static float k1_clamp_nonnegative(float x){return x<0?0:x;}
+'''+novelty+'''
+void source_features(const std::array<float,80>& values,float* spectral,float* novelty){
+  for(unsigned i=0;i<80;++i)spectrogram[i]=SQ15x16(values[i]);
+  calculate_novelty(0);
+  *novelty=float(novelty_curve[(spectral_history_index+1)%2]);
+  struct {float low_energy,mid_energy,high_energy,spectral_energy;} next{};
+'''+energy+'''
+  *spectral=next.spectral_energy;
+}
+float source_vu_average(float a,float b){return float((SQ15x16(a)+SQ15x16(b))/(2.0));}
+''')
+    # Complete original tracker, only platform includes supplied by bounded
+    # host shims. V2 flags are the reference platformio.ini production flags;
+    # optional ACF spreading/incremental experiments are deliberately disabled.
+    for name in ('k1_tempo.cpp','k1_tempo.h'):
+        (output/name).write_bytes((reference/'audio'/name).read_bytes())
+    (output/'k1_audio_snapshot.h').write_text('#pragma once\n#include <cstdint>\nstruct K1AudioSnapshot {uint32_t frame_ms=0;float novelty=0;bool silence=false;};\n')
+    (output/'Arduino.h').write_text('#pragma once\n#include <cstdint>\nusing portMUX_TYPE=int;\n#define portMUX_INITIALIZER_UNLOCKED 0\n#define portENTER_CRITICAL(x) ((void)(x))\n#define portEXIT_CRITICAL(x) ((void)(x))\n')
+    (output/'config_types.h').write_text('#pragma once\n#define DEFAULT_SAMPLE_RATE 12800\n#define DEFAULT_SAMPLES_PER_CHUNK 96\n#define K1_TEMPO_NOVELTY_DECIMATION 3U\n')
 
 
 def main():
@@ -102,6 +136,7 @@ def main():
              ROOT / 'src/k1/core/audio/gdft_goertzel.cpp',
              ROOT / 'tests/host/test_inhouse_audio.cpp',
              ROOT / 'tests/host/test_inhouse_lane_overflow.cpp', Path(__file__)]
+    paths += [ROOT/'src/k1/core/audio'/name for name in ('tempo_tracker.cpp','tempo_tracker.h','tempo_acf.cpp','tempo_acf.h')]
     receipt = {'scope': 'host arithmetic/chronology only; not latency, calibration or optical qualification',
                'source_sha256': {str(p.relative_to(ROOT)): sha(p) for p in paths},
                'reference_sha256': PINS, 'cases': []}
@@ -110,7 +145,9 @@ def main():
                  'makeGdftConfiguration(core::audio::kProductionAudioRate)'),
                 ('missing_peak_summary', 'out.observed_peak_scaled = std::max(out.observed_peak_scaled, item.peak);',
                  'out.observed_peak_scaled = 0.0F;'),
-                ('stale_admitted', 'now_us - out.publish_us > stale_us', 'false')]
+                ('stale_admitted',
+                 'now_us - out.publish_us > stale_us ||\n      now_us < out.capture_us || now_us - out.capture_us > stale_us',
+                 'false')]
     variants += [('shared_mood', 'auto& state = conditioning_[board];', 'auto& state = conditioning_[0];'),
                  ('changed_source_lpf_clock', 'static_cast<double>(config_.reference_presentation_hz)',
                   '(static_cast<double>(kInhouseSampleRate) / kInhouseHopSamples)')]
@@ -128,11 +165,14 @@ def main():
         command = ['/opt/homebrew/bin/g++-16', '-std=c++17', '-O1', '-g',
                    '-ffp-contract=off', '-fno-omit-frame-pointer',
                    '-fsanitize=undefined', '-fno-sanitize-recover=all',
+                   '-DK1_TEMPO_CONF_V2=1','-DK1_TEMPO_FLYWHEEL_V2=1','-DENABLE_TEMPO_STREAM=0',
                    '-I' + str(ROOT / 'src/k1'), '-I' + str(ROOT / 'src'),
                    '-I' + str(platform), '-I' + str(output),
                    '-I' + str(ROOT / 'tests/reference'),
                    '-I' + str(ROOT / 'tests/reference/vendor/FixedPoints/src'),
                    str(variant), str(ROOT / 'src/k1/core/audio/gdft_goertzel.cpp'),
+                   str(ROOT/'src/k1/core/audio/tempo_tracker.cpp'),
+                   str(ROOT/'src/k1/core/audio/tempo_acf.cpp'),str(output/'k1_tempo.cpp'),
                    str(output / 'inhouse_source_oracle.cpp'),
                    str(ROOT / 'tests/host/test_inhouse_audio.cpp'), '-o', str(binary)]
         build = subprocess.run(command, capture_output=True, text=True)
@@ -151,6 +191,8 @@ def main():
     prefix = normal_command[:normal_command.index(str(output / 'normal.cpp'))]
     boundary_command = prefix + [str(ROOT / 'tests/host/test_inhouse_lane_overflow.cpp'),
                                  str(ROOT / 'src/k1/core/audio/gdft_goertzel.cpp'),
+                                 str(ROOT/'src/k1/core/audio/tempo_tracker.cpp'),
+                                 str(ROOT/'src/k1/core/audio/tempo_acf.cpp'),
                                  '-o', str(output / 'overflow-boundaries')]
     build = subprocess.run(boundary_command, capture_output=True, text=True)
     (output / 'overflow-build.log').write_text(build.stdout + build.stderr)

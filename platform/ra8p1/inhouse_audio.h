@@ -3,6 +3,7 @@
 #include <array>
 #include <cstdint>
 #include "core/audio/gdft_goertzel.h"
+#include "core/audio/tempo_tracker.h"
 #include "core/visual/inhouse_waveform.h"
 #include "k1/core/audio/k1_audio_hop.h"
 
@@ -41,6 +42,7 @@ class InhouseAudio final {
   void reset() noexcept;
   [[nodiscard]] bool configure(const InhouseAudioConfig& config) noexcept;
   [[nodiscard]] bool setMood(unsigned board, float mood) noexcept;
+  void setTempoDemand(unsigned board, bool enabled) noexcept;
   [[nodiscard]] float mood(unsigned board) const noexcept {
     return board < conditioning_.size() ? conditioning_[board].mood : 0.0F;
   }
@@ -74,6 +76,8 @@ class InhouseAudio final {
   struct Conditioning final {
     std::array<float, 80> magnitude_last{};
     std::array<float, 80> spectrum{};
+    float spectral_energy = 0.0F;
+    float novelty = 0.0F;
     float mood = 0.05F;
     float low_pass_alpha = 0.0F;
     std::int32_t envelope_q16 = 0;
@@ -89,6 +93,12 @@ class InhouseAudio final {
   std::array<std::int16_t, kInhouseHopSamples> pending_{};
   std::array<float, 80> magnitude_average_{};
   std::array<Conditioning, 2> conditioning_{};
+  std::array<core::audio::TempoTrackerState, 2> tempo_{};
+  std::array<bool, 2> tempo_demand_{};
+  std::array<std::uint64_t, 2> tempo_capture_us_{};
+  std::array<std::array<std::int16_t, kInhouseHopSamples>, 4> pcm_history_{};
+  unsigned pcm_history_index_ = 0;
+  unsigned pcm_history_count_ = 0;
   std::array<Peak, kInhousePeakHistory> peaks_{};
   core::visual::InhouseWaveformAudio publication_{};
   std::uint64_t epoch_ = 0;
@@ -101,6 +111,7 @@ class InhouseAudio final {
   float follower_ = 350.0F;
   float peak_scaled_ = 0.0F;
   float previous_rms_ = 0.0F;
+  float previous_vu_ = 0.0F;
   bool rms_silent_ = false;
   bool silence_ = false;
   bool unstamped_ = false;

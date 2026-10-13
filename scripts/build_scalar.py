@@ -978,7 +978,7 @@ def main():
             for name in INHOUSE_WAVEFORM_FILES:
                 target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
                 shutil.copy2(ROOT/'src/k1'/name,target)
-            receipt['inhouse_waveform_sources']={'files':INHOUSE_WAVEFORM_FILES,'mode_ids':[32],'precision_bits':16,'pixels_per_board':160}
+            receipt['inhouse_waveform_sources']={'files':INHOUSE_WAVEFORM_FILES,'mode_ids':[32,18,8,7,11],'precision_bits':16,'pixels_per_board':160}
         if args.palette_runtime:
             for name in PRODUCT_OUTPUT_CHAIN_FILES:
                 target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)

@@ -635,7 +635,7 @@ void palette_step(bool emit) {
     snapshot_word(4, 2U); snapshot_word(5, lane_pixels);
     snapshot_word(6, 48U); snapshot_word(7, 3U);
     snapshot_word(8, selected.controls().mode_id);snapshot_word(9,selected.controls().palette_id);
-    snapshot_word(10, config.flags | ((config.mode_a==32U || palettes.outputPrecision()!=0U)?0x80000000U:0U));snapshot_word(11,k1::titan::kPalettePeriodUs);
+    snapshot_word(10, config.flags | ((k1_emotiscope_is_inhouse_mode(config.mode_a) || palettes.outputPrecision()!=0U)?0x80000000U:0U));snapshot_word(11,k1::titan::kPalettePeriodUs);
 #ifdef K1_TITAN_TOP_OUTPUT
     const auto primary_frame_us=palettes.lastBoardFrameUs(0U);
 #else
@@ -696,7 +696,7 @@ void palette_step(bool emit) {
           auto top_word=[](unsigned index,std::uint32_t value){for(unsigned byte=0;byte<4;++byte)palette_top_wire_snapshot[index*4U+byte]=value>>(8U*byte);};
           top_word(1,++palette_top_wire_sequence);top_word(2,1U);
           top_word(8,config.mode_b);top_word(9,palettes.channel(1U).controls().palette_id);
-          top_word(10,config.flags | ((config.mode_b==32U || palettes.outputPrecision()!=0U)?0x80000000U:0U));
+          top_word(10,config.flags | ((k1_emotiscope_is_inhouse_mode(config.mode_b) || palettes.outputPrecision()!=0U)?0x80000000U:0U));
           top_word(12,generation);top_word(13,generation);
           const auto top_frame_us=palettes.lastBoardFrameUs(1U);
           top_word(14,static_cast<std::uint32_t>(top_frame_us));top_word(15,static_cast<std::uint32_t>(top_frame_us>>32U));
@@ -1502,6 +1502,17 @@ void donor_queue_config(std::uint32_t size) {
     error(status);
     return;
   }
+#ifdef K1_TITAN_TOP_OUTPUT
+  if(k1::emotiscope::donorIsGet(intent.sub)) {
+    K1EmotiscopeConfig selected{};
+    k1::emotiscope::donorSceneGetConfig(intent.board,&selected);
+    const auto bytes=k1::emotiscope::donorResponseBytes(intent.sub);
+    const unsigned version=bytes==440u?8u:bytes==428u?7u:bytes==424u?6u:4u;
+    if(!k1::emotiscope::donorModeAdmitted(selected.current_mode,version,511u)) {
+      error(k1::emotiscope::kDonorStatusInvalid);return;
+    }
+  }
+#endif
   pending_control.kind = ControlKind::Donor;
   pending_control.donor = intent;
   pending_control.request_id = intent.request_id;
@@ -1519,6 +1530,10 @@ void donor_apply_pending() {
 #ifdef K1_TITAN_TOP_OUTPUT
   observed.board=pending_control.donor.board;
   observed.inhouse_mood=live_runtime.inhouseMood(observed.board);
+  const auto inhouse_parameters=palettes.inhouseParameters(observed.board);
+  observed.inhouse_sensitivity=inhouse_parameters.sensitivity;
+  observed.inhouse_square_iter=inhouse_parameters.square_iter;
+  observed.inhouse_injection_photons=inhouse_parameters.photons;
   K1EmotiscopeEdgeColourConfig colour{};
   K1EmotiscopeEdgePairConfig pair{};
   K1EmotiscopeMusicalConfig musical{};
@@ -1571,7 +1586,7 @@ void donor_apply_pending() {
 #ifdef K1_TITAN_TOP_OUTPUT
   observed.primary_intensity = palettes.boardIntensity(0U);
   observed.secondary_intensity = palettes.boardIntensity(1U);
-  observed.board_capabilities = 253U |
+  observed.board_capabilities = 509U |
       (k1_ws281x_gpt_dma_hw_top_last_fault() == K1_WS281X_FAULT_NONE ? 2U : 0U);
   observed.secondary_output_enabled =
       palettes.secondaryOutputEnabled() && (observed.board_capabilities & 2U) ? 1U : 0U;
@@ -1635,6 +1650,8 @@ void donor_apply_pending() {
     k1_emotiscope_set_edge_pair(&p);
   }
   if(result.inhouse_mood_changed)live_runtime.setInhouseMood(result.board,result.inhouse_mood);
+  if(result.inhouse_sensitivity_changed || result.inhouse_square_iter_changed || result.inhouse_injection_photons_changed)
+    palettes.setInhouseParameters(result.board,result.inhouse_sensitivity,result.inhouse_square_iter,result.inhouse_injection_photons);
   if(result.musical_changed){
     K1EmotiscopeMusicalConfig c{result.musical_role,result.musical_strength,result.musical_attack_ms,result.musical_release_ms};
     if(result.board==1u)k1_secondary_emotiscope_set_musical_config(&c);else k1_emotiscope_set_musical_config(&c);
@@ -2416,8 +2433,10 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   {
 #ifdef K1_LIVE_RUNTIME
 #ifdef K1_EMOTISCOPE_PORT
-    live_runtime.setInhouseActive(palettes.config().mode_a == 32U ||
-                                  palettes.config().mode_b == 32U);
+    live_runtime.setInhouseActive(k1_emotiscope_is_inhouse_mode(palettes.config().mode_a) ||
+                                  k1_emotiscope_is_inhouse_mode(palettes.config().mode_b));
+    live_runtime.setInhouseTempoDemand(0U, palettes.config().mode_a == 18U);
+    live_runtime.setInhouseTempoDemand(1U, palettes.config().mode_b == 18U);
     // At most three 5 ms donor chunks per pass. Service the paired DMA between
     // chunks; do not turn catch-up into an unbounded renderer starvation loop.
     for (unsigned catchup = 0; catchup < 3U; ++catchup) {

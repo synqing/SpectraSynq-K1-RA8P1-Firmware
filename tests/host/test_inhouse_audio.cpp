@@ -1,10 +1,12 @@
 #include "inhouse_audio.h"
 #include "inhouse_source_oracle.h"
+#include "k1_tempo.h"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <limits>
+#include <chrono>
 
 using namespace k1::titan;
 using Frame = k1::core::visual::InhouseWaveformAudio;
@@ -41,6 +43,9 @@ static void source_parity() {
   assert(audio.configuration()[24].target_frequency_hz == 440.0F);
   std::array<std::int16_t, 4096> oracle_window{};
   std::array<std::int16_t, 96> block{};
+  std::array<std::array<std::int16_t,96>,4> history{};
+  unsigned history_row=0;
+  float previous_vu=0;
   std::size_t pending = 0;
   unsigned comparisons = 0;
   std::uint32_t random = 0x41554449U;
@@ -67,6 +72,7 @@ static void source_parity() {
       if (pending == 96U) {
         std::move(oracle_window.begin() + 96, oracle_window.end(), oracle_window.begin());
         std::copy(block.begin(), block.end(), oracle_window.end() - 96);
+        history_row=(history_row+1)%4;history[history_row]=block;
         pending = 0;
       }
     }
@@ -96,6 +102,13 @@ static void source_parity() {
     // from the pinned S3 source. FixedPoints is the independent arithmetic oracle.
     const auto expected = source_broadband(raw, audio.configuration(), comparisons == 1U);
     for (unsigned i = 0; i < 80; ++i) assert(audio.latest().spectrum[i] == expected[i]);
+    float spectral=0,novelty=0;source_features(expected,&spectral,&novelty);
+    assert(audio.latest().spectral_energy==spectral&&audio.latest().novelty==novelty);
+    assert(audio.latest().vu_average==source_vu_average(audio.latest().vu_level,previous_vu));
+    previous_vu=audio.latest().vu_level;
+    assert(audio.latest().pcm_history==history);
+    assert(audio.latest().pcm_history_valid==(comparisons>=4));
+    assert(audio.latest().raw_floor_pcm==audio.config().drive_floor_pcm);
     assert(std::isfinite(audio.latest().peak_scaled));
     if (seq == 2U) {
       assert(audio.latest().analysis_begin_sample == 0U);
@@ -149,8 +162,9 @@ static void chronology_and_levels() {
   assert(af.peak_summary_valid && af.observed_peak_scaled > af.peak_scaled);
   assert(af.observed_peak_scaled == skipped_peak);
   assert(af.observed_peak_scaled == bf.observed_peak_scaled); // independent readers
-  assert(audio.acquire(a, now + 30000U, 30000U, af));
-  assert(!audio.acquire(a, now + 30001U, 30000U, af));
+  const auto capture = audio.latest().capture_us;
+  assert(audio.acquire(a, capture + 30000U, 30000U, af));
+  assert(!audio.acquire(a, capture + 30001U, 30000U, af));
   assert(!af.valid && !af.peak_summary_valid);
   assert(!audio.acquire(a, now - 1U, 30000U, af)); // reversed clock is invalid
   for (std::uint64_t seq = 49; seq <= 70; ++seq) push(audio, hop(seq));
@@ -193,9 +207,98 @@ static void independent_mood() {
   assert(changed.mood(0U) == 0.05F && changed.mood(1U) == 0.95F);
 }
 
+static void source_tempo_and_peer() {
+  InhouseAudio audio;audio.reset();audio.setTempoDemand(0,true);audio.setTempoDemand(1,true);
+  k1_tempo_init();InhouseAudioCursor cursors[2]{};
+  unsigned compared=0,emits=0;bool nonzero_phase=false,nonzero_confidence=false;
+  for(std::uint64_t seq=1;seq<=6000;++seq){
+    // Real admitted PCM: weak carrier + 120 BPM attacks, then six seconds quiet.
+    const bool beat=((seq*64)%6400)<768;
+    auto h=hop(seq,seq<4800?(beat?20000.0F:2000.0F):0.0F);
+    if(seq==2700)assert(audio.setMood(1,.9f));
+    if(seq==3000)audio.setTempoDemand(1,false);
+    if(seq==3100)audio.setTempoDemand(1,true);
+    if(!push(audio,h))continue;
+    const auto& latest=audio.latest();
+    K1AudioSnapshot source{};source.frame_ms=std::uint32_t(latest.capture_us/1000);
+    source.novelty=latest.novelty;source.silence=latest.silence;k1_tempo_update(source);
+    const auto expected=k1_tempo_read();
+    Frame a{},b{};const bool valid=audio.acquire(cursors[0],seq*5000,30000,a,0);
+    (void)audio.acquire(cursors[1],seq*5000,30000,b,1);
+    assert(a.tempo_bpm==expected.bpm);
+    assert(a.tempo_phase01==expected.phase01);
+    assert(a.tempo_confidence==expected.confidence);
+    if(valid&&a.tempo_capture_us){assert(a.tempo_valid);++emits;}
+    nonzero_phase|=a.tempo_phase01>0;nonzero_confidence|=a.tempo_confidence>0;
+    ++compared;
+  }
+  assert(compared==4000&&emits>3500&&nonzero_phase&&nonzero_confidence);
+  Frame final{};assert(audio.acquire(cursors[0],30000000,30000,final,0));
+  const auto peer_bpm=final.tempo_bpm,peer_phase=final.tempo_phase01,peer_conf=final.tempo_confidence;
+  audio.setTempoDemand(1,false);
+  assert(audio.acquire(cursors[0],30000000,30000,final,0));
+  assert(final.tempo_bpm==peer_bpm&&final.tempo_phase01==peer_phase&&final.tempo_confidence==peer_conf);
+  assert(audio.acquire(cursors[1],30000000,30000,final,1)&&!final.tempo_valid);
+  assert(!audio.acquire(cursors[0],30040000,30000,final,0)&&!final.tempo_valid);
+  // A new capture epoch discards all PCM and tempo continuity. Demand survives;
+  // new observations must earn validity and confidence again.
+  auto next=hop(1,8000,8);push(audio,next);
+  assert(!audio.acquire(cursors[0],5000,30000,final,0));
+  assert(!final.pcm_history_valid&&!final.tempo_valid);
+  next=hop(2,8000,8);(void)audio.consume(next,0,false);audio.stampPublication(10000);
+  assert(!audio.acquire(cursors[0],10000,30000,final,0));
+  assert(!final.tempo_valid&&final.tempo_capture_us==0&&final.tempo_confidence==0);
+  next=hop(3,8000,8);(void)audio.consume(next,0,false);audio.stampPublication(15000);
+  assert(!audio.acquire(cursors[0],15000,30000,final,0)&&!final.tempo_valid);
+  std::printf("4000 completed PCM generations: exact original V2 BPM/phase/confidence; independent Mood/demand, stale and epoch checks\n");
+}
+
+static void tempo_freshness() {
+  InhouseAudio audio; audio.reset(); audio.setTempoDemand(0, true);
+  InhouseAudioCursor cursor{}; Frame frame{}; unsigned held_checks = 0;
+  for (std::uint64_t seq = 1; seq <= 300; ++seq) {
+    const auto input = hop(seq);
+    if (!audio.consume(input, input.newest_sample_capture_estimate_us, true)) continue;
+    const auto capture = audio.latest().capture_us;
+    // Real production publication delay: retain the actual tracker timestamp,
+    // then render a fresh AP after the held event has reached 34 ms of age.
+    audio.stampPublication(capture + 7500U);
+    if (!audio.acquire(cursor, capture + 7500U, 30000U, frame)) continue;
+    if (!frame.tempo_capture_us || capture - frame.tempo_capture_us != 15000U) continue;
+    const auto now = frame.tempo_capture_us + 34000U;
+    assert(audio.acquire(cursor, now, 30000U, frame));
+    assert(now - frame.capture_us == 19000U && frame.tempo_valid);
+    // Fresh publication time cannot disguise a capture older than 30 ms.
+    assert(!audio.acquire(cursor, capture + 30001U, 30000U, frame));
+    assert(!frame.valid && !frame.tempo_valid);
+    ++held_checks;
+  }
+  assert(held_checks > 20U);
+  std::printf("tempo freshness: %u actual held events valid at 34 ms; stale capture rejected despite fresh publication\n", held_checks);
+}
+
+static void host_cost_observation() {
+  // Sanitised host relative cost only; root must measure the assembled Titan.
+  std::printf("static InhouseAudio bytes=%zu; each TempoTrackerState bytes=%zu\n",sizeof(InhouseAudio),sizeof(k1::core::audio::TempoTrackerState));
+  for(unsigned demand=0;demand<=2;++demand){
+    InhouseAudio audio;audio.reset();for(unsigned board=0;board<demand;++board)audio.setTempoDemand(board,true);
+    double total=0,maximum=0;unsigned completed=0;
+    for(std::uint64_t seq=1;seq<=900;++seq){
+      const auto input=hop(seq,seq%100<12?22000:2000);
+      const auto begin=std::chrono::steady_clock::now();const bool ready=push(audio,input);
+      const double us=std::chrono::duration<double,std::micro>(std::chrono::steady_clock::now()-begin).count();
+      if(ready){total+=us;maximum=std::max(maximum,us);++completed;}
+    }
+    std::printf("sanitised host demand=%u completed=%u mean_us=%.3f maximum_us=%.3f (not target timing)\n",demand,completed,total/completed,maximum);
+  }
+}
+
 int main() {
   source_parity();
   chronology_and_levels();
   independent_mood();
+  source_tempo_and_peer();
+  tempo_freshness();
+  host_cost_observation();
   std::puts("inhouse audio: exact source recurrence/LPF/broadband arithmetic, chronology, weak/sustain/quiet, independent Mood and peak cursors");
 }
