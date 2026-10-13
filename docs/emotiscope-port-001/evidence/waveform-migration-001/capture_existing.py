@@ -28,6 +28,7 @@ import shlex
 import subprocess
 import sys
 import threading
+import tempfile
 import time
 import urllib.request
 import wave
@@ -102,10 +103,17 @@ def identity(expected_build):
 def bounded_request(name, record_name, raw_names, destination, request_value="bounded"):
     request = EVID / name
     start = time.monotonic()
-    # O_EXCL preserves another observer's pending request.
-    with request.open("x") as stream:
+    # Publish a complete selector atomically. An empty visible file can be
+    # consumed by the broker before buffered write/close, losing "bounded".
+    # link() is exclusive: an existing observer's request is never replaced.
+    with tempfile.NamedTemporaryFile(mode="w", dir=EVID, prefix=".capture-request-", delete=False) as stream:
+        temporary = Path(stream.name)
         inode = os.fstat(stream.fileno()).st_ino
         stream.write(request_value + "\n")
+    try:
+        os.link(temporary, request)
+    finally:
+        temporary.unlink()
     try:
         deadline = start + 3
         while request.exists() and time.monotonic() < deadline:
