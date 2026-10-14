@@ -106,7 +106,7 @@ PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_targe
                     'k1_asrc_24k.c', 'k1_asrc_24k.h', 'k1_cycle_clock.h',
                     'k1_pdm_sensitivity.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/titan-onboard-lmd2718-source-contract.json'
-ANALYSIS24_FILES = ['k1_poly24.c', 'k1_poly24.h']
+ANALYSIS24_FILES = ['k1_poly24.c', 'k1_poly24.h', 'k1_poly24_window.h']
 # Lane P4 step 8: CMSIS-DSP 1.16.2 from the installed FSP 6.6.0 pack, extracted at build
 # time (never vendored). Only arm_dot_prod_f32.c is compiled; its headers come along.
 CMSIS_DSP_PACK = Path('/Users/spectrasynq/.eclipse/com.renesas.platform_386271466/internal/projectgen/ra/packs/Arm.CMSIS-DSP.1.16.2+fsp.6.6.0.pack')

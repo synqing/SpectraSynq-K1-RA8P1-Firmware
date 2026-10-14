@@ -136,6 +136,19 @@ void k1_pdm_target_set_analysis24(int wanted);
 k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out);
 uint32_t k1_pdm_target_analysis24_drops(void);
 uint32_t k1_pdm_target_take_analysis24_cycles(void);
+/* P4 correction 1/2: the 24 kHz path's own epoch, loss and filter-design cost
+   since boot, for the MIR snapshot. Sole-main-loop observation. */
+typedef struct {
+    uint32_t wanted;
+    uint64_t epoch;
+    uint64_t sequence;
+    uint32_t drops;
+    uint32_t designs;
+    uint32_t design_last_cycles;
+    uint32_t design_max_cycles;
+    uint32_t source_hz;
+} k1_pdm_analysis24_status_t;
+void k1_pdm_target_analysis24_status(k1_pdm_analysis24_status_t *out);
 #endif
 int k1_pdm_target_pull_ap_hop(int16_t out180[K1_ASRC24_OUT_FRAMES]);
 uint32_t k1_pdm_target_asrc_consumed(void);

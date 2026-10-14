@@ -257,6 +257,9 @@ def unpack_timing(buf: bytes) -> dict:
             "emit_cycles_last": _u32(buf, 76),
             "donor_cycles": _u32(buf, 80),
             "inhouse_cycles": _u32(buf, 84),
+            # P4 correction 1: k1_poly24 cycles since the previous record / 16
+            # (spare v2 field; 0 on images without the 24 kHz path).
+            "a24_cycles_div16": _u16(buf, 54),
         }),
     }
 

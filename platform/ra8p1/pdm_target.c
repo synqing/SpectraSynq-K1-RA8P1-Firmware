@@ -103,6 +103,17 @@ static uint64_t capture_a24_sequence;
 static uint64_t capture_a24_source_base;
 static uint32_t capture_a24_drops;
 static uint32_t capture_a24_cycles_sum;
+/* P4 correction 2: filter (re)designs since boot and their cost. Not reset with
+   the capture, so a rate-lock design inside a poll stays visible. */
+static uint32_t capture_a24_designs;
+static uint32_t capture_a24_design_last_cycles;
+static uint32_t capture_a24_design_max_cycles;
+
+static void k1_pdm_target_note_a24_design(uint32_t cycles) {
+    capture_a24_designs += 1u;
+    capture_a24_design_last_cycles = cycles;
+    if (cycles > capture_a24_design_max_cycles) capture_a24_design_max_cycles = cycles;
+}
 #endif
 static k1_capture_block_meta_t capture_meta[K1_CAPTURE_META_CAP];
 static uint32_t capture_meta_head;
@@ -333,8 +344,13 @@ static void k1_pdm_target_reset_logical_stream(uint32_t reason) {
     k1_asrc24_reset(&capture_asrc, (uint32_t)capture_stream_epoch, hz);
 #ifdef K1_INHOUSE_ANALYSIS24
     /* Redesign only when the rate changed; otherwise an empty ring suffices. */
-    if (capture_poly24.source_hz != hz) k1_poly24_reset(&capture_poly24, hz);
-    else k1_poly24_flush(&capture_poly24);
+    if (capture_poly24.source_hz != hz) {
+        const uint32_t design_t0 = DWT->CYCCNT;
+        k1_poly24_reset(&capture_poly24, hz);
+        k1_pdm_target_note_a24_design(DWT->CYCCNT - design_t0);
+    } else {
+        k1_poly24_flush(&capture_poly24);
+    }
     capture_a24_epoch += 1u;
     capture_a24_sequence = 0u;
     capture_a24_source_base = 0u;
@@ -538,7 +554,11 @@ static void k1_pdm_target_observe_rate(const k1_pdm_owner_t *programme) {
     hz = (uint32_t)((samples * 1000000ull) / elapsed_us);
     if (k1_asrc24_set_rate(&capture_asrc, hz) == k1_asrc24_ok) {
 #ifdef K1_INHOUSE_ANALYSIS24
-        (void)k1_poly24_set_rate(&capture_poly24, hz);
+        {
+            const uint32_t design_t0 = DWT->CYCCNT;
+            if (k1_poly24_set_rate(&capture_poly24, hz) == k1_poly24_ok)
+                k1_pdm_target_note_a24_design(DWT->CYCCNT - design_t0);
+        }
 #endif
         capture_measured_hz = hz;
         capture_rate_provisional = 1u;
@@ -1002,6 +1022,18 @@ void k1_pdm_target_set_analysis24(int wanted) {
 
 uint32_t k1_pdm_target_analysis24_drops(void) { return capture_a24_drops; }
 
+void k1_pdm_target_analysis24_status(k1_pdm_analysis24_status_t *out) {
+    if (out == 0) return;
+    out->wanted = capture_a24_wanted;
+    out->epoch = capture_a24_epoch;
+    out->sequence = capture_a24_sequence;
+    out->drops = capture_a24_drops;
+    out->designs = capture_a24_designs;
+    out->design_last_cycles = capture_a24_design_last_cycles;
+    out->design_max_cycles = capture_a24_design_max_cycles;
+    out->source_hz = capture_poly24.source_hz;
+}
+
 uint32_t k1_pdm_target_take_analysis24_cycles(void) {
     const uint32_t c = capture_a24_cycles_sum;
     capture_a24_cycles_sum = 0u;
@@ -1048,16 +1080,16 @@ k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out) {
     out->capture_estimate_valid = 0;
     out->newest_sample_capture_estimate_us = 0;
     capture_a24_sequence += 1u;
-    content_q32 = k1_poly24_last_output_source_q32(&capture_poly24) +
-                  (capture_a24_source_base << 32);
+    content_q32 = k1_poly24_last_output_source_q32(&capture_poly24);
     anchor = capture_meta_count == 0u ? 0
         : &capture_meta[(capture_meta_head + K1_CAPTURE_META_CAP - 1u) % K1_CAPTURE_META_CAP];
     if (anchor != 0 && capture_poly24.source_hz != 0u) {
-        const uint64_t newest_q32 = (anchor->source_end_exclusive - 1ull) << 32;
+        uint64_t delta_q32 = 0u;
         out->supporting_dma_receipt_cycles = anchor->receipt_cycles;
         out->supporting_dma_receipt_us = anchor->receipt_us;
-        if (newest_q32 >= content_q32) {
-            const uint64_t delta_q32 = newest_q32 - content_q32;
+        /* Modular lag (P4 review F9): absolute indices pass 2^32 after ~28.8 h. */
+        if (k1_poly24_capture_lag_q32(anchor->source_end_exclusive - 1ull,
+                                      capture_a24_source_base, content_q32, &delta_q32)) {
             const uint64_t delta_us = (uint64_t)(((delta_q32 >> 16) * 1000000ull) /
                                                  ((uint64_t)capture_poly24.source_hz << 16));
             if (anchor->receipt_us >= delta_us) {

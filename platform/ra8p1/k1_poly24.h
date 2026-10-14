@@ -54,8 +54,15 @@ void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz);
 int k1_poly24_set_rate(k1_poly24_t *st, uint32_t source_hz);
 /* Empty the stream (pre-roll restored) but keep the designed table: no trig. */
 void k1_poly24_flush(k1_poly24_t *st);
-/* Stream sample (Q32, since reset/flush) named by the most recent output. */
+/* Stream sample (Q32, since reset/flush) named by the most recent output.
+   Modulo 2^64: compare these values only through differences. */
 uint64_t k1_poly24_last_output_source_q32(const k1_poly24_t *st);
+/* Wrap-safe capture lag (P4 review F9): newest_source_index - (stream_base_index
+   + content_q32 / 2^32), as Q32 source samples. Returns 1 and writes *lag_q32 when
+   the content is at or before the newest sample, 0 when it is after it. Valid
+   for any absolute index (no 2^32-sample, ~28.8 h, wrap) while |lag| < 2^31. */
+int k1_poly24_capture_lag_q32(uint64_t newest_source_index, uint64_t stream_base_index,
+                              uint64_t content_q32, uint64_t *lag_q32);
 int k1_poly24_push(k1_poly24_t *st, const int16_t *src, uint32_t count);
 int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES]);
 /* Stream clock: output sample m names source instant m * step - DELAY, the same

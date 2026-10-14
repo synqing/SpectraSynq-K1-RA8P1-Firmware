@@ -423,6 +423,14 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   timing.asrc_cycles_sum = cost.asrc_cycles_sum;
   timing.queue_filled_at_consume = cost.queue_filled_at_consume;
   timing.emit_cycles_last = cost.emit_cycles_last;
+#ifdef K1_INHOUSE_ANALYSIS24
+  // P4 correction 1: k1_poly24 push + pull cycles since the previous record, in
+  // the v2 record's spare 16-bit field as cycles/16 (saturating at ~1.05 M).
+  {
+    const std::uint32_t a24 = k1_pdm_target_take_analysis24_cycles() / 16U;
+    timing.reserved = static_cast<std::uint16_t>(a24 > 0xFFFFU ? 0xFFFFU : a24);
+  }
+#endif
 #endif
 #ifdef K1_EMOTISCOPE_PORT
   timing.donor_cycles = donor_cycles_;
@@ -936,7 +944,31 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
   if (n <= 0 || static_cast<std::size_t>(n) >= capacity) {
     return 0;
   }
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_INHOUSE_ANALYSIS24) && defined(K1_PDM_TARGET)
+  // P4 corrections 1-2: the 24 kHz path's own epoch, loss and filter-design cost
+  // since boot, appended inside the top-level object.
+  if (out[n - 1] != '}') return 0;
+  k1_pdm_analysis24_status_t a24{};
+  k1_pdm_target_analysis24_status(&a24);
+  const std::size_t base = static_cast<std::size_t>(n) - 1U;
+  const int m = std::snprintf(out + base, capacity - base,
+      ",\"analysis24\":{\"wanted\":%lu,\"epoch\":%llu,\"sequence\":%llu,"
+      "\"drops\":%lu,\"source_hz\":%lu,\"designs\":%lu,"
+      "\"design_last_cycles\":%lu,\"design_max_cycles\":%lu}}",
+      static_cast<unsigned long>(a24.wanted),
+      static_cast<unsigned long long>(a24.epoch),
+      static_cast<unsigned long long>(a24.sequence),
+      static_cast<unsigned long>(a24.drops), static_cast<unsigned long>(a24.source_hz),
+      static_cast<unsigned long>(a24.designs),
+      static_cast<unsigned long>(a24.design_last_cycles),
+      static_cast<unsigned long>(a24.design_max_cycles));
+  if (m <= 0 || base + static_cast<std::size_t>(m) >= capacity) {
+    return 0;
+  }
+  return base + static_cast<std::size_t>(m);
+#else
   return static_cast<std::size_t>(n);
+#endif
 }
 
 }  // namespace k1::titan

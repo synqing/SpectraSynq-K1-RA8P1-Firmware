@@ -133,6 +133,7 @@ def test_stream_clock_red_when_delay_constant_is_wrong(tmp_path):
     # Both translation units must see the planted header (quoted includes
     # resolve beside the source file first), so the source is copied too.
     (d / "k1_poly24.c").write_text((P / "k1_poly24.c").read_text())
+    (d / "k1_poly24_window.h").write_text((P / "k1_poly24_window.h").read_text())
     exe = tmp_path / "clock_planted"
     subprocess.run(["cc", "-std=c11", "-O2", "-fno-fast-math", "-I" + str(d),
                     str(ROOT / "tests/host/poly24_clock_probe.c"), str(d / "k1_poly24.c"), "-lm", "-o", str(exe)],
