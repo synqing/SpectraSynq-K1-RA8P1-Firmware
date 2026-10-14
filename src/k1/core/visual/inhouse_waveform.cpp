@@ -85,6 +85,8 @@ void InhouseWaveformRenderer::reset() noexcept {
 #if defined(K1_INHOUSE_MAPPING_V9)
   intensity_.fill(0);
   colour_.fill({});
+  offset_.fill(0.0F);
+  deposit_offset_ = 0.0F;
   colour_position_ = colour_velocity_ = colour_anchor_ = centroid_ = centroid_strength_ = 0.0F;
   low_previous_.fill(0.0F);
   density_fast_ = density_slow_ = accent_ = 0.0F;
@@ -575,6 +577,42 @@ PaletteLinearRgb InhouseWaveformRenderer::colourV9(std::uint16_t palette_id, flo
   return sample(palette_id, coordinate, 1.0F);
 }
 
+bool InhouseWaveformRenderer::perPixelMapped() const noexcept {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  return v9_palette_ == InhouseV9Palette::kPerPixelMapped;
+#else
+  return kInhouseV9Palette == InhouseV9Palette::kPerPixelMapped;
+#endif
+}
+
+// Path P colour offset, the K1 ae5d90a rule (v8 familyColour): the PRE-gate chroma centroid
+// sets the offset every frame; a weak centroid (strength < 0.08) eases from the last strong
+// one by strength / 0.08. No tonality gate, no speed cap, no smoothing.
+void InhouseWaveformRenderer::updateOffsetP(const InhouseWaveformControls& controls, bool silent) noexcept {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  if (v9_fault_ == InhouseV9Fault::kFrozenPosition) {
+    colour_position_ = wrap(controls.colour_offset);
+    observation_.palette_coordinate = colour_position_;
+    return;
+  }
+#endif
+  constexpr float kStrong = 0.08F;
+  if (!silent && centroid_strength_ > 0.0F) {
+    if (centroid_strength_ < kStrong && colour_valid_) {
+      float delta = centroid_ - colour_anchor_;
+      if (delta > 0.5F) delta -= 1.0F;
+      if (delta < -0.5F) delta += 1.0F;
+      colour_position_ = wrap(colour_anchor_ + delta * clamp01(centroid_strength_ / kStrong));
+    } else {
+      colour_position_ = colour_anchor_ = centroid_;
+      colour_valid_ = true;
+    }
+  } else if (!colour_valid_) {
+    colour_position_ = wrap(controls.colour_offset);
+  }
+  observation_.palette_coordinate = colour_position_;
+}
+
 // Colour is the slow layer. Confident harmony (tonality gate open, strong centroid, and
 // audible light being deposited) pulls the palette coordinate with capped momentum. When
 // confidence is low the colour holds, drifting only toward its own long-term confident
@@ -787,6 +825,7 @@ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float posit
     if (x > intensity_[static_cast<unsigned>(i)]) {
       intensity_[static_cast<unsigned>(i)] = x;
       colour_[static_cast<unsigned>(i)] = colour;
+      offset_[static_cast<unsigned>(i)] = deposit_offset_;
     }
   }
 }
@@ -798,11 +837,30 @@ void InhouseWaveformRenderer::outputV9(const InhouseWaveformControls& controls,
   for (unsigned i = 0; i < 160U; ++i) intensity_sum += intensity_[controls.mirror && i < 80U ? 159U - i : i];
   observation_.intensity_mean = static_cast<float>(intensity_sum) / (160.0F * 65536.0F);
   const float saturation = clamp01(controls.saturation);
+  const bool mapped = perPixelMapped();
   for (unsigned i = 0; i < 160U; ++i) {
     const unsigned source = controls.mirror && i < 80U ? 159U - i : i;
     auto level_q = intensity_[source];
     FixedRgb p{mul(colour_[source].red, level_q), mul(colour_[source].green, level_q),
                mul(colour_[source].blue, level_q)};
+    if (mapped && level_q > 0) {
+      // Path P: HD palette sample per pixel at its deposited offset plus its mapped place
+      // across the half-strip (0 at the centre, 79/80 at the edge, K1 GDFT freq_prog).
+      const float d = static_cast<float>(source >= 80U ? source - 80U : 79U - source) / 80.0F;
+      const float position = wrap(offset_[source] + d);
+      auto c = sampleProductPaletteHd(controls.palette_id, position, 1.0F);
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+      if (v9_fault_ == InhouseV9Fault::kRgbMixPalette) {
+        const auto e = sampleProductPaletteHd(controls.palette_id, wrap(position + 0.25F), 1.0F);
+        c = {0.5F * (c.red + e.red), 0.5F * (c.green + e.green), 0.5F * (c.blue + e.blue)};
+      } else if (v9_fault_ == InhouseV9Fault::kSlot16) {
+        const auto s16 = sampleProductPaletteFastLed16(controls.palette_id,
+            static_cast<std::uint8_t>(std::min(255.0F, position * 255.0F)));
+        c = {s16.red / 255.0F, s16.green / 255.0F, s16.blue / 255.0F};
+      }
+#endif
+      p = {mul(q(c.red), level_q), mul(q(c.green), level_q), mul(q(c.blue), level_q)};
+    }
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
     if (v9_fault_ == InhouseV9Fault::kPerChannelMax || v9_fault_ == InhouseV9Fault::kRgbBlend) p = history_[source];
     if (v9_fault_ == InhouseV9Fault::kBrightnessFloor) {
@@ -827,6 +885,7 @@ bool InhouseWaveformRenderer::probeV9Deposit(const InhouseWaveformControls& cont
   const auto colour_f = colourV9(controls.palette_id, palette_position);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
   if (dt > 0.0F) fadeV9(mode32, false, dt);
+  deposit_offset_ = wrap(palette_position);
   depositV9(mode32, mode32 || controls.mirror ? 80U : 0U, position, clamp01(level), colour);
   outputV9(controls, colour, output);
   return true;
@@ -854,7 +913,9 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.centroid_strength = centroid_strength_;
   updateAccentV9(audio, fresh, silent, dt);
   updateReleaseV9(audio, fresh, silent, dt);
-  updateColourV9(controls, dt, silent, level);
+  if (perPixelMapped()) updateOffsetP(controls, silent);
+  else updateColourV9(controls, dt, silent, level);
+  deposit_offset_ = colour_position_;
   const auto colour_f = colourV9(controls.palette_id, colour_position_);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
   observation_.smoothed_colour = colour_f;
@@ -870,7 +931,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   const float peak = fresh ? std::max(clamp01(audio.peak_scaled),
       audio.peak_summary_valid ? clamp01(audio.observed_peak_scaled) : 0.0F) : 0.0F;
   if (mode32) {
-    for (unsigned i = 0; i < 80U; ++i) { intensity_[i] = 0; colour_[i] = {}; }
+    for (unsigned i = 0; i < 80U; ++i) { intensity_[i] = 0; colour_[i] = {}; offset_[i] = 0.0F; }
     observation_.peak_stage1 = ema(observation_.peak_stage1, peak, dt, 0.016F);
     observation_.peak_stage2 = ema(observation_.peak_stage2, observation_.peak_stage1, dt, 0.023F);
     position = std::min(159.0F, 80.0F + observation_.peak_stage2 * 0.7F * 80.0F);
@@ -905,12 +966,14 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
     for (unsigned i = 159U; i > start; --i) {
       intensity_[i] = intensity_[i - 1U];
       colour_[i] = colour_[i - 1U];
+      offset_[i] = offset_[i - 1U];
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
       history_[i] = history_[i - 1U];
 #endif
     }
     intensity_[start] = 0;
     colour_[start] = {};
+    offset_[start] = 0.0F;
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
     history_[start] = {};
 #endif

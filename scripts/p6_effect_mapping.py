@@ -258,7 +258,7 @@ def main(argv=None) -> int:
     c = sub.add_parser("calibrate"); c.add_argument("--exe", type=Path, required=True); c.add_argument("--inputs", type=Path, required=True)
     c.add_argument("--v8", type=Path, required=True); c.add_argument("--work", type=Path, required=True)
     c.add_argument("--variant", choices=("peak", "energy", "emphasis"), required=True); c.add_argument("--out", type=Path, required=True)
-    c.add_argument("--palette", choices=("asis", "lifted", "range"))  # iteration 4 test variants
+    c.add_argument("--palette", choices=("asis", "lifted", "range", "mapped"))  # iteration 4 variants; P mapping
     c.add_argument("--level", nargs="+", metavar="ARG")  # iteration 5: CEILING EMPHASIS; iteration 6 appends 7 accent args
     h = sub.add_parser("prepare-it5"); h.add_argument("--exe", type=Path, required=True); h.add_argument("--base", type=Path, required=True)
     h.add_argument("--out", type=Path, required=True); h.add_argument("--holdout", type=Path, required=True)

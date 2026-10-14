@@ -46,8 +46,9 @@ namespace {
 struct Hop final { k1_audio_hop_t hop; std::uint64_t capture_us; };
 
 // Normalised (max channel = 1) colours along the palette's stop interpolation.
-std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
-  std::vector<std::array<float, 3>> curve;
+// Element [3] is the palette position, used to recover each lit pixel's position (PAL b).
+std::vector<std::array<float, 4>> paletteCurve(std::uint16_t id) {
+  std::vector<std::array<float, 4>> curve;
   const auto& p = k1::core::visual::productPalette(id);
   for (unsigned k = 0; k <= 4096U; ++k) {
     const float x = static_cast<float>(k) / 4096.0F;
@@ -65,7 +66,7 @@ std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
       c[0] = a.red + (b.red - a.red) * t; c[1] = a.green + (b.green - a.green) * t; c[2] = a.blue + (b.blue - a.blue) * t;
     }
     const float m = std::max(c[0], std::max(c[1], c[2]));
-    if (m > 0.5F) curve.push_back({c[0] / m, c[1] / m, c[2] / m});
+    if (m > 0.5F) curve.push_back({c[0] / m, c[1] / m, c[2] / m, x});
   }
   return curve;
 }
@@ -110,10 +111,12 @@ int main(int argc, char** argv) {
       : vname == "emphasis" ? InhouseV9Variant::kLevelEmphasis : static_cast<InhouseV9Variant>(255);
   const InhouseV9Fault fault = fname == "none" ? InhouseV9Fault::kNone
       : fname == "channel_max" ? InhouseV9Fault::kPerChannelMax
-      : fname == "floor" ? InhouseV9Fault::kBrightnessFloor : static_cast<InhouseV9Fault>(255);
+      : fname == "floor" ? InhouseV9Fault::kBrightnessFloor
+      : fname == "rgb_mix" ? InhouseV9Fault::kRgbMixPalette : fname == "slot16" ? InhouseV9Fault::kSlot16
+      : fname == "frozen" ? InhouseV9Fault::kFrozenPosition : static_cast<InhouseV9Fault>(255);
   // "default" keeps the firmware constants (kInhouseV9Variant, kInhouseV9Gain32/18).
   if (vname != "default") {
-    if (static_cast<unsigned>(variant) > 2U || static_cast<unsigned>(fault) > 2U) return 2;
+    if (static_cast<unsigned>(variant) > 2U || static_cast<unsigned>(fault) > 6U) return 2;
     const float gains[2] = {std::strtof(argv[6], nullptr), std::strtof(argv[7], nullptr)};
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostConfig(variant, fault, gains[0], gains[1])) return 2;
@@ -123,7 +126,8 @@ int main(int argc, char** argv) {
     const std::string pname = argv[8];
     const InhouseV9Palette palette = pname == "asis" ? InhouseV9Palette::kAsIs
         : pname == "lifted" ? InhouseV9Palette::kLiftedLowEnd
-        : pname == "range" ? InhouseV9Palette::kRestrictedRange : static_cast<InhouseV9Palette>(255);
+        : pname == "range" ? InhouseV9Palette::kRestrictedRange
+        : pname == "mapped" ? InhouseV9Palette::kPerPixelMapped : static_cast<InhouseV9Palette>(255);
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostPalette(palette)) return 2;
   }
@@ -155,7 +159,7 @@ int main(int argc, char** argv) {
   for (unsigned b = 0; b < 2; ++b) { controls[b].motion_scale = 0.5F * 2.0F; controls[b].mirror = true; }
   controls[0].mode = 32; controls[0].palette_id = 32 - 1;
   controls[1].mode = 18; controls[1].palette_id = 39 - 1;
-  const std::vector<std::array<float, 3>> curve[2] = {paletteCurve(controls[0].palette_id),
+  const std::vector<std::array<float, 4>> curve[2] = {paletteCurve(controls[0].palette_id),
                                                       paletteCurve(controls[1].palette_id)};
   k1::titan::InhouseAudioCursor cursor[2]{};
   static Pixel16 frame[2][160];
@@ -163,7 +167,7 @@ int main(int argc, char** argv) {
   std::fprintf(csv, "t_s,board,fresh,silence,raw_rms,vu_level,peak_scaled,tempo_valid,tempo_bpm,tempo_confidence,"
                     "novelty,palette_coordinate,decay_rate,deposit_strength,position,scroll_steps,"
                     "S,L,lit_px,offpal_px,max_channel,level,tonality_gate,centroid_strength,intensity_mean,tempo_weight,"
-                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref,extent_edge,release,sub_rms\n");
+                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref,extent_edge,release,sub_rms,pal_bins,pal_span\n");
   constexpr unsigned kSlot = 296U;                   // device PDM block at 40 kHz
   constexpr std::uint64_t kOriginUs = 1000000U;      // keep every timestamp positive
   constexpr std::uint64_t kRenderUs = 10000U;        // palette period (composition period_us)
@@ -215,18 +219,20 @@ int main(int argc, char** argv) {
         double ys[160];  // per-pixel Rec.709 luma for iteration-5 DI (TOLERANCE-FROZEN-P6-DI.json)
         unsigned lit = 0, off = 0;
         float maxc = 0.0F;
+        std::vector<float> positions;  // recovered palette positions of lit right-half pixels (PAL b)
         for (unsigned p = 0; p < 160; ++p) {
           float c[3] = {frame[b][p].red / 65535.0F, frame[b][p].green / 65535.0F, frame[b][p].blue / 65535.0F};
           const float m = std::max(c[0], std::max(c[1], c[2]));
           maxc = std::max(maxc, m);
           if (m >= 0.01F) {
             ++lit;
-            float best = 9.0F;
+            float best = 9.0F, best_pos = 0.0F;
             for (const auto& k : curve[b]) {
               const float d = std::max(std::fabs(c[0] / m - k[0]), std::max(std::fabs(c[1] / m - k[1]), std::fabs(c[2] / m - k[2])));
-              best = std::min(best, d);
+              if (d < best) { best = d; best_pos = k[3]; }
             }
             off += best > 0.03F ? 1U : 0U;
+            if (p >= 80U) positions.push_back(best_pos);
           }
           const float sh = m > .75F ? (.75F + .25F * std::tanh((m - .75F) * 4.0F)) / m : 1.0F;
           double px[3];
@@ -234,6 +240,18 @@ int main(int argc, char** argv) {
           sum += (px[0] + px[1] + px[2]) / 3.0;
           ys[p] = 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2];
           luma += ys[p];
+        }
+        // PAL (b): distinct 1/32 bins and circular span of the recovered positions.
+        unsigned n_bins = 0;
+        double pos_span = 0.0;
+        if (!positions.empty()) {
+          bool seen[32] = {};
+          for (float q : positions) seen[std::min(31, static_cast<int>(q * 32.0F))] = true;
+          for (bool v : seen) n_bins += v ? 1U : 0U;
+          std::sort(positions.begin(), positions.end());
+          double gap = 1.0 - positions.back() + positions.front();
+          for (std::size_t k = 1; k < positions.size(); ++k) gap = std::max<double>(gap, positions[k] - positions[k - 1]);
+          pos_span = 1.0 - gap;
         }
         // CIE L* with Y_ref = 0.25 (full scale after the x0.25 output intensity).
         const auto lstar = [](double y) {
@@ -269,10 +287,11 @@ int main(int argc, char** argv) {
         std::fprintf(csv, ",,,");
 #endif
 #ifdef K1_INHOUSE_MAPPING_V9
-        std::fprintf(csv, "%.4f,%.4f,%.6f\n", extent_edge, o.release, a.sub_rms);
+        std::fprintf(csv, "%.4f,%.4f,%.6f,", extent_edge, o.release, a.sub_rms);
 #else
-        std::fprintf(csv, "%.4f,,\n", extent_edge);
+        std::fprintf(csv, "%.4f,,,", extent_edge);
 #endif
+        std::fprintf(csv, "%u,%.4f\n", n_bins, pos_span);
       }
     }
   }

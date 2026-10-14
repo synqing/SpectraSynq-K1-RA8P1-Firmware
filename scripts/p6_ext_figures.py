@@ -58,23 +58,24 @@ def extent_figure(inputs: Path, runs: list[tuple[str, Path, Path]], out: Path) -
     plt.close(fig)
 
 
-def strip_figure(runs: list[tuple[str, Path]], t_d: float, offset: float, out: Path) -> None:
+def strip_figure(runs: list[tuple[str, Path]], t_d: float, offset: float, out: Path, half: float = 1.0,
+                 mark: float | None = None) -> None:
     fig, axes = plt.subplots(1, len(runs), figsize=(4.2 * len(runs), 7.5), squeeze=False)
     imgs = []
     for label, frames in runs:
         a = np.fromfile(frames, dtype="<u2").reshape(-1, 2, 160, 3).astype(np.float64) / 65535.0
         t = (np.arange(a.shape[0]) + 1) * 0.01 - offset  # probe tick k is at (k+1) x 10 ms
-        m = (t >= t_d - 1.0) & (t <= t_d + 1.0)
+        m = (t >= t_d - half) & (t <= t_d + half)
         imgs.append((label, np.concatenate([a[m, 0], np.zeros((m.sum(), 6, 3)), a[m, 1]], axis=1), t[m]))
     gain = 1.0 / max(np.percentile(np.concatenate([i[1].ravel() for i in imgs]), 99.5), 1e-6)
     for ax, (label, img, t) in zip(axes[0], imgs):
         ax.imshow(np.clip(img * gain, 0, 1) ** 0.5, aspect="auto", interpolation="nearest",
                   extent=[0, img.shape[1], t[-1], t[0]])
-        ax.axhline(t_d, color="w", lw=0.8, ls="--")
+        ax.axhline(t_d if mark is None else mark, color="w", lw=0.8, ls="--")
         ax.set_title(label, fontsize=10)
         ax.set_xlabel("pixels: lower 0-159 | upper 0-159\n(edges at 0/159, centre 79/80)", fontsize=8.5)
         ax.set_ylabel("song time (s); dashed = audio drop onset")
-    fig.suptitle("Frame strips, drop -1 s .. +1 s (renderer output, one shared gain, gamma 0.5 for display)", fontsize=11)
+    fig.suptitle(f"Frame strips, {t_d - half:.1f}-{t_d + half:.1f} s (renderer output, one shared gain, gamma 0.5 for display)", fontsize=11)
     fig.tight_layout()
     fig.savefig(out, dpi=115)
     plt.close(fig)
@@ -86,12 +87,14 @@ def main() -> None:
     e = sub.add_parser("extent"); e.add_argument("--inputs", type=Path, required=True); e.add_argument("--out", type=Path, required=True)
     e.add_argument("runs", nargs="+")
     s = sub.add_parser("strip"); s.add_argument("--out", type=Path, required=True); s.add_argument("--t-d", type=float, required=True)
-    s.add_argument("--offset", type=float, default=0.0); s.add_argument("runs", nargs="+")
+    s.add_argument("--offset", type=float, default=0.0); s.add_argument("--half", type=float, default=1.0)
+    s.add_argument("--mark", type=float, help="time of the dashed drop-onset line (default: --t-d)")
+    s.add_argument("runs", nargs="+")
     a = ap.parse_args()
     if a.cmd == "extent":
         extent_figure(a.inputs, [(l, Path(d), Path(r)) for l, d, r in (x.split("=", 2) for x in a.runs)], a.out)
     else:
-        strip_figure([(l, Path(f)) for l, f in (x.split("=", 1) for x in a.runs)], a.t_d, a.offset, a.out)
+        strip_figure([(l, Path(f)) for l, f in (x.split("=", 1) for x in a.runs)], a.t_d, a.offset, a.out, a.half, a.mark)
 
 
 if __name__ == "__main__":

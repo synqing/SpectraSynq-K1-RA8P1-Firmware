@@ -2,7 +2,7 @@
 // v9 deposits of two distinct palette positions, through the renderer's own v9 release,
 // deposit and output code (probeV9Deposit). Build with K1_INHOUSE_MAPPING_V9 and
 // K1_INHOUSE_V9_HOST_VARIANTS.
-//   p6_c5b_hue_probe none|channel_max|rgb_blend [asis|lifted|range]  -> one JSON line per board
+//   p6_c5b_hue_probe none|channel_max|rgb_blend [asis|lifted|range|mapped]  -> one JSON line per board
 // Iteration 4: the oracle encodes the declared variant stops / fold independently
 // (P6-IT4-PALETTE-VARIANTS-FROZEN.json); it does not call the renderer's sampler.
 #include "core/visual/inhouse_waveform.h"
@@ -66,7 +66,8 @@ int main(int argc, char** argv) {
   if (argc == 3) g_palette = argv[2];
   const InhouseV9Palette palette = g_palette == "asis" ? InhouseV9Palette::kAsIs
       : g_palette == "lifted" ? InhouseV9Palette::kLiftedLowEnd
-      : g_palette == "range" ? InhouseV9Palette::kRestrictedRange : static_cast<InhouseV9Palette>(255);
+      : g_palette == "range" ? InhouseV9Palette::kRestrictedRange
+      : g_palette == "mapped" ? InhouseV9Palette::kPerPixelMapped : static_cast<InhouseV9Palette>(255);
   const InhouseV9Fault fault = name == "none" ? InhouseV9Fault::kNone
       : name == "channel_max" ? InhouseV9Fault::kPerChannelMax
       : name == "rgb_blend" ? InhouseV9Fault::kRgbBlend : static_cast<InhouseV9Fault>(255);
@@ -95,7 +96,16 @@ int main(int argc, char** argv) {
         if (!renderer.probeV9Deposit(controls, b, level, 120.0F + d, 0.010F, frame)) return 5;
         ++scenarios;
         unsigned long here = 0;
-        for (const auto& px : frame) {
+        for (unsigned i = 0; i < 160U; ++i) {
+          const auto& px = frame[i];
+          if (g_palette == "mapped") {
+            // PAL extended oracle: pixel i shows HD(a + d_i) or HD(b + d_i), d_i its mapped place.
+            const unsigned src = i < 80U ? 159U - i : i;
+            const float d = static_cast<float>(src - 80U) / 80.0F;
+            const auto wrap1 = [](float v) { return v - std::floor(v); };
+            paletteColour(controls.palette_id, wrap1(a + d), ca);
+            paletteColour(controls.palette_id, wrap1(b + d), cb);
+          }
           if (std::max(px.red, std::max(px.green, px.blue)) < 655U) continue;
           ++lit;
           if (std::min(distance(px, ca), distance(px, cb)) > 0.02F) { ++off; ++here; }

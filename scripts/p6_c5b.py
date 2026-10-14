@@ -21,7 +21,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--palette", choices=("asis", "lifted", "range"), default="asis")  # iteration 4
+    ap.add_argument("--palette", choices=("asis", "lifted", "range", "mapped"), default="asis")  # iteration 4; P
     a = ap.parse_args(argv)
     a.work.mkdir(parents=True, exist_ok=True)
     exe = a.work / "p6_c5b_hue_probe"

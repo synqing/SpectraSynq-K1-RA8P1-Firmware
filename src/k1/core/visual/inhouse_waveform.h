@@ -26,6 +26,7 @@ enum class InhouseV9Variant : std::uint8_t {
 // Planted faults for the frozen P6 gates; compiled only into the host probe.
 enum class InhouseV9Fault : std::uint8_t {
   kNone = 0, kPerChannelMax = 1, kBrightnessFloor = 2, kRgbBlend = 3,
+  kRgbMixPalette = 4, kSlot16 = 5, kFrozenPosition = 6,  // PAL planted faults (path P)
 };
 // Chosen by the frozen P6 rule at matched optical energy (TOLERANCE-FROZEN-P6.json,
 // iteration 4, palette variant B). Gains match v8's mean light on the BOOM file/room +
@@ -36,7 +37,11 @@ inline constexpr float kInhouseV9Gain18 = 0.591745F;  // mode 18 deposit gain
 // P6 iteration 4 test variants (P6-IT4-PALETTE-VARIANTS-FROZEN.json), v9 only; product
 // palettes and v8 are untouched. A lifts the dark low end of palettes 32/39 (ids 31/38)
 // keeping each stop's hue; B folds the colour circle onto a sub-range without the ends.
-enum class InhouseV9Palette : std::uint8_t { kAsIs = 0, kLiftedLowEnd = 1, kRestrictedRange = 2 };
+// kPerPixelMapped (iteration P, TOLERANCE-FROZEN-P6-PAL.json): the K1 per-bin HD mapping; trails
+// carry intensity and the deposited palette offset, colour is sampled per pixel at output.
+enum class InhouseV9Palette : std::uint8_t {
+  kAsIs = 0, kLiftedLowEnd = 1, kRestrictedRange = 2, kPerPixelMapped = 3,
+};
 // TEST VARIANT under the Captain's testing ruling (14 Oct 2026); not a palette change.
 inline constexpr InhouseV9Palette kInhouseV9Palette = InhouseV9Palette::kRestrictedRange;
 // Level transfer ceiling (dBFS at l = 1; floor -33 dBFS) and emphasis exponent (peak = g l^gamma).
@@ -166,7 +171,7 @@ class InhouseWaveformRenderer final {
   // Host comparison only: select a P6 variant, a planted fault and per-mode gains.
   [[nodiscard]] bool setV9HostConfig(InhouseV9Variant variant, InhouseV9Fault fault,
                                      float gain32, float gain18) noexcept {
-    if (static_cast<unsigned>(variant) > 2U || static_cast<unsigned>(fault) > 3U ||
+    if (static_cast<unsigned>(variant) > 2U || static_cast<unsigned>(fault) > 6U ||
         !(gain32 > 0.0F && gain32 <= 64.0F) || !(gain18 > 0.0F && gain18 <= 64.0F)) return false;
     v9_variant_ = variant; v9_fault_ = fault; v9_gain_[0] = gain32; v9_gain_[1] = gain18;
     return true;
@@ -191,7 +196,7 @@ class InhouseWaveformRenderer final {
     return true;
   }
   [[nodiscard]] bool setV9HostPalette(InhouseV9Palette palette) noexcept {
-    if (static_cast<unsigned>(palette) > 2U) return false;
+    if (static_cast<unsigned>(palette) > 3U) return false;
     v9_palette_ = palette;
     return true;
   }
@@ -226,6 +231,8 @@ class InhouseWaveformRenderer final {
   // Intensity field (Q16) and the palette colour each pixel was deposited with.
   std::array<std::int32_t, 160> intensity_{};
   std::array<FixedRgb, 160> colour_{};
+  std::array<float, 160> offset_{};   // path P: palette offset deposited into each pixel
+  float deposit_offset_ = 0.0F;        // path P: offset the next deposit stores
   float colour_position_ = 0.0F;
   float colour_velocity_ = 0.0F;
   float colour_anchor_ = 0.0F;  // long-term confident colour (iteration 3)
@@ -259,6 +266,8 @@ class InhouseWaveformRenderer final {
   [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
       Pixel16* output) noexcept;
+  void updateOffsetP(const InhouseWaveformControls& controls, bool silent) noexcept;
+  [[nodiscard]] bool perPixelMapped() const noexcept;
   void updateColourV9(const InhouseWaveformControls& controls, float dt, bool silent,
                       float level) noexcept;
   void fadeV9(bool mode32, bool silent, float dt) noexcept;
