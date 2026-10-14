@@ -1,0 +1,9 @@
+boom_file {"hops": 9999, "parity_mismatches": 0, "poly24_rejected": 0}
+boom_file_m6dB {"hops": 9999, "parity_mismatches": 0, "poly24_rejected": 0}
+boom_file_p6dB {"hops": 9999, "parity_mismatches": 0, "poly24_rejected": 0}
+boom_room {"hops": 10665, "parity_mismatches": 0, "poly24_rejected": 0}
+sonic_file {"hops": 9999, "parity_mismatches": 0, "poly24_rejected": 0}
+sonic_room {"hops": 3466, "parity_mismatches": 0, "poly24_rejected": 0}
+dopex_file {"hops": 9999, "parity_mismatches": 0, "poly24_rejected": 0}
+dopex_room {"hops": 10665, "parity_mismatches": 0, "poly24_rejected": 0}
+exit=0

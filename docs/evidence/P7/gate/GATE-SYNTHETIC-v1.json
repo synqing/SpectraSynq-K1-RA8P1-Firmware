@@ -1,0 +1,2722 @@
+{
+  "gate_id": "P7-GATE-SYNTHETIC-v1",
+  "lane": "Titan lag-free lane/titan-lagfree-20261014, package P7 step 2(a)",
+  "captain_ruling": "Tempo half-time lock: MUST be fixed to a standard that guarantees it works \u2014 see the gate in P7. Treat any gate failure as no-ship.",
+  "captain_pass_criteria_verbatim": [
+    "lock within 4 beats;",
+    "reported BPM within \u00b14 % of the annotated level (\u00b12 % on synthetic cases);",
+    "**zero** octave or 3:2 flips while locked;",
+    "re-acquire within 2 beats after a tempo step;",
+    "low confidence (never a false lock) on the drumless and silence cases."
+  ],
+  "captain_rule": "The gate is never widened. Adding corpus tracks re-freezes it.",
+  "scope": "Synthetic suite (a) only. The real corpus (b) is a proposal, not part of this freeze.",
+  "suite_pass_rule": "100 % of cases pass every applicable criterion. Any failing case is a gate failure (no-ship).",
+  "tolerance": {
+    "bpm_relative": 0.02
+  },
+  "definitions": {
+    "update": "one TempoTrackerEvent with updated=true (every 3rd 7.5 ms AP frame, 44.44 Hz); t_s is the end of the analysed 24 kHz hop in input time",
+    "locked": "TempoTrackerEvent.locked",
+    "asserting": "locked or confidence >= 0.3 (renderer tempo gate floor, inhouse_waveform.cpp:347 clamp01((c-0.30)/0.30))",
+    "truth(u)": "60 / interval of the annotated beats holding u (kick/backbeat level; first and last interval extended outward)",
+    "correct(u)": "|bpm - truth| <= tol * truth",
+    "P": "annotated beat period at the start of the judged segment",
+    "grace_beats": {
+      "acquire": 4.0,
+      "step": 2.0,
+      "release": 2.0,
+      "none_from_start": 0.0
+    },
+    "grace_meaning": "acquire: case start and music after a silence gap (lock within 4 beats); step: first segment after a tempo step (re-acquire within 2 beats); release: a silence gap may keep asserting for 2 beats of the preceding tempo; none_from_start: pad and lead-in, no grace",
+    "metrical_relatives": {
+      "x1/2": 0.5,
+      "x2": 2.0,
+      "x2/3": 0.6666666666666666,
+      "x3/2": 1.5,
+      "x1/3": 0.3333333333333333,
+      "x3": 3.0,
+      "x3/4": 0.75,
+      "x4/3": 1.3333333333333333
+    }
+  },
+  "criteria": {
+    "LOCK": "every update in [a + G*P, b) of every tempo segment is locked and correct (locked within 4 beats / re-acquired within 2 beats, and held to the end of the segment)",
+    "BPM": "every asserting update in [a + G*P, b) of every tempo segment is correct",
+    "FLIP": "zero locked updates anywhere in a tempo segment at a metrical relative (within tol) that are not correct; exempt only: a step segment's grace window while bpm equals the previous segment's truth within tol (hold-over)",
+    "LOWCONF": "no asserting update in [a + G, b) of any none segment (drumless pad, lead-in, silence gap)"
+  },
+  "reported_not_gating": {
+    "acquired_beats": "start of the final run of locked+correct updates, in beats from the segment start",
+    "phase_ms": "beat_tick update instants against the nearest annotated beat (median and p95 |error|). The P7 defaults name phase +-25 ms; the P7 pass list does not. Adding it as a criterion is a narrowing re-freeze (RULING NEEDED)."
+  },
+  "input_chain": "p7_synth.py 40 kHz int16 mono (dBFS peak; -72 dBFS RMS seeded noise floor) -> k1_poly24 (source 40000 Hz) -> InhouseAudio analysis_rate_hz 24000, hop 180 -> tempo demand on board 1 -> product tempo_tracker.cpp / tempo_acf.cpp (unmodified); the probe's external baseline copy is asserted bit-identical (bpm, confidence) to the product tracker on every update",
+  "probe_build": {
+    "flags": [
+      "-O2",
+      "-fno-fast-math",
+      "-DK1_EMOTISCOPE_PORT=1",
+      "-Iplatform/ra8p1",
+      "-Isrc",
+      "-Isrc/k1"
+    ],
+    "product_sources": [
+      "platform/ra8p1/inhouse_audio.cpp",
+      "src/k1/core/visual/inhouse_waveform.cpp",
+      "src/k1/core/audio/gdft_goertzel.cpp",
+      "src/k1/core/audio/tempo_tracker.cpp",
+      "src/k1/core/audio/tempo_acf.cpp",
+      "src/k1/core/visual/product_palette.cpp",
+      "src/k1/core/visual/product_palette_data.cpp"
+    ],
+    "compiler": "host Apple clang (oracle), not the M85 binary"
+  },
+  "tools": {
+    "generator": {
+      "file": "p7_synth.py",
+      "sha256": "26232ae8b9ee864cdf8e72d5f47fd8ca01b1b8055819d8274427e0e09f79c132"
+    },
+    "scorer": {
+      "file": "p7_gate.py",
+      "sha256": "903ea2647f942a6bf99f94090d57a1021f3e03c6fd8466d359f868eb43b8aa4e"
+    },
+    "probe": {
+      "file": "p7_tempo_probe.cpp",
+      "sha256": "5e2521526ea0af57250e86f461c185b97cc03cd61ab322296591168c643e778d"
+    },
+    "runner": {
+      "file": "p7_run_gate.py",
+      "sha256": "81d7768ff46ab21e78a221f50ac166aee88206d200e90986fcb82976cd77ce98"
+    }
+  },
+  "numpy": "2.3.3",
+  "case_count": 326,
+  "cases": [
+    {
+      "id": "fotf_55",
+      "family": "four_on_the_floor",
+      "bpm": 55.0,
+      "pcm_sha256": "30c1699d5a97730129dc63c1114a90e5e19a20f32eda51c8ad61fcb47e926d5f",
+      "truth_sha256": "18629e18eba6ffab9ac83ba3fea3688a444941913797b127292a1c6293852fbb",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_56",
+      "family": "four_on_the_floor",
+      "bpm": 56.0,
+      "pcm_sha256": "f1480cd0bf6de16bd72b4bcc6876ab1a4948ade9683d0257f2c42141b6f44c00",
+      "truth_sha256": "9a0d837773f218af24ee63fdd46aa6528f8c6bfec5f5bd42fcd968f7ea659dac",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_57",
+      "family": "four_on_the_floor",
+      "bpm": 57.0,
+      "pcm_sha256": "fcd212a5f251cdf7c61e624347f67a680884d374f0eb0da3e496b80a1fa7357e",
+      "truth_sha256": "67ee5ef3e0012b3c75b174b86b77fd410d88a36ab3bb75e9a39381a1a9601c96",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_58",
+      "family": "four_on_the_floor",
+      "bpm": 58.0,
+      "pcm_sha256": "81431866f9940119d558b95aab395c2ed8d09e8e755217742b68700c3da0128b",
+      "truth_sha256": "89c394268ec11ad65f0da52109e91b54356e19fa83cdd588ac0a1c0b15901197",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_59",
+      "family": "four_on_the_floor",
+      "bpm": 59.0,
+      "pcm_sha256": "8cd1411406122ecd5dcded42bdaa6417d46bdca24108dbc1a721eeec03fdbd7a",
+      "truth_sha256": "53a70860862a4bfe49627ea5e1b82fb6e6e211885c9b250e2243d4879334c6bd",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_60",
+      "family": "four_on_the_floor",
+      "bpm": 60.0,
+      "pcm_sha256": "946cb2e5176d31b58067c0cb2146aa8e35a83e9fe3b6b5a2990c6232092c3229",
+      "truth_sha256": "96225d333ff94180779c118544944af0ce38bac6be23822cc7f7ef43c0b04f75",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_61",
+      "family": "four_on_the_floor",
+      "bpm": 61.0,
+      "pcm_sha256": "16e9a899fd16ba70abc4de0ac1b34629088fbb6db5acaee9c6b3e89c21644c2b",
+      "truth_sha256": "1cd7ff5ad030194489acc8ab9a33e2d006ddc74b4242e5861ffac3c3d8406a1f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_62",
+      "family": "four_on_the_floor",
+      "bpm": 62.0,
+      "pcm_sha256": "45ed38b4ab9d99e8ea97707c63b353942d64c03e8606f0150cb51cc0b548a267",
+      "truth_sha256": "21f973343a8932d342acea817220be7dfdac24c4c350de7e223c53eaa3156dd6",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_63",
+      "family": "four_on_the_floor",
+      "bpm": 63.0,
+      "pcm_sha256": "9872622b11dd23f71f531d73a41da89c94f9bb82e15c32bbcd2e1905a88aae38",
+      "truth_sha256": "5f06fe303d6dd84bac3e72586dce4195a4d94b3a812eaad9d88ed5538a8289e2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_64",
+      "family": "four_on_the_floor",
+      "bpm": 64.0,
+      "pcm_sha256": "0ce48c833d3a794a85354befc1c383a9314dfa4dc8a81d12fbc3d70fef825fe4",
+      "truth_sha256": "a1b2ed18db3507a8bdc628b195be9326b8e3446c17a2ead4bc2fb7c46556ab2f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_65",
+      "family": "four_on_the_floor",
+      "bpm": 65.0,
+      "pcm_sha256": "a7e683b4ca624af70ff0d6477854889eba9fb1b5d5bfe6b8cac8dbedba13af6f",
+      "truth_sha256": "580fe60ae68f41e772619ffdfe1a805e5ab301c6a5e477fef7ad3607c4fa9bdd",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_66",
+      "family": "four_on_the_floor",
+      "bpm": 66.0,
+      "pcm_sha256": "9ff9e48a813d2e9a368962f0d0bd0ed6ce76b3776676b9b8a7199c72fd21df42",
+      "truth_sha256": "1dae5c7ed832b091eb685d68d2e0c0510675b242b5e54e314e315e6620939435",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_67",
+      "family": "four_on_the_floor",
+      "bpm": 67.0,
+      "pcm_sha256": "e150b853c3bf83742e0dc4dc36f3b5c16bd4083243e753deb3f4fb864412e4e2",
+      "truth_sha256": "1816724894fadf97d46bc9986d9037cd7504f50de8ddfdef7e5fe174c4e7bc9d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_68",
+      "family": "four_on_the_floor",
+      "bpm": 68.0,
+      "pcm_sha256": "d6eba9f19472b33c019debff7e13d1d0d71a34972a9d748d3a92eb678ec8413f",
+      "truth_sha256": "36049c81c51333aeaff17181db6a0d91dd4c56b2361ceea6c50b32547d4dd01d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_69",
+      "family": "four_on_the_floor",
+      "bpm": 69.0,
+      "pcm_sha256": "5e7f59285421a9fd06af88ee12e64d6c2141244707270da0dcf4bc61f83c1f22",
+      "truth_sha256": "cdc4bfdb64046d803c2277d3bbc49f6cad1fb2941f597d1d3f8038df085a34de",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_70",
+      "family": "four_on_the_floor",
+      "bpm": 70.0,
+      "pcm_sha256": "95eeaa679cd80a10e32eb99efe6ee1c75892366d10b5bf49fc952c45a87aaf5e",
+      "truth_sha256": "604af590e212c0cee63f6540538639c55e5c33a3beed6be09ffebdcf1100604e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_71",
+      "family": "four_on_the_floor",
+      "bpm": 71.0,
+      "pcm_sha256": "b816e9afde4ce71a5373678dab4af5228165ffa22543b879be0b561c1e65cfa9",
+      "truth_sha256": "2b1f663e9b49e81d7872f6ff765803bbdb011c7cb73a01d462649b424a4d5cc0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_72",
+      "family": "four_on_the_floor",
+      "bpm": 72.0,
+      "pcm_sha256": "cb8aaceab4d1385963110a49730c8bc59b86dfcf8796a2f917c848a0ac15c135",
+      "truth_sha256": "3b4ea3b918ca68d2fc9b94bfbcc79f91c7a77307ba63deae51179b677de48212",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_73",
+      "family": "four_on_the_floor",
+      "bpm": 73.0,
+      "pcm_sha256": "bbb6e37d775ae674d6620eb7af78eebe53bdcce3b38eeab9af6b89f3fc17907d",
+      "truth_sha256": "7a73938f8329ff8b82ae21ebcad2c52e3b9ef7773679313faf6fe638845f8998",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_74",
+      "family": "four_on_the_floor",
+      "bpm": 74.0,
+      "pcm_sha256": "ba0080a2c28c4420c8b482c4681fe98bad844b1996ce80d85e08053e253b7bf9",
+      "truth_sha256": "aef5a77b8cc1e9ba6ba34f463f81d5d7eb2563cb8b0dd720014f779a70215ee1",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_75",
+      "family": "four_on_the_floor",
+      "bpm": 75.0,
+      "pcm_sha256": "a1d326c2e35b4f801b021b9fa79ce5576fcdcec7304e89b7ee0ce87ea80dfacc",
+      "truth_sha256": "667c5ea74cd8ebf86f00b6be5a304af3e60cf438d069d3acf2c30b210678375b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_76",
+      "family": "four_on_the_floor",
+      "bpm": 76.0,
+      "pcm_sha256": "cb830b49ec018d78a6c05465254ce1835fa9d579c8786889f49c13da3a6e1161",
+      "truth_sha256": "f1c4758fe2095af25c9807dc760c90a996a6ffa61edd5eb2123eff6457ce7914",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_77",
+      "family": "four_on_the_floor",
+      "bpm": 77.0,
+      "pcm_sha256": "621fbd8d9c8205a19aa7faca346b0bf1916b3341deb2c6f09f2bbcc8b379f8b3",
+      "truth_sha256": "5a405ab1fc907ec294b0e1acfabf4077ecdb3ad929dd08f454a24ef619ab8a89",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_78",
+      "family": "four_on_the_floor",
+      "bpm": 78.0,
+      "pcm_sha256": "4a5b5e7e6b768a487daf7f4ee691bad244c0aa587d02d4357337657ba8ba32e6",
+      "truth_sha256": "247e2144ff0da31dd6b1e48388ec8c846aca6c5925fa9b5ff636776025906c6e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_79",
+      "family": "four_on_the_floor",
+      "bpm": 79.0,
+      "pcm_sha256": "91a29122a8a9138df0868c3e7aafd9832603633d5d71ef8e12c9a7a4ac9b57b1",
+      "truth_sha256": "407eedbc6d16f35d8f84e479efcfe0546be4db318b298981cc1551196b22a1f4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_80",
+      "family": "four_on_the_floor",
+      "bpm": 80.0,
+      "pcm_sha256": "a35abde9dfa03016067404f20b4e8cd133b24a1829e867296a82655ffca7aeb8",
+      "truth_sha256": "a303011a30109011599ec328ea90c0faf48222abaf4404a56d50c3267591eaad",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_81",
+      "family": "four_on_the_floor",
+      "bpm": 81.0,
+      "pcm_sha256": "225db765ff674fc2e8e78da73252f3e08e3b5a64831bc09789904213fac13061",
+      "truth_sha256": "5f7c7b5ed5b4b6d3c9642f72f01b9fc60ad521b3602748612d400366154d19b5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_82",
+      "family": "four_on_the_floor",
+      "bpm": 82.0,
+      "pcm_sha256": "2d1dc5ac8d4b99efe40d23f2aece8ff262d55f09ee8a3a44d4bd771b9088c475",
+      "truth_sha256": "003d56ce534c6de6e062ddf328bea59fe9ccc3b59b785b26206daca54ab47c75",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_83",
+      "family": "four_on_the_floor",
+      "bpm": 83.0,
+      "pcm_sha256": "e208ec1b9b582238a0998d07695ced6f51dd59806815858fb68e0b9e50a7b983",
+      "truth_sha256": "57d887c3d8daedf9061c9313546c483c769f0fe655200eaf465632b5be8ed4c0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_84",
+      "family": "four_on_the_floor",
+      "bpm": 84.0,
+      "pcm_sha256": "08f7ffcaeffe8ea03a128a68a718056acfd9b5fb0c402a9176559b80739b7fef",
+      "truth_sha256": "f42008dbb76bed33ac8a8b124f2a916a42cd8a6b0c1a28b75c3bd38d0fb72c09",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_85",
+      "family": "four_on_the_floor",
+      "bpm": 85.0,
+      "pcm_sha256": "eaaf1c4a1fb063d29ceed6f43457e4670cb786ce0b3bb14e0815c055ecdfd1f9",
+      "truth_sha256": "679672e485cfa41e7688e80c74f86f1b2ea2407cde3f3dd3f99c6939e438bf31",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_86",
+      "family": "four_on_the_floor",
+      "bpm": 86.0,
+      "pcm_sha256": "b5df1ffe8c06a71cd10cba4d19faf3d944f24d7bfd7d60ba6787a2f4c4a90b08",
+      "truth_sha256": "8d58daf6aae2dbc762790e0913d543b08e7569335f04d3912c66aa13901d73c0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_87",
+      "family": "four_on_the_floor",
+      "bpm": 87.0,
+      "pcm_sha256": "cc64997bfeb9d7529e0c1ad389578b900248ffd11cc4b07f17cf432fd6cabd7d",
+      "truth_sha256": "47adbc5b09657c8a800eb32090201ebb3bcbb0f38a591aabff7e49e3173b72b2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_88",
+      "family": "four_on_the_floor",
+      "bpm": 88.0,
+      "pcm_sha256": "0b04ee5f8e6e1fb8f45afe9284bb4f073fd80d4e1802c2dafb2e24914df2a8b1",
+      "truth_sha256": "d60a1d6d99eb0721da491725a86e8829ab2efa1cf5880e26350cdae9d4b0ca06",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_89",
+      "family": "four_on_the_floor",
+      "bpm": 89.0,
+      "pcm_sha256": "12e5a2b4054c7a1887fce5052d3972a7d666183777a8f4f61e42266de8c7d20a",
+      "truth_sha256": "f1568ad07a58f0a4d132f9f7786c626e84999f1f2420b00c003635ead6e6fc85",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_90",
+      "family": "four_on_the_floor",
+      "bpm": 90.0,
+      "pcm_sha256": "c30007c9921d21b12c4e5e27368f92175a058ff7359181099605a49f3fd94190",
+      "truth_sha256": "e75fc4f2919a0bf87f975b476d47f165bd89ccc9235f9ace25555d81e4971bd0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_91",
+      "family": "four_on_the_floor",
+      "bpm": 91.0,
+      "pcm_sha256": "c54e7b08461ccf1ea5855aa44ce941d43465a8fe6314f09c1cabae98547a1628",
+      "truth_sha256": "4faced6301528b65d1121b5ac4864a36cb177cf85b81e0cc103148faad2d37b6",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_92",
+      "family": "four_on_the_floor",
+      "bpm": 92.0,
+      "pcm_sha256": "9a8f126b554634cf745ff2fa93330155bddbc06c011022c67ab387eab774d8fc",
+      "truth_sha256": "24f232dfc6fc973229ff21c08c14833c86933462da7ff4627c1dc7ae56a1a050",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_93",
+      "family": "four_on_the_floor",
+      "bpm": 93.0,
+      "pcm_sha256": "53b83bb5127640ef463369830592b66449da6fe2c5e9ce620a2a6d0cfb77209d",
+      "truth_sha256": "8682423f811f8d71a8cc238ea64c596e6b14ee119620db1d34aea1c875a7cf49",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_94",
+      "family": "four_on_the_floor",
+      "bpm": 94.0,
+      "pcm_sha256": "01f7588ee88340f09881ba640c360e4aee46919c588168fe09fb2e74339630da",
+      "truth_sha256": "32cfbd027b7d7b8813967eb169223db6b7d5b875a786374a119790ae97e22b09",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_95",
+      "family": "four_on_the_floor",
+      "bpm": 95.0,
+      "pcm_sha256": "f2aa7fa9be23ce15e20c253f4c35f6ca7c78a7f39dff908f99b92d4473b3942e",
+      "truth_sha256": "ff273155617e562c54b83d5ec3814a628265b9663cfead9a9ffddf7dfa0dc516",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_96",
+      "family": "four_on_the_floor",
+      "bpm": 96.0,
+      "pcm_sha256": "80e1245567be18ce3b24da5db3b73410d59ed15437c16d04a6f3b5a04951fd8c",
+      "truth_sha256": "d7179cf866ede309669d47bd8b7ec3b852e3667e7ae0b9dcd99ddcb18e0fbf07",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_97",
+      "family": "four_on_the_floor",
+      "bpm": 97.0,
+      "pcm_sha256": "7e0e7a1580a5a4101a83195584e434caa9e23cc763653e5505fb017384067dd8",
+      "truth_sha256": "748e0e718a86e9c1252a891afe220e6ada88a2c4f48149b209512b34bd5a9f4e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_98",
+      "family": "four_on_the_floor",
+      "bpm": 98.0,
+      "pcm_sha256": "f29980e56fa30c679e99b36abe78055337ab63f2c35b44987a51870d7e34aeeb",
+      "truth_sha256": "3cf8631e1f284cfeab23991bf5eec08c972b9ac7b94d69f8b63503f65e1344a5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_99",
+      "family": "four_on_the_floor",
+      "bpm": 99.0,
+      "pcm_sha256": "c9537fdde4433dbb055509ce9960265823e34bc1f7b3a95aa38e954b1fe2a3b8",
+      "truth_sha256": "fbc4ccaff7bccbe36598235410452d4adb9584a5f52930ef8464e79a055e5d78",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_100",
+      "family": "four_on_the_floor",
+      "bpm": 100.0,
+      "pcm_sha256": "f3f4450af1b107cbedf5ee97790b97eb4056051876f6c656253e4f95a64f9924",
+      "truth_sha256": "e859b5b15d22d87f21d0c7cb83ae3c03114a59c1c46faebfa7d9693a9dc8d110",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_101",
+      "family": "four_on_the_floor",
+      "bpm": 101.0,
+      "pcm_sha256": "42fd0e6aad9747467b3018121d790dfc8be653cd4fefe51fd58e1ab77775b121",
+      "truth_sha256": "a7d31183603c0c876c8cf1a0ea6f3fb062e55a1c651c643dcbfd404423cef391",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_102",
+      "family": "four_on_the_floor",
+      "bpm": 102.0,
+      "pcm_sha256": "afacf4054b25dceb552e89549e2a49685299676aa0bcba76cff9970e809e689a",
+      "truth_sha256": "1182567507ea3937178cf8e32d554f4db142de58085dcb3d39979615e747227b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_103",
+      "family": "four_on_the_floor",
+      "bpm": 103.0,
+      "pcm_sha256": "c4277cde86696c7f3809afbdc69714b77d17faeed1640cd35405360db0615b0f",
+      "truth_sha256": "0348da19ad48a03d14349b544531373dae039547a8e2b1d66b1d5b9686a7df3d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_104",
+      "family": "four_on_the_floor",
+      "bpm": 104.0,
+      "pcm_sha256": "d13a7247c5381f1569975ea3a5c3efcc5e7c37e103dd42289b4fd82226073f07",
+      "truth_sha256": "d7fc4625e716acd4ef66f79b88e89bca8e65367a6c4e1e028677bb9a8c0f5712",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_105",
+      "family": "four_on_the_floor",
+      "bpm": 105.0,
+      "pcm_sha256": "d9f1cca3aaea1115066bd57707c30a4bfb2556cd301352acb0d04f8cc9dc46d9",
+      "truth_sha256": "3823214b6e18bea63e70cf3190a4e9765200eed2b5a7b6a10803061397036f0c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_106",
+      "family": "four_on_the_floor",
+      "bpm": 106.0,
+      "pcm_sha256": "8b019cbc8ce1820d9d316786fd430d9a3e0e7f754d4dcf90859606da741253cb",
+      "truth_sha256": "d9141d8fb13b6b9981ee4766aac6d2566415d10e99d58206ee2af10e212c5204",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_107",
+      "family": "four_on_the_floor",
+      "bpm": 107.0,
+      "pcm_sha256": "a239c1767023ffc5828e1776802383ea2e487c2ae3272de33f463920ba4cebc0",
+      "truth_sha256": "a4661eeb6f6a13c69962ae1c43c765e20bc99e08ec01dbc62c552f7b239db875",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_108",
+      "family": "four_on_the_floor",
+      "bpm": 108.0,
+      "pcm_sha256": "183848bb424b91932d3ae349674d478dab09e57126b39d7cf1bf88fd435e264b",
+      "truth_sha256": "3ca118b1e79f65f06224ff429021f596a0a4bb9de189f45883bfc227b54db62c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_109",
+      "family": "four_on_the_floor",
+      "bpm": 109.0,
+      "pcm_sha256": "f43baea5eb7b80d70d4c9d450c144e35fc13dd2ba6ed4a7c8093233963993738",
+      "truth_sha256": "1230119235ddb67d7d6ecfd558bf99097ba04e6e32926c19e4846b05c3de4570",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_110",
+      "family": "four_on_the_floor",
+      "bpm": 110.0,
+      "pcm_sha256": "545f8525b77b86520dff35eb87bca8c40fe6004fcff0aaff9d7367de87cc619a",
+      "truth_sha256": "2e3e2cbcddee0b1a8a279103d9acad8a99a10b48789434a89ae3f2ab7e91f38d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_111",
+      "family": "four_on_the_floor",
+      "bpm": 111.0,
+      "pcm_sha256": "7c81ed77b816f38d38c973fe4684f4be2fe7e94c6720e98f3e818fbe992599bb",
+      "truth_sha256": "62667a8762a2418a4d041d543021f5d676a189835be763e4f6e055f0b8956c41",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_112",
+      "family": "four_on_the_floor",
+      "bpm": 112.0,
+      "pcm_sha256": "77e53a9f14214d3221b979068967f3976e6f567f6cc88d069fa881c73dd9cab4",
+      "truth_sha256": "4b2a90fc90e764b04fcb8741b63f30a2882d3c21f1600332e8debd2d435a5d3e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_113",
+      "family": "four_on_the_floor",
+      "bpm": 113.0,
+      "pcm_sha256": "384f456579634ea6a5cf3cd6a307ea94ad10ebe12c2ce67ed52ca0d15a9000f0",
+      "truth_sha256": "9ce7e25afd56fec8b293e3ea2a67a2b536227cfd220ef5a73e2e96a72bebded9",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_114",
+      "family": "four_on_the_floor",
+      "bpm": 114.0,
+      "pcm_sha256": "129921a54d27fde88c54029f2d2993b58cc04d3c6a2347f46d6777767bacdd81",
+      "truth_sha256": "0506be138070ebfc04cf2824449b41ea23afd7e1abc48916fb0746072d7f159e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_115",
+      "family": "four_on_the_floor",
+      "bpm": 115.0,
+      "pcm_sha256": "fed007f6422387cbc27c1981418ea4103ac92b41f0e2b3ed175840c712dcc9d7",
+      "truth_sha256": "af5e68a4623273fd37b503340e578b974d2d597b65a6a4c9242f0608a87f8654",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_116",
+      "family": "four_on_the_floor",
+      "bpm": 116.0,
+      "pcm_sha256": "c646c59594cd830e8f7da340940cf0dda88d558c7200333b4f981d29ef236a88",
+      "truth_sha256": "7adac7a5901367f8f27839bbe65e8db8e10301e0ba8de81afd548cca3f79f2a9",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_117",
+      "family": "four_on_the_floor",
+      "bpm": 117.0,
+      "pcm_sha256": "468b5426c55289ae4c401811448a2ba2aa790b7fe30d0b96f6cad8aa901dddc2",
+      "truth_sha256": "731e2c814e75e21aae4e3d4e3ea31d72c44f4bd1b39a53f021daf4824af18839",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_118",
+      "family": "four_on_the_floor",
+      "bpm": 118.0,
+      "pcm_sha256": "65a24c023f77cc89881c604480487aa3893b1f056000edf86ae757c4f618aebd",
+      "truth_sha256": "11d299e581985e168f2a573f7d6bed905ab00e869c1ff3359b0554d6856f8178",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_119",
+      "family": "four_on_the_floor",
+      "bpm": 119.0,
+      "pcm_sha256": "3efaa2d7d4bd76108f24925b0db424174adc6487f19b1dfe01603dc12b92a064",
+      "truth_sha256": "6baf3e7ff0592dcbf7fffec51a1b326a3568dcc5f49e5308735ca4669e2a4fcf",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_120",
+      "family": "four_on_the_floor",
+      "bpm": 120.0,
+      "pcm_sha256": "f3ef8cb363e825288b261e9fe926588799fd582ed17b26d14a25de1bf6680b8c",
+      "truth_sha256": "c71143c8d20520c7455cba47048e2ff0484167e7c960f5e5867fbc9cc007b8ad",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_121",
+      "family": "four_on_the_floor",
+      "bpm": 121.0,
+      "pcm_sha256": "2ad6c2b56e349e1139be6db8e1257ec87499633cde3ab05620429e9c34049d19",
+      "truth_sha256": "8e4dcf298bed43f061b504e04075f0a9fe01168f0f856a29032c7ae3933f8326",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_122",
+      "family": "four_on_the_floor",
+      "bpm": 122.0,
+      "pcm_sha256": "26aa1f316e17d76f10fae15c5213da421ff69d6ffa9b6528d08851b27b7f16f6",
+      "truth_sha256": "e2491ed67f7e72f8d02cb52b2d0d2e03624569712532c8a331a5b3a7e930b2e0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_123",
+      "family": "four_on_the_floor",
+      "bpm": 123.0,
+      "pcm_sha256": "329df3f9b78cf406b7b6de43cae24318c83c717169be6574f1d0cb9fc0276d7f",
+      "truth_sha256": "4a3fb1fc4074fc4f4cd4827a756acfbbc5fb8ef4e35de85ba49f6b502e1bb2a5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_124",
+      "family": "four_on_the_floor",
+      "bpm": 124.0,
+      "pcm_sha256": "ee549d64a8999460bc81f88293cb3448e0fde62d416cc112876fcf7e4b089257",
+      "truth_sha256": "59f164fc94ec48d6a1ee4f33cbbafd73594fb43b905b0c9690223ef31f02701d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_125",
+      "family": "four_on_the_floor",
+      "bpm": 125.0,
+      "pcm_sha256": "2b912f46507037ad4df2646e521786549e9ca84293116b13ab824df3c6823c73",
+      "truth_sha256": "b16a52c1e0b9ff032e59fd9a511135ac2a5c92a260359e03e09411eeee55657c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_126",
+      "family": "four_on_the_floor",
+      "bpm": 126.0,
+      "pcm_sha256": "528f9f70a25bdf5323d08913d84eef8c5c2609ade58c853ccd45514018a38c5b",
+      "truth_sha256": "ab13a05a00b1169d9e52bfad212d040944d16403842fb82d8297213fde07a2a3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_127",
+      "family": "four_on_the_floor",
+      "bpm": 127.0,
+      "pcm_sha256": "fe8702491e017945f4beac03911883366a2cfe077afebd4fd0e96154ca017f37",
+      "truth_sha256": "b1e41c3154f42898888fd889495ea4d00353964a6a02b9dbb21eb1d4682aa028",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_128",
+      "family": "four_on_the_floor",
+      "bpm": 128.0,
+      "pcm_sha256": "894bc479fd75feed2e1323399da382593635d04922d24aaac44ac819b084ea38",
+      "truth_sha256": "286f156bd5f854240929627e55c12f553a5935f44729c5ba777a9998cd0147f4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_129",
+      "family": "four_on_the_floor",
+      "bpm": 129.0,
+      "pcm_sha256": "5caeed7e586971cfaa06efb9a2b2a49c4af48ac45a8c4243e51fdf0803d96862",
+      "truth_sha256": "dfdef96a49446a06855f4919cd8f03f39a696b52a9ecf60c78df0f2ff1e7a0c4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_130",
+      "family": "four_on_the_floor",
+      "bpm": 130.0,
+      "pcm_sha256": "f94c441e81997177198b11528bc7d4655e54132f34d37914e26f57b525aade11",
+      "truth_sha256": "b5eb14efdbf99daa7b52792f0d61ba3a15c15fde662ba958f5ffde88cc8925ca",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_131",
+      "family": "four_on_the_floor",
+      "bpm": 131.0,
+      "pcm_sha256": "3df9027153ed1ec857efe21ede84bc119e6e5964a69f23d2a0e16444c0cd8985",
+      "truth_sha256": "a3ed8e583c93b42491c65a0316d94988be3fc292308165016f6e796b3cc46021",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_132",
+      "family": "four_on_the_floor",
+      "bpm": 132.0,
+      "pcm_sha256": "4d2f1d5694d03507b67a02d6c7d69623b41f4bedf856c4f323c00a3109455b5c",
+      "truth_sha256": "12ca2f1000bc7c3c63ef20895807332d16aa5fe294b5893ae7ea78141cef7113",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_133",
+      "family": "four_on_the_floor",
+      "bpm": 133.0,
+      "pcm_sha256": "1fa8da2c9a82f9343dbb0033dfb024bcf07e330f52cca51f2f5f3e4e58c8ea87",
+      "truth_sha256": "abb473ed0950df1a01e2792e8ea3c6ed92e546db4124f130d79864b0bf66cd62",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_134",
+      "family": "four_on_the_floor",
+      "bpm": 134.0,
+      "pcm_sha256": "91b8018f9b3cb1642d10fad8f5ce483eba43f75c467dc522a72bb095e4c37362",
+      "truth_sha256": "ac48d081fae6d3beaea15b384eb19799bf836a7e909135d509971b893ec7212e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_135",
+      "family": "four_on_the_floor",
+      "bpm": 135.0,
+      "pcm_sha256": "37724c6f506231760de5c7c6a4ba2adb75ba9ec34408ed97ec31492b645fd2e4",
+      "truth_sha256": "055bd1926f53b46965a86865a0e12cc9de1aea1810665da14aad61a982a482d5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_136",
+      "family": "four_on_the_floor",
+      "bpm": 136.0,
+      "pcm_sha256": "6aefc033f5651f6692e98f8adfd091f4a964d20923ca2052ff924ec945e34cde",
+      "truth_sha256": "1f5100df7a9a13efea480e5abf8a1cec20251a7f958f3acd4fba6a6b8e5748d3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_137",
+      "family": "four_on_the_floor",
+      "bpm": 137.0,
+      "pcm_sha256": "b5f95f8cef38872730eae4282332bef0ede11e4907e0ea9b8d54060633f9da3a",
+      "truth_sha256": "49c9f69d4e9eca5c9cc00f8414d0ae3e81cce43af863bca350db13be8fa97ecf",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_138",
+      "family": "four_on_the_floor",
+      "bpm": 138.0,
+      "pcm_sha256": "3dfa65ed1cb164cb2c5eecd566bb0ea11cb194be586865945c2ea5d83e076fdf",
+      "truth_sha256": "c6619ac17d444d190acc8f4e4328742bcacca1b17bede01a2ad2b2b75c673841",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_139",
+      "family": "four_on_the_floor",
+      "bpm": 139.0,
+      "pcm_sha256": "442fb65d121de231eb5e33033d59851d92953777d237d2f3ad665b5fa07d2d66",
+      "truth_sha256": "c26d2181e257ad26a855be562cf5c60b94eee6d88c3f3421f2807c63514b91b9",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_140",
+      "family": "four_on_the_floor",
+      "bpm": 140.0,
+      "pcm_sha256": "c5c67e52087baff77b75b866d8e0b17e4501010f7e6efdd2b5ca4a9b1b468088",
+      "truth_sha256": "0051c017427d00c84d908d4d250cc679bf18a205b3c27db9c728892fea5123d7",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_141",
+      "family": "four_on_the_floor",
+      "bpm": 141.0,
+      "pcm_sha256": "5cad2b5c338438889f81a4dbe050f56d0af84f1911fa5e9ed2db6374c19c6a70",
+      "truth_sha256": "f5cfd0cb80d78d2b0bea24eea24b4d894db72bbc4c72caca4d0898f18a994406",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_142",
+      "family": "four_on_the_floor",
+      "bpm": 142.0,
+      "pcm_sha256": "afcce0ebfcd5ace329e1258bb641a47b1a302a609f28f68955333f997b75c063",
+      "truth_sha256": "f970a99ce489ccc4fd59fc0f368177033319c861eb70bf79adb55ec3acc63f95",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_143",
+      "family": "four_on_the_floor",
+      "bpm": 143.0,
+      "pcm_sha256": "2718638136e670f2e91ffcf90c9fd26c4f3f356b9b291d82f86fb7c962d158c2",
+      "truth_sha256": "07f9434f8c9a6e69354ef2e8c6336663cae8a2fabbeaa6fd5f056d54efe100db",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_144",
+      "family": "four_on_the_floor",
+      "bpm": 144.0,
+      "pcm_sha256": "79a0e9ea88dc8fde5bdfd15a1501e78a1e8d2bc541a998ece467c0f4e0b46499",
+      "truth_sha256": "c527fac1637f857dc927b5b2d2f419c5aab4feec2c88d56a18c7d8ee599c69d8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_145",
+      "family": "four_on_the_floor",
+      "bpm": 145.0,
+      "pcm_sha256": "80f5e1913ce4ea706da63586d9065040c8bb7ee1ba2518afe0e7236910bc5b15",
+      "truth_sha256": "20bc4a24d73fcc2078749e159bafdde42828581a2b95e85a14c07fe6d8fcbbca",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_146",
+      "family": "four_on_the_floor",
+      "bpm": 146.0,
+      "pcm_sha256": "fbcbb37565c6b8374721b96f52c60b01c7bbf9e4d6318d444cf090b9993a12dc",
+      "truth_sha256": "fc2cee4dd117ee6152d7ce1433b8a7c4561fa6abb7ec5101bfc642fcf942b8d3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_147",
+      "family": "four_on_the_floor",
+      "bpm": 147.0,
+      "pcm_sha256": "a6ad6a93d2fee755cbf91b52ab2dafa9f3887dec27de93a8616e77be3a48dc22",
+      "truth_sha256": "0b1c0cf71459a2a37e3e26c1ead03e0d104ee6e492b3a03c5c515c48f057f8be",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_148",
+      "family": "four_on_the_floor",
+      "bpm": 148.0,
+      "pcm_sha256": "3b3ef79e192ecc0da3dc8efc151d8a20a0564d114c3afce73b60b0315e99b8fd",
+      "truth_sha256": "d5756bf91c95763f8fa077ca3b67f743b9c15d3bf469713ec5ac629b64ceecc5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_149",
+      "family": "four_on_the_floor",
+      "bpm": 149.0,
+      "pcm_sha256": "e9071a48250c771e7fe8af2b49632a0c99152ee05699fac4fbca66af16c08b6e",
+      "truth_sha256": "f665b8a06699673bc22ba688ea4fefecb128f7e702016e42ca623b3c98020e32",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_150",
+      "family": "four_on_the_floor",
+      "bpm": 150.0,
+      "pcm_sha256": "c49e0c93e55e985740f80f05b197b84660786e2bb8ca79b956b23a997386e685",
+      "truth_sha256": "28574ac13f88b88ccc37cfcb86fe60dbee560eef5dae7b788d68bafb703ee21f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_151",
+      "family": "four_on_the_floor",
+      "bpm": 151.0,
+      "pcm_sha256": "2f333258a20f87160292f92a2fa358d5c5dcad196ba2bda746d28ddbd57a9fa3",
+      "truth_sha256": "e6614f3d4f97a802bbee85a26729334fb11ee251cfa1d27560c6b536e8745e4d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_152",
+      "family": "four_on_the_floor",
+      "bpm": 152.0,
+      "pcm_sha256": "0f4bfa3853c8fe0edc29450a7d38dd43cd92dc38dc8378d5f193c9b51feb7241",
+      "truth_sha256": "825c7426bace62c95a236ed0cad3b3be733310590fa8f85a9661f699ef654653",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_153",
+      "family": "four_on_the_floor",
+      "bpm": 153.0,
+      "pcm_sha256": "3407e3ac706fc602927f328de6a76ad78d931f523286b1396505ce20c1fb2484",
+      "truth_sha256": "310032a37eeaeea17a3504a6a8bfbc1e4b9e5b3ed16319d9c8346f380b7b1d83",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_154",
+      "family": "four_on_the_floor",
+      "bpm": 154.0,
+      "pcm_sha256": "9a0804bcf0d2018522b0af19ba41d14a742c0f569fd10c66199d7bd9508c4438",
+      "truth_sha256": "7ae2acd14d4aa96f11b1a2ff2a4c1dde4810086135922135b5fb0e81dc2b107a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_155",
+      "family": "four_on_the_floor",
+      "bpm": 155.0,
+      "pcm_sha256": "07c21c54a222a4928521c7fc7d4e4ff27de5b2599b2dd0617f43358e99febb0c",
+      "truth_sha256": "f71e24a5a88e38647170fda3c9e78185cb0579af60a42d2dd9eb2dc134eb5294",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_156",
+      "family": "four_on_the_floor",
+      "bpm": 156.0,
+      "pcm_sha256": "396b8bc361360920ba37518527131f29d9fb814630133fa5b2969e4df0828b23",
+      "truth_sha256": "efe8a6dbee8739281608bd65129a2000bc65e70e0f5d956943c007869fefcf6b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_157",
+      "family": "four_on_the_floor",
+      "bpm": 157.0,
+      "pcm_sha256": "9534385f56a7b85db76aea268a51f50d077e46843ae25d0331f73328ac1b4d68",
+      "truth_sha256": "9137318cc36e24605dada9e8bae9da26e302fef44eab6022ccf16121a83bc15a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_158",
+      "family": "four_on_the_floor",
+      "bpm": 158.0,
+      "pcm_sha256": "18544dc50732bcc90ef356ef7b33b19b8052f97f3c2804f03b1434304894c1b4",
+      "truth_sha256": "f2666a8fa3af6806d35f2c73f9f2a87a31a7e0ef3765713dd9a2b54500f1f2ac",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_159",
+      "family": "four_on_the_floor",
+      "bpm": 159.0,
+      "pcm_sha256": "8107c9d97ff80e0d46408d6db53d6fb9bc447c4cc5481083e38f32782a99e7ed",
+      "truth_sha256": "054488c1fd8c9527e6e02cac3ff9a8968598d9b67a00c68e99205b6f49372d91",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_160",
+      "family": "four_on_the_floor",
+      "bpm": 160.0,
+      "pcm_sha256": "e3ca770461d7485211d818812d1fa7adc1095505e96ae43ee329801ba2f381ca",
+      "truth_sha256": "4563355027bba63fce781cecd0563b945b62f535b078e93f9b816b4135dc011c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_161",
+      "family": "four_on_the_floor",
+      "bpm": 161.0,
+      "pcm_sha256": "2eabd94531081bcfe62ed4c29cfb321c1cf252a6eeee01d3b74a5f4ba1e5388e",
+      "truth_sha256": "9336cd4613384ce0f5ab41f247ad14cb421aa69906f34d47b15f36b3357abb61",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_162",
+      "family": "four_on_the_floor",
+      "bpm": 162.0,
+      "pcm_sha256": "0123e48db47a05581f9e43cce795bf6ca13d80fd0ea196aa0bfb120f7ab785fe",
+      "truth_sha256": "2e1334114b018bf414bd8b338b567c462bddb38cd9921c0605ca74d9e31794e0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_163",
+      "family": "four_on_the_floor",
+      "bpm": 163.0,
+      "pcm_sha256": "3469a21ac4f28894d1b9dfa17721f910b071d66766b06a41373612dfd21b2143",
+      "truth_sha256": "490adbe40cc36e9226ed97906f9fddaeed05c6b1b7c83bc95a6cc649e4ef0689",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_164",
+      "family": "four_on_the_floor",
+      "bpm": 164.0,
+      "pcm_sha256": "3c25b4eea8473315b302002b0f4e0801b16a293f43720a32c5d8f52280dbf1ce",
+      "truth_sha256": "24f998455b036c31fac00eb1a3585ca341375223a957e5ba22e6fa9aac2dfc49",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_165",
+      "family": "four_on_the_floor",
+      "bpm": 165.0,
+      "pcm_sha256": "7100d9323a4908677c7aa2bfcd1495f3d7d96e69894468d5b14d7af491833adf",
+      "truth_sha256": "7c394837db6d30ae2c1aa9b905425d86e65a4b9eb98bf3e2b74c81bf91dbb6e6",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_166",
+      "family": "four_on_the_floor",
+      "bpm": 166.0,
+      "pcm_sha256": "35462bf4726d66096d9763bb80c989953da5c3db5fe2c749d554a39f196f5091",
+      "truth_sha256": "1584c8d53821053229396196ff0d3c04e64912047afb0cc8277bc8597785d1b3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_167",
+      "family": "four_on_the_floor",
+      "bpm": 167.0,
+      "pcm_sha256": "6e18ac881f60026c06e111059e9d8051e2658e43217b5f5fa8aa975017059335",
+      "truth_sha256": "6eb26ba25484e4b55008fb134789f93dfbd622959508e809e1a9a8ef33bef974",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_168",
+      "family": "four_on_the_floor",
+      "bpm": 168.0,
+      "pcm_sha256": "6999bc1bbba067032aacce13c67ee5096e6f9c0ed3d84ff672d831a68a9e2ff3",
+      "truth_sha256": "061c36da4d79e444376ac30f10e4ff1f55c511fdbb1546c051b62771d65f3373",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_169",
+      "family": "four_on_the_floor",
+      "bpm": 169.0,
+      "pcm_sha256": "367864f8952bc57e2543fe2d52c25b5179615bd8984531c2df122f1eda7935a3",
+      "truth_sha256": "60ae68767dcd9471192b5dd54374871e35ec51efa706a59473b78d3b6454ce21",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_170",
+      "family": "four_on_the_floor",
+      "bpm": 170.0,
+      "pcm_sha256": "f6d1cb8f3b576ec923bccd4f66c1e6a945b296de4f414c8f771bae18e4b35374",
+      "truth_sha256": "93054ba3248f2cca5ba7e85a44300b256934dd0022b1ed6aba71022ea75ec474",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_171",
+      "family": "four_on_the_floor",
+      "bpm": 171.0,
+      "pcm_sha256": "b8865543a44717c52819f37be151083895a317cde8a8e7b8364b2adccc9dbf22",
+      "truth_sha256": "bd6ea8e7a00f55e12831c29a0d34bdcd146511edf3ea0988f06c7d60267d0619",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_172",
+      "family": "four_on_the_floor",
+      "bpm": 172.0,
+      "pcm_sha256": "bb965131dd5804821e9c6d0a6a56bcb44195e596fecbc9a2483ae1ef51540ee9",
+      "truth_sha256": "ab5f63f3ac629a88819defd23c40d2b7df5d08db26add2db562f5fbaf634cc51",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_173",
+      "family": "four_on_the_floor",
+      "bpm": 173.0,
+      "pcm_sha256": "cd885d2660f5d20b6c4de3eca6bd53c122d790d5fd9f45c8a04c2cd56932b4b3",
+      "truth_sha256": "54768553b9ee8226ec3387e2a1dbb79d7830e82353dc436b8da660eda1237457",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_174",
+      "family": "four_on_the_floor",
+      "bpm": 174.0,
+      "pcm_sha256": "bb9ab84a2c702758eb730f81938f56fae2ac07863e88cf3358633e0fcd4c3919",
+      "truth_sha256": "d8fb78c58581c09478fe2ea2c14c55346cf2a0db40d52284c52c96602f7fccfc",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_175",
+      "family": "four_on_the_floor",
+      "bpm": 175.0,
+      "pcm_sha256": "f15f8a23f33a6740b081108a6d9dd236182c4de50fac1d5ed7600dda953bcd0e",
+      "truth_sha256": "26554b7c7cdc8f074fa51f6c1ce4ea0430b12b5d9fffe3fdd3cd5392daff7b5a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_176",
+      "family": "four_on_the_floor",
+      "bpm": 176.0,
+      "pcm_sha256": "a9f8522f481671092b0345d6c39c95286fd311004f7de0a51b8048b7e5271b24",
+      "truth_sha256": "e12a2542cd221131238725079c73e661ead295240a5867659eb518a26b836cfc",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_177",
+      "family": "four_on_the_floor",
+      "bpm": 177.0,
+      "pcm_sha256": "b69c4fd1a9db9b24bdfb95dacc5b2bc16ea4712f9bbd944ca8f31b06f341e4b7",
+      "truth_sha256": "5f8e11febb13228f97f13bf9cea1627744de64c1796b0b8d4856ba89a1f471a3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_178",
+      "family": "four_on_the_floor",
+      "bpm": 178.0,
+      "pcm_sha256": "75f4a02f6298bdf4e8a13a6efe10b1692a0355a92b6f8550283b22ed79bcbe38",
+      "truth_sha256": "02ea4926cdc57ce679f2be59a33228a9a09f86bb4575cdfb5e84bbe2296efa58",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_179",
+      "family": "four_on_the_floor",
+      "bpm": 179.0,
+      "pcm_sha256": "ba5548ed4610f0b992593bace10366a0ea502ca5a8ac4e0186ffa7fd94405882",
+      "truth_sha256": "98e8e837faa8fa45ae58abc7a85d47b220bfe49862aadafbdd6703228d2cc8f1",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_180",
+      "family": "four_on_the_floor",
+      "bpm": 180.0,
+      "pcm_sha256": "db66a77d78ec3ad3ad34198fc7803f386597a376fd03b1fc772a7ae5772973b9",
+      "truth_sha256": "3b25bd7745922db553832c1a65aa38e97026d63bf663b37ef3aa7e3ba646c3b5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_181",
+      "family": "four_on_the_floor",
+      "bpm": 181.0,
+      "pcm_sha256": "7c452891f6491b4a0091feaf5245b4443623df209c9f484d37c6ad2757638a10",
+      "truth_sha256": "2550917402e9111529c17e7926fba7515661edfa183f1fec2d7b913215af7b4b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_182",
+      "family": "four_on_the_floor",
+      "bpm": 182.0,
+      "pcm_sha256": "6556ff89e3f56dcfef3d6e3b8ea09c4c4376d080d40bbc0ad89b79d464f63951",
+      "truth_sha256": "46fa2312c1762e61513ac85cccfcda996052f2afb15df56eb79b33dcbc997a4e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_183",
+      "family": "four_on_the_floor",
+      "bpm": 183.0,
+      "pcm_sha256": "4b55d03d4606a20d9b79fea67b454d9029dd785bd125309bb5b2edb4964cd6c9",
+      "truth_sha256": "d48be21e0e5132fea0f8e2494df49e0d6dde1da53687df423335b5282349acd4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_184",
+      "family": "four_on_the_floor",
+      "bpm": 184.0,
+      "pcm_sha256": "760fe7f3b16c42a01e6605f41cf68b80304d7f3cf17044875d94c8f4ddb15be5",
+      "truth_sha256": "0c01ac96807061076b3a96c32e9480ac9accec10544ae7da545dca6f73f0c778",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_185",
+      "family": "four_on_the_floor",
+      "bpm": 185.0,
+      "pcm_sha256": "dc535641b95caa38f072f9f40cdc7ed8bf2493e07006f58ce0b4cc24133b606c",
+      "truth_sha256": "2f2cf314540b4eed382d84ac8abcb006523b383c16b2fac032de9d7771f9f700",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_186",
+      "family": "four_on_the_floor",
+      "bpm": 186.0,
+      "pcm_sha256": "d6fb85b9341f0fb64ce36858aac6c55a366b9cfcdf4653c9ec272bf460ffc0cb",
+      "truth_sha256": "7f87a37491d572571b1d22a144077a435600074a7468719040a49c6aa355d35f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_187",
+      "family": "four_on_the_floor",
+      "bpm": 187.0,
+      "pcm_sha256": "11893b2e129e7aab7dfe7ae86381669d583e892331d89028fe8d1e2fb97bd2cf",
+      "truth_sha256": "c29dd30f25759eca6138079853fa424cc84af4ac42dc92fb69d4f4b41d318440",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_188",
+      "family": "four_on_the_floor",
+      "bpm": 188.0,
+      "pcm_sha256": "272bcab1b1b3364cf6e69bdd532c9d6c2a05fb0c9a9b3f70c224ae6950d38e06",
+      "truth_sha256": "7d9a75ff1ae8e9a4fa2da70e03de71d8e567729b4bc2813a603dc2c8c559c58d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_189",
+      "family": "four_on_the_floor",
+      "bpm": 189.0,
+      "pcm_sha256": "723f8ce9836e056089d44eef0943c6bff2ea554dd82342f94abd2824f9523da1",
+      "truth_sha256": "e48088a5c135c4ef2b6abbf276450fab6703bbd9d768320c735b91feb1d94fe3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_190",
+      "family": "four_on_the_floor",
+      "bpm": 190.0,
+      "pcm_sha256": "5ff7585b60b12ec50c6ce4d8012125c7d4ba49986cdb656092e12adcb918e048",
+      "truth_sha256": "1042a513e8ea857bab01b7f3a43fd057caf0248ad15ba43991abeb6bffc58378",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_191",
+      "family": "four_on_the_floor",
+      "bpm": 191.0,
+      "pcm_sha256": "a7970da5951d995ea5030a190ae881d2466f32b63fed8a4f1d715bff4edd0799",
+      "truth_sha256": "dbc5e1e96aa1d80aaab69cbdeb07c5a6abee8850f40840ac9b213bfb503e0606",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_192",
+      "family": "four_on_the_floor",
+      "bpm": 192.0,
+      "pcm_sha256": "7c58e1dbe58e9a497b3c23e1348371ca8c4c763944e05b0594a0559f1b59347d",
+      "truth_sha256": "c7f762ee2ab458061d243f4e2a9cdbb3768a706254233cd7abc28214e1d03e18",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_193",
+      "family": "four_on_the_floor",
+      "bpm": 193.0,
+      "pcm_sha256": "f4bf18dd305119c2fd2793cdfc3b63aedec2992ea47747d3c9c9debcbcf2f0d0",
+      "truth_sha256": "d61182e4abd384ab968906ff9666d3fb9b889e6fcee465f5fc15742014c3db92",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_194",
+      "family": "four_on_the_floor",
+      "bpm": 194.0,
+      "pcm_sha256": "783c3bb2a5888845e8d1c673078b915a0e9056757dc10280473daccbcf017072",
+      "truth_sha256": "9ccba73be7e0fa6ea837d58c7d8a8459c7b4a3f849847e4791adbcaad4210ef1",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_195",
+      "family": "four_on_the_floor",
+      "bpm": 195.0,
+      "pcm_sha256": "9e115698dd7f4071349a8df00a7f1cc2c9b92d6441d964abc956f882b7bf0bbd",
+      "truth_sha256": "4ab3a31e7a9ee320c20a9c4a282f0801d83df0cd2e1a877cb87a7726c495d1a2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_196",
+      "family": "four_on_the_floor",
+      "bpm": 196.0,
+      "pcm_sha256": "6a7184c53c0ac0790e942f74d18cd14946bd0d80ffdf299e8b67c12e3d394525",
+      "truth_sha256": "b2eff1fa1ca0b4451cc81a960f245fa1a6c1883146a8c444c56b0333f5b68e6c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_197",
+      "family": "four_on_the_floor",
+      "bpm": 197.0,
+      "pcm_sha256": "84f57191e93b73ba389bff60fe697734ede57b0142df627f7b3e57662dab2acf",
+      "truth_sha256": "6eb58bc7eee7337440e6e8b3803d1aaef1e3751e1f95e79c0e5348e5e0507f0a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_198",
+      "family": "four_on_the_floor",
+      "bpm": 198.0,
+      "pcm_sha256": "4ab9df4998786ce9010e740139bc6fb47e055f05f404177bdc0152e9a59b6e26",
+      "truth_sha256": "7ab6b377cb30cab55f8020a50019c84c6860c4ad4743861d38ae3bea4c41cb34",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_199",
+      "family": "four_on_the_floor",
+      "bpm": 199.0,
+      "pcm_sha256": "80a18178bd6404a3d2ffa1b776bba2093cc3158d59dc03322c5af2bd347e932e",
+      "truth_sha256": "3c9e8f0c038e12143df9250fab4f9f1971af7f9b819003c285897bfd470aa827",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf_200",
+      "family": "four_on_the_floor",
+      "bpm": 200.0,
+      "pcm_sha256": "c452243267885fce50116df6e6b744b70b0b4dd9f933f1de15270a67dea439af",
+      "truth_sha256": "e64efefd04e65fae57f2add07397efdc3cbbf6c56f8ae55e1f9a57755ec78ae5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_55",
+      "family": "four_on_the_floor_332",
+      "bpm": 55.0,
+      "pcm_sha256": "67c5edb89ea553e0eb2f240620990d4502b78b207a41d83d21ea5751c904d6f3",
+      "truth_sha256": "b1ae924d10f8810ed5e52b89fc67158fa5424479678cac25ed0823943ff86600",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_56",
+      "family": "four_on_the_floor_332",
+      "bpm": 56.0,
+      "pcm_sha256": "27a25e12a9933f0ee266e427c6a3c90d003c98edfff16446b04adbca373d15d5",
+      "truth_sha256": "5b40a973b7795e1c1752a2253f388c1628a62fa866673798535c152775dd4cc3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_57",
+      "family": "four_on_the_floor_332",
+      "bpm": 57.0,
+      "pcm_sha256": "4c7d2fbca881f757c20c6c56082b5fb6d0ab92b465485c7568d2eede9460b905",
+      "truth_sha256": "c5c8d52b717b5cacad9cdda563ded8e13b10131e4b73abf5bef64f0367fb41ec",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_58",
+      "family": "four_on_the_floor_332",
+      "bpm": 58.0,
+      "pcm_sha256": "592a6cac554a3ef02358f38a893de7dd9c51e9d494120bbc0ef68b70a23ee5c0",
+      "truth_sha256": "dad2f12521436e4f6c5aba1316084c5afb82ab0bf4fb543488c7cd8a4a1fda7b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_59",
+      "family": "four_on_the_floor_332",
+      "bpm": 59.0,
+      "pcm_sha256": "bdb086eda2605d86d55d003e975ff50e732c34eb98606ff701434ebe9f44d97b",
+      "truth_sha256": "d56c60a3a9e28c8eda698d8ffb63c5285687bd70806c47989018a3381601551f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_60",
+      "family": "four_on_the_floor_332",
+      "bpm": 60.0,
+      "pcm_sha256": "f644bdfc9a7207b592c33d7d3399f1c361d65ee6f62caf8ca3abb91ab1902d0a",
+      "truth_sha256": "a814dc0fee8dd39c598c936617c62cc53353182f9545fd4f6c11ae8341d923ad",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_61",
+      "family": "four_on_the_floor_332",
+      "bpm": 61.0,
+      "pcm_sha256": "d515d7a2d135b7e10ae22194a43f01de02aa92a496897a78d1c2c35334c6af4c",
+      "truth_sha256": "92aa5ce7fa3984432c2282f85db25ad5d6be892a2b9080101559e5930adeed81",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_62",
+      "family": "four_on_the_floor_332",
+      "bpm": 62.0,
+      "pcm_sha256": "cf0bd9889129b1da1696bc5c86c0722ce7a78d2ef097e8cb1b576262eedb5328",
+      "truth_sha256": "2408d734cf509099ab58e88bbe4845aa936816b313c93f26fefebdf1c4df632f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_63",
+      "family": "four_on_the_floor_332",
+      "bpm": 63.0,
+      "pcm_sha256": "0cedf89f63debaebd5e612f804ed8674619537cfa96391835fb5bbeb348526f6",
+      "truth_sha256": "4879715dc136272616fb98a30d0de4e16f37099130270e525bccbb639a001168",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_64",
+      "family": "four_on_the_floor_332",
+      "bpm": 64.0,
+      "pcm_sha256": "94d6380898276fb281ef6ccb86c718ef2e6084436de8d674b3083bf46551913e",
+      "truth_sha256": "93c45f47344a36d0e67383b3b55f3ccb480206528c9684e925c675f27c71f7ca",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_65",
+      "family": "four_on_the_floor_332",
+      "bpm": 65.0,
+      "pcm_sha256": "e020b2e5e5ff7f1fcf79e012d78a051c067ffc637f7ed5012d52ab5d1cb5f69f",
+      "truth_sha256": "7f755108f0e8fd0e04bc2df64ea5256e0eb1783ce8af3ed0e0c7921a7cff82e8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_66",
+      "family": "four_on_the_floor_332",
+      "bpm": 66.0,
+      "pcm_sha256": "1e9ed23353dfa69dcbc72bde5a5a44fa51e433573ef1c80550f42a31a9d6576e",
+      "truth_sha256": "b8e74ec6c14170e9398307548cc625d379e439faea17784a044a81c014482f34",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_67",
+      "family": "four_on_the_floor_332",
+      "bpm": 67.0,
+      "pcm_sha256": "ebdc1cebe975a073bad94760a78a80519dab30a138f575bf0385b4b4fcdfb1c6",
+      "truth_sha256": "ef08d612c00b8f7ba437e6f3616ac230c2d7010ad60685332da3feaf9443b938",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_68",
+      "family": "four_on_the_floor_332",
+      "bpm": 68.0,
+      "pcm_sha256": "8abb3fc66c751654d096d87de232ac049eea381495b10d5883a4c68c680e185c",
+      "truth_sha256": "980ebeadf50392029fb3da80858d3340079ad306502dee64d53d619e4d0b42f9",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_69",
+      "family": "four_on_the_floor_332",
+      "bpm": 69.0,
+      "pcm_sha256": "17d3396a80e9966c8541a8a7ac7da4dc8b0ce6b6b60908bc81c8f4b758f045a5",
+      "truth_sha256": "1c82202b09fecaeaccf6724dd526fd4f58b4ab18937f61d1db596e6872565903",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_70",
+      "family": "four_on_the_floor_332",
+      "bpm": 70.0,
+      "pcm_sha256": "b23a12843d17f847d03d3c7b62dc0e626a3010e31622e981e677dcb2db107c6a",
+      "truth_sha256": "3607d424aa3519336a77b027933a17e4fac3dee2f0d121653436ad45649467d1",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_71",
+      "family": "four_on_the_floor_332",
+      "bpm": 71.0,
+      "pcm_sha256": "41b2c6ba3e31915870d52b53cd4cd29efa01a7cc2d95e1b9cf3fe770e982a133",
+      "truth_sha256": "1994b4025b57d87774fe7227895475cf6824ed9816dc598a919b356f84ad0c78",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_72",
+      "family": "four_on_the_floor_332",
+      "bpm": 72.0,
+      "pcm_sha256": "c3a272eecafa3debff050bf1b58e296e34a2a1bb426b9f60fd6e4eb05eecc973",
+      "truth_sha256": "45c0b8b2ea40d536429cc247fe4d068bdb409e59a1d842ca1b089ac44df7cca5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_73",
+      "family": "four_on_the_floor_332",
+      "bpm": 73.0,
+      "pcm_sha256": "7087fea0352bccf367c10cff5a66529a88875b7f446897386216115064ff96f8",
+      "truth_sha256": "ab9b15096d51dbe6239f37b4b951573e0d6e22a8df75ec8bdd49121b49a9c655",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_74",
+      "family": "four_on_the_floor_332",
+      "bpm": 74.0,
+      "pcm_sha256": "66a2d41062e26cc223dbcb30e1a464007c9cadff4d08942daadb70bbafb75026",
+      "truth_sha256": "baea43b7231d8d9b0e22535d7105cef5a1602f47bb686cd10cdfcdad51b6c1a8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_75",
+      "family": "four_on_the_floor_332",
+      "bpm": 75.0,
+      "pcm_sha256": "5efd1f7861fc3290795b713937f0abd12a8e43048f9624ab5d0369b831a8c9f5",
+      "truth_sha256": "bf7aebf1fb955327e194ba90f6569c5b7d759aa34b21da1c7b661b7a83b0e3b0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_76",
+      "family": "four_on_the_floor_332",
+      "bpm": 76.0,
+      "pcm_sha256": "239093adbafe38da07e791d67f267f8b9f9d23fd110e9214cd2cf3805b1796b2",
+      "truth_sha256": "66a4cd3f11965cf22733ac63bde9ef4ee8796cac5c05082754bed714474c8862",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_77",
+      "family": "four_on_the_floor_332",
+      "bpm": 77.0,
+      "pcm_sha256": "8d5544c805b87ff03b7112b0183a11ffe2be8ae4c763e1907710438db8918573",
+      "truth_sha256": "cfa2014710aa7e73610644c47614e642e6d3a96efac73e2c49dc62b6f6326e03",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_78",
+      "family": "four_on_the_floor_332",
+      "bpm": 78.0,
+      "pcm_sha256": "084b6ced15a9ebf4c4af8a7d7e99ac3ffa83b70261619fe2986a6d9145ea3906",
+      "truth_sha256": "8b753610916defddca9845c5d36575b44da5401cfb35768140ad08c8da20fea1",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_79",
+      "family": "four_on_the_floor_332",
+      "bpm": 79.0,
+      "pcm_sha256": "273107f0e299a03e3f1e2770afb6240b0588a3f4235994a4273d7454d3434664",
+      "truth_sha256": "364a559a6263b1374fc51f8881281aa77a344090a1b94efd42524e66a8db0560",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_80",
+      "family": "four_on_the_floor_332",
+      "bpm": 80.0,
+      "pcm_sha256": "f5cd0b7ce68c80d08b3b5db6be6ed10e78afc91e356250ce01ed67672bf31c2e",
+      "truth_sha256": "af807a9493affe2a811ca58f0208dca867ad3f9e523f087b5a6fdfbc9f62513e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_81",
+      "family": "four_on_the_floor_332",
+      "bpm": 81.0,
+      "pcm_sha256": "0082663b81d781787b4b54f42572b788f3311107a525d6f8b9ef2bc5991b4852",
+      "truth_sha256": "c805879237e25346a4baf872d6e50e4d7899b514ca0981bcdbffe43619a0924c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_82",
+      "family": "four_on_the_floor_332",
+      "bpm": 82.0,
+      "pcm_sha256": "cb404609c9830202fa4a2ea72d004d4ecc31421b14893b5d625f4ad55556d187",
+      "truth_sha256": "9982fb071f0846ca74c36636fd6542e0cf465f3d67f81ab8e21e200adde839e4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_83",
+      "family": "four_on_the_floor_332",
+      "bpm": 83.0,
+      "pcm_sha256": "1e9ca2c2ee9c8be4fcca41120ab654586e10e9efaa3bc2c12d9041235fc40ecd",
+      "truth_sha256": "e6c22dcc1d59abf0088ee1902b0b32da2bb67164bf67b0449d2d6a052fa26be0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_84",
+      "family": "four_on_the_floor_332",
+      "bpm": 84.0,
+      "pcm_sha256": "b77f9c4cba3d4e54ba59bd16c6beaaf7cf51f520c0783ce1b1daad9782957916",
+      "truth_sha256": "edde9ae88a0974fb5cecbbbc36cf223303a6313ee6f84af77c06f878c1263de0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_85",
+      "family": "four_on_the_floor_332",
+      "bpm": 85.0,
+      "pcm_sha256": "ae43dae3fb060b87bdf58a403c83bc270a318d66a1ebb31a86cc8c709ca27157",
+      "truth_sha256": "845abcf9770a7c9ef9b66e1c6afd7a6c77d0ceb4fa0f3ccf74e33a1fca631ad7",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_86",
+      "family": "four_on_the_floor_332",
+      "bpm": 86.0,
+      "pcm_sha256": "1d32662e85d46f957551be1b3da0f8a6293c492a3758797338ab818b2bb4ebf6",
+      "truth_sha256": "9330a3dae2ec9c0bde9082597c5b3d57ac236f6feecf30cd7f442ff5e4be7389",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_87",
+      "family": "four_on_the_floor_332",
+      "bpm": 87.0,
+      "pcm_sha256": "d2a5530c2cec73242b6db38151c78fcada595708714918e8fe84032a3661e5d2",
+      "truth_sha256": "5af159d78d9b878d380424b2ecbe2d0b86fbb7c9f7cd1f0b726a7672d72316b2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_88",
+      "family": "four_on_the_floor_332",
+      "bpm": 88.0,
+      "pcm_sha256": "b9198383b4797b7e575376fb2b716dfa21fbe262179d3f3dfb04bbf8c3c3ef20",
+      "truth_sha256": "6daffb381938d24bd18c4ad1c0868de669d5d5cadf0bae6b40907d44f6476161",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_89",
+      "family": "four_on_the_floor_332",
+      "bpm": 89.0,
+      "pcm_sha256": "71dea33eeb4ffc9830c016ca8680f097abba26d94659356bac84b84f832406c2",
+      "truth_sha256": "dd5089e184305bed46cdeb6dcfa723af18631ae2a7c2e28c2888ad475a737ff8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_90",
+      "family": "four_on_the_floor_332",
+      "bpm": 90.0,
+      "pcm_sha256": "541963b3cdc74166116dc56239c3b0757aaf1432b8326cdaad0f0012b73f02d0",
+      "truth_sha256": "23f913b42e1a72775b914d1b9ab1977332e05396a0703f9f392db9531d898aec",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_91",
+      "family": "four_on_the_floor_332",
+      "bpm": 91.0,
+      "pcm_sha256": "ce398f8ed8a415c80e6357d8a868a78006454a2d8f93e8c42625cfe073108580",
+      "truth_sha256": "d19d8dfe51bf91284134fff07899b47dd748ae78220353a3b030afb353810e5c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_92",
+      "family": "four_on_the_floor_332",
+      "bpm": 92.0,
+      "pcm_sha256": "1fef3f869cba1fd19cfdf730fee52fd4ca55b9a18f8e834238ef078e4c146046",
+      "truth_sha256": "d576cdad5e17f34a43cf4ba4278c1ecdfadd065e8d26a1531d90371d6ebcce96",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_93",
+      "family": "four_on_the_floor_332",
+      "bpm": 93.0,
+      "pcm_sha256": "fc882e17feae410d06745f0a1710dab8aad7fff34141defe003f45ea1d08498a",
+      "truth_sha256": "870c81e82d274808a5d02e2f620e4f59ab397f34df674a60cd1ab99fc2db6c13",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_94",
+      "family": "four_on_the_floor_332",
+      "bpm": 94.0,
+      "pcm_sha256": "684e53fcbee3400fc498e6b3a9c65aa072dfbe801716dbde4a9dc9d9aa2ef14e",
+      "truth_sha256": "dde1e668a5c2d4bfb8b2928af72bee3f8d7b5954479f5e006c9fb1ed338108df",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_95",
+      "family": "four_on_the_floor_332",
+      "bpm": 95.0,
+      "pcm_sha256": "75968eb9e2c075234b77ed8ccbd4691c8c5d274ef95a39c012643c91a507cd6c",
+      "truth_sha256": "398902fe18fd287fb3cdba131128e37a90b4ad5cba71a6ef8e919522e5ae4a69",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_96",
+      "family": "four_on_the_floor_332",
+      "bpm": 96.0,
+      "pcm_sha256": "2ce0c71be8044afb7fdfa69c24a10a96c5fb84e4c1d389614f1d8c5958c256bf",
+      "truth_sha256": "cde44569a1f65f5dc8f438595cf4f5900d5469253927c4b7f4f20ac5bd1cee98",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_97",
+      "family": "four_on_the_floor_332",
+      "bpm": 97.0,
+      "pcm_sha256": "3e8a21222e010b771e9df3554e3f954593d927e3283d7c27b55b409f7327527d",
+      "truth_sha256": "8f17600a20aaafa396ea02deebd6927e1bd46162cd3cf59da6331bc66ae12062",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_98",
+      "family": "four_on_the_floor_332",
+      "bpm": 98.0,
+      "pcm_sha256": "ca0f3bcd7a772f73b5ae589886428d4ccb46889d28f14b3bdfe049e3917d7938",
+      "truth_sha256": "63ef6c80783bd53ca975b36603abdfa56d284b55ad33373d2ddbcebe788f0f4c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_99",
+      "family": "four_on_the_floor_332",
+      "bpm": 99.0,
+      "pcm_sha256": "bed004ea078f5647085ba19ef0421730360efb93096c5bdc0eae47e07e1b4a72",
+      "truth_sha256": "6c37f23fe398eda049707469019a4a2f47244806b261aff1a1af85989ea26d2a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_100",
+      "family": "four_on_the_floor_332",
+      "bpm": 100.0,
+      "pcm_sha256": "c340777d1f2185343ec9f862c22f3279bd752f6ace1c91204d62fbcb1e55c468",
+      "truth_sha256": "3efe01e90a3520ccecdca05d5a8af97ef90bd0005fbc818fb43d2370e1f7fdc4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_101",
+      "family": "four_on_the_floor_332",
+      "bpm": 101.0,
+      "pcm_sha256": "0918e1c81a6bb2b3be0c345b14ff373826fa37d72d73c8f39d9a507ae4912bc5",
+      "truth_sha256": "3269a6cf56e617b9c4d42b06a883a8ec01ad852b387089d1a51c3afea279a904",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_102",
+      "family": "four_on_the_floor_332",
+      "bpm": 102.0,
+      "pcm_sha256": "8f1ceb442a94e031c923faa20bcbb3fa1b74a220cca643ce84b6bf31646a709a",
+      "truth_sha256": "07da22b2ad8fd2e453f3069b5557b6860a01e38999c76eb4fc6516d9d8fb5e01",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_103",
+      "family": "four_on_the_floor_332",
+      "bpm": 103.0,
+      "pcm_sha256": "a57ab1999cecce921fb4950fc27f429ab9f1ce088fce65e555a30a6cc4f9e0c4",
+      "truth_sha256": "137b03f7d7a5d9b5851ec7b8e888267023aa9295218cf116b37760235fee5fdb",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_104",
+      "family": "four_on_the_floor_332",
+      "bpm": 104.0,
+      "pcm_sha256": "1c87ece0d56216f21cb791cabf3c954f9101d7fd4030dc5d52584e88366ed343",
+      "truth_sha256": "f96e044f9c1c70a2a7c60eb2fe3093c5d26c484cd2f6384685772b3edbe64f5a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_105",
+      "family": "four_on_the_floor_332",
+      "bpm": 105.0,
+      "pcm_sha256": "0852061f099e411cb120bb58126a4168f508fc4843261414bc59fc3b4185a6e9",
+      "truth_sha256": "6fa20489c7865fa9a9a03ceea094cd5f19d058440a087ac0d0c25a1fe8cc5aa8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_106",
+      "family": "four_on_the_floor_332",
+      "bpm": 106.0,
+      "pcm_sha256": "36cff350133f75abf56dcfb49038117dbeecf8fa7dac5a975102f28cffdf986a",
+      "truth_sha256": "3c73b192ccdbd4651acb518a63d3c3e02730ed1310dd3a1891dfc562076ec1c6",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_107",
+      "family": "four_on_the_floor_332",
+      "bpm": 107.0,
+      "pcm_sha256": "588288db5c3047f3420a0008ff20dce982f651384fb52530d1cf79838b237576",
+      "truth_sha256": "c6d4fb848bf205a2c710851176ffcd3f77f4a9a6aee7a7be44bd6fc82244330b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_108",
+      "family": "four_on_the_floor_332",
+      "bpm": 108.0,
+      "pcm_sha256": "a2555fb256d6f18be126f5498453f592395d12cebc8ab3ae6a48a1468b9cc299",
+      "truth_sha256": "e4da2d6218961438829ece353297a86e40a40fbcf2204a28f2cada2e895274ad",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_109",
+      "family": "four_on_the_floor_332",
+      "bpm": 109.0,
+      "pcm_sha256": "1cadaedc352ed53ef5988e728bc7cef654f60f03f8adf2994bc175a6d3dabdf5",
+      "truth_sha256": "e617efcdbc501939742fea97e411ac8b5a7eb13596e4562846f913257129a24d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_110",
+      "family": "four_on_the_floor_332",
+      "bpm": 110.0,
+      "pcm_sha256": "733ab03a5dfe389aabf54d5579df6412c128686f1d48079e27b3e24b5561bbe0",
+      "truth_sha256": "ed148b54f4d21ad810cd4da9b85414375c72b610ae0f04284e13f483fde067cc",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_111",
+      "family": "four_on_the_floor_332",
+      "bpm": 111.0,
+      "pcm_sha256": "9dc221f98ca714c0d296799bb17b2ed749b03d1d497f84eaf28296ef4379d561",
+      "truth_sha256": "abec0e712c9d6c46e28377e30bbbe08ab6184fbb11bc53287dd35bd0f028a4d6",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_112",
+      "family": "four_on_the_floor_332",
+      "bpm": 112.0,
+      "pcm_sha256": "d4b9e00c8c4e4fabbfa54b96329e9cfee6c5577c442f34aefa733b401a17ae39",
+      "truth_sha256": "a9eca3d2cc80f9a3fb9670aeb33d9eb2a01bf5101e053455a8019e38c6206cf2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_113",
+      "family": "four_on_the_floor_332",
+      "bpm": 113.0,
+      "pcm_sha256": "1717d662a0ebe02a03b37acfd18bdaac7e850c5408217dab78862d73b4f29aaa",
+      "truth_sha256": "5b693030c566d0f6f226bd9bab30466998a60ddd07933dd2614e94353063402d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_114",
+      "family": "four_on_the_floor_332",
+      "bpm": 114.0,
+      "pcm_sha256": "914753eec9c1c770d8b2d31a29a9d5836f1a4dd531a98e945f1ed9bc3fec4095",
+      "truth_sha256": "e4bae500b995ae334537dcc685cddfc1bd685959fc980addf0dd8fe654ea48a2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_115",
+      "family": "four_on_the_floor_332",
+      "bpm": 115.0,
+      "pcm_sha256": "26a9803060a78e5b68fd54e5add42fa564ee94b64298eb7c2a80a1df8d5b21c8",
+      "truth_sha256": "ff7fe07f6f16b0f0b79d8901685e1e519dd1b46edf6197912f82c24d37757da4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_116",
+      "family": "four_on_the_floor_332",
+      "bpm": 116.0,
+      "pcm_sha256": "c15046555926ac584586365880b582376ef018302d38f1cd98fb41113bde61b2",
+      "truth_sha256": "064fb1aacf40148f8da81b5e83fa249af2f2ec8fef675b8e74a769dab3afd276",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_117",
+      "family": "four_on_the_floor_332",
+      "bpm": 117.0,
+      "pcm_sha256": "1333accfec95939818d6566682e8c0df10cbbc4e13277cfa023d3598590f988c",
+      "truth_sha256": "ae3adef19ecc1fd99e239d9d062b6b07accecccbff80c7fc31d58c54ee2a5eec",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_118",
+      "family": "four_on_the_floor_332",
+      "bpm": 118.0,
+      "pcm_sha256": "41fc1d0167f7629da665c2f69cbe811d17089193ed4e0ca510cd660dfccd785f",
+      "truth_sha256": "72e23253a40b0a3dbaf5575b02352313e9e14b8096b601017824eb72077e9961",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_119",
+      "family": "four_on_the_floor_332",
+      "bpm": 119.0,
+      "pcm_sha256": "23035bd70685b9708b8cf9ee7b31dc2f5aec84eda07f6520cc8db3d72eee33cd",
+      "truth_sha256": "7d6de0fc82b0e23cfd367911dede3fd1777dc8417e66c3af2f63eabd2000fc45",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_120",
+      "family": "four_on_the_floor_332",
+      "bpm": 120.0,
+      "pcm_sha256": "497fdd1f4c83d0ce2b0fd331a4619cf6d35ebdd02a5a4a55d655a522b57122a6",
+      "truth_sha256": "b1a533b6fb216f180c292e8fb8055d3ea0bf90d2ce25f8067be7a9725fd69386",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_121",
+      "family": "four_on_the_floor_332",
+      "bpm": 121.0,
+      "pcm_sha256": "c82a641f9801619ddf10298a55b2be3c85bd089886746495f73aceddb0d7857e",
+      "truth_sha256": "cfef7172abc2b0ce93750b147997b01341c8a45f06c431e421bb5202f5b6095a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_122",
+      "family": "four_on_the_floor_332",
+      "bpm": 122.0,
+      "pcm_sha256": "e9e3672697a964c3f826abc54b6ba7db70b5ba9baa2245c1ff3e10dcd2066f5e",
+      "truth_sha256": "e380fbb3f15c48ec7cc7c24f051adf4528e20decf1944e7d9fe7f5b865cb17ed",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_123",
+      "family": "four_on_the_floor_332",
+      "bpm": 123.0,
+      "pcm_sha256": "fe784e6c21610eebbe5f8c639e541a4f5d7bc6556a5f027673e70b1b3cdba32f",
+      "truth_sha256": "cd24e4360da8efe33b6a786b8b0a79ac2fb93d41248f0729f8a62172769c8abf",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_124",
+      "family": "four_on_the_floor_332",
+      "bpm": 124.0,
+      "pcm_sha256": "dcd104257bc60593c914b3e9fa803108d08874b37e56bdc679b977ea27fd7c41",
+      "truth_sha256": "ea5435f7aa83cbe7dfef780ed3fab29bf9bd1bdddf8aa576bed2eb6e43d2d08a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_125",
+      "family": "four_on_the_floor_332",
+      "bpm": 125.0,
+      "pcm_sha256": "84348a62e0291fded981b7c5b84b78736c809a2adaf8c8038409af09bbc9eace",
+      "truth_sha256": "d644b963db040ff7a159cc62e05a0712fa7a2adac4de528b8dfb8068855aaabb",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_126",
+      "family": "four_on_the_floor_332",
+      "bpm": 126.0,
+      "pcm_sha256": "922a85610bf6192d5c26b744932783fc62cbc054f6f1bea53941183ecba8bda3",
+      "truth_sha256": "e8b0713074015f12e7886242166ec4fc9939c883e787157567f3a8f6ebeda816",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_127",
+      "family": "four_on_the_floor_332",
+      "bpm": 127.0,
+      "pcm_sha256": "3439563b74aba8ed042cc5b8e8e2edfe9eb5095c0e163a7d55015eeaba23c5fb",
+      "truth_sha256": "8211da9354265374762edbb408ddf3ad487425947febbac5d9c0521275c6c3fa",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_128",
+      "family": "four_on_the_floor_332",
+      "bpm": 128.0,
+      "pcm_sha256": "34a6e59726f2901de8271b7f211f5f2ec29caf1f048dfdf3ddf86d6106e38c7e",
+      "truth_sha256": "6fa717bc896767a0ea060797d042459de0d38becdec8267a7fe11146f8faf1ff",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_129",
+      "family": "four_on_the_floor_332",
+      "bpm": 129.0,
+      "pcm_sha256": "f5e7c7c552159e8cc56ed0e0f24873ded0cdd74c905e4913a32887b990d8d075",
+      "truth_sha256": "a0dd4725660edeeb93d1784bc21c96f2352edfcfbab29cccca68ebe558cbd79a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_130",
+      "family": "four_on_the_floor_332",
+      "bpm": 130.0,
+      "pcm_sha256": "e3f38ab4613bbf207a6daca37c56abd83c3bb01abfd4484bbaa4ddcad7065f66",
+      "truth_sha256": "02036cd9565aeb6aaf4f40e99f38a664f809f1748751186689d57b3d6beb1465",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_131",
+      "family": "four_on_the_floor_332",
+      "bpm": 131.0,
+      "pcm_sha256": "816bff0cb1149ec53f56d3ab90d8321fcf68ab5d4441c1a54e4370ff4e6c58b1",
+      "truth_sha256": "aa906728368d17191efc3dc08ccaec477498f912ba6c004d429cfafafff2f3f0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_132",
+      "family": "four_on_the_floor_332",
+      "bpm": 132.0,
+      "pcm_sha256": "511f119f24dec1ec693c7db8acb1b41e8d561e736e953527c12e88d445940e21",
+      "truth_sha256": "20d709dd220a9311f8f15d1717ad3fd4e6eff447663cb5d72dd982b0a5216ac3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_133",
+      "family": "four_on_the_floor_332",
+      "bpm": 133.0,
+      "pcm_sha256": "79f2c8fdaa7a7a3acd0eb2dd5dba3f446b74febf73500ae94a5a3ddcd65cb2e9",
+      "truth_sha256": "27937fc04fec568d58b6a41e1ed9f03847223ab04ce356e0acaef685595d77e2",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_134",
+      "family": "four_on_the_floor_332",
+      "bpm": 134.0,
+      "pcm_sha256": "bcfe942bdf97e3313c7c4e051b9792cf026b42f4043d3d86d487b2081815131c",
+      "truth_sha256": "262c4aece41316804ff744c0df832c36c08c92996101da7f64181b2fee54cc7d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_135",
+      "family": "four_on_the_floor_332",
+      "bpm": 135.0,
+      "pcm_sha256": "6c3745b8edb3be649190635248d62504bf486773cb560a95cf78e3c4fe72d902",
+      "truth_sha256": "0e812527a719a86435a94dfacb2293166cc6b9b99919b3be3e708f6ac93bcc1d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_136",
+      "family": "four_on_the_floor_332",
+      "bpm": 136.0,
+      "pcm_sha256": "738c0de53bce0856598d562a1c9cbb0e935f38c19c06860c7d8db1e3ab2016de",
+      "truth_sha256": "b6811e3ec8d67c7176de3b488eff27099c03e9d90ea6d03a875a23487d1e97c3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_137",
+      "family": "four_on_the_floor_332",
+      "bpm": 137.0,
+      "pcm_sha256": "e8a737c6472064381a95adfd17ec3a000b9e04368c4ad4cf83712c4e2d31ac9f",
+      "truth_sha256": "4c68f5c4cb75a3152bd19dbbddee9b8f75f7a39fbeb9f83f882c899b3fee9ff6",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_138",
+      "family": "four_on_the_floor_332",
+      "bpm": 138.0,
+      "pcm_sha256": "abb998f8f069ea05d2875307f480e9b9a70dd5000005ba951f47d432fd2e4879",
+      "truth_sha256": "6b6c0dc4dc957d24f6284a2ab3d37d26e17ea1f34252b7c236e78a1fcfeb7bee",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_139",
+      "family": "four_on_the_floor_332",
+      "bpm": 139.0,
+      "pcm_sha256": "586c8ee6df7c1684a310b2351612884e28464e22ab6fda2f40e3e9c0011c08be",
+      "truth_sha256": "ab47c2408aa105fdf7551b31634af71441b89a67c19b3799a907b34ef6eff51f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_140",
+      "family": "four_on_the_floor_332",
+      "bpm": 140.0,
+      "pcm_sha256": "3f49faeca1476e50c503e0055f258cc4abedeab08ccb37a503f12f8c3b2a8683",
+      "truth_sha256": "7339d411f33198f1716010058dd351290c91b33b9fb55c70637cdd9e24ae139f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_141",
+      "family": "four_on_the_floor_332",
+      "bpm": 141.0,
+      "pcm_sha256": "1928fa581ba2c2ee41c446360351e33d12b51dd6d8205a96a6e6f945cbe244c6",
+      "truth_sha256": "9fd4573cce902298106516fba1cd0a507ff38b423d4e7da349009edb1fc7614a",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_142",
+      "family": "four_on_the_floor_332",
+      "bpm": 142.0,
+      "pcm_sha256": "59344e29cfcff4597fc5f6ff46410ff06c2adcb282165729c9a2301b3a02acaf",
+      "truth_sha256": "437051bfae35998325a4bccfd26503a5612f9b4bc6ae06d6facddecf50cf5c79",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_143",
+      "family": "four_on_the_floor_332",
+      "bpm": 143.0,
+      "pcm_sha256": "99075e77baa1492697be8178f04bff7a59c27361882c20e9f2973e4fcd324639",
+      "truth_sha256": "ff0918099bd9ced050390208725b8873a8314612eac95ff48badd7511406f225",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_144",
+      "family": "four_on_the_floor_332",
+      "bpm": 144.0,
+      "pcm_sha256": "3801b1f8176885752c5db8e686d5d43821d0e4815264f326582d42dd50aab697",
+      "truth_sha256": "f6bb816f8ffe6fda11a53d2569cbe52a3a6b1afd987ec6d625ecb64a3d74aac9",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_145",
+      "family": "four_on_the_floor_332",
+      "bpm": 145.0,
+      "pcm_sha256": "88713722a41c6d859dcc9bf292aaaa0bd7d979807bb8133f3088d75d25b1bcd7",
+      "truth_sha256": "91929a33c14dc3e5d103b3f8b1d3c163fa35f472758fbb85d3f876eceefc58e3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_146",
+      "family": "four_on_the_floor_332",
+      "bpm": 146.0,
+      "pcm_sha256": "7fcf0837768d39368708b2b8de3be28bd282346c849902ad95bda1a35b21a697",
+      "truth_sha256": "519aa26a50975339922b0dd5e470e2098fdd022579756cb734fc2158040cd9f5",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_147",
+      "family": "four_on_the_floor_332",
+      "bpm": 147.0,
+      "pcm_sha256": "c19a414e1abacc8086115a46d470e1dcec4ecfbeb7f328b9089fa39a08c61aa1",
+      "truth_sha256": "1750a627275d2f53bbb3e5d1bf0f2987fa83a644274c310f3940c89f351713fe",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_148",
+      "family": "four_on_the_floor_332",
+      "bpm": 148.0,
+      "pcm_sha256": "83c579b7e8c08ea8eb9d913cfe6ac28801e932be30e54140b53ca4ff9adffe57",
+      "truth_sha256": "137c9f9fbd4dcc74ac45a00a66bdb06e32d59ebc774855c9e0c99473f0425b77",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_149",
+      "family": "four_on_the_floor_332",
+      "bpm": 149.0,
+      "pcm_sha256": "ed442bd0269dc355a3d2fd0696c87caa4e9b11636c52f5172785a589dee3152e",
+      "truth_sha256": "7b08331fc4e5cf3f4cac2bdd35d2d484ba374abc280a21bf50632eb54f84d351",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_150",
+      "family": "four_on_the_floor_332",
+      "bpm": 150.0,
+      "pcm_sha256": "b13c179b88e8f7e84a8a52739c4acd65e254d69210474aa4b57f20c22960e9c1",
+      "truth_sha256": "0b1b1f35ac7547244a1a08a030dce3819411f6fffeea79d321e300a7ff65f534",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_151",
+      "family": "four_on_the_floor_332",
+      "bpm": 151.0,
+      "pcm_sha256": "15c1a8ea30ce7505eb1c3d0fa3dbe6cc3b7fc01fbebef4ab2b7ceb285bdce41e",
+      "truth_sha256": "8989e843cf50519b768ad604fa7fce89c64c514b3b4f1bd686b044c96d04f332",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_152",
+      "family": "four_on_the_floor_332",
+      "bpm": 152.0,
+      "pcm_sha256": "e603d610642b5d7fd241c62debee8c40a0a0b8bda18510cb4425cab7d776ccf8",
+      "truth_sha256": "ea90076f69764705745fa4299119cba9ed0ea6723ec4e39c4e1feb020f7be341",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_153",
+      "family": "four_on_the_floor_332",
+      "bpm": 153.0,
+      "pcm_sha256": "1d9fd1f28526b3ee87ebabd9230666e58bb348cae4751e563a01975f870ef229",
+      "truth_sha256": "c1112aaf93f02c1e8e9fbb35e97b09dcdf2ba30bb3b8c1b50ac901ac39f8d806",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_154",
+      "family": "four_on_the_floor_332",
+      "bpm": 154.0,
+      "pcm_sha256": "fe158d25a32cdd49a68ec884a36f73b8781f4e9ec8dff095a7a9d5d57a4df3ed",
+      "truth_sha256": "2fad6e5f725bdc4da1ea41fd7c411205384e510c18e8bbb4e9ec86b4ea7c812e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_155",
+      "family": "four_on_the_floor_332",
+      "bpm": 155.0,
+      "pcm_sha256": "ba298ee894f614ec644365d9477aee291401cd2e096c9441c8045cd92731fe9a",
+      "truth_sha256": "87b8a9f2e80735e373816c374d3149851b56dfd177bac764763a3322a460cb5d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_156",
+      "family": "four_on_the_floor_332",
+      "bpm": 156.0,
+      "pcm_sha256": "044f02a4667f33e2217468e3123617fbf0d6bb49dbf4b598ef1ec4c8d8e0d933",
+      "truth_sha256": "6ccc4c451b18578ed4e6ddf9607705782e6b34d60d86e96cc663282737f79dfe",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_157",
+      "family": "four_on_the_floor_332",
+      "bpm": 157.0,
+      "pcm_sha256": "0b4acaf1c78e84848e0d129f4abf5b975021f730952f78e2221eb7add9af45c2",
+      "truth_sha256": "3d89e1f3d20b26dec5de0a3ece0e78826700f10c697a38b13b0e8675d01745db",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_158",
+      "family": "four_on_the_floor_332",
+      "bpm": 158.0,
+      "pcm_sha256": "29c72dcd973bc6f467cf9acdd3a715208576bd03b3936fbf9bba285b2a5af2ba",
+      "truth_sha256": "a83a53991518768a23853736703fbc0a115c708a796d70dd75139da4ca2f5c9e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_159",
+      "family": "four_on_the_floor_332",
+      "bpm": 159.0,
+      "pcm_sha256": "e77817186c5e7a6ac0eeca5c139b1ec5694d3f30dd62e1302f57dec1384f24d9",
+      "truth_sha256": "1db281257480a84177120d1ca449cd2d3a82351d2c6b017596d0fc64b53f7f13",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_160",
+      "family": "four_on_the_floor_332",
+      "bpm": 160.0,
+      "pcm_sha256": "7cf11cad2ce20fa6e94b60e325edc6b19f4d0f1f43921a548ad163560de741c9",
+      "truth_sha256": "d428eddc67125883efb22db011b9291e7c24c40bf94bdd5f16362faf621f23a8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_161",
+      "family": "four_on_the_floor_332",
+      "bpm": 161.0,
+      "pcm_sha256": "2c83b4bc62ec4a87a8c94440a4d91b00f69886b68d6dd33c09aba26fecee1d8e",
+      "truth_sha256": "68e770fa098d9658c8ea0629bdbdfaa98039df837260a6bf5ad44ae2beedfdc4",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_162",
+      "family": "four_on_the_floor_332",
+      "bpm": 162.0,
+      "pcm_sha256": "e2ef3307f5bc561c46e27f8b39ccaa035ece536f028c8d07d298f2ff1f614317",
+      "truth_sha256": "33bb674b52ab1391d462ab544daa0b5a9a878345d499862db977005b535605f8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_163",
+      "family": "four_on_the_floor_332",
+      "bpm": 163.0,
+      "pcm_sha256": "0d9cec53a04eba66c4ee24fe739b4110bf558ba23fdf29491b162604d0928121",
+      "truth_sha256": "9b048d1f14f122fb0e7719201d6d7977090c5c1a0a4a34504d1187b48d208d88",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_164",
+      "family": "four_on_the_floor_332",
+      "bpm": 164.0,
+      "pcm_sha256": "858439774805893e3a5e83170a3af376f14d947f8d75a05740e66f7ad329e61e",
+      "truth_sha256": "cdaf893fd3473cd97d423f52a0dcf74a17750b4b2c7b79fa97dacd0794a0ec05",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_165",
+      "family": "four_on_the_floor_332",
+      "bpm": 165.0,
+      "pcm_sha256": "23375df0c1ca94d1bcde4cf6ccfe94057b1e83378b7d7119921df1297a63de1d",
+      "truth_sha256": "6ef12a47e21073c03aa5c03e909128d2f7d28e4a3c18fc09c259607242e9085d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_166",
+      "family": "four_on_the_floor_332",
+      "bpm": 166.0,
+      "pcm_sha256": "bb54cd2d2d481c934abe6b43b28b949ab5d74032bea0bdccc0bb74c911faa629",
+      "truth_sha256": "a228b36edbe4cdbb03152195a09e14debdbc1ef91c678b741d741f6c054bf324",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_167",
+      "family": "four_on_the_floor_332",
+      "bpm": 167.0,
+      "pcm_sha256": "0844f59c3bd38ed37e343a1bb3cd6cced4480442c382d2a2e805bbd8c02567c1",
+      "truth_sha256": "f06737ea4621ebd3f268d91d0abfe90434c4995ec9de990da674aaf28b120e43",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_168",
+      "family": "four_on_the_floor_332",
+      "bpm": 168.0,
+      "pcm_sha256": "e3069c7d1b07bf7026e49bceb46f0640eb38347395fc6cf42bb10e43c3fd9143",
+      "truth_sha256": "5da55377c56139b9592b7456a6446ff2959b15e70cd8604785f21cac469fe2bf",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_169",
+      "family": "four_on_the_floor_332",
+      "bpm": 169.0,
+      "pcm_sha256": "164c40c8cb3c20ff57cd00bab2ba0d8fadb638a5f794bb8887101d2658e2278f",
+      "truth_sha256": "00d6eeab48b7b21d4e61939c04b01ffa87b19f8298dd3a539ceced24668fbb1e",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_170",
+      "family": "four_on_the_floor_332",
+      "bpm": 170.0,
+      "pcm_sha256": "f5a8a7719a98da95dcc29bf78734cb933fdb6d5fc285b042d7295e93d51d5190",
+      "truth_sha256": "92dd1baa6b406a34a151596c2e30683f3b6b870e5b4cf00035df60454f5c4a34",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_171",
+      "family": "four_on_the_floor_332",
+      "bpm": 171.0,
+      "pcm_sha256": "1ea3577be4fa9d19bd06cafdc41294dbf3111eced1cf8cb25cae6a45d77dbe57",
+      "truth_sha256": "f73a3db7dd8e2025c237a1338d4aacd6530f23a8a7766c59fc87de3f707fd681",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_172",
+      "family": "four_on_the_floor_332",
+      "bpm": 172.0,
+      "pcm_sha256": "5a2dfb5821b3b8c19be48a6b71f621c3aff8223a1e5f6cafb9a8448e7ee8ce22",
+      "truth_sha256": "c6642909d9209634a73f114507b6b20fb5c59d946ead3eb7c57b6c8be38dbb5d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_173",
+      "family": "four_on_the_floor_332",
+      "bpm": 173.0,
+      "pcm_sha256": "d1130ddb2a6f61056bca806794b49eeaaced4ab0816306902ba860fb496b59e8",
+      "truth_sha256": "9719f5d5e2f2d7e6d8cc742c665bf6f89d6a41a2ee25fff61e846fe54f0c6617",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_174",
+      "family": "four_on_the_floor_332",
+      "bpm": 174.0,
+      "pcm_sha256": "13698777404ea5af5d51a5e80cecd5a6a608203f6fe9298f2536d1337f527ced",
+      "truth_sha256": "b9dfce414795229a72202b61888eb78ec3a45f468dcb5ee8e2a5a47cbaf99525",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_175",
+      "family": "four_on_the_floor_332",
+      "bpm": 175.0,
+      "pcm_sha256": "8a35d7b421a51b74bd977291360d25babc383ec53c1029341faef6b601f9d77b",
+      "truth_sha256": "beb99718872d5e5a8226f929b388be87f48e43a8e4387379d7bbe0570868a486",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_176",
+      "family": "four_on_the_floor_332",
+      "bpm": 176.0,
+      "pcm_sha256": "de6515fc6f546e103826562624f40a47ddfd6a8abb8e830f0fbb8c18a1610784",
+      "truth_sha256": "18256e44e7877ace6591e683943ac830b06e65aec4ecf16502e6061152f1161b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_177",
+      "family": "four_on_the_floor_332",
+      "bpm": 177.0,
+      "pcm_sha256": "38e81bbee3faa5c3abed8d72124109ef91e5bbfdeb3d3cfe8594f871d69c620d",
+      "truth_sha256": "ee1037d93963f15df35a4fbdfae308a40a3a1688fd1144fff91735d616b05f3f",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_178",
+      "family": "four_on_the_floor_332",
+      "bpm": 178.0,
+      "pcm_sha256": "aeb2ed4e4706066f70ae068dddbbf82fefa48fe026a8e795de1e41687260cfe4",
+      "truth_sha256": "697ff780e6504c9f195c1b0c03ba8b09466b2d1db7a6f55f954e57d1e4e786e8",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_179",
+      "family": "four_on_the_floor_332",
+      "bpm": 179.0,
+      "pcm_sha256": "663d75fc1d5a22069dc0a8929f9fd5b0518327a6b6cdf8436b16cf96f63f08e1",
+      "truth_sha256": "a6bd9b99b9169da8f083b06f07522f21203d31abd2504a23f1ae29669b616455",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_180",
+      "family": "four_on_the_floor_332",
+      "bpm": 180.0,
+      "pcm_sha256": "ac7b82a44b0c345b6372e4442154d74efa8e3a8d11f65a55cfdd89f48254af88",
+      "truth_sha256": "6555c0b67102ce1963bd0e9e1521bc84854fb4e8e59ffbfcff4ec2fc4bd9bd40",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_181",
+      "family": "four_on_the_floor_332",
+      "bpm": 181.0,
+      "pcm_sha256": "544ea237d666402f3864047cbf4ee41ae4a1a707c1c2095255dd5a807543148b",
+      "truth_sha256": "6a99ae75aee6284d74a744175f8aae8bb2f8d9e02d72c3d9df67b8e0d2879ba3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_182",
+      "family": "four_on_the_floor_332",
+      "bpm": 182.0,
+      "pcm_sha256": "249ebcb812d24ff0c8694b55318fbe5efa39630a0678097cf7aecde3c7116b78",
+      "truth_sha256": "ca42b410c4b7d5c744fae2f4a06d5af426c2185a8dff4cfb49807557156cd892",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_183",
+      "family": "four_on_the_floor_332",
+      "bpm": 183.0,
+      "pcm_sha256": "8d60272aefdaa1460bc2396207abbed43f3172dceb78d9f5982a91783fc2d5e0",
+      "truth_sha256": "de5941233107c2c19cacda955babe4999cbb435414f2a4daa2fcb5dc6205e5ec",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_184",
+      "family": "four_on_the_floor_332",
+      "bpm": 184.0,
+      "pcm_sha256": "82f5c0050de4888773f66111c10142fa62e4d132aa6c8e801561119ed19e89d9",
+      "truth_sha256": "02a3244161562c1e2937b1a17cc92a721f812f8e5d3fe5785a9b9c0be4afec07",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_185",
+      "family": "four_on_the_floor_332",
+      "bpm": 185.0,
+      "pcm_sha256": "2161bd52df9cfdb36f1d7a8ef6db282bb1e7309cd5f20e75608595d67426f303",
+      "truth_sha256": "b681d41081d65b476f478e701273a9cadcaf07a3e06a22ad1c456dc4f161d033",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_186",
+      "family": "four_on_the_floor_332",
+      "bpm": 186.0,
+      "pcm_sha256": "f946fcfd870d32352c694dbb73a48c5116e2d611f3b46d87ccf3abc8377a2010",
+      "truth_sha256": "a9b1c9c6515bb32d1fa6c4fc9808770737a998c294930a5ed8e0f0599eb0f56d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_187",
+      "family": "four_on_the_floor_332",
+      "bpm": 187.0,
+      "pcm_sha256": "397af5710a101d737105ff9368a600833de154d65a04c2f172a09a73b2a0c20a",
+      "truth_sha256": "1f34ecbb60a6127972ac3e31c223eac01157d433ae0131dd87f629a47806a33c",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_188",
+      "family": "four_on_the_floor_332",
+      "bpm": 188.0,
+      "pcm_sha256": "2da8aa7ab9c2a49ae0abd6887dff3f1f4c8195e933bf221bcf39a82171f20480",
+      "truth_sha256": "cd25a9abb2769fe218dda89ec4808ddc37fd492abc97a0acef41be6be5fd5b0b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_189",
+      "family": "four_on_the_floor_332",
+      "bpm": 189.0,
+      "pcm_sha256": "e29c1f864ba9d62ae78c453394775d8aba2ec18d7007334aea2d2036a9af037a",
+      "truth_sha256": "61a4785e233a80592c079714dc1c2b51fe333823d0252ce7120eb60e8fd1683d",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_190",
+      "family": "four_on_the_floor_332",
+      "bpm": 190.0,
+      "pcm_sha256": "c6a5b62f0e890eca08caf365f27c76e0e1956914b05cd7591dd80c2ef7e1baf6",
+      "truth_sha256": "1d7f97546a8e6997903a583195d44f350bcfa69b8fa9a0ef6e57878322aec26b",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_191",
+      "family": "four_on_the_floor_332",
+      "bpm": 191.0,
+      "pcm_sha256": "4ed7d08ce921d91e7bb51440fd0fc61ee73344341f176537cedbfda9852ec57b",
+      "truth_sha256": "f98aa3b07d3c8caa412be5f8364f5b48cfa7642e78d49888008dc8bc6ad998a1",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_192",
+      "family": "four_on_the_floor_332",
+      "bpm": 192.0,
+      "pcm_sha256": "1c38dc11ccde1995b7a1fb17b0acc44bc10c264d91267d7a6a543e05759ec042",
+      "truth_sha256": "06d92c0f42a817c68dab8b586b6c57b0a6cb6dcdabcb10fbe210d7717caaaebf",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_193",
+      "family": "four_on_the_floor_332",
+      "bpm": 193.0,
+      "pcm_sha256": "91d4f1a7da1d2fe9ed74290dbd6b4d34631c7b71ac70b6fa51c21f9389344b1d",
+      "truth_sha256": "ba19520475f0e3106faa86fe7934a7d65ce6c21b0bdd201c16009031aebc5024",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_194",
+      "family": "four_on_the_floor_332",
+      "bpm": 194.0,
+      "pcm_sha256": "84a7ef0395bde8827bebc024de53af5657740081a50f6c6106a30386814e39e4",
+      "truth_sha256": "3cf0da24eb3a72a7232b158d497b26850511aed4a17fa173140de99dca27ea31",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_195",
+      "family": "four_on_the_floor_332",
+      "bpm": 195.0,
+      "pcm_sha256": "41f6d5eeadf770d6c2ebda82de5b413c94eadfc4136c3f4ed2478a8861853911",
+      "truth_sha256": "955ca762d590da2f7fee2ae6947a40fc2a1d78a1254a8b553945af5c3c7068a3",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_196",
+      "family": "four_on_the_floor_332",
+      "bpm": 196.0,
+      "pcm_sha256": "63335aea02cfc960427e8b560beab1d27d20747384685351982ff7f05e505364",
+      "truth_sha256": "fae5a71171d4d69889a124a109ecb3f35a38855babec29aea9ab880a9941cc30",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_197",
+      "family": "four_on_the_floor_332",
+      "bpm": 197.0,
+      "pcm_sha256": "f2a498cbc3f7ac38b0287faad5932372fe9d4344ad39716c1d59d8cd21b705b3",
+      "truth_sha256": "0b86d221f9d5bedfb00fb9465915d5db7e0b01231d096e53edd3c196236768bd",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_198",
+      "family": "four_on_the_floor_332",
+      "bpm": 198.0,
+      "pcm_sha256": "42fa4ca0fddffd97f3cd8e90eab2a90f985f8b38a81abf5bea7333f9ff991800",
+      "truth_sha256": "3eb0137a8f87b74276486b289b097ef1770b07377a156b0deed753b69e08a4dd",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_199",
+      "family": "four_on_the_floor_332",
+      "bpm": 199.0,
+      "pcm_sha256": "4d014ec5a485103e527a803cd4d6b92c55695d46f78b94aad1d92b8779f34a4a",
+      "truth_sha256": "39a59265c33aadd8c478c17fdd7986aa733ded93b4cfe5cc7feecf947cc724f0",
+      "samples": 1260000
+    },
+    {
+      "id": "fotf332_200",
+      "family": "four_on_the_floor_332",
+      "bpm": 200.0,
+      "pcm_sha256": "0fcf93026a716aa1179fb68d3821d62cb835dd33ed7a60a565f438a35048e472",
+      "truth_sha256": "924bd022512849ea7246d26da83e8cadeb578c9aa422f860e10081e18ea37f0b",
+      "samples": 1260000
+    },
+    {
+      "id": "halftime_100",
+      "family": "half_time",
+      "bpm": 100.0,
+      "pcm_sha256": "e22c734efb9061535f3aea6640060852cc5de5ba793285ec5ea574596ff324b7",
+      "truth_sha256": "e487cf195df3dfb40b9c0c788d410f69467648d4768096307acdcfbb6785c556",
+      "samples": 1260000
+    },
+    {
+      "id": "halftime_120",
+      "family": "half_time",
+      "bpm": 120.0,
+      "pcm_sha256": "740ce7448b1b4a84de25c58affd1fd790b26a794b79331b3da936cb3841d1182",
+      "truth_sha256": "fd74beebb2fa52028e3d838757410b37d4c8ca842e150ac745ce43efd8d8a175",
+      "samples": 1260000
+    },
+    {
+      "id": "halftime_140",
+      "family": "half_time",
+      "bpm": 140.0,
+      "pcm_sha256": "20a8495c6edbac10d049556929e45e516b21f45d3828cc50476a53c8e1096ecc",
+      "truth_sha256": "7aedd96156d018b636350a9f4615890673eacfc6960ee984b3879c07db4e382c",
+      "samples": 1260000
+    },
+    {
+      "id": "halftime_150",
+      "family": "half_time",
+      "bpm": 150.0,
+      "pcm_sha256": "38ee75c12b29b4902dc67d95596f43f5bac94b58766b6e9ee0c828e1dcfb1861",
+      "truth_sha256": "b68454e3414ce99a704d98affdb0ed20cfb0dc2d2e5234318848efe138963acc",
+      "samples": 1260000
+    },
+    {
+      "id": "halftime_174",
+      "family": "half_time",
+      "bpm": 174.0,
+      "pcm_sha256": "983899ecf9632ebe4e062c10db02d23df45837d121623b5008c1802aa45057de",
+      "truth_sha256": "fa74910e8f6fab44a091da444e8e695823354ebb30ce8c8a92a89b6936304093",
+      "samples": 1260000
+    },
+    {
+      "id": "swing_90",
+      "family": "swung_eighths",
+      "bpm": 90.0,
+      "pcm_sha256": "ec6a1725e11e1523c1bd48104fc320ecb7ed0b7eed238b03e5a8989942c522f6",
+      "truth_sha256": "9a8fc6e8ae9ed3324db23c6252f1ecbed15616df3ba7133c2e525eb80710cdc5",
+      "samples": 1260000
+    },
+    {
+      "id": "swing_110",
+      "family": "swung_eighths",
+      "bpm": 110.0,
+      "pcm_sha256": "40a799bb3fdbd52f94acd78b2f0e4b04975d61d26b6f3c6165231398cd6a157c",
+      "truth_sha256": "ecb137685380172f2fc3639646d0df16443a3e0799c79be53bac0589b0edfcf7",
+      "samples": 1260000
+    },
+    {
+      "id": "swing_128",
+      "family": "swung_eighths",
+      "bpm": 128.0,
+      "pcm_sha256": "8d30b9fac9cff487a2f87b6409464702de79fca4f43f4f784dfe8d5e7005200c",
+      "truth_sha256": "eee3a7f800e1e535e7cb3f5d698bed781259820d0dd3caed5199fb49f0531ed3",
+      "samples": 1260000
+    },
+    {
+      "id": "swing_160",
+      "family": "swung_eighths",
+      "bpm": 160.0,
+      "pcm_sha256": "386d2f3b93c2ac44c5a614d4427bc4732dac29d7107aa555ae852fb8c72a7400",
+      "truth_sha256": "b9d082af18f37c72045470ef0c52836b0ae1db0fc063c57ec057523af947c381",
+      "samples": 1260000
+    },
+    {
+      "id": "hats_100",
+      "family": "hats_only",
+      "bpm": 100.0,
+      "pcm_sha256": "db5bc01c9413d904ea18247624cfcfa74718cb7ef1728dbe0ff526b808ad98dc",
+      "truth_sha256": "8e2aca13e81a2174cfc4a77cc11c7dbd0a3f5ce1957e4636cf49a5f2ed923c8c",
+      "samples": 1260000
+    },
+    {
+      "id": "hats_128",
+      "family": "hats_only",
+      "bpm": 128.0,
+      "pcm_sha256": "b2eab0a381e1bbffa28b66995ee674fbd312012bfcdbda7fe7e3a7fd759ee4c5",
+      "truth_sha256": "35e6110cdec480fd37b6ec1c924257729a24ad7c8d512606723d25162e0dc403",
+      "samples": 1260000
+    },
+    {
+      "id": "hats_174",
+      "family": "hats_only",
+      "bpm": 174.0,
+      "pcm_sha256": "6f0cfd71cfeb67acb0785f5d3dd5a5682264e2c4c3b11ef2690cf89666cc1da2",
+      "truth_sha256": "e292f5577d4b9da3b41de158205d6db6f08a59080d7bc4136384a3dfe71e415a",
+      "samples": 1260000
+    },
+    {
+      "id": "pad_1",
+      "family": "drumless_pad",
+      "pcm_sha256": "909a448ee2b654130b596182d2f308ccdae81310a91617a53e181f1837de2a94",
+      "truth_sha256": "28fee72a0858af49deed1f34b1359962e9887e4d74d7712ed8607743d8debd80",
+      "samples": 1260000
+    },
+    {
+      "id": "pad_2",
+      "family": "drumless_pad",
+      "pcm_sha256": "7b2a2d9fa4326419b96b67d75f58c327c1179dcb28cce966ed49ea30bd14950b",
+      "truth_sha256": "0111150f9e81ae49c39c542e0d21416a5080c47304f2af27cf29627975313389",
+      "samples": 1260000
+    },
+    {
+      "id": "pad_3",
+      "family": "drumless_pad",
+      "pcm_sha256": "bb13e170df3818cddb37755b911bcc65be85a2b6c80ba02c5e56012eb84e5c2e",
+      "truth_sha256": "f65e519a3419cb6ffb6a306f5998a395d0e55e5148709d08a60fc97fba1f3396",
+      "samples": 1260000
+    },
+    {
+      "id": "step_p8_120_129.6",
+      "family": "tempo_step",
+      "bpm": 120.0,
+      "bpm_after": 129.6,
+      "pcm_sha256": "97f2461ac3838d520c45c0ee003a016d4e3d9327e30871b223ee263acd1691c3",
+      "truth_sha256": "1c1ffbb471d96da6ff2a53bce5d8580fa55e1ec6a13ff0c35561fb37fd7e3142",
+      "samples": 1660000
+    },
+    {
+      "id": "step_m8_120_110.4",
+      "family": "tempo_step",
+      "bpm": 120.0,
+      "bpm_after": 110.4,
+      "pcm_sha256": "a49f48082db9ca9500982a1598a72eaad0d6f54716d748d49efad2b68b1be641",
+      "truth_sha256": "44971121d428c207c6a211b9227d566151ec0b9a6f92b120676ffb6672027d8a",
+      "samples": 1660000
+    },
+    {
+      "id": "step_p8_140_151.2",
+      "family": "tempo_step",
+      "bpm": 140.0,
+      "bpm_after": 151.2,
+      "pcm_sha256": "6c099e6ee539934749bda4d2e5ff70de542671e7714a6567a2a758a7d898eebf",
+      "truth_sha256": "bfe8515f61cb5ed928eb50c0684116e8c6cbfc4a7036aff6d687b61ad0b2de54",
+      "samples": 1665714
+    },
+    {
+      "id": "step_m8_140_128.8",
+      "family": "tempo_step",
+      "bpm": 140.0,
+      "bpm_after": 128.8,
+      "pcm_sha256": "979bd01547857c5beceb100523dfab9507937b8285042ed130329a3d1632e4fa",
+      "truth_sha256": "6ac7d8f416983864514075d2478ca4f64dc040418e76dc3943ff771c7eda1623",
+      "samples": 1665714
+    },
+    {
+      "id": "step_x2_80_160",
+      "family": "tempo_step",
+      "bpm": 80.0,
+      "bpm_after": 160.0,
+      "pcm_sha256": "73302350f94c489f32a9686fcaf34259fae38871b6a3b7e9799b2b060db0349c",
+      "truth_sha256": "f0886fa698b24680b7f88ab2ea8ab41a862cb99ca922a339364e690655c541a8",
+      "samples": 1670000
+    },
+    {
+      "id": "step_xhalf_160_80",
+      "family": "tempo_step",
+      "bpm": 160.0,
+      "bpm_after": 80.0,
+      "pcm_sha256": "d56bf4fa242df14fd508109e918b95b93b63b3663399e049a8b823088dc4ccee",
+      "truth_sha256": "a0ea2d89184af207ba5d7438080d6b651af9828d79b27eb2066a066cdd059dda",
+      "samples": 1670000
+    },
+    {
+      "id": "step_x2_90_180",
+      "family": "tempo_step",
+      "bpm": 90.0,
+      "bpm_after": 180.0,
+      "pcm_sha256": "83d0b87777579611e7d52082cf47b8116240d38d820a24b1cfba4f9dda821d04",
+      "truth_sha256": "b4d184f545d53cd88fd3e6ce4970ac2912203c2ba2b9a4939861cde4819e0637",
+      "samples": 1660000
+    },
+    {
+      "id": "step_xhalf_180_90",
+      "family": "tempo_step",
+      "bpm": 180.0,
+      "bpm_after": 90.0,
+      "pcm_sha256": "c524182ca97c4741102bbc05a318cfe98fa550c3b99482704f926041dfb2897d",
+      "truth_sha256": "866b7fe2d041e3b90dc4a29560136b07fc9c06a34d9ccb965a8edb1caef0e867",
+      "samples": 1660000
+    },
+    {
+      "id": "rubato_90",
+      "family": "rubato",
+      "bpm": 90.0,
+      "depth": 0.05,
+      "pcm_sha256": "ee0ee4cabaf02afb41782cc63a41098fc074f437969bf6163e53c77700b35421",
+      "truth_sha256": "6abe72fd6ac96e165a44ebf99aa89de88c475786d23c53dbcaa4d5a5d503fb76",
+      "samples": 1660000
+    },
+    {
+      "id": "rubato_120",
+      "family": "rubato",
+      "bpm": 120.0,
+      "depth": 0.05,
+      "pcm_sha256": "e42254a43172eec71fc38ac5cad63eedc949fbfe9b2b1e36bc5d52987e3d348b",
+      "truth_sha256": "00c5701788cd4ae9bb53ab06f369c57700190320906463eece90e467e031facd",
+      "samples": 1660000
+    },
+    {
+      "id": "rubato_140",
+      "family": "rubato",
+      "bpm": 140.0,
+      "depth": 0.05,
+      "pcm_sha256": "d2260123ae436b0ab4aac80227ca9c8170f6606f0cba43956a56f6436172f824",
+      "truth_sha256": "9c22689df22042d656c93116a77c4a9ab8ebb3cf9ef2ce0443981c6979ca10fe",
+      "samples": 1660000
+    },
+    {
+      "id": "gap_2s",
+      "family": "silence_gap",
+      "bpm": 120.0,
+      "gap_s": 2.0,
+      "pcm_sha256": "9798f54561e825aea0917bfdb366967521f929f38de73d3ecbac8321abae3fb7",
+      "truth_sha256": "ad27b2354092f966c1e913f121fc021e6042136a6c3a79235506de859896fea7",
+      "samples": 1740000
+    },
+    {
+      "id": "gap_5s",
+      "family": "silence_gap",
+      "bpm": 120.0,
+      "gap_s": 5.0,
+      "pcm_sha256": "a597c8984750e5a51572a63e9a0474e6ec0b4da0f9a71c908a214832d3e4f3ac",
+      "truth_sha256": "eebbec7a7de5ab0048a3d09ec1671e8252669346b9ba13c6750148c124804a3d",
+      "samples": 1860000
+    },
+    {
+      "id": "gap_10s",
+      "family": "silence_gap",
+      "bpm": 120.0,
+      "gap_s": 10.0,
+      "pcm_sha256": "870ecf4f921d18a304035dd2010419c4a8cc4cfccbd058e85b3ab27c010e4253",
+      "truth_sha256": "eed1fa0e31a9b2676ad025d73feeb12b66a33cc2c24c9d43c2553ecc9adf9ad1",
+      "samples": 2060000
+    },
+    {
+      "id": "level_-40dBFS",
+      "family": "level",
+      "bpm": 120.0,
+      "level_dbfs": -40.0,
+      "pcm_sha256": "337bd483c3995e549977e68fd95fd1776ce0754587091757e1d1df98abf1cc3f",
+      "truth_sha256": "0c0b11c1301b8326b77351840c27eda75f21346f82ef5aa8699023c38e43c6fd",
+      "samples": 1260000
+    },
+    {
+      "id": "level_-30dBFS",
+      "family": "level",
+      "bpm": 120.0,
+      "level_dbfs": -30.0,
+      "pcm_sha256": "8a303f6bb4717ac333f8f94e68228d1b7ec10b7983eadf8a13b2f9ed24f5db9d",
+      "truth_sha256": "02aae76a4652802c389391af197c61091a4f19487926c4cddbabd76343aef1db",
+      "samples": 1260000
+    },
+    {
+      "id": "level_-20dBFS",
+      "family": "level",
+      "bpm": 120.0,
+      "level_dbfs": -20.0,
+      "pcm_sha256": "1a66d8e17b6e55ce625aa75b9fe43e8d4438a8b6911dd1f00b0acab198798aa9",
+      "truth_sha256": "c88c2a1269722790e7ef67bb227dc8d8e1c7d7c8c0d053e1ebd29677986a2b82",
+      "samples": 1260000
+    },
+    {
+      "id": "level_-10dBFS",
+      "family": "level",
+      "bpm": 120.0,
+      "level_dbfs": -10.0,
+      "pcm_sha256": "24615cad3b6f9dc4ce3df8b4eee62d598b4975004026d15c3d22025755d30841",
+      "truth_sha256": "9c2b50566f449ff8b0bca427fc5188adc76113eba5700f1957a736f8e3cc713f",
+      "samples": 1260000
+    },
+    {
+      "id": "level_0dBFS",
+      "family": "level",
+      "bpm": 120.0,
+      "level_dbfs": 0.0,
+      "pcm_sha256": "e1433f23474276902feeaf674c58541e9c98982dde6803eff64b3645258e23fc",
+      "truth_sha256": "001ba21445c14849863790176c0eb5074e78108d58337e33a17c3d9cf5d3f24e",
+      "samples": 1260000
+    }
+  ],
+  "frozen_utc": "2026-10-14T12:25:06Z",
+  "frozen_sha256": "44dd47aa5dea227dcad75ad6afb65af8d50ef1bda59d268e0d459ffed63d017d"
+}
