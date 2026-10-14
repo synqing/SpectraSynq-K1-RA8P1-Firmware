@@ -154,9 +154,27 @@ def main() -> None:
         (b2 / "receipt.json").write_text(json.dumps(r) + "\n")
         assert m.load_receipt(b2)["pass"] is True  # DTCM-data-only images (booted) stay admissible
 
-    # Through main(): the real known-unbootable build (old receipt format) must be refused, rc 2.
+    # Through main(), unconditional: a synthetic build in the OLD receipt format (asrc_tcm true,
+    # ASRC push at ITCM 0x0) with a fresh id and HEX, so only refuse_unbootable() can catch it.
+    with tempfile.TemporaryDirectory() as tmp:
+        b3 = Path(tmp) / "old-format"; b3.mkdir()
+        new_id = "f" * 64
+        elf3 = b"\x7fELF" + new_id.encode() + b"\0payload-old-format"
+        hex3 = b":020000040200FA\n:00000001FF\n"
+        _seed_build(b3, build_id=new_id, hex_bytes=hex3, elf_bytes=elf3, source_pin=RESIDENT["source_pin"])
+        r = json.loads((b3 / "receipt.json").read_text())
+        r.update({"asrc_tcm": True, "asrc_tcm_evidence": {"k1_asrc24_push": "0x00000000", "capture_asrc": "0x20000000"}})
+        (b3 / "receipt.json").write_text(json.dumps(r) + "\n")
+        assert new_id not in m.UNBOOTABLE_BUILD_IDS
+        rc, receipt = _run(b3, Path(tmp) / "out-old-format")
+        assert rc == 2 and receipt["pass"] is False, (rc, receipt.get("error"))
+        assert "deploy-admissible" in receipt["error"]
+
+    # Through main(): the real known-unbootable build, when present on this machine (untracked _scratch).
     real = ROOT / "_scratch/waveform-migration-001/arm-p2-after-o3-asrctcm-006"
-    if real.is_dir():
+    if not real.is_dir():
+        print("SKIP real-006 dry-run: _scratch build not present on this checkout")
+    else:
         with tempfile.TemporaryDirectory() as tmp:
             copy = Path(tmp) / "b006"
             copy.mkdir()
