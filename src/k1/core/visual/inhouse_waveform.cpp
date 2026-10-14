@@ -91,6 +91,9 @@ void InhouseWaveformRenderer::reset() noexcept {
   luma_ref_ = -1.0F;
   release_fast_ = release_slow_ = release_ = 0.0F;
   release_peak_db_ = -120.0F;
+  dip_ring_.fill(0.0F);
+  dip_count_ = dip_index_ = 0;
+  dip_acc_ = dip_acc_s_ = 0.0F;
   colour_valid_ = false;
   tonality_gate_ = 0;
 #endif
@@ -681,7 +684,17 @@ void InhouseWaveformRenderer::updateReleaseV9(const InhouseWaveformAudio& audio,
 #endif
   if (!r.enabled) { release_ = 0.0F; observation_.release = 0.0F; return; }
   const float vu = fresh && !silent && std::isfinite(audio.vu_level) ? std::max(0.0F, audio.vu_level) : 0.0F;
-  const float power = vu * vu;
+  const float sub = fresh && !silent && std::isfinite(audio.sub_rms) ? std::max(0.0F, audio.sub_rms) : 0.0F;
+  const float power = r.trigger_sub ? sub * sub : vu * vu;
+  // Dip gate memory: 0.1 s broadband means; a cut or breakdown must precede the surge.
+  dip_acc_ += vu * vu * dt;
+  dip_acc_s_ += dt;
+  if (dip_acc_s_ >= 0.1F) {
+    dip_ring_[dip_index_] = 10.0F * ::log10f(dip_acc_ / dip_acc_s_ + 1.0e-12F);
+    dip_index_ = (dip_index_ + 1U) % dip_ring_.size();
+    dip_count_ = std::min<unsigned>(dip_count_ + 1U, dip_ring_.size());
+    dip_acc_ = dip_acc_s_ = 0.0F;
+  }
   release_fast_ = ema(release_fast_, power, dt, r.fast_s);
   release_slow_ = ema(release_slow_, power, dt, r.slow_s);
   const float fast_db = 10.0F * ::log10f(release_fast_ + 1.0e-12F);
@@ -690,6 +703,16 @@ void InhouseWaveformRenderer::updateReleaseV9(const InhouseWaveformAudio& audio,
   if (r.newpeak_db_s > 0.0F) {
     if (fast_db < release_peak_db_ - 1.0F) x = 0.0F;
     release_peak_db_ = fast_db > release_peak_db_ ? fast_db : release_peak_db_ - r.newpeak_db_s * dt;
+  }
+  if (r.dip_db > 0.0F) {
+    // Span over [t - 6 s, t - 0.5 s]: skip the newest 5 entries (the surge itself).
+    float lo = 1.0e9F, hi = -1.0e9F;
+    for (unsigned k = 5; k < dip_count_; ++k) {
+      const float v = dip_ring_[(dip_index_ + dip_ring_.size() - 1U - k) % dip_ring_.size()];
+      lo = std::min(lo, v);
+      hi = std::max(hi, v);
+    }
+    if (dip_count_ <= 10U || hi - lo < r.dip_db) x = 0.0F;
   }
   release_ = silent ? 0.0F : std::max(x, release_ * ::expf(-dt / r.release_s));
   observation_.release = release_;

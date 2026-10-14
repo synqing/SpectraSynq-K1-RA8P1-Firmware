@@ -84,3 +84,28 @@ def test_v8_guard_goes_red_on_planted_edits(tmp_path):
     assert planted_cpp != cpp and planted_h != h
     assert not guard(planted_cpp, h, tmp_path / "a")
     assert not guard(cpp, planted_h, tmp_path / "b")
+
+
+def audio_unit(cpp_text: str, header_text: str, tmp: Path) -> str:
+    """inhouse_audio.cpp as the v8 build sees it (no K1_INHOUSE_MAPPING_V9); the v9-only
+    sub-band detector (P6 EXT trigger) must vanish from it."""
+    inc = tmp / "inc"
+    inc.mkdir(parents=True, exist_ok=True)
+    (inc / "inhouse_audio.h").write_text(header_text)
+    src = tmp / "audio.cpp"
+    src.write_text(cpp_text)
+    return subprocess.run(["c++", "-std=c++17", "-E", "-P", "-DK1_EMOTISCOPE_PORT=1", "-I", str(inc),
+                           "-I", str(ROOT / "platform/ra8p1"), "-I", str(ROOT / "src/k1"), "-I", str(ROOT / "src"),
+                           str(src)], capture_output=True, text=True, check=True).stdout
+
+
+def test_v8_inhouse_audio_translation_unit_unchanged(tmp_path):
+    base = audio_unit(git_show("platform/ra8p1/inhouse_audio.cpp"), git_show("platform/ra8p1/inhouse_audio.h"),
+                      tmp_path / "base")
+    now = audio_unit((ROOT / "platform/ra8p1/inhouse_audio.cpp").read_text(),
+                     (ROOT / "platform/ra8p1/inhouse_audio.h").read_text(), tmp_path / "now")
+    assert base == now
+    planted = (ROOT / "platform/ra8p1/inhouse_audio.cpp").read_text().replace(
+        "  publication_.raw_rms = rms;\n", "  publication_.raw_rms = rms * 1.0001F;\n")
+    assert planted != (ROOT / "platform/ra8p1/inhouse_audio.cpp").read_text()
+    assert audio_unit(planted, (ROOT / "platform/ra8p1/inhouse_audio.h").read_text(), tmp_path / "plant") != base

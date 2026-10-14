@@ -130,6 +130,9 @@ void InhouseAudio::reset() noexcept {
   window_ = {};
   raw_ = {};
   pending_ = {};
+#if defined(K1_INHOUSE_MAPPING_V9)
+  (void)sub_band_.configure(rate_hz_);  // P6 EXT trigger input; reads PCM only
+#endif
   magnitude_average_ = {};
   for (unsigned board = 0; board < conditioning_.size(); ++board) {
     const float mood = conditioning_[board].mood;
@@ -233,6 +236,9 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   }
   const float rms = f(q(std::sqrt(square_sum / static_cast<float>(hop_))));
   publication_.raw_rms = rms;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  publication_.sub_rms = sub_band_.process(pending_.data(), hop_);
+#endif
   publication_.quiet_entry_rms = config_.silence_rms_enter;
   publication_.vu_level = f(divq(std::max<std::int32_t>(0, q(rms) - q(config_.vu_floor)),
       q(1.0F - config_.vu_floor)));

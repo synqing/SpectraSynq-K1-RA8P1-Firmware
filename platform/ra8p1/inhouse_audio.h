@@ -5,6 +5,9 @@
 #include "core/audio/gdft_goertzel.h"
 #include "core/audio/tempo_tracker.h"
 #include "core/visual/inhouse_waveform.h"
+#if defined(K1_INHOUSE_MAPPING_V9)
+#include "core/audio/sub_band.h"
+#endif
 #include "k1/core/audio/k1_audio_hop.h"
 
 namespace k1::titan {
@@ -112,6 +115,9 @@ class InhouseAudio final {
   unsigned pcm_history_count_ = 0;
   std::array<Peak, kInhousePeakHistory> peaks_{};
   core::visual::InhouseWaveformAudio publication_{};
+#if defined(K1_INHOUSE_MAPPING_V9)
+  core::audio::SubBandDetector sub_band_{};  // v9 EXT trigger input; no effect on any levelling stage
+#endif
   std::uint64_t epoch_ = 0;
   std::uint64_t expected_begin_ = 0;
   std::uint64_t generation_ = 0;

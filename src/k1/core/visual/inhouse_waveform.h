@@ -64,6 +64,8 @@ struct InhouseV9Release final {
   float span_db = 6.0F;          // surge range to full release
   float release_s = 0.6F;        // release envelope decay
   float newpeak_db_s = 0.0F;     // > 0: new-peak gate with this peak-holder decay
+  bool trigger_sub = false;      // true: surge of the 40-110 Hz sub_rms instead of vu_level
+  float dip_db = 0.0F;           // > 0: broadband span over [t - 6 s, t - 0.5 s] must reach this
 };
 inline constexpr InhouseV9Release kInhouseV9ReleaseConfig{};
 #endif
@@ -98,6 +100,9 @@ struct InhouseWaveformAudio final {
   std::uint64_t capture_us = 0;
   std::uint64_t publish_us = 0;
   bool valid = false;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  float sub_rms = 0.0F;  // v9: 40-110 Hz band RMS of the hop PCM (core/audio/sub_band.h)
+#endif
 };
 
 struct InhouseWaveformControls final {
@@ -233,6 +238,9 @@ class InhouseWaveformRenderer final {
   float release_slow_ = 0.0F;
   float release_peak_db_ = -120.0F;
   float release_ = 0.0F;
+  std::array<float, 60> dip_ring_{};  // 0.1 s broadband dB means for the dip gate (6 s)
+  unsigned dip_count_ = 0, dip_index_ = 0;
+  float dip_acc_ = 0.0F, dip_acc_s_ = 0.0F;
   bool colour_valid_ = false;
   std::int32_t tonality_gate_ = 0;
   float centroid_ = 0.0F;

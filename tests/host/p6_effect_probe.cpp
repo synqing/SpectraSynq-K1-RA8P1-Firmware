@@ -20,6 +20,7 @@
 //       optional 10th/11th (iteration 5): level ceiling dBFS, emphasis exponent
 //       optional 12th-18th (iteration 6): boost widen ratio_full epsilon fast_s slow_s luma_hold
 //       optional 19th-25th (extent release): enabled fast_s slow_s lo_db span_db release_s newpeak_db_s
+//       optional 26th-27th (kick trigger): trigger_sub(0|1) dip_db
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
 #include "core/visual/product_palette.h"
@@ -72,7 +73,7 @@ std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
 
 int main(int argc, char** argv) {
 #ifdef K1_INHOUSE_MAPPING_V9
-  if (argc != 8 && argc != 9 && argc != 11 && argc != 18 && argc != 25) {
+  if (argc != 8 && argc != 9 && argc != 11 && argc != 18 && argc != 25 && argc != 27) {
     std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range]\n");
     return 2;
   }
@@ -126,12 +127,13 @@ int main(int argc, char** argv) {
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostPalette(palette)) return 2;
   }
-  if (argc == 25) {  // extent release: enabled fast_s slow_s lo_db span_db release_s newpeak_db_s
+  if (argc >= 25) {  // extent release: enabled fast_s slow_s lo_db span_db release_s newpeak_db_s [sub dip_db]
     k1::core::visual::InhouseV9Release release{};
     release.enabled = std::string(argv[18]) == "1";
     release.fast_s = std::strtof(argv[19], nullptr); release.slow_s = std::strtof(argv[20], nullptr);
     release.lo_db = std::strtof(argv[21], nullptr); release.span_db = std::strtof(argv[22], nullptr);
     release.release_s = std::strtof(argv[23], nullptr); release.newpeak_db_s = std::strtof(argv[24], nullptr);
+    if (argc == 27) { release.trigger_sub = std::string(argv[25]) == "1"; release.dip_db = std::strtof(argv[26], nullptr); }
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostRelease(release)) return 2;
   }
@@ -161,7 +163,7 @@ int main(int argc, char** argv) {
   std::fprintf(csv, "t_s,board,fresh,silence,raw_rms,vu_level,peak_scaled,tempo_valid,tempo_bpm,tempo_confidence,"
                     "novelty,palette_coordinate,decay_rate,deposit_strength,position,scroll_steps,"
                     "S,L,lit_px,offpal_px,max_channel,level,tonality_gate,centroid_strength,intensity_mean,tempo_weight,"
-                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref,extent_edge,release\n");
+                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref,extent_edge,release,sub_rms\n");
   constexpr unsigned kSlot = 296U;                   // device PDM block at 40 kHz
   constexpr std::uint64_t kOriginUs = 1000000U;      // keep every timestamp positive
   constexpr std::uint64_t kRenderUs = 10000U;        // palette period (composition period_us)
@@ -267,9 +269,9 @@ int main(int argc, char** argv) {
         std::fprintf(csv, ",,,");
 #endif
 #ifdef K1_INHOUSE_MAPPING_V9
-        std::fprintf(csv, "%.4f,%.4f\n", extent_edge, o.release);
+        std::fprintf(csv, "%.4f,%.4f,%.6f\n", extent_edge, o.release, a.sub_rms);
 #else
-        std::fprintf(csv, "%.4f,\n", extent_edge);
+        std::fprintf(csv, "%.4f,,\n", extent_edge);
 #endif
       }
     }
