@@ -12,14 +12,23 @@ edit list handled explicitly; frozen rules accepted, unfrozen or edited rules re
 Planted faults that must go red: (a) 120 fps; (b) video stretched 8x against the audio; (c) one board
 never responds; (d) wrong ROI (flickering region, a region busy enough that only the sham-onset null control stops a
 number, plain background); (e) audio moved 40 ms earlier
-shifts the recovered latency by +40 ms; plus a wrong-speed recording refused by the SYNC fit.
+shifts the recovered latency by +40 ms; plus a wrong-speed recording refused by the fitted speed.
+
+v2 (click-fitted alignment). v1 tests adapted only where v2 deliberately changes alignment: clicks before the
+declared settle time (first SYNC burst + 10 s) are excluded, so hit counts compare with the settled clicks,
+not 60; per-event onset errors are read for paired (VALID) clicks only; the wrong-speed recording is refused
+by the click-identified speed instead of the SYNC fit. New planted cases: a weak start SYNC plus a late end
+SYNC (v1 would refuse) still give the planted latency, and noise bursts 40 ms before two clicks are excluded
+as off-clock; an early playback-delay drift is followed by the local clock, its first clicks excluded by the
+settle rule; an iOS-style rendered export is refused by name; a click gap pattern shifted by one click
+(caught by the SYNC anchor) or shuffled after 20 clicks (too few identified) goes red; more than 5 %
+off-clock onsets are refused.
 """
 from __future__ import annotations
 
 import csv
 import json
 import math
-import os
 import shutil
 import stat
 import struct
@@ -48,6 +57,7 @@ ROWS = {"busy": (4, 20), "board1": (24, 40), "flicker": (56, 72), "dead": (88, 1
 ROI = {name: f"{16},{r0},{160},{r1 - r0}" for name, (r0, r1) in ROWS.items()}
 BACKGROUND_ROI = "16,142,160,14"
 PERIOD_MS = 1000.0 / FPS
+OFF_CLOCK_CLICKS = (25, 45)  # v2: a noise burst 40 ms before these clicks
 
 
 def short_stimulus(n_clicks: int = 60, seed: int = 7) -> tuple[np.ndarray, dict]:
@@ -82,11 +92,21 @@ def short_stimulus(n_clicks: int = 60, seed: int = 7) -> tuple[np.ndarray, dict]
     return mono, truth
 
 
-def recording_audio(mono: np.ndarray, sr_in: int, lead: float, dur: float, speed: float = 1.0) -> np.ndarray:
+def drift_delay(s):
+    """Planted playback-chain wake-up: the speaker's delay falls from 40 ms to 0 over the first 40 s."""
+    return 0.040 * np.clip(1.0 - np.asarray(s, dtype=np.float64) / 40.0, 0.0, None)
+
+
+def recording_audio(mono: np.ndarray, sr_in: int, lead: float, dur: float, speed: float = 1.0,
+                    delay=None) -> np.ndarray:
     sr = 48000
     t = np.arange(int(dur * sr)) / sr
-    src = (t - lead) / ((1 + SKEW) * speed) * sr_in
-    y = np.interp(src, np.arange(len(mono)), mono, left=0.0, right=0.0)
+    s = (t - lead) / ((1 + SKEW) * speed)
+    if delay is not None:  # arrival = lead + s (1 + skew) + delay(s): invert by fixed-point iteration
+        s0 = s.copy()
+        for _ in range(4):
+            s = s0 - delay(s) / (1 + SKEW)
+    y = np.interp(s * sr_in, np.arange(len(mono)), mono, left=0.0, right=0.0)
     y += np.random.default_rng(3).standard_normal(len(y)) * 10 ** (-66 / 20)
     return y
 
@@ -217,6 +237,35 @@ def media(tmp_path_factory):
     shutil.copy(rules, frozen)
     subprocess.run([sys.executable, str(FREEZE), "freeze", str(frozen), "--lane", "p5-selftest"], check=True,
                    capture_output=True)
+    # v2: weak start SYNC (-26 dB), end SYNC's third burst 15 ms late (v1's 5 ms triplet rule finds neither),
+    # and a 5 ms noise burst 40 ms before clicks 25 and 45 (an onset that is not the click's arrival)
+    weak_mono = mono.copy()
+    s0, burst = truth["sync_start"][0], int(0.050 * sr_in)
+    weak_mono[s0:truth["sync_start"][2] + burst] *= 0.05
+    b3, late = truth["sync_end"][2], int(0.015 * sr_in)
+    seg = weak_mono[b3:b3 + burst].copy()
+    weak_mono[b3:b3 + burst] = 0.0
+    weak_mono[b3 + late:b3 + late + burst] = seg
+    nb = np.random.default_rng(9).standard_normal(int(0.005 * sr_in)) * 0.25
+    for i in OFF_CLOCK_CLICKS:
+        p0 = truth["clicks"][i] - int(0.040 * sr_in)
+        weak_mono[p0:p0 + len(nb)] += nb
+    wav_w = d / "rec-weak.wav"
+    sf.write(wav_w, recording_audio(weak_mono, sr_in, LEAD_S, dur), 48000, subtype="FLOAT")
+    weak = d / "weak-sync.mov"
+    ffmpeg("-i", str(base), "-i", str(wav_w), "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-c:a", "aac",
+           "-b:a", "192k", str(weak))
+    # v2: playback delay drifting 40 ms -> 0 over the first 40 s; the boards follow the real arrivals
+    tc_s = np.array(truth["clicks"]) / sr_in
+    onsets_drift = LEAD_S + tc_s * (1 + SKEW) + drift_delay(tc_s)
+    wav_d = d / "rec-drift.wav"
+    sf.write(wav_d, recording_audio(mono, sr_in, LEAD_S, dur, delay=drift_delay), 48000, subtype="FLOAT")
+    drift = d / "drift.mov"
+    write_video(drift, wav_d, onsets_drift, dur)
+    # v2: an iOS-style rendered export: 30 fps frames on a grid, audio as long as the video
+    export = d / "ios-export30.mov"
+    ffmpeg("-f", "lavfi", "-i", f"color=c=gray:s={W}x{H}:r=30:d=3", "-f", "lavfi", "-i",
+           "sine=f=200:r=44100:d=3", "-c:v", "libx264", "-preset", "ultrafast", "-c:a", "aac", str(export))
     # synthetic device timing: 7.5 ms hops on a skewed device clock, transient spikes at sync + clicks
     dev_path = d / "timing.jsonl"
     events_rec = LEAD_S + np.array([*truth["sync_start"], *truth["clicks"], *truth["sync_end"]]) / sr_in * (1 + SKEW)
@@ -231,18 +280,25 @@ def media(tmp_path_factory):
                                 "_host_read_s": -1.0, "_music_s": -1.0}) + "\n")
     return {"dir": d, "truth": truth_path, "truth_obj": truth, "mono": mono, "base": base, "early": early,
             "f120": f120, "stretched": stretched, "slomo": slomo, "rules": rules, "frozen": frozen,
-            "timing": dev_path, "dur": dur}
+            "timing": dev_path, "dur": dur, "weak": weak, "drift": drift, "export": export}
 
 
 def _p50(rep, board):
     return rep["boards"][board]["latency"]["p50_ms"]
 
 
-def _assert_planted(rep):
+def settled(truth: dict, rules_path: Path) -> np.ndarray:
+    """Click indices at or after the declared settle time (first SYNC burst + settle_after_sync_start_s)."""
+    s = json.loads(rules_path.read_text())["alignment"]["settle_after_sync_start_s"]
+    tc = np.array(truth["clicks"]) / truth["sample_rate"]
+    return np.nonzero(tc >= truth["sync_start"][0] / truth["sample_rate"] + s)[0]
+
+
+def _assert_planted(rep, n_pairs: int):
     for board, k in (("board0", K0), ("board1", K1)):
         b = rep["boards"][board]
         assert b["status"] == "MEASURED", b
-        assert b["misses"] == 0 and b["hits"] == 60, b
+        assert b["misses"] == 0 and b["hits"] == n_pairs, b
         # the light changed within the frame after K frames: latency in [K, K+1) frames, +/- one frame
         assert abs(b["latency"]["p50_ms"] - (k + 0.5) * PERIOD_MS) <= PERIOD_MS, b["latency"]
         assert b["latency"]["min_ms"] >= (k - 1) * PERIOD_MS and b["latency"]["max_ms"] <= (k + 2) * PERIOD_MS
@@ -254,17 +310,19 @@ def test_planted_latency_recovered_with_frozen_rules_and_device_alignment(media)
                                  [f"board0={ROI['board0']}", f"board1={ROI['board1']}"],
                                  "--device-timing", str(media["timing"]))
     assert rc == 0 and ref is None, (err, ref)
-    _assert_planted(rep)
+    _assert_planted(rep, len(settled(media["truth_obj"], media["rules"])))
     assert rep["rules"]["frozen"] and rep["rules"]["tool_matches_rules"]
     assert rep["timeline"]["kind"].startswith("container")
     fit = rep["alignment"]
     assert abs(fit["a_s"] - LEAD_S) < 0.001, fit  # the recording's own audio places the stimulus at 0.8 s
     assert abs(fit["skew_ppm"] - SKEW * 1e6) < 20, fit
-    assert rep["onsets"]["onset_misses"] == 0
+    assert rep["onsets"]["onset_misses"] == 0 and rep["onsets"]["off_clock"] == 0
+    sy = rep["alignment"]["sync"]  # v2: the SYNC is a coarse identity anchor only; here both are found and agree
+    assert sy["start"]["found"] and sy["end"]["found"] and abs(sy["start"]["offset_ms"]) < 25, sy
     # audio onsets land on the planted acoustic arrival (AAC pre-echo guard: 0.90 within 0.5 ms; 0.65 without)
     truth = media["truth_obj"]
     with (out / "events.csv").open() as f:
-        rows = [r for r in csv.DictReader(f) if r["board"] == "board0"]
+        rows = [r for r in csv.DictReader(f) if r["board"] == "board0" and r["onset_s"]]  # VALID clicks only (v2)
     onset_err = np.array([(float(r["onset_s"]) - (LEAD_S + int(r["truth_sample"]) / truth["sample_rate"] * (1 + SKEW)))
                           * 1e3 for r in rows])
     assert abs(np.median(onset_err)) <= 0.2 and np.mean(np.abs(onset_err) <= 0.5) >= 0.85, np.sort(onset_err)[:8]
@@ -296,7 +354,7 @@ def test_slomo_edit_list_is_handled_explicitly(media):
     assert rep["timeline"]["kind"].startswith("media")
     vt = rep["timeline"]["video_track"]
     assert any(abs(e["media_rate"] - 0.125) < 1e-6 for e in vt["edits"])
-    _assert_planted(rep)
+    _assert_planted(rep, len(settled(media["truth_obj"], media["rules"])))
     assert rep["p5_admissible"] is False and "rules not frozen" in rep["p5_admissible_reasons"]
 
 
@@ -319,7 +377,8 @@ def test_c_board_never_responding_claims_no_latency(media):
                                [f"board0={ROI['board0']}", f"board1={ROI['dead']}"], "--allow-unfrozen-rules")
     assert rc == 3 and ref is None
     b = rep["boards"]["board1"]
-    assert b["status"] == "NO_CONFIDENT_LATENCY" and b["hits"] == 0 and b["misses"] == 60
+    n_set = len(settled(media["truth_obj"], media["rules"]))  # v2: settled clicks only
+    assert b["status"] == "NO_CONFIDENT_LATENCY" and b["hits"] == 0 and b["misses"] == n_set
     assert b["latency"] is None and b["latency_claimed"] is False
     assert rep["boards"]["board0"]["status"] == "MEASURED"
 
@@ -382,3 +441,81 @@ def test_device_alignment_not_faked_without_audio_field(tmp_path, media):
     out = pl.device_alignment(p, media["truth_obj"], {"a_s": 0.0, "b": 1.0}, [], rules)
     assert out["available"] is False and "no audio-derived" in out["reason"]
     assert "_music_s" in out["reason"]
+
+
+# ---------------------------------------------------------------- v2: click-fitted alignment
+
+ROIS2 = [f"board0={ROI['board0']}", f"board1={ROI['board1']}"]
+
+
+def test_v2_weak_and_late_sync_alignment_from_clicks(media):
+    rc, rep, ref, err = run_tool(media["dir"] / "out-weak", media["weak"], media["truth"], media["rules"], ROIS2,
+                                 "--allow-unfrozen-rules")
+    assert rc == 0, (err, ref)
+    sy = rep["alignment"]["sync"]
+    assert sy["v1_rule_triplets"] < 2, sy  # v1 would have refused: it needs both triplets within 5 ms
+    assert sy["start"]["found"] is False and sy["end"]["found"] is True, sy
+    n_set = settled(media["truth_obj"], media["rules"])
+    assert all(i in n_set for i in OFF_CLOCK_CLICKS)
+    on = rep["onsets"]
+    assert on["off_clock"] == len(OFF_CLOCK_CLICKS) and on["onset_misses"] == 0, on
+    with (media["dir"] / "out-weak" / "events.csv").open() as f:
+        st = {int(r["click"]): r["status"] for r in csv.DictReader(f) if r["board"] == "board0"}
+    assert all(st[i] == "OFF_CLOCK" for i in OFF_CLOCK_CLICKS), {i: st[i] for i in OFF_CLOCK_CLICKS}
+    _assert_planted(rep, len(n_set) - len(OFF_CLOCK_CLICKS))
+    assert abs(rep["alignment"]["a_s"] - LEAD_S) < 0.001, rep["alignment"]["a_s"]
+
+
+def test_v2_early_clock_drift_followed_and_settle_excluded(media):
+    rc, rep, ref, err = run_tool(media["dir"] / "out-drift", media["drift"], media["truth"], media["rules"], ROIS2,
+                                 "--allow-unfrozen-rules")
+    assert rc == 0, (err, ref)
+    truth = media["truth_obj"]
+    n_set = settled(truth, media["rules"])
+    on = rep["onsets"]
+    assert on["settle_excluded"] == len(truth["clicks"]) - len(n_set) > 0, on
+    assert on["off_clock"] == 0 and on["onset_misses"] == 0, on
+    assert on["median_abs_onset_minus_mapped_ms"] <= 1.0, on  # the local clock follows the 40 -> 0 ms drift
+    _assert_planted(rep, len(n_set))
+
+
+def test_v2_ios_rendered_export_refused(media):
+    rc, rep, ref, _ = run_tool(media["dir"] / "out-export", media["export"], media["truth"], media["rules"],
+                               [f"board0={ROI['board0']}"], "--allow-unfrozen-rules")
+    assert rc == 2 and rep is None
+    assert ref["stage"] == "media" and "re-timed" in ref["reason"] and "240 fps" in ref["reason"], ref
+
+
+@pytest.mark.parametrize("kind", ["shifted-by-one", "shuffled-after-20"])
+def test_v2_wrong_click_identification_refused(media, tmp_path, kind):
+    truth = dict(media["truth_obj"])
+    c = np.array(truth["clicks"])
+    g = np.diff(c)
+    if kind == "shifted-by-one":  # the recording's gap pattern, one click out of step
+        g = np.roll(g, 1)
+    else:  # the first 20 gaps genuine (a few anchors), the rest shuffled: too few clicks identified
+        g = np.concatenate([g[:20], np.random.default_rng(1).permutation(g[20:])])
+    truth["clicks"] = [int(v) for v in c[0] + np.concatenate([[0], np.cumsum(g)])]
+    tp = tmp_path / "truth.json"
+    tp.write_text(json.dumps(truth))
+    rc, rep, ref, _ = run_tool(tmp_path / "out", media["base"], tp, media["rules"], ROIS2, "--allow-unfrozen-rules")
+    assert rc == 2 and rep is None, (rc, rep and rep.get("onsets"))
+    assert ref["stage"] == "alignment", ref
+    want = "SYNC anchor" if kind == "shifted-by-one" else "not identified"
+    assert want in ref["reason"], ref
+
+
+def test_v2_too_many_off_clock_onsets_refused(media):
+    """Noise bursts 40 ms before 6 settled clicks (> 5 %): the onsets are not the stimulus's, so refuse."""
+    rules = json.loads(media["rules"].read_text())
+    truth = media["truth_obj"]
+    sr_in = truth["sample_rate"]
+    mono = media["mono"].copy()
+    nb = np.random.default_rng(9).standard_normal(int(0.005 * sr_in)) * 0.25
+    for i in settled(truth, media["rules"])[::8][:6]:
+        p0 = truth["clicks"][i] - int(0.040 * sr_in)
+        mono[p0:p0 + len(nb)] += nb
+    x = recording_audio(mono, sr_in, LEAD_S, media["dur"])
+    with pytest.raises(pl.Refusal) as ei:
+        pl.align({"x": x, "sr": 48000, "t0": 0.0}, truth, rules)
+    assert ei.value.stage == "onset" and "off the local clock" in ei.value.reason, ei.value.reason

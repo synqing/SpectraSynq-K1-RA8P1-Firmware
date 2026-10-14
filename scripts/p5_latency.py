@@ -19,10 +19,16 @@ Pipeline (every rule value comes from the rules file; nothing is tuned on the re
      Slo-mo original) is handled explicitly: both tracks are read on their real-time media
      timelines, each shifted by its first edit. Refuse unless the video is ~240 fps
      (r_frame_rate, avg_frame_rate, decoded pts spacing) and the video and audio last equally
-     long (a slowed export is refused).
-  2. Alignment. Find the start and end SYNC triplets in the recording's own audio, locate each
-     burst onset, fit recording_time = a + b * truth_time (absorbs clock skew). Refuse unless
-     |b - 1| and the residuals are within the rules.
+     long (a slowed export is refused). An iOS-rendered export (30 fps, frames re-timed onto a
+     grid, tracks equally long) is refused by name: its frame times are not capture times.
+  2. Alignment (v2). Clicks are identified by their seeded gap pattern: an envelope event anchors
+     click k when the next N clicks' truth gaps all land on recording events. A robust line through
+     the anchors identifies the stimulus (refused if too few clicks are identified or |b - 1| is
+     out of rule). Each click's onset (step 3) is then mapped on a local clock: a least-squares
+     line through the on-clock onsets within +/-20 s of truth time, so a playback chain whose delay
+     drifts while it wakes up is followed. Onsets off that clock are excluded and counted; clicks
+     before a declared settle time are excluded and counted. The SYNC triplets are a coarse,
+     report-only anchor: never used for timing, never required.
   3. Onset = first recording-audio sample above threshold inside +/-60 ms of each click's
      mapped time; threshold from the 100 ms before that window.
   4. Photon = first frame after the onset whose ROI mean Rec.709 luma (Y' = 0.2126 R' +
@@ -59,7 +65,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FFMPEG = shutil.which("ffmpeg") or "/opt/homebrew/bin/ffmpeg"
 FFPROBE = shutil.which("ffprobe") or "/opt/homebrew/bin/ffprobe"
 P5_STIMULUS_SHA256 = "638c7fa9eda058e3bcfef318b9e899fefec26be9c0b178ec4cec3adc943338a5"
-RULES_SCHEMA = "p5-latency-rules/1"
+RULES_SCHEMA = "p5-latency-rules/2"
 REC709 = (0.2126, 0.7152, 0.0722)
 
 
@@ -96,7 +102,11 @@ def proposed_rules() -> dict:
             "nominal_fps": 240.0,
             "fps_rel_tol": 0.03,
             "rule_fps": "REFUSE unless r_frame_rate, avg_frame_rate and the median decoded pts step "
-                        "are each within fps_rel_tol of nominal_fps (a 120 fps or 30 fps file is refused)",
+                        "are each within fps_rel_tol of nominal_fps (a 120 fps or 30 fps file is refused). A file "
+                        "whose frame rate is nominal_fps / an integer >= 4 and whose tracks last equally long is "
+                        "named as an iOS-rendered (re-timed) export in the refusal: its frames sit on a resampled "
+                        "grid (a 239.69 fps camera on a 240 fps grid repeats one frame every ~769), so the "
+                        "one-frame timing bound below holds for real-time pts input only",
             "pts_irregular_band": [0.5, 1.5],
             "pts_irregular_max_fraction": 0.005,
             "rule_pts": "REFUSE if more than pts_irregular_max_fraction of decoded frame steps fall "
@@ -127,22 +137,50 @@ def proposed_rules() -> dict:
                              "envelope_frac_p999 x 99.9th percentile); an event is a bin above threshold "
                              "preceded by at least event_quiet_s of bins below it",
             "event_quiet_s": 0.030,
-            "triplet_spacing_tol_s": 0.005,
-            "rule_triplets": "SYNC = three consecutive events whose spacings match the truth's burst "
-                             "spacings within triplet_spacing_tol_s; start = first such triplet, "
-                             "end = last; REFUSE if fewer than two distinct triplets",
-            "sync_refine_window_s": [-0.005, 0.010],
-            "sync_refine_noise_s": 0.100,
-            "rule_sync_refine": "each burst onset is re-located with the onset rule below, using a window "
-                                "of sync_refine_window_s around the coarse event and the sync_refine_noise_s "
-                                "before that window as noise (bursts are 120 ms apart, so the click window "
-                                "would see the previous burst)",
-            "fit": "least squares recording_s = a + b * truth_s over the six burst onsets",
+            "fingerprint_clicks": 8,
+            "fingerprint_tol_s": 0.010,
+            "fingerprint_speed_tol": 0.02,
+            "rule_fingerprint": "anchor (k, e): envelope event e such that for every j < fingerprint_clicks an "
+                                "event lies within fingerprint_tol_s + fingerprint_speed_tol x (tc[k+j] - tc[k]) "
+                                "of e + tc[k+j] - tc[k]; of several such e the one with the least summed error",
+            "identify_line": "Theil-Sen line e = a + b x tc over the anchors; inlier anchors lie within "
+                             "identify_inlier_tol_s of it",
+            "identify_inlier_tol_s": 0.060,
+            "min_identified_fraction": 0.5,
             "max_abs_slope_error": 0.002,
-            "max_fit_residual_s": 0.002,
-            "rule_fit": "REFUSE if |b - 1| > max_abs_slope_error (wrong speed or time remap) or any "
-                        "burst residual exceeds max_fit_residual_s (set before any recording: the real P5 "
-                        "stimulus through AAC with -50 dBFS noise gave 0.84 ms worst burst residual)",
+            "rule_identify": "REFUSE unless inlier anchors >= min_identified_fraction of the clicks that can "
+                             "anchor (the gap pattern is not this stimulus, or is shifted), and |b - 1| <= "
+                             "max_abs_slope_error (wrong speed or time remap; v1 value)",
+            "clock_local_halfwidth_s": 20.0,
+            "clock_outlier_s": 0.010,
+            "clock_iterations": 3,
+            "rule_clock": "declared before any recording: piecewise-smooth clock, not one line. mapped(k) = least "
+                          "squares line through the on-clock onsets of clicks with |tc - tc[k]| <= "
+                          "clock_local_halfwidth_s, evaluated at tc[k] (the identify line where fewer than 3 such "
+                          "onsets exist); on-clock = |onset - mapped| <= clock_outlier_s; iterated "
+                          "clock_iterations times starting from all onsets. An off-clock onset is excluded from "
+                          "pairing (OFF_CLOCK, counted): it is not this click's arrival (e.g. a noise burst inside "
+                          "the window). Reason: a playback chain can drift by tens of ms while it wakes up; a "
+                          "single line would misplace windows, and the drift is common to the phone and the Titan "
+                          "(both hear the same speaker), so it is not latency.",
+            "max_off_clock_fraction": 0.05,
+            "settle_after_sync_start_s": 10.0,
+            "rule_settle": "declared from the stimulus truth, before any result: clicks whose truth time is earlier "
+                           "than the first SYNC burst + settle_after_sync_start_s are excluded (SETTLE_EXCLUDED, "
+                           "counted) so a speaker or route that is still waking up cannot contribute events. For "
+                           "the P5 stimulus this excludes clicks 0-11 (truth < 12.0 s) and leaves 508 clicks: at "
+                           "most 8 may miss for the 500-pair brief minimum.",
+            "triplet_spacing_tol_s": 0.005,
+            "sync_coarse_tol_s": 0.025,
+            "sync_search_s": 2.0,
+            "sync_anchor_tol_s": 0.100,
+            "rule_sync": "coarse identity anchor only, never timing, never required. Triplets are counted under the "
+                         "v1 rule (triplet_spacing_tol_s) for the report; coarse triplets use sync_coarse_tol_s. "
+                         "For the start and the end SYNC, the expected recording time is the local clock "
+                         "extrapolated to the burst's truth time; if a coarse triplet starts within sync_search_s "
+                         "of it, the nearest must lie within sync_anchor_tol_s, else REFUSE (clicks identified at a "
+                         "shifted offset; the shortest click gap is 0.3 s). No triplet nearby = not found, "
+                         "reported, not a refusal.",
         },
         "onset": {
             "window_s": 0.060,
@@ -160,8 +198,10 @@ def proposed_rules() -> dict:
                     "becoming the onset.",
             "max_onset_miss_fraction": 0.05,
             "max_median_abs_onset_residual_s": 0.003,
-            "rule_clock_check": "REFUSE if ONSET_MISS exceeds max_onset_miss_fraction of clicks, or the median "
-                                "|onset - mapped| exceeds max_median_abs_onset_residual_s",
+            "rule_clock_check": "over the clicks not settle-excluded: REFUSE if ONSET_MISS exceeds "
+                                "max_onset_miss_fraction, OFF_CLOCK exceeds alignment.max_off_clock_fraction, or the "
+                                "median |onset - mapped| over all found onsets exceeds "
+                                "max_median_abs_onset_residual_s",
         },
         "photon": {
             "luma": "Rec.709 Y' = 0.2126 R' + 0.7152 G' + 0.0722 B' on decoded 8-bit R'G'B' (gamma-encoded), "
@@ -204,7 +244,8 @@ def proposed_rules() -> dict:
         },
         "quantisation": {
             "per_event_ms": 1000.0 / 240.0,
-            "statement": "each latency is a frame pts minus an audio onset; the light changed within the "
+            "statement": "real-time pts input only (re-timed exports are refused). "
+                         "Each latency is a frame pts minus an audio onset; the light changed within the "
                          "frame period ending at the detected frame, so every event carries one frame "
                          "(4.17 ms at 240 fps) of quantisation; its random part averages out over N "
                          "(about 4.17/sqrt(12 N) ms on the mean) but it biases latency late by 0 to 1 frame",
@@ -534,39 +575,136 @@ def find_triplets(ev: np.ndarray, d1: float, d2: float, tol: float) -> list[int]
     return out
 
 
+def fingerprint_anchors(ev: np.ndarray, tc: np.ndarray, a: dict) -> np.ndarray:
+    """Rows (k, event time): events whose following clicks' truth gaps all land on recording events."""
+    n_fp = a["fingerprint_clicks"]
+    out = []
+    if len(ev) < 2:
+        return np.zeros((0, 2))
+    for k in range(len(tc) - n_fp + 1):
+        span = tc[k:k + n_fp] - tc[k]
+        pred = ev[:, None] + span[None, :]
+        j = np.clip(np.searchsorted(ev, pred), 1, len(ev) - 1)
+        err = np.minimum(np.abs(ev[j] - pred), np.abs(ev[j - 1] - pred))
+        ok = np.nonzero((err <= a["fingerprint_tol_s"] + a["fingerprint_speed_tol"] * span[None, :]).all(axis=1))[0]
+        if len(ok):
+            out.append((k, ev[ok[np.argmin(err[ok].sum(axis=1))]]))
+    return np.array(out, dtype=np.float64).reshape(-1, 2)
+
+
+def theil_sen(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
+    i, j = np.triu_indices(len(x), 1)
+    dx = x[j] - x[i]
+    keep = dx > 0
+    b = float(np.median((y[j] - y[i])[keep] / dx[keep]))
+    return float(np.median(y - b * x)), b
+
+
+def local_clock(tc: np.ndarray, on: np.ndarray, use: np.ndarray, fallback: tuple[float, float],
+                halfwidth: float, at=None) -> np.ndarray:
+    """At each truth time q (default: the clicks): the least-squares line through on[use] for clicks within
+    +/-halfwidth of q (q clamped into the click span to choose them), evaluated at q."""
+    q_all = tc if at is None else np.asarray(at, dtype=np.float64)
+    mapped = np.empty(len(q_all))
+    for i, q in enumerate(q_all):
+        qc = min(max(q, tc[0]), tc[-1])
+        sel = use & (np.abs(tc - qc) <= halfwidth)
+        if sel.sum() >= 3:
+            _, c = np.polyfit(tc[sel] - q, on[sel], 1)
+            mapped[i] = c
+        else:
+            mapped[i] = fallback[0] + fallback[1] * q
+    return mapped
+
+
 def align(audio: dict, truth: dict, rules: dict) -> dict:
+    """Identify the clicks by their gap pattern and map each on the local onset clock (v2)."""
     a, o = rules["alignment"], rules["onset"]
     sr_t = truth["sample_rate"]
-    ss, se = truth["sync_start"], truth["sync_end"]
-    d1, d2 = (ss[1] - ss[0]) / sr_t, (ss[2] - ss[1]) / sr_t
-    ev = envelope_events(audio["x"], audio["sr"], audio["t0"], a)
-    trip = find_triplets(ev, d1, d2, a["triplet_spacing_tol_s"])
-    if len(trip) < 2:
-        raise Refusal("alignment", f"found {len(trip)} SYNC triplet(s); need the start and end SYNC",
-                      events=len(ev))
-    coarse = [*ev[trip[0]:trip[0] + 3], *ev[trip[-1]:trip[-1] + 3]]
-    truth_s = np.array([*ss, *se], dtype=np.float64) / sr_t
-    rec = []
-    for c in coarse:
-        t, _ = onset_rule(audio["x"], audio["sr"], audio["t0"],
-                          (c + a["sync_refine_window_s"][0], c + a["sync_refine_window_s"][1]),
-                          a["sync_refine_noise_s"], o)
-        if t is None:
-            raise Refusal("alignment", f"SYNC burst near {c:.3f} s has no onset under the onset rule")
-        rec.append(t)
-    rec = np.array(rec)
-    A = np.stack([np.ones_like(truth_s), truth_s], axis=1)
-    (ia, sb), *_ = np.linalg.lstsq(A, rec, rcond=None)
-    resid = rec - (ia + sb * truth_s)
-    fit = {"a_s": float(ia), "b": float(sb), "skew_ppm": float((sb - 1) * 1e6),
-           "burst_onsets_rec_s": rec.tolist(), "burst_truth_s": truth_s.tolist(),
-           "residuals_ms": (resid * 1e3).tolist(), "triplets_found": len(trip)}
-    if abs(sb - 1) > a["max_abs_slope_error"]:
-        raise Refusal("alignment", f"fitted speed b = {sb:.6f}; the recording does not run at real time "
-                                   f"(time-remapped or wrong speed)", fit=fit)
-    if np.abs(resid).max() > a["max_fit_residual_s"]:
-        raise Refusal("alignment", f"SYNC fit residual {np.abs(resid).max() * 1e3:.3f} ms exceeds the rule",
-                      fit=fit)
+    tc = np.array(truth["clicks"], dtype=np.float64) / sr_t
+    ss = np.array(truth["sync_start"], dtype=np.float64) / sr_t
+    x, sr, t0 = audio["x"], audio["sr"], audio["t0"]
+    ev = envelope_events(x, sr, t0, a)
+    anchors = fingerprint_anchors(ev, tc, a)
+    can_anchor = len(tc) - a["fingerprint_clicks"] + 1
+    ident = {"envelope_events": int(len(ev)), "anchors": int(len(anchors)), "clicks_that_can_anchor": can_anchor}
+    if len(anchors) < 3:
+        raise Refusal("alignment", f"click gap pattern not identified: {len(anchors)} anchors", identify=ident)
+    ka = anchors[:, 0].astype(int)
+    ia, ib = theil_sen(tc[ka], anchors[:, 1])
+    inl = np.abs(anchors[:, 1] - (ia + ib * tc[ka])) <= a["identify_inlier_tol_s"]
+    ident.update(identify_a_s=ia, identify_b=ib, inlier_anchors=int(inl.sum()),
+                 identified_fraction=float(inl.sum() / can_anchor))
+    if inl.sum() < a["min_identified_fraction"] * can_anchor:
+        raise Refusal("alignment", f"click gap pattern not identified: {int(inl.sum())} of {can_anchor} clicks "
+                                   f"anchor on one line (the recording is not this stimulus, or its gaps are "
+                                   f"shifted)", identify=ident)
+    if abs(ib - 1) > a["max_abs_slope_error"]:
+        raise Refusal("alignment", f"fitted speed b = {ib:.6f}; the recording does not run at real time "
+                                   f"(time-remapped or wrong speed)", identify=ident)
+
+    # onsets at the identify line, then the local clock
+    on = np.full(len(tc), np.nan)
+    thr = np.full(len(tc), np.nan)
+    for k in range(len(tc)):
+        m = ia + ib * tc[k]
+        t, th = onset_rule(x, sr, t0, (m - o["window_s"], m + o["window_s"]), o["noise_s"], o)
+        thr[k] = th
+        if t is not None:
+            on[k] = t
+    found = np.isfinite(on)
+    use = found.copy()
+    mapped = np.full(len(tc), np.nan)
+    for _ in range(a["clock_iterations"]):
+        mapped = local_clock(tc, on, use, (ia, ib), a["clock_local_halfwidth_s"])
+        use = found & (np.abs(on - mapped) <= a["clock_outlier_s"])
+    resid = on - mapped
+    settle_s = ss[0] + a["settle_after_sync_start_s"]
+    status = np.where(tc < settle_s, "SETTLE_EXCLUDED",
+                      np.where(~found, "ONSET_MISS", np.where(use, "VALID", "OFF_CLOCK")))
+    clicks = [{"index": k, "truth_sample": int(truth["clicks"][k]), "truth_s": float(tc[k]),
+               "mapped_s": float(mapped[k]), "onset_raw_s": float(on[k]) if found[k] else None,
+               "onset_s": float(on[k]) if status[k] == "VALID" else None, "status": str(status[k]),
+               "onset_threshold": float(thr[k]),
+               "onset_minus_mapped_ms": float(resid[k] * 1e3) if found[k] else None} for k in range(len(tc))]
+    g = (status == "VALID")
+    ga, gb = theil_sen(tc[g], on[g]) if g.sum() >= 2 else (ia, ib)  # robust global line (report, device)
+
+    # SYNC: coarse identity anchor only (never timing, never required)
+    se = np.array(truth["sync_end"], dtype=np.float64) / sr_t
+    d1, d2 = ss[1] - ss[0], ss[2] - ss[1]
+    v1_trip = find_triplets(ev, d1, d2, a["triplet_spacing_tol_s"])
+    coarse = find_triplets(ev, d1, d2, a["sync_coarse_tol_s"])
+    sync = {"v1_rule_triplets": len(v1_trip), "coarse_triplets": len(coarse),
+            "used_for": "coarse identity anchor only; timing comes from the click onsets"}
+    for name, t_sync in (("start", ss[0]), ("end", se[0])):
+        want = float(local_clock(tc, on, use, (ia, ib), a["clock_local_halfwidth_s"], [t_sync])[0])
+        cand = [ev[i] for i in coarse if abs(ev[i] - want) <= a["sync_search_s"]]
+        off = float(min(cand, key=lambda e: abs(e - want)) - want) if cand else None
+        sync[name] = {"expected_rec_s": want, "found": bool(cand), "offset_ms": off * 1e3 if cand else None}
+        if cand and abs(off) > a["sync_anchor_tol_s"]:
+            raise Refusal("alignment", f"click identification disagrees with the {name} SYNC anchor by "
+                                       f"{off * 1e3:.0f} ms (clicks identified at a shifted offset)",
+                          sync=sync, identify=ident)
+
+    active = status != "SETTLE_EXCLUDED"
+    n_act = int(active.sum())
+    fr = found & active
+    summ = {"clicks": int(len(tc)), "settle_excluded": int((~active).sum()), "settle_before_truth_s": float(settle_s),
+            "active_clicks": n_act, "onset_misses": int((active & ~found).sum()),
+            "off_clock": int((status == "OFF_CLOCK").sum()), "valid": int(g.sum()),
+            "median_onset_minus_mapped_ms": float(np.median(resid[fr])) * 1e3 if fr.any() else float("inf"),
+            "median_abs_onset_minus_mapped_ms": float(np.median(np.abs(resid[fr]))) * 1e3 if fr.any() else float("inf"),
+            "p95_abs_onset_minus_mapped_ms": float(np.percentile(np.abs(resid[fr]), 95)) * 1e3 if fr.any() else float("inf")}
+    fit = {"method": "v2: click gap fingerprint + local onset clock", "a_s": float(ga), "b": float(gb),
+           "skew_ppm": float((gb - 1) * 1e6), "identify": ident, "sync": sync, "onsets": summ, "clicks": clicks}
+    if n_act == 0 or summ["onset_misses"] / n_act > o["max_onset_miss_fraction"]:
+        raise Refusal("onset", f"{summ['onset_misses']} of {n_act} clicks have no audio onset; the recording does "
+                               "not carry the stimulus", onsets=summ)
+    if summ["off_clock"] / n_act > a["max_off_clock_fraction"]:
+        raise Refusal("onset", f"{summ['off_clock']} of {n_act} onsets are off the local clock", onsets=summ)
+    if summ["median_abs_onset_minus_mapped_ms"] > o["max_median_abs_onset_residual_s"] * 1e3:
+        raise Refusal("onset", "clicks do not sit on the click-fitted clock", onsets=summ)
     return fit
 
 
@@ -831,11 +969,19 @@ def analyse(a) -> int:
                  "height": pv.get("height"), "video_stream_duration_s": pv.get("duration"),
                  "audio_stream_duration_s": pa.get("duration"), "audio_sample_rate": pa.get("sample_rate")}
         ctx["media"] = media
+        vd, ad = pv.get("duration"), pa.get("duration")
         for label, v in (("r_frame_rate", rfr), ("avg_frame_rate", afr)):
             if v is None or abs(v / nominal - 1) > m["fps_rel_tol"]:
+                why = ""
+                ratio = nominal / v if v else 0.0
+                if ratio >= 4 and abs(ratio - round(ratio)) < 0.01 and vd and ad and \
+                        abs(float(vd) - float(ad)) <= max(m["av_duration_max_diff_s"],
+                                                          m["av_duration_max_diff_rel"] * float(ad)):
+                    why = (f" This looks like an iOS-rendered (re-timed) export: {v:g} fps x {round(ratio)} with "
+                           "equally long tracks, so frame times are grid slots, not capture times. Transfer the "
+                           "unmodified original (AirDrop Options > All Photos Data, or Image Capture).")
                 raise Refusal("media", f"{label} = {media[label]} is not ~{nominal:g} fps; real-time "
-                                       f"240 fps capture is required", media=media)
-        vd, ad = pv.get("duration"), pa.get("duration")
+                                       f"240 fps capture is required.{why}", media=media)
         if vd and ad:
             vd, ad = float(vd), float(ad)
             if abs(vd - ad) > max(m["av_duration_max_diff_s"], m["av_duration_max_diff_rel"] * ad):
@@ -890,40 +1036,20 @@ def analyse(a) -> int:
 
         # 3. alignment and onsets
         fit = align(audio, truth, rules)
+        events = [{**c, "boards": {}} for c in fit.pop("clicks")]
         ctx["alignment"] = fit
-        o, p = rules["onset"], rules["photon"]
-        sr_t = truth["sample_rate"]
-        events = []
-        for k, n in enumerate(truth["clicks"]):
-            ts = n / sr_t
-            mapped = fit["a_s"] + fit["b"] * ts
-            on, thr = onset_rule(audio["x"], audio["sr"], audio["t0"],
-                                 (mapped - o["window_s"], mapped + o["window_s"]), o["noise_s"], o)
-            events.append({"index": k, "truth_sample": n, "truth_s": ts, "mapped_s": mapped,
-                           "onset_s": on, "onset_threshold": thr,
-                           "onset_minus_mapped_ms": (on - mapped) * 1e3 if on is not None else None,
-                           "boards": {}})
-        valid = [e for e in events if e["onset_s"] is not None]
-        miss_frac = 1 - len(valid) / len(events)
-        resid = np.array([e["onset_minus_mapped_ms"] for e in valid]) if valid else np.array([np.inf])
-        onset_summary = {"clicks": len(events), "onset_misses": len(events) - len(valid),
-                         "median_onset_minus_mapped_ms": float(np.median(resid)),
-                         "p95_abs_onset_minus_mapped_ms": float(np.percentile(np.abs(resid), 95))}
-        ctx["onsets"] = onset_summary
-        if miss_frac > o["max_onset_miss_fraction"]:
-            raise Refusal("onset", f"{miss_frac:.3f} of clicks have no audio onset; the recording does not "
-                                   "carry the stimulus", onsets=onset_summary)
-        if abs(onset_summary["median_onset_minus_mapped_ms"]) > o["max_median_abs_onset_residual_s"] * 1e3:
-            raise Refusal("onset", "clicks do not sit on the SYNC-fitted clock", onsets=onset_summary)
+        ctx["onsets"] = fit["onsets"]
+        p = rules["photon"]
+        valid = [e for e in events if e["status"] == "VALID"]
 
-        # 4. photons, null control
+        # 4. photons, null control (only VALID clicks are paired; the others keep their status)
         boards = {}
         for j, r in enumerate(a.roi):
             y = vid["luma"][:, j].astype(np.float64)
             hits, misses, nonoise, early = [], 0, 0, 0
             for e in events:
-                if e["onset_s"] is None:
-                    e["boards"][r.name] = {"status": "ONSET_MISS"}
+                if e["status"] != "VALID":
+                    e["boards"][r.name] = {"status": e["status"]}
                     continue
                 ph = photon_rule(t, y, e["onset_s"], p)
                 e["boards"][r.name] = ph
