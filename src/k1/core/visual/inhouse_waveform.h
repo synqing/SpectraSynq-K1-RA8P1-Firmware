@@ -42,6 +42,18 @@ inline constexpr InhouseV9Palette kInhouseV9Palette = InhouseV9Palette::kRestric
 // Level transfer ceiling (dBFS at l = 1; floor -33 dBFS) and emphasis exponent (peak = g l^gamma).
 inline constexpr float kInhouseV9LevelCeilingDb = -9.0F;
 inline constexpr float kInhouseV9Emphasis = 1.5F;
+// Iteration 6 (P6-IT6-DESIGN-CANDIDATES-FROZEN.json). Drop accent keyed to low-band onset
+// density against a several-second baseline (the cut lets the baseline fall); 0 = off.
+struct InhouseV9Accent final {
+  float boost = 0.0F;         // extra deposit amplitude at full accent (x(1 + boost))
+  float widen_px = 0.0F;      // extra half-width at full accent
+  float ratio_full = 3.0F;    // fast/slow onset density ratio giving full accent
+  float epsilon = 0.0F;       // density floor in both terms of the ratio
+  float fast_s = 0.4F;        // fast onset-density time constant
+  float slow_s = 4.0F;        // slow baseline time constant
+};
+inline constexpr InhouseV9Accent kInhouseV9AccentConfig{};
+inline constexpr bool kInhouseV9LumaHold = false;  // colour luma hold through low confidence
 #endif
 
 // One coherent producer observation; spectrum is the source 80-note bank after
@@ -114,6 +126,9 @@ struct InhouseWaveformObservation final {
   float tonality_gate = 0.0F;  // v9 colour-layer inputs (stage-4 outputs, read only)
   float centroid_strength = 0.0F;
   float intensity_mean = 0.0F; // v9 mean intensity field before colour (light without palette)
+  float low_flux = 0.0F;       // v9 iteration 6: low-band (bins 0-11) positive spectral flux
+  float accent = 0.0F;         // v9 iteration 6: drop accent 0..1
+  float luma_ref = 0.0F;       // v9 iteration 6: colour luma reference (luma hold)
 #endif
 };
 
@@ -139,6 +154,13 @@ class InhouseWaveformRenderer final {
     return true;
   }
   // Iteration 5 candidates (P6-IT5-DESIGN-CANDIDATES-FROZEN.json): level ceiling and exponent.
+  [[nodiscard]] bool setV9HostAccent(const InhouseV9Accent& accent, bool luma_hold) noexcept {
+    if (!(accent.boost >= 0.0F && accent.boost <= 4.0F) || !(accent.widen_px >= 0.0F && accent.widen_px <= 4.0F) ||
+        !(accent.ratio_full > 1.0F) || !(accent.epsilon >= 0.0F) || !(accent.fast_s > 0.0F) ||
+        !(accent.slow_s > accent.fast_s)) return false;
+    v9_accent_ = accent; v9_luma_hold_ = luma_hold;
+    return true;
+  }
   [[nodiscard]] bool setV9HostLevel(float ceiling_db, float emphasis) noexcept {
     if (!(ceiling_db > -30.0F && ceiling_db <= 0.0F) || !(emphasis >= 1.0F && emphasis <= 6.0F)) return false;
     v9_ceiling_db_ = ceiling_db; v9_emphasis_ = emphasis;
@@ -183,6 +205,11 @@ class InhouseWaveformRenderer final {
   float colour_position_ = 0.0F;
   float colour_velocity_ = 0.0F;
   float colour_anchor_ = 0.0F;  // long-term confident colour (iteration 3)
+  std::array<float, 12> low_previous_{};  // iteration 6 onset density state
+  float density_fast_ = 0.0F;
+  float density_slow_ = 0.0F;
+  float accent_ = 0.0F;
+  float luma_ref_ = -1.0F;      // iteration 6: luma of the last strongly confident colour
   bool colour_valid_ = false;
   std::int32_t tonality_gate_ = 0;
   float centroid_ = 0.0F;
@@ -194,6 +221,8 @@ class InhouseWaveformRenderer final {
   InhouseV9Palette v9_palette_ = kInhouseV9Palette;
   float v9_ceiling_db_ = kInhouseV9LevelCeilingDb;
   float v9_emphasis_ = kInhouseV9Emphasis;
+  InhouseV9Accent v9_accent_ = kInhouseV9AccentConfig;
+  bool v9_luma_hold_ = kInhouseV9LumaHold;
 #endif
   [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
@@ -201,6 +230,7 @@ class InhouseWaveformRenderer final {
   void updateColourV9(const InhouseWaveformControls& controls, float dt, bool silent,
                       float level) noexcept;
   void fadeV9(bool mode32, bool silent, float dt) noexcept;
+  void updateAccentV9(const InhouseWaveformAudio& audio, bool fresh, bool silent, float dt) noexcept;
   [[nodiscard]] PaletteLinearRgb colourV9(std::uint16_t palette_id, float coordinate) const noexcept;
   void depositV9(bool mode32, unsigned start, float position, float level,
                  const FixedRgb& colour) noexcept;

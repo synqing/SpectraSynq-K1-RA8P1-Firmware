@@ -86,6 +86,9 @@ void InhouseWaveformRenderer::reset() noexcept {
   intensity_.fill(0);
   colour_.fill({});
   colour_position_ = colour_velocity_ = colour_anchor_ = centroid_ = centroid_strength_ = 0.0F;
+  low_previous_.fill(0.0F);
+  density_fast_ = density_slow_ = accent_ = 0.0F;
+  luma_ref_ = -1.0F;
   colour_valid_ = false;
   tonality_gate_ = 0;
 #endif
@@ -596,10 +599,23 @@ void InhouseWaveformRenderer::updateColourV9(const InhouseWaveformControls& cont
     if (delta < -0.5F) delta += 1.0F;
     return delta;
   };
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const bool luma_hold = v9_luma_hold_;
+#else
+  constexpr bool luma_hold = kInhouseV9LumaHold;
+#endif
+  // Iteration 6 luma hold: below strong confidence the colour may move only to a palette
+  // position whose luma is not below that of the last strongly confident colour.
+  constexpr float kStrongConfidence = 0.5F;
+  const auto luma = [&](float position) {
+    const auto c = colourV9(controls.palette_id, position);
+    return 0.2126F * c.red + 0.7152F * c.green + 0.0722F * c.blue;
+  };
   if (!colour_valid_) {
     colour_position_ = colour_anchor_ = confident ? centroid_ : wrap(controls.colour_offset);
     colour_valid_ = confident;
     colour_velocity_ = 0.0F;
+    if (luma_hold) luma_ref_ = confident ? luma(colour_position_) : -1.0F;
   } else {
     float target = 0.0F, cap = kFollowCap;
     if (confident) {
@@ -609,12 +625,46 @@ void InhouseWaveformRenderer::updateColourV9(const InhouseWaveformControls& cont
       target = shortest(colour_anchor_, colour_position_) / kDriftS;
     }
     colour_velocity_ = std::max(-cap, std::min(cap, ema(colour_velocity_, target, dt, kMomentumS)));
-    colour_position_ = wrap(colour_position_ + colour_velocity_ * dt);
+    const float proposed = wrap(colour_position_ + colour_velocity_ * dt);
+    if (luma_hold && confidence < kStrongConfidence && luma_ref_ >= 0.0F && luma(proposed) < luma_ref_) {
+      colour_velocity_ = 0.0F;  // hold: no move to a darker colour without strong confidence
+    } else {
+      colour_position_ = proposed;
+      if (luma_hold && confidence >= kStrongConfidence) luma_ref_ = luma(colour_position_);
+    }
     // The anchor learns only from confident colour, weighted by that confidence.
     if (confident) colour_anchor_ = wrap(colour_anchor_ + shortest(colour_position_, colour_anchor_) *
         confidence * (1.0F - ::expf(-dt / kAnchorS)));
   }
   observation_.palette_coordinate = colour_position_;
+  observation_.luma_ref = luma_ref_;
+}
+
+// Iteration 6 drop accent: positive flux of the lowest 12 note bins (110-208 Hz, kick and
+// bass harmonics) feeds a fast and a slow density; the accent is how far the fast density
+// exceeds the slow baseline. A cut empties both, so the drop's return reads as a rise.
+void InhouseWaveformRenderer::updateAccentV9(const InhouseWaveformAudio& audio, bool fresh,
+    bool silent, float dt) noexcept {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const InhouseV9Accent& a = v9_accent_;
+#else
+  constexpr InhouseV9Accent a = kInhouseV9AccentConfig;
+#endif
+  float flux = 0.0F;
+  if (fresh) {
+    for (unsigned i = 0; i < 12U; ++i) {
+      const float v = std::isfinite(audio.spectrum[i]) ? std::max(0.0F, audio.spectrum[i]) : 0.0F;
+      flux += std::max(0.0F, v - low_previous_[i]);
+      low_previous_[i] = v;
+    }
+  }
+  if (silent) flux = 0.0F;
+  density_fast_ = ema(density_fast_, flux, dt, a.fast_s);
+  density_slow_ = ema(density_slow_, flux, dt, a.slow_s);
+  const float ratio = (density_fast_ + a.epsilon) / (density_slow_ + a.epsilon + 1.0e-12F);
+  accent_ = a.boost > 0.0F || a.widen_px > 0.0F ? clamp01((ratio - 1.0F) / (a.ratio_full - 1.0F)) : 0.0F;
+  observation_.low_flux = flux;
+  observation_.accent = accent_;
 }
 
 // Separate attack and release on the intensity field: constant release in seconds,
@@ -640,7 +690,13 @@ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float posit
   constexpr InhouseV9Variant variant = kInhouseV9Variant;
   const float gain = mode32 ? kInhouseV9Gain32 : kInhouseV9Gain18;
 #endif
-  const float width = 0.5F + 3.5F * level;
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const InhouseV9Accent& accent_config = v9_accent_;
+#else
+  constexpr InhouseV9Accent accent_config = kInhouseV9AccentConfig;
+#endif
+  float width = 0.5F + 3.5F * level;
+  if (accent_ > 0.0F) width += accent_config.widen_px * accent_;
   float amplitude = gain;
   if (variant == InhouseV9Variant::kConstantEnergy) amplitude = gain * 2.0F / (width + 1.0F);
   else if (variant == InhouseV9Variant::kLevelEmphasis) {
@@ -652,6 +708,7 @@ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float posit
     // 1.5 keeps the iteration-4 arithmetic exactly (level * sqrt(level)).
     amplitude = emphasis == 1.5F ? gain * level * ::sqrtf(level) : gain * ::powf(level, emphasis);
   }
+  if (accent_ > 0.0F) amplitude *= 1.0F + accent_config.boost * accent_;
   amplitude = clamp01(amplitude);
   const float reach = width + 1.0F;
   const int first = std::max(static_cast<int>(start), static_cast<int>(std::ceil(position - reach)));
@@ -744,6 +801,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.level = level;
   observation_.tonality_gate = f(tonality_gate_);
   observation_.centroid_strength = centroid_strength_;
+  updateAccentV9(audio, fresh, silent, dt);
   updateColourV9(controls, dt, silent, level);
   const auto colour_f = colourV9(controls.palette_id, colour_position_);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};

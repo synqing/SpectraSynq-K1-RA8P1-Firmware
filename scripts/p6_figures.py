@@ -198,8 +198,9 @@ def di_figure(manifest, runs, anchors, di, out, name):
     colours = {label: palette[i % len(palette)] for i, label in enumerate(runs)}
     tags = list(anchors["inputs"])
     fig, axes = plt.subplots(2, len(tags), figsize=(6.5 * len(tags), 7.5), squeeze=False)
-    for col, tag in enumerate(tags):
-        a = anchors["inputs"][tag]
+    for col, key in enumerate(tags):
+        a = anchors["inputs"][key]
+        tag = a.get("tag", key)  # iteration 6: several drops on one input
         sp = spec_of(manifest, tag)
         td, (b0, b1) = a["drop_onset_s"], a["build_climax_s"]
         for label, d in runs.items():
@@ -207,7 +208,7 @@ def di_figure(manifest, runs, anchors, di, out, name):
             for board in (0, 1):
                 y = x[(x.board == board) & (x.t_song >= b0 - 4) & (x.t_song <= td + 5)]
                 v, t = smooth(y.t_song.to_numpy(), y.Lstar.to_numpy(), 0.1)
-                r = next((q for q in di[label]["rows"] if q["input"] == tag and q["board"] == board), None)
+                r = next((q for q in di[label]["rows"] if q["input"] == key and q["board"] == board), None)
                 axes[board, col].plot(t, v, color=colours.get(label, "#c8361f"), lw=1.1,
                                       label=f"{label}: DI {r['DI']:.2f}" if r else label)
         for board in (0, 1):
@@ -216,12 +217,12 @@ def di_figure(manifest, runs, anchors, di, out, name):
             ax.axvspan(td, td + 1.0, color="#3b6fb6", alpha=0.15)
             if a.get("cut_s"):
                 ax.axvspan(*a["cut_s"], color="#999", alpha=0.10)
-            ax.set_title(f"{'lower (mode 32)' if board == 0 else 'upper (mode 18)'} — {tag}", fontsize=10)
+            ax.set_title(f"{'lower (mode 32)' if board == 0 else 'upper (mode 18)'} — {key}", fontsize=10)
             ax.set_ylabel("frame-mean CIE L* (0.1 s mean)")
             ax.grid(alpha=0.25)
             ax.legend(fontsize=8, loc="upper left")
             ax.set_xlabel("song time (s); yellow = build climax B*, blue = 1 s after the drop, grey = cut", fontsize=8.5)
-    fig.suptitle("P6 iteration 5: drop impact DI = p95 L* (1 s after drop) / p95 L* (build climax); provisional bar 1.25",
+    fig.suptitle(f"P6 {name.replace('.png', '')}: drop impact DI = p95 L* (1 s after drop) / p95 L* (build climax); provisional bar 1.25",
                  fontsize=11.5)
     fig.tight_layout()
     fig.savefig(out / name, dpi=120)

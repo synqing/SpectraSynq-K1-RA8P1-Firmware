@@ -194,6 +194,39 @@ def prepare_it5(exe: Path, base: Path, out: Path, holdout_wav: Path) -> None:
     (out / "inputs.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
+def add_song(exe: Path, out: Path, name: str, wav: Path, target: float) -> None:
+    """Iteration 6: add a 24 kHz song file to an inputs folder (-> 40 kHz, one gain so the host raw RMS
+    median over 1-74 s equals target, 8 s zeros appended); the existing manifest entries are kept."""
+    import wave
+    from scipy.signal import resample_poly
+    manifest = json.loads((out / "inputs.json").read_text())
+    w = wave.open(str(wav))
+    if w.getframerate() != 24000 or w.getnchannels() != 1:
+        raise SystemExit("song must be 24 kHz mono")
+    x = resample_poly(np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(np.float64) / 32768.0, 5, 3)
+    WINDOW[name] = (1.0, 74.0)
+    tmp = out / "_cal"
+    tmp.mkdir(exist_ok=True)
+    gain = 0.12 / max(float(np.sqrt(np.mean(x[FS:74 * FS] ** 2))), 1e-9)
+    for _ in range(4):
+        write_s16(x, gain, tmp / "cal.s16")
+        run_probe(exe, tmp / "cal.s16", tmp / "cal.csv", tmp / "cal.bin", None)
+        gain *= target / host_median(tmp / "cal.csv", 0.0, 1.0, name)
+    p = out / f"{name}.s16"
+    clipped = write_s16(x, gain, p)
+    run_probe(exe, p, tmp / "cal.csv", tmp / "cal.bin", None)
+    manifest["inputs"][name] = {
+        "song": name, "gain": gain, "offset_s": 0.0, "scale": 1.0, "fixture_s": None, "file_seconds": len(x) / FS,
+        "device_raw_rms_median": target, "host_raw_rms_median": host_median(tmp / "cal.csv", 0.0, 1.0, name),
+        "window_song_s": [1.0, 74.0], "source": str(wav), "source_sha256": hashlib.sha256(wav.read_bytes()).hexdigest(),
+        "files": {name: {"file": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest(), "ladder_db": 0.0,
+                         "clipped_fraction": clipped}}}
+    for f in tmp.iterdir():
+        f.unlink()
+    tmp.rmdir()
+    (out / "inputs.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+
 def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str, palette: str | None = None,
               level: list[str] | None = None) -> dict:
     """Matched optical energy: per-mode gain so the calibration-corpus mean S equals v8's."""
@@ -226,10 +259,15 @@ def main(argv=None) -> int:
     c.add_argument("--v8", type=Path, required=True); c.add_argument("--work", type=Path, required=True)
     c.add_argument("--variant", choices=("peak", "energy", "emphasis"), required=True); c.add_argument("--out", type=Path, required=True)
     c.add_argument("--palette", choices=("asis", "lifted", "range"))  # iteration 4 test variants
-    c.add_argument("--level", nargs=2, metavar=("CEILING_DB", "EMPHASIS"))  # iteration 5 candidates
+    c.add_argument("--level", nargs="+", metavar="ARG")  # iteration 5: CEILING EMPHASIS; iteration 6 appends 7 accent args
     h = sub.add_parser("prepare-it5"); h.add_argument("--exe", type=Path, required=True); h.add_argument("--base", type=Path, required=True)
     h.add_argument("--out", type=Path, required=True); h.add_argument("--holdout", type=Path, required=True)
+    s6 = sub.add_parser("add-song"); s6.add_argument("--exe", type=Path, required=True); s6.add_argument("--out", type=Path, required=True)
+    s6.add_argument("--name", required=True); s6.add_argument("--wav", type=Path, required=True); s6.add_argument("--target", type=float, required=True)
     a = ap.parse_args(argv)
+    if a.cmd == "add-song":
+        add_song(a.exe, a.out, a.name, a.wav, a.target)
+        return 0
     if a.cmd == "prepare-it5":
         prepare_it5(a.exe, a.base, a.out, a.holdout)
         return 0

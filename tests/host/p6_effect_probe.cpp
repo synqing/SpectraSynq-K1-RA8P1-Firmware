@@ -18,6 +18,7 @@
 //       variant: peak|energy|emphasis|default (firmware constants) ; fault: none|channel_max|floor
 //       optional 9th argument (iteration 4): palette test variant asis|lifted|range
 //       optional 10th/11th (iteration 5): level ceiling dBFS, emphasis exponent
+//       optional 12th-18th (iteration 6): boost widen ratio_full epsilon fast_s slow_s luma_hold
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
 #include "core/visual/product_palette.h"
@@ -70,7 +71,7 @@ std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
 
 int main(int argc, char** argv) {
 #ifdef K1_INHOUSE_MAPPING_V9
-  if (argc != 8 && argc != 9 && argc != 11) {
+  if (argc != 8 && argc != 9 && argc != 11 && argc != 18) {
     std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range]\n");
     return 2;
   }
@@ -124,7 +125,15 @@ int main(int argc, char** argv) {
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostPalette(palette)) return 2;
   }
-  if (argc == 11) {  // iteration 5 candidate: level ceiling (dBFS) and emphasis exponent
+  if (argc == 18) {  // iteration 6: boost widen ratio_full epsilon fast_s slow_s luma_hold(0|1)
+    k1::core::visual::InhouseV9Accent accent{};
+    accent.boost = std::strtof(argv[11], nullptr); accent.widen_px = std::strtof(argv[12], nullptr);
+    accent.ratio_full = std::strtof(argv[13], nullptr); accent.epsilon = std::strtof(argv[14], nullptr);
+    accent.fast_s = std::strtof(argv[15], nullptr); accent.slow_s = std::strtof(argv[16], nullptr);
+    for (unsigned b = 0; b < 2; ++b)
+      if (!renderer[b].setV9HostAccent(accent, std::string(argv[17]) == "1")) return 2;
+  }
+  if (argc >= 11) {  // iteration 5 candidate: level ceiling (dBFS) and emphasis exponent
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostLevel(std::strtof(argv[9], nullptr), std::strtof(argv[10], nullptr))) return 2;
   }
@@ -142,7 +151,7 @@ int main(int argc, char** argv) {
   std::fprintf(csv, "t_s,board,fresh,silence,raw_rms,vu_level,peak_scaled,tempo_valid,tempo_bpm,tempo_confidence,"
                     "novelty,palette_coordinate,decay_rate,deposit_strength,position,scroll_steps,"
                     "S,L,lit_px,offpal_px,max_channel,level,tonality_gate,centroid_strength,intensity_mean,tempo_weight,"
-                    "Lstar,Lstar_x3,extent\n");
+                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref\n");
   constexpr unsigned kSlot = 296U;                   // device PDM block at 40 kHz
   constexpr std::uint64_t kOriginUs = 1000000U;      // keep every timestamp positive
   constexpr std::uint64_t kRenderUs = 10000U;        // palette period (composition period_us)
@@ -234,7 +243,12 @@ int main(int argc, char** argv) {
 #else
         std::fprintf(csv, ",,,,,");
 #endif
-        std::fprintf(csv, "%.4f,%.4f,%.4f\n", lsum / 160.0, lsum3 / 160.0, wide / 160.0);
+        std::fprintf(csv, "%.4f,%.4f,%.4f,", lsum / 160.0, lsum3 / 160.0, wide / 160.0);
+#ifdef K1_INHOUSE_MAPPING_V9
+        std::fprintf(csv, "%.6f,%.4f,%.4f\n", o.low_flux, o.accent, o.luma_ref);
+#else
+        std::fprintf(csv, ",,\n");
+#endif
       }
     }
   }

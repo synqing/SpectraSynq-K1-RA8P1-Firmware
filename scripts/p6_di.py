@@ -81,7 +81,8 @@ def p95(v):
 
 def evaluate(replay: Path, inputs: dict, anc: dict, plant_accent: bool) -> dict:
     rows, ok = [], True
-    for tag, a in anc["inputs"].items():
+    for key, a in anc["inputs"].items():
+        tag = a.get("tag", key)  # iteration 6: several drops may be keyed on one input
         spec = next(s for s in inputs["inputs"].values() if tag in s["files"])
         d = pd.read_csv(replay / f"{tag}.csv")
         d["t_song"] = (d.t_s - spec["offset_s"]) / spec["scale"]
@@ -93,7 +94,7 @@ def evaluate(replay: Path, inputs: dict, anc: dict, plant_accent: bool) -> dict:
             dropP = drop.Lstar_x3 if plant_accent else drop.Lstar
             build = w(b0, b1)
             di = p95(dropP) / p95(build.Lstar) if p95(build.Lstar) > 0 else math.inf
-            row = {"input": tag, "board": board, "DI": di, "p95_drop": p95(dropP), "p95_build": p95(build.Lstar),
+            row = {"input": key, "board": board, "DI": di, "p95_drop": p95(dropP), "p95_build": p95(build.Lstar),
                    "X_extent": float(np.percentile(w(td, td + 4.0).extent, 90) / max(np.percentile(build.extent, 90), 1e-9)),
                    "D_sustain": float(w(td, td + 4.0).Lstar.median() / max(np.percentile(build.Lstar, 90), 1e-9)),
                    "pass": bool(di >= BAR)}
