@@ -139,3 +139,43 @@ def test_stream_clock_red_when_delay_constant_is_wrong(tmp_path):
                    check=True)
     r = subprocess.run([str(exe)], capture_output=True, text=True)
     assert r.returncode == 1, r.stdout
+
+
+PACK = Path("/Users/spectrasynq/.eclipse/com.renesas.platform_386271466/internal/projectgen/ra/packs/"
+            "Arm.CMSIS-DSP.1.16.2+fsp.6.6.0.pack")
+
+
+def _cmsis_build(tmp):
+    import zipfile
+    root = tmp / "cmsis"
+    with zipfile.ZipFile(PACK) as pack:
+        for m in pack.namelist():
+            if (m.startswith("ra/arm/CMSIS-DSP/Include/") or m.startswith("ra/arm/CMSIS-DSP/PrivateInclude/")
+                    or m.endswith("BasicMathFunctions/arm_dot_prod_f32.c")) and not m.endswith("/"):
+                out = root / m
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_bytes(pack.read(m))
+    base = root / "ra/arm/CMSIS-DSP"
+    exe = tmp / "probe_cmsis"
+    # Host build: CMSIS-DSP's portable C kernel (__GNUC_PYTHON__), not the MVE one.
+    subprocess.run(["cc", "-std=c11", "-O2", "-fno-fast-math", "-D__GNUC_PYTHON__", "-DK1_POLY24_CMSIS=1",
+                    "-I" + str(P), "-I" + str(base / "Include"), "-I" + str(base / "PrivateInclude"),
+                    str(ROOT / "tests/host/poly24_probe.c"), str(P / "k1_poly24.c"),
+                    str(base / "Source/BasicMathFunctions/arm_dot_prod_f32.c"), "-lm", "-o", str(exe)], check=True)
+    return exe
+
+
+@pytest.mark.skipif(not PACK.exists(), reason="FSP CMSIS-DSP pack not installed")
+def test_cmsis_dot_product_matches_plain_loop(tmp_path):
+    plain = run(build(tmp_path, "plain"), tmp_path, 3000.0)
+    cmsis = run(_cmsis_build(tmp_path), tmp_path, 3000.0)
+    assert len(plain) == len(cmsis) > 0
+    assert np.max(np.abs(plain - cmsis)) <= 1.0
+
+
+@pytest.mark.skipif(not PACK.exists(), reason="FSP CMSIS-DSP pack not installed")
+def test_cmsis_comparison_red_against_wrong_filter(tmp_path):
+    wrong = run(build(tmp_path, "taps16", ("-DK1_POLY24_TAPS=16u",)), tmp_path, 3000.0)
+    cmsis = run(_cmsis_build(tmp_path), tmp_path, 3000.0)
+    n = min(len(wrong), len(cmsis))
+    assert np.max(np.abs(wrong[:n] - cmsis[:n])) > 1.0

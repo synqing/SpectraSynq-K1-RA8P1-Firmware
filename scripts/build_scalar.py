@@ -107,6 +107,11 @@ PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_targe
                     'k1_pdm_sensitivity.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/titan-onboard-lmd2718-source-contract.json'
 ANALYSIS24_FILES = ['k1_poly24.c', 'k1_poly24.h']
+# Lane P4 step 8: CMSIS-DSP 1.16.2 from the installed FSP 6.6.0 pack, extracted at build
+# time (never vendored). Only arm_dot_prod_f32.c is compiled; its headers come along.
+CMSIS_DSP_PACK = Path('/Users/spectrasynq/.eclipse/com.renesas.platform_386271466/internal/projectgen/ra/packs/Arm.CMSIS-DSP.1.16.2+fsp.6.6.0.pack')
+CMSIS_DSP_PACK_SHA256 = '76380258f62ff515b5fbddfdc0dfd5031d4a6686844259d4d613fbd5a240647d'
+CMSIS_DSP_SOURCES = ['ra/arm/CMSIS-DSP/Source/BasicMathFunctions/arm_dot_prod_f32.c']
 PCM1808_TARGET_FILES = [
     'pcm1808_core.cpp', 'pcm1808_core.h', 'pcm1808_target.c', 'pcm1808_target.h',
 ]
@@ -521,6 +526,8 @@ def main():
                         help='complete Emotiscope v1.1_build AP/VP: 12800 Hz/64 samples, native 128 pixels mapped to continuous 160')
     parser.add_argument('--inhouse-analysis24',action='store_true',
                         help='lane P4: in-house analysis on k1_poly24 24 kHz/180 (donor stays 12.8 kHz/64); needs --emotiscope-port --pdm-target --live-runtime')
+    parser.add_argument('--poly24-cmsis',action='store_true',
+                        help='lane P4 step 8: k1_poly24 dot products via CMSIS-DSP arm_dot_prod_f32 (MVE); needs --inhouse-analysis24')
     parser.add_argument('--tempo-field',action='store_true',
                         help='admit only the hash-pinned TempoField portable adaptation')
     parser.add_argument('--tempo-acf-slice',action='store_true',
@@ -720,7 +727,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {})),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {})),sort_keys=True).encode()).hexdigest()
         receipt.update(deploy_admissible=args.asrc_tcm != 'data+code')
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
@@ -734,6 +741,8 @@ def main():
                        live_runtime=args.live_runtime,
                        live_emit=args.live_emit,
                        inhouse_analysis24=bool(args.inhouse_analysis24),
+                       poly24_cmsis=({'pack':str(CMSIS_DSP_PACK),'pack_sha256':CMSIS_DSP_PACK_SHA256,
+                                      'sources':CMSIS_DSP_SOURCES} if args.poly24_cmsis else None),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -812,6 +821,12 @@ def main():
             if not (args.emotiscope_port and args.pdm_target and args.live_runtime):
                 raise RuntimeError('--inhouse-analysis24 needs --emotiscope-port --pdm-target --live-runtime')
             defines.append('-DK1_INHOUSE_ANALYSIS24=1')
+        if args.poly24_cmsis:
+            if not args.inhouse_analysis24:
+                raise RuntimeError('--poly24-cmsis needs --inhouse-analysis24')
+            if hashlib.sha256(CMSIS_DSP_PACK.read_bytes()).hexdigest() != CMSIS_DSP_PACK_SHA256:
+                raise RuntimeError('CMSIS-DSP pack identity changed: ' + str(CMSIS_DSP_PACK))
+            defines.append('-DK1_POLY24_CMSIS=1')
         if args.titan_top_output: defines.append('-DK1_TITAN_TOP_OUTPUT=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
@@ -942,6 +957,27 @@ def main():
             for name in PDM_TARGET_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
             if args.inhouse_analysis24:
                 for name in ANALYSIS24_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+            if args.poly24_cmsis:
+                import zipfile
+                dest = stage/'src/cmsis_dsp'
+                with zipfile.ZipFile(CMSIS_DSP_PACK) as pack:
+                    for member in pack.namelist():
+                        keep = (member.startswith('ra/arm/CMSIS-DSP/Include/') or
+                                member.startswith('ra/arm/CMSIS-DSP/PrivateInclude/') or member in CMSIS_DSP_SOURCES)
+                        if keep and not member.endswith('/'):
+                            out = dest/member[len('ra/arm/CMSIS-DSP/'):]
+                            out.parent.mkdir(parents=True, exist_ok=True)
+                            out.write_bytes(pack.read(member))
+                scon = stage/'src/SConscript'
+                text = scon.read_text()
+                assert text.count('src += ws281x_diagnostic') == 1
+                assert text.count("os.path.join(cwd, 'p4')]") == 1
+                text = text.replace('src += ws281x_diagnostic',
+                                    "src += ws281x_diagnostic + Glob('cmsis_dsp/Source/BasicMathFunctions/arm_dot_prod_f32.c')")
+                text = text.replace("os.path.join(cwd, 'p4')]",
+                                    "os.path.join(cwd, 'p4'), os.path.join(cwd, 'cmsis_dsp', 'Include'), "
+                                    "os.path.join(cwd, 'cmsis_dsp', 'PrivateInclude')]")
+                scon.write_text(text)
         if args.pcm1808_target:
             for name in PCM1808_TARGET_FILES:
                 shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)

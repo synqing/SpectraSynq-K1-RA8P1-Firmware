@@ -2,6 +2,9 @@
 
 #include <math.h>
 #include <string.h>
+#ifdef K1_POLY24_CMSIS
+#include "arm_math.h"
+#endif
 
 _Static_assert(K1_POLY24_PHASES == 128u, "phase index uses the top 7 bits of mu");
 _Static_assert(K1_POLY24_TAPS % 2u == 0u && K1_POLY24_TAPS >= 4u, "even tap count");
@@ -154,10 +157,17 @@ int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
         const float *b = st->table[phase + 1u];
         float s0 = 0.0f;
         float s1 = 0.0f;
+#ifdef K1_POLY24_CMSIS
+        /* Lane P4 step 8: CMSIS-DSP's MVE kernel (the plain loop below is not
+           vectorised by GCC 13.3 here: 0 q-register vfma in the -O3 image). */
+        arm_dot_prod_f32(window, a, K1_POLY24_TAPS, &s0);
+        arm_dot_prod_f32(window, b, K1_POLY24_TAPS, &s1);
+#else
         for (uint32_t j = 0u; j < K1_POLY24_TAPS; ++j) {
             s0 += window[j] * a[j];
             s1 += window[j] * b[j];
         }
+#endif
         out[o] = k1_poly24_sat(s0 + t * (s1 - s0));
         pos += st->step_q32;
     }
