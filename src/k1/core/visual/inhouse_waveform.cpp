@@ -82,6 +82,13 @@ void InhouseWaveformRenderer::reset() noexcept {
   last_render_us_ = newest_capture_us_ = epoch_ = generation_ = 0;
   observation_ = {};
   mode_ = 32;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  intensity_.fill(0);
+  colour_.fill({});
+  colour_position_ = colour_velocity_ = colour_anchor_ = centroid_ = centroid_strength_ = 0.0F;
+  colour_valid_ = false;
+  tonality_gate_ = 0;
+#endif
 }
 
 bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
@@ -164,6 +171,16 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
   }
   observation_.held_coordinate_valid = held_valid_;
 
+#if defined(K1_INHOUSE_MAPPING_V9)
+  // v9 reads levelling stage 4's outputs (tonality gate, centroid); the stage itself
+  // above is unchanged and shared with v8.
+  if (controls.mode == 32U || controls.mode == 18U) {
+    tonality_gate_ = gate;
+    centroid_ = centroid;
+    centroid_strength_ = total_weight > 0.0001F ? ::sqrtf(x*x + y*y) / total_weight : 0.0F;
+    return renderV9(audio, controls, dt, fresh, silent, output);
+  }
+#endif
   if (controls.mode != 32U) return renderFamily(audio, controls, dt, fresh, output);
 
   hold_ = follow(hold_, active ? 1.0F : 0.0F, dt, 0.02F, 0.50F);
@@ -494,4 +511,236 @@ bool InhouseWaveformRenderer::renderFamily(const InhouseWaveformAudio& audio,
   }
   return true;
 }
+
+#if defined(K1_INHOUSE_MAPPING_V9)
+// Colour is the slow layer. Confident harmony (tonality gate open, strong centroid, and
+// audible light being deposited) pulls the palette coordinate with capped momentum. When
+// confidence is low the colour holds, drifting only toward its own long-term confident
+// anchor, never toward a weak centroid or a palette end.
+void InhouseWaveformRenderer::updateColourV9(const InhouseWaveformControls& controls,
+    float dt, bool silent, float level) noexcept {
+  // P6 iteration 2: confidence is graded, not a hard threshold. On the replay corpus the
+  // gate reached 0.5 in only 3-23% of frames and strength 0.08 in 1-15%, so a hard
+  // threshold left colour parked at colour_offset, near-black on both v8 palettes.
+  // P6 iteration 3: confidence also scales with presence (level / 0.5, full speed from
+  // -21 dBFS, 2.5 dB below the corpus music median). In BOOM's near-silent tonal cut
+  // (level 0.01-0.07) the gate opened fully and moved colour while almost no light was
+  // drawn; the drop then inherited it. Low confidence now drifts toward the anchor.
+  constexpr float kConfidentStrength = 0.08F, kWeakStrength = 0.02F, kFullPresence = 0.5F;
+  constexpr float kFollowS = 0.6F;    // ~1/3 bar at 120-140 BPM: harmony, not beats
+  constexpr float kMomentumS = 0.25F;
+  constexpr float kAnchorS = 15.0F;   // ~8 bars at 128 BPM: one phrase of held colour
+  constexpr float kDriftS = 8.0F;
+  constexpr float kFollowCap = 0.25F, kDriftCap = 0.03F;  // palette units per second
+  const float confidence = silent ? 0.0F
+      : f(tonality_gate_) * clamp01(centroid_strength_ / kConfidentStrength) *
+        clamp01(level / kFullPresence);
+  const bool confident = confidence > 0.0F && centroid_strength_ >= kWeakStrength;
+  const auto shortest = [](float to, float from) {
+    float delta = to - from;
+    if (delta > 0.5F) delta -= 1.0F;
+    if (delta < -0.5F) delta += 1.0F;
+    return delta;
+  };
+  if (!colour_valid_) {
+    colour_position_ = colour_anchor_ = confident ? centroid_ : wrap(controls.colour_offset);
+    colour_valid_ = confident;
+    colour_velocity_ = 0.0F;
+  } else {
+    float target = 0.0F, cap = kFollowCap;
+    if (confident) {
+      target = confidence * shortest(centroid_, colour_position_) / kFollowS;
+    } else {
+      cap = kDriftCap;
+      target = shortest(colour_anchor_, colour_position_) / kDriftS;
+    }
+    colour_velocity_ = std::max(-cap, std::min(cap, ema(colour_velocity_, target, dt, kMomentumS)));
+    colour_position_ = wrap(colour_position_ + colour_velocity_ * dt);
+    // The anchor learns only from confident colour, weighted by that confidence.
+    if (confident) colour_anchor_ = wrap(colour_anchor_ + shortest(colour_position_, colour_anchor_) *
+        confidence * (1.0F - ::expf(-dt / kAnchorS)));
+  }
+  observation_.palette_coordinate = colour_position_;
+}
+
+// Separate attack and release on the intensity field: constant release in seconds,
+// independent of level and frame rate. Confirmed quiet keeps v8's extra drain.
+void InhouseWaveformRenderer::fadeV9(bool mode32, bool silent, float dt) noexcept {
+  observation_.decay_rate = 1.0F / (mode32 ? 0.29F : 0.125F) + (silent ? 10.0F : 0.0F);
+  const auto fade = q(::expf(-observation_.decay_rate * dt));
+  for (auto& value : intensity_) value = mul(value, fade);
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  for (auto& p : history_) { p.red = mul(p.red, fade); p.green = mul(p.green, fade); p.blue = mul(p.blue, fade); }
+#endif
+}
+
+// Deposit: level drives amplitude and a bounded triangular width. A pixel takes the
+// new intensity AND its colour only where the deposit exceeds the decayed value, so
+// trails keep their deposited colour and no hue is mixed per channel.
+void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float position,
+    float level, const FixedRgb& colour) noexcept {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const InhouseV9Variant variant = v9_variant_;
+  const float gain = v9_gain_[mode32 ? 0 : 1];
+#else
+  constexpr InhouseV9Variant variant = kInhouseV9Variant;
+  const float gain = mode32 ? kInhouseV9Gain32 : kInhouseV9Gain18;
+#endif
+  const float width = 0.5F + 3.5F * level;
+  float amplitude = gain;
+  if (variant == InhouseV9Variant::kConstantEnergy) amplitude = gain * 2.0F / (width + 1.0F);
+  else if (variant == InhouseV9Variant::kLevelEmphasis) amplitude = gain * level * ::sqrtf(level);
+  amplitude = clamp01(amplitude);
+  const float reach = width + 1.0F;
+  const int first = std::max(static_cast<int>(start), static_cast<int>(std::ceil(position - reach)));
+  const int last = std::min(159, static_cast<int>(std::floor(position + reach)));
+  for (int i = first; i <= last; ++i) {
+    const auto x = q(amplitude * clamp01(1.0F - std::fabs(static_cast<float>(i) - position) / reach));
+    if (x == 0) continue;
+    observation_.deposit_strength += f(x);
+    ++observation_.injection_count;
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+    auto& p = history_[static_cast<unsigned>(i)];
+    if (v9_fault_ == InhouseV9Fault::kPerChannelMax) {
+      p.red = std::max(p.red, mul(colour.red, x));
+      p.green = std::max(p.green, mul(colour.green, x));
+      p.blue = std::max(p.blue, mul(colour.blue, x));
+      continue;
+    }
+    if (v9_fault_ == InhouseV9Fault::kRgbBlend) {
+      p.red += (mul(colour.red, x) - p.red) / 2;
+      p.green += (mul(colour.green, x) - p.green) / 2;
+      p.blue += (mul(colour.blue, x) - p.blue) / 2;
+      continue;
+    }
+#endif
+    if (x > intensity_[static_cast<unsigned>(i)]) {
+      intensity_[static_cast<unsigned>(i)] = x;
+      colour_[static_cast<unsigned>(i)] = colour;
+    }
+  }
+}
+
+void InhouseWaveformRenderer::outputV9(const InhouseWaveformControls& controls,
+    const FixedRgb& colour, Pixel16* output) noexcept {
+  (void)colour;  // used only by the host brightness-floor fault
+  std::int64_t intensity_sum = 0;
+  for (unsigned i = 0; i < 160U; ++i) intensity_sum += intensity_[controls.mirror && i < 80U ? 159U - i : i];
+  observation_.intensity_mean = static_cast<float>(intensity_sum) / (160.0F * 65536.0F);
+  const float saturation = clamp01(controls.saturation);
+  for (unsigned i = 0; i < 160U; ++i) {
+    const unsigned source = controls.mirror && i < 80U ? 159U - i : i;
+    auto level_q = intensity_[source];
+    FixedRgb p{mul(colour_[source].red, level_q), mul(colour_[source].green, level_q),
+               mul(colour_[source].blue, level_q)};
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+    if (v9_fault_ == InhouseV9Fault::kPerChannelMax || v9_fault_ == InhouseV9Fault::kRgbBlend) p = history_[source];
+    if (v9_fault_ == InhouseV9Fault::kBrightnessFloor) {
+      level_q = std::max<std::int32_t>(level_q, one / 1024);
+      const FixedRgb floor_colour = colour_[source].red || colour_[source].green || colour_[source].blue
+          ? colour_[source] : colour;
+      p = {mul(floor_colour.red, level_q), mul(floor_colour.green, level_q), mul(floor_colour.blue, level_q)};
+    }
+#endif
+    const auto top = std::max(p.red, std::max(p.green, p.blue));
+    output[i] = {outputChannel(top + static_cast<std::int32_t>(static_cast<float>(p.red - top) * saturation)),
+                 outputChannel(top + static_cast<std::int32_t>(static_cast<float>(p.green - top) * saturation)),
+                 outputChannel(top + static_cast<std::int32_t>(static_cast<float>(p.blue - top) * saturation))};
+  }
+}
+
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+bool InhouseWaveformRenderer::probeV9Deposit(const InhouseWaveformControls& controls,
+    float palette_position, float level, float position, float dt, Pixel16* output) noexcept {
+  if (output == nullptr || (controls.mode != 32U && controls.mode != 18U)) return false;
+  const bool mode32 = controls.mode == 32U;
+  const auto colour_f = sample(controls.palette_id, palette_position, 1.0F);
+  const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
+  if (dt > 0.0F) fadeV9(mode32, false, dt);
+  depositV9(mode32, mode32 || controls.mirror ? 80U : 0U, position, clamp01(level), colour);
+  outputV9(controls, colour, output);
+  return true;
+}
+#endif
+
+bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
+    const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
+    Pixel16* output) noexcept {
+  const bool mode32 = controls.mode == 32U;
+  const float motion = std::isfinite(controls.motion_scale)
+      ? std::max(0.0F, std::min(4.0F, controls.motion_scale)) : 1.0F;
+  // Level: fixed dB transfer of the pre-AGC RMS (-33 dBFS -> 0, -9 dBFS -> 1). It sets
+  // deposit amplitude and width only; it never changes the release.
+  const float vu = fresh ? clamp01(audio.vu_level) : 0.0F;
+  const float level = silent || vu <= 0.0F ? 0.0F
+      : clamp01((20.0F * ::log10f(vu) + 33.0F) / 24.0F);
+  observation_.level = level;
+  observation_.tonality_gate = f(tonality_gate_);
+  observation_.centroid_strength = centroid_strength_;
+  updateColourV9(controls, dt, silent, level);
+  const auto colour_f = sample(controls.palette_id, colour_position_, 1.0F);
+  const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
+  observation_.smoothed_colour = colour_f;
+  fadeV9(mode32, silent, dt);
+
+  // Transport. Mode 32: v8's outward scroll from the centre. Mode 18: tempo motion
+  // weighted by tempo confidence (never above 0.7), with an onset-driven energy layer
+  // carrying the rest, so no motion depends solely on the single tempo winner.
+  const unsigned start = mode32 || controls.mirror ? 80U : 0U;
+  float rate = 405.0F * motion;
+  unsigned maximum_steps = 8U;
+  float position = 80.0F;
+  const float peak = fresh ? std::max(clamp01(audio.peak_scaled),
+      audio.peak_summary_valid ? clamp01(audio.observed_peak_scaled) : 0.0F) : 0.0F;
+  if (mode32) {
+    for (unsigned i = 0; i < 80U; ++i) { intensity_[i] = 0; colour_[i] = {}; }
+    observation_.peak_stage1 = ema(observation_.peak_stage1, peak, dt, 0.016F);
+    observation_.peak_stage2 = ema(observation_.peak_stage2, observation_.peak_stage1, dt, 0.023F);
+    position = std::min(159.0F, 80.0F + observation_.peak_stage2 * 0.7F * 80.0F);
+    observation_.tempo_weight = 0.0F;
+  } else {
+    const bool tempo_fresh = fresh && audio.tempo_valid &&
+        audio.tempo_capture_us <= last_render_us_ &&
+        last_render_us_ - audio.tempo_capture_us <= 30000U + kInhouseTempoUpdatePeriodUs &&
+        std::isfinite(audio.tempo_bpm) && audio.tempo_bpm >= 60.0F &&
+        audio.tempo_bpm <= 156.0F && std::isfinite(audio.tempo_phase01) &&
+        std::isfinite(audio.tempo_confidence);
+    float w = tempo_fresh ? clamp01((audio.tempo_confidence - 0.30F) / 0.30F) : 0.0F;
+    w = 0.7F * w * w * (3.0F - 2.0F * w);
+    const float tempo_rate = tempo_fresh ? 24.0F * (audio.tempo_bpm / 60.0F) *
+        (1.0F + 0.5F * ::cosf(tau * audio.tempo_phase01)) : 0.0F;
+    const float onset = std::isfinite(audio.novelty) ? clamp01(audio.novelty / 0.12F) : 0.0F;
+    const float energy_rate = !silent ? 30.0F + 90.0F * onset : 0.0F;
+    rate = (w * tempo_rate + (1.0F - w) * energy_rate) * motion;
+    maximum_steps = 30U;
+    observation_.tempo_weight = w;
+    const float index = std::max(0.0F, std::min(159.0F, 80.0F + peak * 80.0F + 0.5F));
+    position = std::floor(index);
+    if (controls.mirror) position = std::max(80.0F, position);
+  }
+  observation_.scroll_remainder += rate * dt;
+  const unsigned steps = std::min(maximum_steps, static_cast<unsigned>(observation_.scroll_remainder));
+  observation_.scroll_remainder -= static_cast<float>(steps);
+  observation_.scroll_steps = steps;
+  for (unsigned s = 0; s < steps; ++s) {
+    for (unsigned i = 159U; i > start; --i) {
+      intensity_[i] = intensity_[i - 1U];
+      colour_[i] = colour_[i - 1U];
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+      history_[i] = history_[i - 1U];
+#endif
+    }
+    intensity_[start] = 0;
+    colour_[start] = {};
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+    history_[start] = {};
+#endif
+  }
+  observation_.position = position;
+  observation_.deposit_strength = 0.0F;
+  if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour);
+  outputV9(controls, colour, output);
+  return true;
+}
+#endif
 }  // namespace k1::core::visual

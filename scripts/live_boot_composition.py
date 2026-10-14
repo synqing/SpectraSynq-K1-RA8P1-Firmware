@@ -1,4 +1,4 @@
-"""Validate complete authored v8 defaults and generate the existing boot consumer."""
+"""Validate complete authored v8/v9 defaults and generate the existing boot consumer."""
 import hashlib
 import math
 import struct
@@ -8,6 +8,13 @@ OUTPUT = {'hardware_output_brightness','emission_enabled','output_precision',
           'secondary_intensity','secondary_output_enabled'}
 PAIR = {'pair_link','pair_colour_enabled','pair_colour_mode','pair_colour_strength',
         'pair_colour_spread','pair_colour_spatial'}
+
+# Lane P6 (Captain ruling 1): profile 9 selects the v9 effect mapping in the same
+# renderer; profile 8 stays the bit-identical reference and adds no define.
+PROFILE_DEFINES = {8: [], 9: ['-DK1_INHOUSE_MAPPING_V9=1']}
+
+def profile_defines(c):
+    return list(PROFILE_DEFINES[c['profile_version']])
 
 def fields_from_schema(schema):
     fields = {}
@@ -29,8 +36,8 @@ def validate_composition(defaults, schema, schema_bytes):
         if not isinstance(obj, dict) or set(obj) != set(keys):
             raise RuntimeError(f'{label}: missing or unknown fields')
     exact(c, {'profile_version','schema_sha256','boards','pair','output'}, 'composition')
-    if type(c['profile_version']) is not int or c['profile_version'] != 8:
-        raise RuntimeError('composition requires profile_version 8')
+    if type(c['profile_version']) is not int or c['profile_version'] not in PROFILE_DEFINES:
+        raise RuntimeError('composition requires profile_version 8 or 9')
     if c['schema_sha256'] != hashlib.sha256(schema_bytes).hexdigest():
         raise RuntimeError('composition schema identity mismatch')
     fields = fields_from_schema(schema)

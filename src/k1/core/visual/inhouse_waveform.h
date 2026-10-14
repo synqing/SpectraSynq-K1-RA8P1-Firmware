@@ -13,6 +13,27 @@ namespace k1::core::visual {
 inline constexpr std::uint64_t kInhouseTempoUpdatePeriodUs = 22500U;
 inline constexpr float kInhouseQuietEntryRms = 0.04F;
 
+#if defined(K1_INHOUSE_MAPPING_V9)
+// Boot composition v9 (lane P6, Captain ruling 1): level drives deposit amplitude and
+// bounded width, release is constant, colour is a slow layer that holds when tonality
+// drops. Modes 32 and 18 only; the other family modes keep the v8 path. Without this
+// define the renderer is the unchanged v8 reference profile.
+enum class InhouseV9Variant : std::uint8_t {
+  kConstantPeak = 0,     // peak fixed; level drives width only
+  kConstantEnergy = 1,   // integrated deposit energy fixed; level drives spread only
+  kLevelEmphasis = 2,    // peak = level^1.5 (bounded) and level-driven width
+};
+// Planted faults for the frozen P6 gates; compiled only into the host probe.
+enum class InhouseV9Fault : std::uint8_t {
+  kNone = 0, kPerChannelMax = 1, kBrightnessFloor = 2, kRgbBlend = 3,
+};
+// Chosen by the frozen P6 rule at matched optical energy (TOLERANCE-FROZEN-P6.json,
+// iteration 3). Gains match v8's mean light on the BOOM file/room + Sonic corpus per mode.
+inline constexpr InhouseV9Variant kInhouseV9Variant = InhouseV9Variant::kLevelEmphasis;
+inline constexpr float kInhouseV9Gain32 = 0.853441F;  // mode 32 deposit gain
+inline constexpr float kInhouseV9Gain18 = 0.965298F;  // mode 18 deposit gain
+#endif
+
 // One coherent producer observation; spectrum is the source 80-note bank after
 // audio gain/tilt, BEFORE visual smoothing. PCM peak is in signed-16 units.
 struct InhouseWaveformAudio final {
@@ -77,6 +98,13 @@ struct InhouseWaveformObservation final {
   // Cumulative nonzero source-pixel writes, before mirror. Mode 11 writes both
   // halves; this counts pixel additions/assignments, never musical events.
   std::uint64_t injection_count = 0;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  float level = 0.0F;          // v9 fixed dB transfer of the pre-AGC RMS
+  float tempo_weight = 0.0F;   // v9 Tempo board: share of motion from the tempo winner
+  float tonality_gate = 0.0F;  // v9 colour-layer inputs (stage-4 outputs, read only)
+  float centroid_strength = 0.0F;
+  float intensity_mean = 0.0F; // v9 mean intensity field before colour (light without palette)
+#endif
 };
 
 // Source: effects/light_mode_waveform{_hybrid_k1,_tempo,,_fast,_hybrid}.cpp
@@ -91,6 +119,20 @@ class InhouseWaveformRenderer final {
   [[nodiscard]] const InhouseWaveformObservation& observation() const noexcept {
     return observation_;
   }
+#if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  // Host comparison only: select a P6 variant, a planted fault and per-mode gains.
+  [[nodiscard]] bool setV9HostConfig(InhouseV9Variant variant, InhouseV9Fault fault,
+                                     float gain32, float gain18) noexcept {
+    if (static_cast<unsigned>(variant) > 2U || static_cast<unsigned>(fault) > 3U ||
+        !(gain32 > 0.0F && gain32 <= 64.0F) || !(gain18 > 0.0F && gain18 <= 64.0F)) return false;
+    v9_variant_ = variant; v9_fault_ = fault; v9_gain_[0] = gain32; v9_gain_[1] = gain18;
+    return true;
+  }
+  // C5b hue probe: one deposit of an explicit palette position through the v9 release,
+  // deposit and output code (dt > 0 applies one release step first).
+  [[nodiscard]] bool probeV9Deposit(const InhouseWaveformControls& controls, float palette_position,
+                                    float level, float position, float dt, Pixel16* output) noexcept;
+#endif
  private:
   struct FixedRgb { std::int32_t red = 0, green = 0, blue = 0; };
   std::array<FixedRgb, 160> history_{};
@@ -113,6 +155,33 @@ class InhouseWaveformRenderer final {
       Pixel16* output) noexcept;
   [[nodiscard]] PaletteLinearRgb familyColour(const InhouseWaveformControls& controls,
       float brightness, float offset) noexcept;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  // Intensity field (Q16) and the palette colour each pixel was deposited with.
+  std::array<std::int32_t, 160> intensity_{};
+  std::array<FixedRgb, 160> colour_{};
+  float colour_position_ = 0.0F;
+  float colour_velocity_ = 0.0F;
+  float colour_anchor_ = 0.0F;  // long-term confident colour (iteration 3)
+  bool colour_valid_ = false;
+  std::int32_t tonality_gate_ = 0;
+  float centroid_ = 0.0F;
+  float centroid_strength_ = 0.0F;
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  InhouseV9Variant v9_variant_ = kInhouseV9Variant;
+  InhouseV9Fault v9_fault_ = InhouseV9Fault::kNone;
+  float v9_gain_[2] = {kInhouseV9Gain32, kInhouseV9Gain18};
+#endif
+  [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
+      const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
+      Pixel16* output) noexcept;
+  void updateColourV9(const InhouseWaveformControls& controls, float dt, bool silent,
+                      float level) noexcept;
+  void fadeV9(bool mode32, bool silent, float dt) noexcept;
+  void depositV9(bool mode32, unsigned start, float position, float level,
+                 const FixedRgb& colour) noexcept;
+  void outputV9(const InhouseWaveformControls& controls, const FixedRgb& colour,
+                Pixel16* output) noexcept;
+#endif
 };
 
 }  // namespace k1::core::visual

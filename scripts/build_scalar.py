@@ -22,7 +22,7 @@ from tempo_dtcm_overlay import (
     validate_tempo_placement_owner,
 )
 
-from live_boot_composition import validate_composition, render_composition
+from live_boot_composition import validate_composition, render_composition, profile_defines
 
 from repo_layout import sibling
 
@@ -935,7 +935,10 @@ def main():
                 generated=render_composition(composition)
                 (stage/'src/live_boot_composition.h').write_text(generated)
                 defines.append('-DK1_LIVE_BOOT_COMPOSITION=1')
+                defines.extend(profile_defines(composition))
                 receipt['live_boot_composition']={'settings':composition,'generated_sha256':hashlib.sha256(generated.encode()).hexdigest(),'consumer':'owning setters after live_runtime.initialise'}
+                if composition['profile_version'] == 9:
+                    receipt['live_boot_composition']['inhouse_mapping']='v9 (K1_INHOUSE_MAPPING_V9; lane P6, Captain ruling 1)'
             if args.emotiscope_port:
                 if emit_default != 'on':
                     raise RuntimeError('Emotiscope port must restore autonomous emission on application return')
