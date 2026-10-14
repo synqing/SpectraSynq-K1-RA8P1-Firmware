@@ -85,10 +85,10 @@ The donor-stream max-difference check promised in the frozen file is **not demon
 **Deploy.**
 - `f6daf7fb` was programmed through `deploy_titan_image.sh` (`programme-p4-corr-005`). The interpreter was overridden to `TITAN_DEPLOY_PYTHON=python3.13`, because Homebrew 3.14's `pyexpat` fails to import.
 - Identity MATCH at 13:52:13Z; 99.8 frames/s, 0 LED faults, emission ON.
-- **D1 recurred after every programming or SWD reset in this session's cabling** (E2 Lite on the same hub as the Titan). Two `-run -sig` resets did not clear it. Each time, a power cycle of the Titan's hub port (`uhubctl -n 05e3:0610 -p 4 -a cycle`) cleared it.
-- Dark intervals:
+- **USB-CDC-NOATTACH (ex-"D1") recurred after every programming or SWD reset in this session's cabling** (E2 Lite on the same hub as the Titan). Two `-run -sig` resets did not clear it. Each time, a power cycle of the Titan's hub port (`uhubctl -n 05e3:0610 -p 4 -a cycle`) cleared it.
+- Dark intervals *(superseded by the complete UTC table in Amendments)*:
   - about 33 s while programming (21:49:12–21:49:46 local);
-  - then D1, with light unobserved, until the 21:51:58 programme;
+  - then USB-CDC-NOATTACH, with light unobserved, until the 21:51:58 programme;
   - about 49 s for the final deploy (21:51:24 to identity 21:52:13).
 
 **Readback.** v8 profile `a166a3fb…`: **127 fields, 0 differences** (`corr-readback/`).
@@ -124,7 +124,7 @@ The donor-stream max-difference check promised in the frozen file is **not demon
 - **Reason:** the hub-port cycle had restored the serial link where the scripted remedy had failed twice. Re-programming the same identity-checked image was judged less disruptive than recovering `f2f1983a` and then flashing `f6daf7fb` again.
 - **It remains a deviation** from the written stop rule. It is recorded here and canonised, with guards, in the mixer skill.
 
-**Hub-port cycle facts (review F-G/F-7).** [FACT] Device uptime shows the Titan booted at programming end, **not** at the port cycle. The cycle only re-enumerates USB (the Titan is not powered from that port). **It is not a power-on and cannot stand in for the G10 cold boot.**
+**Hub-port cycle facts (review F-G/F-7).** [FACT] Device uptime shows the Titan booted at programming end, **not** at the port cycle. The cycle only re-enumerates USB. [INFERENCE from the uptime] The Titan is not powered from that port. **It is not a power-on and cannot stand in for the G10 cold boot.**
 
 **Unobserved and dark intervals, complete (review F-I), UTC:**
 
