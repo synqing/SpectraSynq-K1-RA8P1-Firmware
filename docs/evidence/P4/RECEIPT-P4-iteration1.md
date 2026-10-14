@@ -89,6 +89,7 @@ All times are local (+08:00).
 - **What happened.** Programming returned rc 0, but identity was MISMATCH: the post-info step found no Titan. The Titan's CDC device (045b:5310) was in the USB registry with no serial port attached. The broker was in an exit loop on the old admission.
 - **Action taken.** One SWD signature-and-run reset at about 19:07 (UID matched, probe power off). The serial port then attached, and the device reported `5f1483e8` at 99.7 frames/s with 0 LED faults.
 - **Ruling.** The PLAN stop condition, "no USB serial link after one reset", was not met, so no recovery flash was needed.
+- **Erratum (lane owner, after receipt):** this is a recurrence of the known defect **D1** (P1 receipt: "device enumerated, interfaces not attached, no /dev node", 2 of 15 debugger resets, the next reset recovers, the show is unaffected). It is not a Mac-side glitch, as first written in STATUS at 11:08Z. D1 root cause is still open. This is its first sighting after a programming reset rather than a debugger reset.
 - **Not observed.** Whether the LEDs were lit between 19:05 and 19:07: there was no serial link and there is no camera. [INFERENCE] The boot-on firmware was visualising autonomously.
 - **Afterwards.** The admission stayed on `f2f1983a` until the final deploy, so the plain image's second readback timed out on admission; its capture ran directly. Restored by the final deploy (ready True).
 
