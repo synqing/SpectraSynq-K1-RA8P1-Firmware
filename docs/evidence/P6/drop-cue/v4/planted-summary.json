@@ -1,0 +1,173 @@
+{
+  "full_file": "_scratch/waveform-migration-001/runs/P6-DROP-DETECTOR/v4/results/planted.json",
+  "full_sha256": "c0b5ce0739d6f3fbc1e352bc88c82dc52e85476818cde78f8e7927febdca3804",
+  "verdict": {
+    "label_red": true,
+    "always_on_red": true,
+    "delayed_red": true,
+    "broadband_red": true,
+    "scorer_red_on_all_three": true
+  },
+  "rows": [
+    {
+      "id": "boom_file",
+      "fault": "always_on",
+      "hit_count": 1,
+      "false_count": 9866,
+      "collar_count": 127,
+      "pass": false
+    },
+    {
+      "id": "boom_file",
+      "fault": "delayed",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "boom_file",
+      "fault": "broadband_loudness",
+      "hit_count": 1,
+      "false_count": 2,
+      "collar_count": 0,
+      "pass": false
+    },
+    {
+      "id": "boom_file",
+      "fault": "label_anchored",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "boom_room",
+      "fault": "always_on",
+      "hit_count": 1,
+      "false_count": 9866,
+      "collar_count": 127,
+      "pass": false
+    },
+    {
+      "id": "boom_room",
+      "fault": "delayed",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "boom_room",
+      "fault": "broadband_loudness",
+      "hit_count": 0,
+      "false_count": 3,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "boom_room",
+      "fault": "label_anchored",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "sonic_file",
+      "fault": "always_on",
+      "hit_count": 2,
+      "false_count": 9733,
+      "collar_count": 253,
+      "pass": false
+    },
+    {
+      "id": "sonic_file",
+      "fault": "delayed",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 2,
+      "pass": false
+    },
+    {
+      "id": "sonic_file",
+      "fault": "broadband_loudness",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 0,
+      "pass": false
+    },
+    {
+      "id": "sonic_file",
+      "fault": "label_anchored",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 2,
+      "pass": false
+    },
+    {
+      "id": "sonic_room",
+      "fault": "always_on",
+      "hit_count": 1,
+      "false_count": 3067,
+      "collar_count": 126,
+      "pass": false
+    },
+    {
+      "id": "sonic_room",
+      "fault": "delayed",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "sonic_room",
+      "fault": "broadband_loudness",
+      "hit_count": 0,
+      "false_count": 1,
+      "collar_count": 0,
+      "pass": false
+    },
+    {
+      "id": "sonic_room",
+      "fault": "label_anchored",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "carte_file",
+      "fault": "always_on",
+      "hit_count": 1,
+      "false_count": 9867,
+      "collar_count": 126,
+      "pass": false
+    },
+    {
+      "id": "carte_file",
+      "fault": "delayed",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    },
+    {
+      "id": "carte_file",
+      "fault": "broadband_loudness",
+      "hit_count": 1,
+      "false_count": 1,
+      "collar_count": 0,
+      "pass": false
+    },
+    {
+      "id": "carte_file",
+      "fault": "label_anchored",
+      "hit_count": 0,
+      "false_count": 0,
+      "collar_count": 1,
+      "pass": false
+    }
+  ]
+}

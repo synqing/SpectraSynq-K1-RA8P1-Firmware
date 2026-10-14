@@ -1,0 +1,24 @@
+{
+  "name": "P6 drop cue separability (feasibility, not a detector pass)",
+  "status": "PROPOSAL \u2014 NOT APPROVED. Host research only.",
+  "question": "Does any causal feature on the Titan's audio stream put every drop above everything else? Feasibility comes before design (PL14 C15/C16).",
+  "stream": "The v4 windows from runs/P6-DROP-DETECTOR/v4/detector.py load_scored_windows: 24 kHz, 180-sample hops (7.5 ms), the two source files, the two room recordings and the seen Carte file. A feature value at a hop may use only that hop and earlier samples.",
+  "anchors": "The measured onsets frozen in runs/P6-DROP-DETECTOR/v4/DETECTOR-CRITERIA-v4.json (anchors.measured_drops_s).",
+  "features": {
+    "F1_sub_vs_median": "30\u2013110 Hz causal Butterworth order 2 band, 10 ms causal mean-square level (dB), minus its median over the previous 1.0 s ending 50 ms before the hop.",
+    "F2_sub_vs_max": "The same level minus its maximum over the previous 1.0 s ending 50 ms before the hop.",
+    "F3_kick_vs_max": "F2 on a 40\u2013160 Hz band.",
+    "F4_broad_vs_max": "F2 on the raw stream (broadband).",
+    "F5_sub_vs_p90_2s": "The sub level minus its 90th percentile over the previous 2.0 s ending 50 ms before the hop."
+  },
+  "drop_value": "For each required drop, the maximum feature value over hops whose end lies in [anchor, anchor + 0.050] s song time.",
+  "non_drop_value": "The maximum feature value over every scored hop more than 0.5 s from every drop, on every window. Hops in the first 2.0 s of a window are not scored (trailing statistics need history).",
+  "feasible": "A feature is feasible when min(drop values over all six required drops) - max(non-drop values over all five windows) >= 3.0 dB. Every window counts; Carte is seen, not a holdout.",
+  "infeasible": "If no feature reaches the 3.0 dB margin, the report names the drop and the non-drop hop that close the gap.",
+  "planted_faults": {
+    "anchor_shift_minus_100ms": "Re-run the best feature with every anchor moved 100 ms earlier (the hit window then lies in the build). Expected RED: its margin falls below 3.0 dB.",
+    "shuffled_anchor": "Re-run the best feature with each window's anchor replaced by the time 10.0 s earlier. Expected RED."
+  },
+  "frozen_utc": "2026-10-14T22:29:44Z",
+  "frozen_sha256": "7ed254623a7b0e88b1a7c7e2867fe4eca617a9838775dd868491d61be7fa017e"
+}

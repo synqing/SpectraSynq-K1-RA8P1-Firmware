@@ -1,0 +1,873 @@
+{
+  "proposal": "PROPOSAL \u2014 NOT APPROVED",
+  "no_unseen_holdout": true,
+  "carte_role": "seen",
+  "summary": [
+    {
+      "id": "floor_step",
+      "pass": false,
+      "hits": 1,
+      "required": 6,
+      "false": 0,
+      "collar": 0,
+      "cycles_per_hop": 6107
+    },
+    {
+      "id": "ratio_gate",
+      "pass": false,
+      "hits": 1,
+      "required": 6,
+      "false": 0,
+      "collar": 0,
+      "cycles_per_hop": 6127
+    },
+    {
+      "id": "tension_release",
+      "pass": false,
+      "hits": 1,
+      "required": 6,
+      "false": 0,
+      "collar": 0,
+      "cycles_per_hop": 6147
+    }
+  ],
+  "tied_on_the_written_rule": [
+    "floor_step",
+    "ratio_gate",
+    "tension_release"
+  ],
+  "residual_tie_break": "smaller operation count, the pass-case clause of the frozen rule",
+  "chosen_id": "floor_step",
+  "rows": [
+    {
+      "id": "boom_file",
+      "role": "tuning",
+      "detector": "FloorStep",
+      "is_song_file": true,
+      "required_drops_s": [
+        55.766
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        55.766
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "boom_room",
+      "role": "tuning",
+      "detector": "FloorStep",
+      "is_song_file": false,
+      "required_drops_s": [
+        55.766
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        55.766
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 87.55147900000003,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "sonic_file",
+      "role": "tuning",
+      "detector": "FloorStep",
+      "is_song_file": true,
+      "required_drops_s": [
+        27.742,
+        54.776
+      ],
+      "hits": [
+        false,
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null,
+        null
+      ],
+      "misses_s": [
+        27.742,
+        54.776
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "sonic_room",
+      "role": "tuning",
+      "detector": "FloorStep",
+      "is_song_file": false,
+      "required_drops_s": [
+        27.742
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        27.742
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 6.0,
+      "scored_hi_s": 30.0,
+      "scored_seconds": 24.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 41.957051454609186,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "carte_file",
+      "role": "seen",
+      "detector": "FloorStep",
+      "is_song_file": true,
+      "required_drops_s": [
+        27.442
+      ],
+      "hits": [
+        true
+      ],
+      "hit_count": 1,
+      "hit_times_s": [
+        27.45
+      ],
+      "misses_s": [],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": true,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "boom_file",
+      "role": "tuning",
+      "detector": "RatioGate",
+      "is_song_file": true,
+      "required_drops_s": [
+        55.766
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        55.766
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "boom_room",
+      "role": "tuning",
+      "detector": "RatioGate",
+      "is_song_file": false,
+      "required_drops_s": [
+        55.766
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        55.766
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 87.55147900000003,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "sonic_file",
+      "role": "tuning",
+      "detector": "RatioGate",
+      "is_song_file": true,
+      "required_drops_s": [
+        27.742,
+        54.776
+      ],
+      "hits": [
+        false,
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null,
+        null
+      ],
+      "misses_s": [
+        27.742,
+        54.776
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "sonic_room",
+      "role": "tuning",
+      "detector": "RatioGate",
+      "is_song_file": false,
+      "required_drops_s": [
+        27.742
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        27.742
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 6.0,
+      "scored_hi_s": 30.0,
+      "scored_seconds": 24.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 41.957051454609186,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "carte_file",
+      "role": "seen",
+      "detector": "RatioGate",
+      "is_song_file": true,
+      "required_drops_s": [
+        27.442
+      ],
+      "hits": [
+        true
+      ],
+      "hit_count": 1,
+      "hit_times_s": [
+        27.45
+      ],
+      "misses_s": [],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": true,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "boom_file",
+      "role": "tuning",
+      "detector": "TensionRelease",
+      "is_song_file": true,
+      "required_drops_s": [
+        55.766
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        55.766
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "boom_room",
+      "role": "tuning",
+      "detector": "TensionRelease",
+      "is_song_file": false,
+      "required_drops_s": [
+        55.766
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        55.766
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 87.55147900000003,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "sonic_file",
+      "role": "tuning",
+      "detector": "TensionRelease",
+      "is_song_file": true,
+      "required_drops_s": [
+        27.742,
+        54.776
+      ],
+      "hits": [
+        false,
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null,
+        null
+      ],
+      "misses_s": [
+        27.742,
+        54.776
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "sonic_room",
+      "role": "tuning",
+      "detector": "TensionRelease",
+      "is_song_file": false,
+      "required_drops_s": [
+        27.742
+      ],
+      "hits": [
+        false
+      ],
+      "hit_count": 0,
+      "hit_times_s": [
+        null
+      ],
+      "misses_s": [
+        27.742
+      ],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 6.0,
+      "scored_hi_s": 30.0,
+      "scored_seconds": 24.0,
+      "pass": false,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 41.957051454609186,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    },
+    {
+      "id": "carte_file",
+      "role": "seen",
+      "detector": "TensionRelease",
+      "is_song_file": true,
+      "required_drops_s": [
+        27.442
+      ],
+      "hits": [
+        true
+      ],
+      "hit_count": 1,
+      "hit_times_s": [
+        27.45
+      ],
+      "misses_s": [],
+      "false_fires_s": [],
+      "false_count": 0,
+      "false_per_minute": 0.0,
+      "collar_fires_s": [],
+      "collar_count": 0,
+      "scored_lo_s": 0.0,
+      "scored_hi_s": 75.0,
+      "scored_seconds": 75.0,
+      "pass": true,
+      "full_song": {
+        "role": "report_only",
+        "duration_s": 75.0,
+        "false_count": 0,
+        "false_per_minute": 0.0,
+        "false_fires_s": []
+      }
+    }
+  ],
+  "margins_floor_step": {
+    "boom_file": {
+      "drops": [
+        {
+          "drop_s": 55.766,
+          "hit_time_s": null,
+          "max_rise_db_in_hit_window": 11.2,
+          "max_step_db_in_hit_window": 41.26,
+          "max_rise_db_in_collar": 11.2,
+          "short_of_rise_gate_in_hit_window_db": 0.8
+        }
+      ],
+      "labelled_non_drops": [
+        {
+          "kind": "climax",
+          "span_s": [
+            47.0,
+            48.5
+          ],
+          "max_rise_db": 12.54,
+          "at_s": 47.055,
+          "short_of_rise_gate_db": -0.54
+        },
+        {
+          "kind": "cut",
+          "span_s": [
+            49.7,
+            54.0
+          ],
+          "max_rise_db": 8.79,
+          "at_s": 52.762,
+          "short_of_rise_gate_db": 3.21
+        }
+      ],
+      "closest_non_drop_rise": {
+        "at_s": 0.098,
+        "rise_db": 133.04,
+        "step_db": 133.04,
+        "short_of_rise_gate_db": -121.04,
+        "fired": false
+      }
+    },
+    "boom_room": {
+      "drops": [
+        {
+          "drop_s": 55.766,
+          "hit_time_s": null,
+          "max_rise_db_in_hit_window": -0.21,
+          "max_step_db_in_hit_window": 16.25,
+          "max_rise_db_in_collar": 7.58,
+          "short_of_rise_gate_in_hit_window_db": 12.21
+        }
+      ],
+      "labelled_non_drops": [
+        {
+          "kind": "climax",
+          "span_s": [
+            47.0,
+            48.5
+          ],
+          "max_rise_db": 3.68,
+          "at_s": 48.446,
+          "short_of_rise_gate_db": 8.32
+        },
+        {
+          "kind": "cut",
+          "span_s": [
+            49.7,
+            54.0
+          ],
+          "max_rise_db": 5.45,
+          "at_s": 52.196,
+          "short_of_rise_gate_db": 6.55
+        }
+      ],
+      "closest_non_drop_rise": {
+        "at_s": -2.824,
+        "rise_db": 17.12,
+        "step_db": 17.12,
+        "short_of_rise_gate_db": -5.12,
+        "fired": false
+      }
+    },
+    "sonic_file": {
+      "drops": [
+        {
+          "drop_s": 27.742,
+          "hit_time_s": null,
+          "max_rise_db_in_hit_window": 9.8,
+          "max_step_db_in_hit_window": 19.55,
+          "max_rise_db_in_collar": 9.8,
+          "short_of_rise_gate_in_hit_window_db": 2.2
+        },
+        {
+          "drop_s": 54.776,
+          "hit_time_s": null,
+          "max_rise_db_in_hit_window": 14.89,
+          "max_step_db_in_hit_window": 22.02,
+          "max_rise_db_in_collar": 14.89,
+          "short_of_rise_gate_in_hit_window_db": -2.89
+        }
+      ],
+      "labelled_non_drops": [
+        {
+          "kind": "climax",
+          "span_s": [
+            19.7,
+            21.2
+          ],
+          "max_rise_db": 1.71,
+          "at_s": 19.973,
+          "short_of_rise_gate_db": 10.29
+        },
+        {
+          "kind": "climax",
+          "span_s": [
+            45.6,
+            47.1
+          ],
+          "max_rise_db": 1.08,
+          "at_s": 46.417,
+          "short_of_rise_gate_db": 10.92
+        }
+      ],
+      "closest_non_drop_rise": {
+        "at_s": 0.075,
+        "rise_db": 70.49,
+        "step_db": 70.49,
+        "short_of_rise_gate_db": -58.49,
+        "fired": false
+      }
+    },
+    "sonic_room": {
+      "drops": [
+        {
+          "drop_s": 27.742,
+          "hit_time_s": null,
+          "max_rise_db_in_hit_window": 0.31,
+          "max_step_db_in_hit_window": 10.03,
+          "max_rise_db_in_collar": 3.91,
+          "short_of_rise_gate_in_hit_window_db": 11.69
+        }
+      ],
+      "labelled_non_drops": [
+        {
+          "kind": "climax",
+          "span_s": [
+            19.7,
+            21.2
+          ],
+          "max_rise_db": 2.94,
+          "at_s": 20.35,
+          "short_of_rise_gate_db": 9.06
+        }
+      ],
+      "closest_non_drop_rise": {
+        "at_s": 3.08,
+        "rise_db": 13.39,
+        "step_db": 13.39,
+        "short_of_rise_gate_db": -1.39,
+        "fired": false
+      }
+    },
+    "carte_file": {
+      "drops": [
+        {
+          "drop_s": 27.442,
+          "hit_time_s": 27.45,
+          "max_rise_db_in_hit_window": 17.66,
+          "max_step_db_in_hit_window": 28.02,
+          "max_rise_db_in_collar": 17.66,
+          "rise_db_at_fire": 14.14,
+          "step_db_at_fire": 20.82,
+          "margin_above_rise_gate_db": 2.14,
+          "margin_above_step_gate_db": 6.82
+        }
+      ],
+      "labelled_non_drops": [
+        {
+          "kind": "climax",
+          "span_s": [
+            24.4,
+            25.9
+          ],
+          "max_rise_db": 5.5,
+          "at_s": 24.585,
+          "short_of_rise_gate_db": 6.5
+        }
+      ],
+      "closest_non_drop_rise": {
+        "at_s": 0.052,
+        "rise_db": 146.66,
+        "step_db": 146.66,
+        "short_of_rise_gate_db": -134.66,
+        "fired": false
+      }
+    }
+  },
+  "constants": {
+    "floor_step": {
+      "name": "floor_step",
+      "sub_lo_hz": 30.0,
+      "sub_hi_hz": 90.0,
+      "sub_order": 2,
+      "tau_fast_attack_s": 0.012,
+      "tau_fast_release_s": 0.18,
+      "floor_window_s": 2.0,
+      "slack_db": 18.0,
+      "hold_s": 1.0,
+      "step_db": 14.0,
+      "rise_db": 12.0,
+      "rise_hops": 3,
+      "decision_hops": 1,
+      "warmup_s": 1.0,
+      "refractory_s": 1.6
+    },
+    "ratio_gate": {
+      "name": "ratio_gate",
+      "sub_lo_hz": 30.0,
+      "sub_hi_hz": 90.0,
+      "sub_order": 2,
+      "tau_fast_attack_s": 0.012,
+      "tau_fast_release_s": 0.18,
+      "floor_window_s": 2.0,
+      "slack_db": 18.0,
+      "hold_s": 1.0,
+      "step_db": 14.0,
+      "rise_db": 12.0,
+      "rise_hops": 3,
+      "decision_hops": 1,
+      "warmup_s": 1.0,
+      "refractory_s": 1.6,
+      "share_rise_db": 6.0
+    },
+    "tension_release": {
+      "name": "tension_release",
+      "sub_lo_hz": 30.0,
+      "sub_hi_hz": 90.0,
+      "sub_order": 2,
+      "tau_fast_attack_s": 0.012,
+      "tau_fast_release_s": 0.18,
+      "floor_window_s": 2.0,
+      "slack_db": 18.0,
+      "hold_s": 1.0,
+      "step_db": 14.0,
+      "rise_db": 12.0,
+      "rise_hops": 3,
+      "decision_hops": 1,
+      "warmup_s": 1.0,
+      "refractory_s": 1.6,
+      "tau_rest_attack_s": 0.4,
+      "tau_rest_release_s": 1.4,
+      "build_window_s": 1.0,
+      "tension_min": 0.5,
+      "tension_decay_s": 2.0,
+      "tension_cap": 8.0
+    }
+  },
+  "cycles": {
+    "floor_step": {
+      "label": "[INFERENCE] from operation counts, not timed on the M85",
+      "n_biquad_sections": 2,
+      "cycles_per_sample_per_section": 14,
+      "biquad_cycles": 5040,
+      "energy_cycles": 720,
+      "trailing_min_compares_upper_bound": 267,
+      "logic_cycles": 80,
+      "total_cycles_per_hop": 6107,
+      "budget_cycles": 50000,
+      "within_budget": true,
+      "hop_s": 0.0075
+    },
+    "ratio_gate": {
+      "label": "[INFERENCE] from operation counts, not timed on the M85",
+      "n_biquad_sections": 2,
+      "cycles_per_sample_per_section": 14,
+      "biquad_cycles": 5040,
+      "energy_cycles": 720,
+      "trailing_min_compares_upper_bound": 267,
+      "logic_cycles": 100,
+      "total_cycles_per_hop": 6127,
+      "budget_cycles": 50000,
+      "within_budget": true,
+      "hop_s": 0.0075
+    },
+    "tension_release": {
+      "label": "[INFERENCE] from operation counts, not timed on the M85",
+      "n_biquad_sections": 2,
+      "cycles_per_sample_per_section": 14,
+      "biquad_cycles": 5040,
+      "energy_cycles": 720,
+      "trailing_min_compares_upper_bound": 267,
+      "logic_cycles": 120,
+      "total_cycles_per_hop": 6147,
+      "budget_cycles": 50000,
+      "within_budget": true,
+      "hop_s": 0.0075
+    }
+  }
+}
