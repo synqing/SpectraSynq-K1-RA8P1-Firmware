@@ -102,7 +102,7 @@ def main(out: Path):
                 ax.set_ylabel("payload pixel", color=FG, fontsize=9)
             if i == 2:
                 ax.set_xlabel("time from music start (s) · dotted = music start / end", color=FG, fontsize=9)
-    fig.suptitle("What the boards rendered — every pixel over time, from the wire (same display gain for all)",
+    fig.suptitle("What the boards were given — every pixel over time, from the submitted payload (one display gain)",
                  color=FG, fontweight="bold")
     fig.tight_layout()
     fig.savefig(out / "fig-colour.png", dpi=110, facecolor=BG)

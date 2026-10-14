@@ -67,7 +67,10 @@ def test(env, band, rng):
             "curve": xcorr_curve(env, band, max_lag)}
 
 
-def main(out: Path):
+PLANT_SCALE = 0.5
+
+
+def main(out: Path, out_name: str = "q3-correction.json"):
     data = json.loads((out / "p3-data.json").read_text())
     B = data["boom"]
     at, adb = np.array(B["audio"]["t"]), np.array(B["audio"]["rms_dbfs"])
@@ -83,7 +86,7 @@ def main(out: Path):
     for name in ("upper_band", "lower_band"):
         band = detrend(np.array(B["video"][name])[m], FS)
         row = test(env, band, rng)
-        planted = band + 0.5 * band.std() / env.std() * np.concatenate([np.zeros(3), env[:-3]])
+        planted = band + PLANT_SCALE * band.std() / env.std() * np.concatenate([np.zeros(3), env[:-3]])
         row["planted_100ms_half_std"] = test(env, planted, rng)
         ra = acf(band)
         lags = np.arange(len(ra)) / FS
@@ -123,7 +126,8 @@ def main(out: Path):
                            "median_wire_minus_mir_s": float(np.median([abs(s["t_" + b] - s["t_mir"]) for s in S]))}
     res["level_tracking_spearman"] = lt
     res["controls_ok"] = all(res[f"light_{n}"]["planted_100ms_half_std"]["detected"] for n in ("upper_band", "lower_band"))
-    (out / "q3-correction.json").write_text(json.dumps(res, indent=2) + "\n")
+    res["plant_scale"] = PLANT_SCALE
+    (out / out_name).write_text(json.dumps(res, indent=2) + "\n")
     print(json.dumps({k: v for k, v in res.items() if not k.startswith(("light_", "audio_onset_acf_0"))}, indent=1))
     for n in ("upper_band", "lower_band"):
         r = res["light_" + n]
@@ -132,4 +136,7 @@ def main(out: Path):
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(Path(sys.argv[1])))
+    # optional: plant scale and output name, for recorded red runs (P3 iteration 2)
+    if len(sys.argv) > 2:
+        PLANT_SCALE = float(sys.argv[2])
+    raise SystemExit(main(Path(sys.argv[1]), sys.argv[3] if len(sys.argv) > 3 else "q3-correction.json"))
