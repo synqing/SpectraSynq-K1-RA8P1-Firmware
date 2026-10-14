@@ -11,8 +11,9 @@ Replacement test (reads analysis/p3-data.json, writes analysis/q3-correction.jso
     the detrended camera band, light lagging audio by 0-500 ms;
   * null = the same statistic after circularly shifting the audio by 2 s .. T-2 s
     (keeps both signals' own rhythm, breaks only their alignment);
-  * planted positive control = the camera band plus the onset envelope delayed 100 ms
-    at 0.5x the band's own detrended std; the test must detect it, or it is blind.
+  * planted positive control = the camera band, circularly shifted by half its length
+    (decorrelated from the music), plus the onset envelope delayed 100 ms at PLANT_SCALE
+    x its std; the test must detect it on both bands, or it is blind (exit 1).
 Also reports the onset-envelope autocorrelation at 3/8 and 5/8 of a 138 BPM bar and
 the light's largest |autocorrelation| between 0.4 and 1.2 s, the Q1 build-vs-drop
 wire brightness, and per song the Spearman rank correlation of each board's wire
@@ -34,8 +35,13 @@ SHIFTS = 1000
 
 
 def detrend(x, fs):
+    """Remove a 1 s moving mean. Pads with edge values: np.convolve(mode="same") pads
+    with zeros, which made spikes at both ends that dominated correlations and ACFs
+    (P3 iteration-2 review N1). Results before iteration 3 used the zero-padded form."""
     k = max(1, int(fs))
-    y = x - np.convolve(x, np.ones(k) / k, mode="same")
+    x = np.asarray(x, dtype=np.float64)
+    pad = np.pad(x, (k // 2, k - 1 - k // 2), mode="edge")
+    y = x - np.convolve(pad, np.ones(k) / k, mode="valid")
     return y - y.mean()
 
 
@@ -86,8 +92,12 @@ def main(out: Path, out_name: str = "q3-correction.json"):
     for name in ("upper_band", "lower_band"):
         band = detrend(np.array(B["video"][name])[m], FS)
         row = test(env, band, rng)
-        planted = band + PLANT_SCALE * band.std() / env.std() * np.concatenate([np.zeros(3), env[:-3]])
+        # Positive control (iteration 3, review N2): plant into circularly SHIFTED light,
+        # so the control does not inherit the real effect and can fail on either band.
+        base = np.roll(band, len(band) // 2)
+        planted = base + PLANT_SCALE * base.std() / env.std() * np.concatenate([np.zeros(3), env[:-3]])
         row["planted_100ms_half_std"] = test(env, planted, rng)
+        row["shifted_light_alone"] = test(env, base, rng)
         ra = acf(band)
         lags = np.arange(len(ra)) / FS
         sel = (lags >= 0.4) & (lags <= 1.2)
