@@ -155,6 +155,9 @@ def main(out: Path):
         d = D[rn]["camera_lower_edge_band"]
         ax1.hlines(d["light_lags_music_0_500ms"]["null_p95"], 0, 500, color=col, lw=0.9, ls=":")
         ax1.hlines(d["light_leads_music_0_500ms"]["null_p95"], -500, 0, color=col, lw=0.9, ls=":")
+        short = "loudness" if rn == "linear_rms" else "accent"
+        ax1.text(490, d["light_lags_music_0_500ms"]["null_p95"] + 0.015, f"95th pct, {short}", color=col,
+                 fontsize=7.5, ha="right", va="bottom")
     d = D["linear_rms"]["camera_lower_edge_band"]["light_lags_music_0_500ms"]
     ax1.annotate(f"r {d['max_r']:.2f} at {d['lag_s']*1000:.0f} ms, p {d['p_value']:.3f}", xy=(d["lag_s"] * 1000, d["max_r"]),
                  xytext=(120, 0.80), color=FG, fontsize=9, arrowprops=dict(arrowstyle="->", color=FG, lw=0.8))
