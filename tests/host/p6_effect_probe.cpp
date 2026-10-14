@@ -19,6 +19,7 @@
 //       optional 9th argument (iteration 4): palette test variant asis|lifted|range
 //       optional 10th/11th (iteration 5): level ceiling dBFS, emphasis exponent
 //       optional 12th-18th (iteration 6): boost widen ratio_full epsilon fast_s slow_s luma_hold
+//       optional 19th-25th (extent release): enabled fast_s slow_s lo_db span_db release_s newpeak_db_s
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
 #include "core/visual/product_palette.h"
@@ -71,7 +72,7 @@ std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
 
 int main(int argc, char** argv) {
 #ifdef K1_INHOUSE_MAPPING_V9
-  if (argc != 8 && argc != 9 && argc != 11 && argc != 18) {
+  if (argc != 8 && argc != 9 && argc != 11 && argc != 18 && argc != 25) {
     std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range]\n");
     return 2;
   }
@@ -125,7 +126,16 @@ int main(int argc, char** argv) {
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostPalette(palette)) return 2;
   }
-  if (argc == 18) {  // iteration 6: boost widen ratio_full epsilon fast_s slow_s luma_hold(0|1)
+  if (argc == 25) {  // extent release: enabled fast_s slow_s lo_db span_db release_s newpeak_db_s
+    k1::core::visual::InhouseV9Release release{};
+    release.enabled = std::string(argv[18]) == "1";
+    release.fast_s = std::strtof(argv[19], nullptr); release.slow_s = std::strtof(argv[20], nullptr);
+    release.lo_db = std::strtof(argv[21], nullptr); release.span_db = std::strtof(argv[22], nullptr);
+    release.release_s = std::strtof(argv[23], nullptr); release.newpeak_db_s = std::strtof(argv[24], nullptr);
+    for (unsigned b = 0; b < 2; ++b)
+      if (!renderer[b].setV9HostRelease(release)) return 2;
+  }
+  if (argc >= 18) {  // iteration 6: boost widen ratio_full epsilon fast_s slow_s luma_hold(0|1)
     k1::core::visual::InhouseV9Accent accent{};
     accent.boost = std::strtof(argv[11], nullptr); accent.widen_px = std::strtof(argv[12], nullptr);
     accent.ratio_full = std::strtof(argv[13], nullptr); accent.epsilon = std::strtof(argv[14], nullptr);
@@ -151,7 +161,7 @@ int main(int argc, char** argv) {
   std::fprintf(csv, "t_s,board,fresh,silence,raw_rms,vu_level,peak_scaled,tempo_valid,tempo_bpm,tempo_confidence,"
                     "novelty,palette_coordinate,decay_rate,deposit_strength,position,scroll_steps,"
                     "S,L,lit_px,offpal_px,max_channel,level,tonality_gate,centroid_strength,intensity_mean,tempo_weight,"
-                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref\n");
+                    "Lstar,Lstar_x3,extent,low_flux,accent,luma_ref,extent_edge,release\n");
   constexpr unsigned kSlot = 296U;                   // device PDM block at 40 kHz
   constexpr std::uint64_t kOriginUs = 1000000U;      // keep every timestamp positive
   constexpr std::uint64_t kRenderUs = 10000U;        // palette period (composition period_us)
@@ -232,6 +242,13 @@ int main(int argc, char** argv) {
         for (double y : ys) { lsum += lstar(y); lsum3 += lstar(3.0 * y); ymax = std::max(ymax, y); }
         unsigned wide = 0;
         for (double y : ys) wide += ymax > 0 && y >= 0.25 * ymax ? 1U : 0U;
+        // EXT (TOLERANCE-FROZEN-P6-EXT.json): right half, innermost pixel >= 10% of the half's peak.
+        double half_max = 0;
+        for (unsigned p = 80; p < 160; ++p) half_max = std::max(half_max, ys[p]);
+        double extent_edge = 0;
+        if (half_max >= 1e-5)
+          for (unsigned p = 80; p < 160; ++p)
+            if (ys[p] >= 0.10 * half_max) { extent_edge = (160.0 - p) / 80.0; break; }
         std::fprintf(csv, "%.3f,%u,%d,%d,%.6f,%.6f,%.5f,%d,%.2f,%.4f,%.5f,%.5f,%.4f,%.5f,%.2f,%u,%.8f,%.8f,%u,%u,%.6f,",
                      (tick - kOriginUs) / 1e6, b, o.input_fresh ? 1 : 0, a.silence ? 1 : 0, a.raw_rms, a.vu_level,
                      a.peak_scaled, a.tempo_valid ? 1 : 0, a.tempo_bpm, a.tempo_confidence, a.novelty,
@@ -245,9 +262,14 @@ int main(int argc, char** argv) {
 #endif
         std::fprintf(csv, "%.4f,%.4f,%.4f,", lsum / 160.0, lsum3 / 160.0, wide / 160.0);
 #ifdef K1_INHOUSE_MAPPING_V9
-        std::fprintf(csv, "%.6f,%.4f,%.4f\n", o.low_flux, o.accent, o.luma_ref);
+        std::fprintf(csv, "%.6f,%.4f,%.4f,", o.low_flux, o.accent, o.luma_ref);
 #else
-        std::fprintf(csv, ",,\n");
+        std::fprintf(csv, ",,,");
+#endif
+#ifdef K1_INHOUSE_MAPPING_V9
+        std::fprintf(csv, "%.4f,%.4f\n", extent_edge, o.release);
+#else
+        std::fprintf(csv, "%.4f,\n", extent_edge);
 #endif
       }
     }

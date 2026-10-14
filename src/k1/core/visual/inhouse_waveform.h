@@ -54,6 +54,18 @@ struct InhouseV9Accent final {
 };
 inline constexpr InhouseV9Accent kInhouseV9AccentConfig{};
 inline constexpr bool kInhouseV9LumaHold = false;  // colour luma hold through low confidence
+// Extent release (P6-EXT-DESIGN-CANDIDATES-FROZEN.json): a pre-AGC level surge against a slow
+// baseline pulls the deposit inward so the waveform spans edge to centre; off by default.
+struct InhouseV9Release final {
+  bool enabled = false;
+  float fast_s = 0.03F;          // fast power follower
+  float slow_s = 2.0F;           // slow power baseline
+  float lo_db = 3.0F;            // surge below this gives no release
+  float span_db = 6.0F;          // surge range to full release
+  float release_s = 0.6F;        // release envelope decay
+  float newpeak_db_s = 0.0F;     // > 0: new-peak gate with this peak-holder decay
+};
+inline constexpr InhouseV9Release kInhouseV9ReleaseConfig{};
 #endif
 
 // One coherent producer observation; spectrum is the source 80-note bank after
@@ -129,6 +141,7 @@ struct InhouseWaveformObservation final {
   float low_flux = 0.0F;       // v9 iteration 6: low-band (bins 0-11) positive spectral flux
   float accent = 0.0F;         // v9 iteration 6: drop accent 0..1
   float luma_ref = 0.0F;       // v9 iteration 6: colour luma reference (luma hold)
+  float release = 0.0F;        // v9 extent release envelope 0..1
 #endif
 };
 
@@ -159,6 +172,12 @@ class InhouseWaveformRenderer final {
         !(accent.ratio_full > 1.0F) || !(accent.epsilon >= 0.0F) || !(accent.fast_s > 0.0F) ||
         !(accent.slow_s > accent.fast_s)) return false;
     v9_accent_ = accent; v9_luma_hold_ = luma_hold;
+    return true;
+  }
+  [[nodiscard]] bool setV9HostRelease(const InhouseV9Release& release) noexcept {
+    if (!(release.fast_s > 0.0F) || !(release.slow_s > release.fast_s) || !(release.span_db > 0.0F) ||
+        !(release.release_s > 0.0F) || !(release.newpeak_db_s >= 0.0F)) return false;
+    v9_release_ = release;
     return true;
   }
   [[nodiscard]] bool setV9HostLevel(float ceiling_db, float emphasis) noexcept {
@@ -210,6 +229,10 @@ class InhouseWaveformRenderer final {
   float density_slow_ = 0.0F;
   float accent_ = 0.0F;
   float luma_ref_ = -1.0F;      // iteration 6: luma of the last strongly confident colour
+  float release_fast_ = 0.0F;   // extent release state (power followers, peak holder, envelope)
+  float release_slow_ = 0.0F;
+  float release_peak_db_ = -120.0F;
+  float release_ = 0.0F;
   bool colour_valid_ = false;
   std::int32_t tonality_gate_ = 0;
   float centroid_ = 0.0F;
@@ -223,6 +246,7 @@ class InhouseWaveformRenderer final {
   float v9_emphasis_ = kInhouseV9Emphasis;
   InhouseV9Accent v9_accent_ = kInhouseV9AccentConfig;
   bool v9_luma_hold_ = kInhouseV9LumaHold;
+  InhouseV9Release v9_release_ = kInhouseV9ReleaseConfig;
 #endif
   [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
@@ -231,6 +255,7 @@ class InhouseWaveformRenderer final {
                       float level) noexcept;
   void fadeV9(bool mode32, bool silent, float dt) noexcept;
   void updateAccentV9(const InhouseWaveformAudio& audio, bool fresh, bool silent, float dt) noexcept;
+  void updateReleaseV9(const InhouseWaveformAudio& audio, bool fresh, bool silent, float dt) noexcept;
   [[nodiscard]] PaletteLinearRgb colourV9(std::uint16_t palette_id, float coordinate) const noexcept;
   void depositV9(bool mode32, unsigned start, float position, float level,
                  const FixedRgb& colour) noexcept;

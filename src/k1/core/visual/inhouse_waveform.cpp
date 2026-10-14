@@ -89,6 +89,8 @@ void InhouseWaveformRenderer::reset() noexcept {
   low_previous_.fill(0.0F);
   density_fast_ = density_slow_ = accent_ = 0.0F;
   luma_ref_ = -1.0F;
+  release_fast_ = release_slow_ = release_ = 0.0F;
+  release_peak_db_ = -120.0F;
   colour_valid_ = false;
   tonality_gate_ = 0;
 #endif
@@ -667,6 +669,32 @@ void InhouseWaveformRenderer::updateAccentV9(const InhouseWaveformAudio& audio, 
   observation_.accent = accent_;
 }
 
+// Extent release: the waveform's length is the release driver. A pre-AGC level surge over a
+// slow baseline pulls the deposit inward (edge-to-centre extension) with instant attack and a
+// fixed release; between surges the level-driven contraction is untouched.
+void InhouseWaveformRenderer::updateReleaseV9(const InhouseWaveformAudio& audio, bool fresh,
+    bool silent, float dt) noexcept {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const InhouseV9Release& r = v9_release_;
+#else
+  constexpr InhouseV9Release r = kInhouseV9ReleaseConfig;
+#endif
+  if (!r.enabled) { release_ = 0.0F; observation_.release = 0.0F; return; }
+  const float vu = fresh && !silent && std::isfinite(audio.vu_level) ? std::max(0.0F, audio.vu_level) : 0.0F;
+  const float power = vu * vu;
+  release_fast_ = ema(release_fast_, power, dt, r.fast_s);
+  release_slow_ = ema(release_slow_, power, dt, r.slow_s);
+  const float fast_db = 10.0F * ::log10f(release_fast_ + 1.0e-12F);
+  const float surge = fast_db - 10.0F * ::log10f(release_slow_ + 1.0e-12F);
+  float x = clamp01((surge - r.lo_db) / r.span_db);
+  if (r.newpeak_db_s > 0.0F) {
+    if (fast_db < release_peak_db_ - 1.0F) x = 0.0F;
+    release_peak_db_ = fast_db > release_peak_db_ ? fast_db : release_peak_db_ - r.newpeak_db_s * dt;
+  }
+  release_ = silent ? 0.0F : std::max(x, release_ * ::expf(-dt / r.release_s));
+  observation_.release = release_;
+}
+
 // Separate attack and release on the intensity field: constant release in seconds,
 // independent of level and frame rate. Confirmed quiet keeps v8's extra drain.
 void InhouseWaveformRenderer::fadeV9(bool mode32, bool silent, float dt) noexcept {
@@ -802,6 +830,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.tonality_gate = f(tonality_gate_);
   observation_.centroid_strength = centroid_strength_;
   updateAccentV9(audio, fresh, silent, dt);
+  updateReleaseV9(audio, fresh, silent, dt);
   updateColourV9(controls, dt, silent, level);
   const auto colour_f = colourV9(controls.palette_id, colour_position_);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
@@ -822,6 +851,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
     observation_.peak_stage1 = ema(observation_.peak_stage1, peak, dt, 0.016F);
     observation_.peak_stage2 = ema(observation_.peak_stage2, observation_.peak_stage1, dt, 0.023F);
     position = std::min(159.0F, 80.0F + observation_.peak_stage2 * 0.7F * 80.0F);
+    if (release_ > 0.0F) position = 80.0F + (position - 80.0F) * (1.0F - release_);
     observation_.tempo_weight = 0.0F;
   } else {
     const bool tempo_fresh = fresh && audio.tempo_valid &&
@@ -842,6 +872,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
     const float index = std::max(0.0F, std::min(159.0F, 80.0F + peak * 80.0F + 0.5F));
     position = std::floor(index);
     if (controls.mirror) position = std::max(80.0F, position);
+    if (release_ > 0.0F) position = std::floor(80.0F + (position - 80.0F) * (1.0F - release_));
   }
   observation_.scroll_remainder += rate * dt;
   const unsigned steps = std::min(maximum_steps, static_cast<unsigned>(observation_.scroll_remainder));
