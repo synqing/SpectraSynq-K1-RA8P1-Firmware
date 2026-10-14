@@ -133,6 +133,7 @@ EMOTISCOPE_SECONDARY_FILES = ['emotiscope_secondary.cpp', 'emotiscope_secondary.
 INHOUSE_WAVEFORM_FILES = ['core/visual/inhouse_waveform.cpp', 'core/visual/inhouse_waveform.h']
 # Included by platform/ra8p1/inhouse_audio.h only when K1_INHOUSE_MAPPING_V9 is set.
 V9_SUB_BAND_FILE = 'core/audio/sub_band.h'
+V9_RELEASE_PUPPET_FILE = 'core/visual/v9_release_puppet.h'  # TEST IMAGE ONLY
 EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
 
 def emotiscope_inputs():
@@ -1185,6 +1186,11 @@ def main():
                 target.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT/'src/k1'/V9_SUB_BAND_FILE, target)
                 receipt['inhouse_waveform_sources']['files'].append(V9_SUB_BAND_FILE)
+            if args.v9_release_puppet:
+                target=stage/'src/k1'/V9_RELEASE_PUPPET_FILE
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/V9_RELEASE_PUPPET_FILE, target)
+                receipt['inhouse_waveform_sources']['files'].append(V9_RELEASE_PUPPET_FILE)
         if args.palette_runtime:
             for name in PRODUCT_OUTPUT_CHAIN_FILES:
                 target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
