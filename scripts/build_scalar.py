@@ -210,7 +210,12 @@ def assert_scalar_generated_code(dump, attributes):
     assert not re.search(r'\t(?:v\w+(?:\.\w+)?\s+[^\n]*\bq[0-7]\b|(?:vctp|vpst|wlstp|dlstp|letp)(?:\.\w+)?\b)',dump), 'vector instructions in generated code'
 
 INT64_CONVERSIONS = {'__aeabi_d2lz', '__aeabi_d2ulz', '__aeabi_l2d', '__aeabi_ul2d'}
-SOFT_DOUBLE_CALL = re.compile(r'\bbl\s+[0-9a-f]+ <(__aeabi_d\w+)>')
+# Every double-precision AEABI helper (d*, and the int/float->double conversions),
+# reached by a call (bl/blx) or a tail call (b, b.w, conditional b<cc>[.w]).
+# Branches to <helper+0x..> are jumps inside a helper and are not counted.
+SOFT_DOUBLE_CALL = re.compile(
+    r'\t(?:blx?|b(?:eq|ne|cs|hs|cc|lo|mi|pl|vs|vc|hi|ls|ge|lt|gt|le|al)?(?:\.[wn])?)\s+'
+    r'[0-9a-f]+ <(__aeabi_(?:d\w+|u?i2d|u?l2d|f2d))>')
 
 def assert_product_generated_code(dump, attributes, macros):
     """titan-product: the unhobbled properties, measured on the built image."""
@@ -485,6 +490,8 @@ def main():
                         help='titan-product (default, canon) or resident-scalar (historical/BEFORE only)')
     parser.add_argument('--asrc-tcm',choices=('data','data+code'),default=None,
                         help='measured experiment: ASRC state in DTCM (data), plus FIR push in ITCM (data+code; failed to boot 14 Oct)')
+    parser.add_argument('--allow-unbootable-itcm-experiment',action='store_true',
+                        help='required with --asrc-tcm data+code; the image is marked deploy_admissible=false')
     parser.add_argument('--dcache',choices=('disabled','enabled'),default=None,
                         help='default: enabled for titan-product, disabled for resident-scalar')
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
@@ -531,6 +538,9 @@ def main():
         args.dcache = 'enabled' if args.profile == 'titan-product' else 'disabled'
     if args.optimisation is None:
         args.optimisation = 'o3-unroll' if args.profile == 'titan-product' else 'o2'
+    if args.asrc_tcm == 'data+code' and not args.allow_unbootable_itcm_experiment:
+        parser.error('--asrc-tcm data+code did not boot on the Titan (14 Oct 2026, open defect); '
+                     'it needs --allow-unbootable-itcm-experiment and is never deploy-admissible')
     if args.titan_top_output and (not args.emotiscope_port or args.p601_loopback):
         parser.error('--titan-top-output requires --emotiscope-port and excludes diagnostic loopback')
     if args.debug and args.debug_info:
@@ -706,6 +716,7 @@ def main():
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
         identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        receipt.update(deploy_admissible=args.asrc_tcm != 'data+code')
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
