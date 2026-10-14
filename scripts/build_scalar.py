@@ -479,9 +479,12 @@ def main():
                         help='separately identified -O0 image; RT-Thread debug build already adds DWARF')
     parser.add_argument('--debug-info', action='store_true',
                         help='keep the selected optimisation and add DWARF; not the -O0 --debug build')
-    parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
+    parser.add_argument('--optimisation',choices=OPTIMISATIONS,default=None,
+                        help='default: o3-unroll for titan-product (chosen by measured cycles, lane P2 14 Oct 2026), o2 for resident-scalar')
     parser.add_argument('--profile',choices=tuple(PROFILES),default='titan-product',
                         help='titan-product (default, canon) or resident-scalar (historical/BEFORE only)')
+    parser.add_argument('--asrc-tcm',choices=('data','data+code'),default=None,
+                        help='measured experiment: ASRC state in DTCM (data), plus FIR push in ITCM (data+code; failed to boot 14 Oct)')
     parser.add_argument('--dcache',choices=('disabled','enabled'),default=None,
                         help='default: enabled for titan-product, disabled for resident-scalar')
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
@@ -526,6 +529,8 @@ def main():
     SCALAR, SAFETY = PROFILES[args.profile]
     if args.dcache is None:
         args.dcache = 'enabled' if args.profile == 'titan-product' else 'disabled'
+    if args.optimisation is None:
+        args.optimisation = 'o3-unroll' if args.profile == 'titan-product' else 'o2'
     if args.titan_top_output and (not args.emotiscope_port or args.p601_loopback):
         parser.error('--titan-top-output requires --emotiscope-port and excludes diagnostic loopback')
     if args.debug and args.debug_info:
@@ -700,8 +705,8 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
-        receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,debug=args.debug,debug_info=bool(args.debug_info),
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
                        palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,
@@ -877,6 +882,9 @@ def main():
         if defines:
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc',' '.join(defines)+' -Dgcc')
+        if args.asrc_tcm:
+            assert text.count('-Dgcc')==1
+            text=text.replace('-Dgcc','-DK1_ASRC_TCM=1 '+('-DK1_ASRC_ITCM=1 ' if args.asrc_tcm=='data+code' else '')+'-Dgcc')
         if args.dcache=='disabled':
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc','-DK1_FORCE_DCACHE_OFF=1 -Dgcc')
@@ -1135,7 +1143,19 @@ def main():
                 assert symbol in symbols, f'missing resident schedule symbol {symbol}'
         if args.tempo_placement:
             receipt['tempo_placement_evidence']=verify_tempo_elf_placement(
-                symbols, args.tempo_placement, scratch_only=args.emotiscope_port)
+                symbols, args.tempo_placement, scratch_only=args.emotiscope_port and not args.asrc_tcm)
+        if args.asrc_tcm:
+            placed={}
+            for line in symbols.splitlines():
+                parts=line.split()
+                if len(parts)>=3 and parts[-1] in ('k1_asrc24_push','capture_asrc'):
+                    placed[parts[-1]]=int(parts[0],16)
+            if args.asrc_tcm=='data+code':
+                assert placed.get('k1_asrc24_push',-1) in range(0x00000000,0x00020000), 'ASRC push not in ITCM'
+            else:
+                assert placed.get('k1_asrc24_push',-1) not in range(0x00000000,0x00020000), 'data-only build placed code in ITCM'
+            assert placed.get('capture_asrc',-1) in range(0x20000000,0x20020000), 'ASRC state not in DTCM'
+            receipt['asrc_tcm_evidence']={k:f'0x{v:08x}' for k,v in placed.items()}
         if args.npu_model:
             for symbol in ['RM_ETHOSU_Open','sub_0001_invoke','k1_npu_invoke']:
                 assert symbol in dump, f'missing NPU execution symbol {symbol}'

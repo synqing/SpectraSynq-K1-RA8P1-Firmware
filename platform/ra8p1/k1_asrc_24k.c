@@ -118,6 +118,11 @@ static int k1_asrc24_ring_sane(const k1_asrc24_t *st)
     return st->write_pos == expected;
 }
 
+#if defined(K1_RA8P1_TARGET) && defined(K1_ASRC_ITCM)
+/* Lane P2 measured experiment: FIR push executes from ITCM (startup-copied).
+   14 Oct 2026: image with this placement did not boot (no USB, no light); see P2 receipt. */
+__attribute__((section(".itcm_code_from_flash"), noinline))
+#endif
 int k1_asrc24_push(k1_asrc24_t *st, const int16_t *src, uint32_t count)
 {
     uint32_t i;

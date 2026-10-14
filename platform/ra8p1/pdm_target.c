@@ -80,7 +80,13 @@ typedef struct {
     uint64_t receipt_cycles;
 } k1_capture_block_meta_t;
 
+#if defined(K1_ASRC_TCM)
+/* Lane P2 measured experiment: resampler state (FIR history, ring) in DTCM.
+   Always initialised by k1_asrc24_reset() before use; no reliance on zeroing. */
+static k1_asrc24_t capture_asrc __attribute__((section(".dtcm"), aligned(32)));
+#else
 static k1_asrc24_t capture_asrc;
+#endif
 static int16_t capture_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
 static k1_capture_block_meta_t capture_meta[K1_CAPTURE_META_CAP];
 static uint32_t capture_meta_head;
