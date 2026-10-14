@@ -1,0 +1,12 @@
+{
+ "video": "/Volumes/Disk Storage/SpectraSynq-Scratch/titan-lagfree-20261014/camera/boom-host006-a.mp4",
+ "wav": "_scratch/waveform-migration-001/audio-boom-001/boom-0-75s-pcm16.wav",
+ "panel_rows": [
+  107,
+  220
+ ],
+ "offset_s": 5.733333333333333,
+ "align_r": 0.5787774324417114,
+ "frames": 2641,
+ "out": "_scratch/waveform-migration-001/runs/P6-20261014T124826Z/permitted/figures/camera/boom-host006-a-strip-40-70.png"
+}
