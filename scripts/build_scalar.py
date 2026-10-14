@@ -589,6 +589,8 @@ def main():
                         help='lane P4: in-house analysis on k1_poly24 24 kHz/180 (donor stays 12.8 kHz/64); needs --emotiscope-port --pdm-target --live-runtime')
     parser.add_argument('--analysis-dtcm',action='store_true',
                         help='lane P4 step 7: in-house analysis state and scene state (palettes) in DTCM; needs --inhouse-analysis24 --palette-runtime')
+    parser.add_argument('--v9-release-puppet',action='store_true',
+                        help='TEST IMAGE ONLY (P6): host-timed R01+R03 release; board 0 speed 0.501 arms both edges, the drop lands 6 s later. Never a product image')
     parser.add_argument('--poly24-cmsis',action='store_true',
                         help='lane P4 step 8: k1_poly24 dot products via CMSIS-DSP arm_dot_prod_f32 (MVE); needs --inhouse-analysis24')
     parser.add_argument('--tempo-field',action='store_true',
@@ -794,7 +796,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {}),**({'analysis_dtcm':True} if args.analysis_dtcm else {})),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {}),**({'analysis_dtcm':True} if args.analysis_dtcm else {}),**({'v9_release_puppet':True} if args.v9_release_puppet else {})),sort_keys=True).encode()).hexdigest()
         receipt.update(deploy_admissible=args.asrc_tcm != 'data+code')
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
@@ -811,6 +813,7 @@ def main():
                        analysis_dtcm=bool(args.analysis_dtcm),
                        poly24_cmsis=({'pack':str(CMSIS_DSP_PACK),'pack_sha256':CMSIS_DSP_PACK_SHA256,
                                       'sources':CMSIS_DSP_SOURCES} if args.poly24_cmsis else None),
+                       **({'v9_release_puppet':'TEST IMAGE ONLY: host-timed R01+R03 release (board 0 speed 0.501 arms)'} if args.v9_release_puppet else {}),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -902,6 +905,10 @@ def main():
         if args.titan_top_output: defines.append('-DK1_TITAN_TOP_OUTPUT=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
+        if args.v9_release_puppet:
+            if not (args.emotiscope_port and args.titan_top_output and args.palette_runtime):
+                raise RuntimeError('--v9-release-puppet needs --emotiscope-port --titan-top-output --palette-runtime')
+            defines.extend(['-DK1_INHOUSE_V9_HOST_VARIANTS=1', '-DK1_V9_RELEASE_PUPPET=1'])
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
         if args.palette_ws2816: defines.append('-DK1_PALETTE_WS2816=1')
         if args.npu_model: defines.append('-DK1_NPU_LOAD=1')

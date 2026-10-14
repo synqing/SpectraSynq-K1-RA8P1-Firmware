@@ -8,6 +8,9 @@
 #include "emotiscope_port.h"
 #include "composed_scene_runtime.h"
 #include "core/visual/inhouse_waveform.h"
+#if defined(K1_V9_RELEASE_PUPPET)
+#include "core/visual/v9_release_puppet.h"
+#endif
 #endif
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
@@ -222,6 +225,9 @@ class PaletteRuntime {
   core::visual::InhouseWaveformAudio inhouse_observed_audio_[2]{};
   bool inhouse_source_silence_[2]{true,true};
   std::uint64_t inhouse_render_us_[2]{};
+#if defined(K1_V9_RELEASE_PUPPET)
+  core::visual::V9PuppetState puppet_{};  // TEST IMAGE ONLY
+#endif
   bool renderInhouse(unsigned board,std::uint64_t now_us) noexcept;
 #endif
   float board_intensity_[2]{1.0F, 1.0F};

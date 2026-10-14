@@ -8,6 +8,9 @@
 #include "emotiscope_output.h"
 #endif
 #include "core/visual/product_effect_renderer.h"
+#if defined(K1_V9_RELEASE_PUPPET)
+#include "core/visual/v9_release_puppet.h"
+#endif
 #ifdef K1_DUAL_EDGE_DONOR
 #include "k1_dual_edge_donor.h"
 #endif
@@ -249,6 +252,17 @@ bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept
   controls.palette_id=static_cast<std::uint16_t>(palette-1u);
   controls.motion_scale=config.speed*2.0f;
   controls.mirror=config.mirror_mode!=0;
+#if defined(K1_V9_RELEASE_PUPPET)
+  // TEST IMAGE ONLY. Board 0's speed code arms the R01+R03 release on both
+  // edges together; the drop lands hold_lead_s after the arm. See
+  // core/visual/v9_release_puppet.h.
+  {
+    K1EmotiscopeConfig primary{};
+    k1_emotiscope_get_config(&primary);
+    if(core::visual::v9PuppetStep(puppet_,inhouse_renderer_,board,primary.speed,now_us) && board==0U)
+      controls.motion_scale=core::visual::kV9PuppetBaseSpeed*2.0f;
+  }
+#endif
   auto input=inhouse_audio_[board];
   if(input.epoch!=inhouse_observed_audio_[board].epoch)inhouse_admission_[board]={};
   // Intentional Titan acoustic boundary: reuse the existing measured-room Bloom

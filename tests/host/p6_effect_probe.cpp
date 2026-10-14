@@ -32,6 +32,9 @@
 //       Drop times are probe file-time seconds. Absent token leaves the front off.
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
+#if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
+#include "core/visual/v9_release_puppet.h"
+#endif
 #include "core/visual/product_palette.h"
 #include "k1_poly24.h"
 #include "pdm_target.h"
@@ -84,9 +87,20 @@ std::vector<std::array<float, 4>> paletteCurve(std::uint16_t id) {
 int main(int argc, char** argv) {
 #if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
   k1::core::visual::InhouseV9Front front{};
+  // TEST IMAGE path (K1_V9_RELEASE_PUPPET): "puppet@T" commands board 0 speed
+  // 0.501 from file time T for 0.2 s, through the same v9PuppetStep the device runs.
+  bool puppet = false;
+  float puppet_at = 0.0F;
+  k1::core::visual::V9PuppetState puppet_state{};
   if (argc > 4) {
     const std::string tail = argv[argc - 1];
-    if (tail.compare(0, 3, "r01") == 0) {
+    if (tail.compare(0, 7, "puppet@") == 0) {
+      --argc;
+      char* end = nullptr;
+      puppet_at = std::strtof(tail.c_str() + 7, &end);
+      if (end == tail.c_str() + 7 || !std::isfinite(puppet_at)) return 2;
+      puppet = true;
+    } else if (tail.compare(0, 3, "r01") == 0) {
       --argc;
       front.enabled = true;
       front.hold_contraction = tail.compare(0, 7, "r01+r03") == 0;
@@ -253,7 +267,13 @@ int main(int argc, char** argv) {
         a.vu_average = std::clamp(a.vu_average, 0.0F, 1.0F);
         a.observed_peak_scaled = std::clamp(a.observed_peak_scaled, 0.0F, 1.0F);
 #if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
-        renderer[b].setV9HostClock(static_cast<float>(tick - kOriginUs) / 1.0e6F);
+        if (puppet) {
+          const float t = static_cast<float>(tick - kOriginUs) / 1.0e6F;
+          const float speed = (t >= puppet_at && t < puppet_at + 0.2F) ? 0.501F : 0.5F;
+          (void)k1::core::visual::v9PuppetStep(puppet_state, renderer, b, speed, tick);
+        } else {
+          renderer[b].setV9HostClock(static_cast<float>(tick - kOriginUs) / 1.0e6F);
+        }
 #endif
         if (!renderer[b].render(a, controls[b], tick, frame[b], 160)) std::memset(frame[b], 0, sizeof frame[b]);
         std::fwrite(frame[b], sizeof(Pixel16), 160, bin);
