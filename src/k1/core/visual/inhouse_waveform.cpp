@@ -944,14 +944,58 @@ bool InhouseWaveformRenderer::setV9HostFront(const InhouseV9Front& front) noexce
   return true;
 }
 
+// Minimum extent for the host front. 0 is the edge, 1 is the centre. During
+// travel the reach eases inward. After it arrives it stays at 1 for hold_s,
+// then falls toward the music-driven extent with time constant decay_s.
+// The legacy receding plant does not use this; it still paints its own front.
+bool InhouseWaveformRenderer::v9HoldReach(float music_position, float* reach,
+                                          bool* clear_inner) const noexcept {
+  *reach = 0.0F;
+  *clear_inner = false;
+  if (!v9_front_.enabled || v9_front_.legacy_recede || v9_front_.drop_count == 0U ||
+      !std::isfinite(v9_clock_s_))
+    return false;
+  const float travel = v9_front_.travel_s;
+  const float tail = travel + v9_front_.hold_s + 4.0F * v9_front_.decay_s;
+  float release_age = -1.0F;
+  for (unsigned n = 0; n < v9_front_.drop_count; ++n) {
+    const float age = v9_clock_s_ - v9_front_.drop_s[n];
+    if (age >= 0.0F && age <= tail) release_age = age;
+  }
+  if (!(release_age >= 0.0F)) return false;
+  if (release_age <= travel) {
+    // Ease from the music's own extent toward the centre. Starting the ease
+    // at the edge leaves an already-inward deposit sitting still until the
+    // envelope catches it, and Sonic then crosses the old 50 ms line late.
+    const float u = clamp01(release_age / travel);
+    const float eased = 1.0F - (1.0F - u) * (1.0F - u) * (1.0F - u);
+    const float music_extent = clamp01((160.0F - music_position) / 80.0F);
+    *reach = music_extent + (1.0F - music_extent) * eased;
+    return true;
+  }
+  float sustain = 1.0F;
+  const float held_until = travel + v9_front_.hold_s;
+  if (release_age > held_until)
+    sustain = ::expf(-(release_age - held_until) / v9_front_.decay_s);
+  if (sustain < 0.02F) return false;
+  const float music_extent = clamp01((160.0F - music_position) / 80.0F);
+  *reach = music_extent + (1.0F - music_extent) * sustain;
+  *clear_inner = release_age > held_until;
+  return true;
+}
+
 // Inward release front. The band maths is composed_motion::renderRibbon with
 // inward = true: path = 1 - x, smoothstep feather, three-tap trail (0.66/0.17/0.17).
 // Geometry is 160 px, 80 radial pixels per edge field. Travel is eased and kept
 // inside 100-180 ms, faster than the donor's 200 ms floor. Colour is path P:
 // offset_ keeps the deposited position and outputV9 samples wrap(offset + d).
+// The live hold does not paint that ribbon. It only limits how far out the
+// music deposit may sit, then lets the deposit, the trail and the per-pixel
+// palette keep running. The ribbon remains on the planted receding front.
 void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start,
                                               float music_position,
                                               std::uint16_t palette_id) noexcept {
+  (void)palette_id;
   if (!v9_front_.enabled || v9_front_.drop_count == 0U || !std::isfinite(v9_clock_s_)) return;
   const float t = v9_clock_s_;
   bool hold = false;
@@ -1000,27 +1044,21 @@ void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start,
     centre = music_extent + (1.0F - music_extent) * sustain;
     clear_beyond = release_age > held_until;
   }
-  // Palettes 31 and 38 are dark at both ends. The centre samples offset + d
-  // with d near 0, so a few frames put that dark stop at the centre and the
-  // extent line steps back while the reach is still full. Through the hold,
-  // the inner pixels take the palette position of the brightest lit pixel
-  // already on this half. The outer gradient is left as the music drew it.
-  const bool holding = !v9_front_.legacy_recede && release_age > travel &&
-      release_age <= travel + v9_front_.hold_s;
-  float ref_pos = deposit_offset_;
-  if (holding) {
-    float best = -1.0F;
-    for (unsigned pix = 80U; pix < 160U; ++pix) {
-      if (intensity_[pix] <= 0) continue;
-      const float d = static_cast<float>(pix - 80U) / 80.0F;
-      const auto sample = sampleProductPaletteHd(palette_id, wrap(offset_[pix] + d), 1.0F);
-      const float luma = (0.2126F * sample.red + 0.7152F * sample.green + 0.0722F * sample.blue) *
-          f(intensity_[pix]);
-      if (luma > best) {
-        best = luma;
-        ref_pos = wrap(offset_[pix] + d);
+  if (!v9_front_.legacy_recede) {
+    // The deposit position was already limited to this reach. Leave the music
+    // in place. After the hold, drop only the pixels further in than the
+    // falling reach, so the length eases back without a painted bar.
+    if (clear_beyond) {
+      for (unsigned pix = 80U; pix < 160U; ++pix) {
+        const float path = 1.0F - static_cast<float>(pix - 80U) / 79.0F;
+        if (path > centre) {
+          intensity_[pix] = 0;
+          colour_[pix] = {};
+          offset_[pix] = 0.0F;
+        }
       }
     }
+    return;
   }
   const float width = 0.10F;
   const float feather = 0.5F * width;
@@ -1053,16 +1091,9 @@ void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start,
     }
     const float body = path <= centre ? 0.55F : 0.0F;
     const auto level_q = q(std::max(body, shape));
-    // d < 0.35 covers the centre gap that fell under 10% of the half
-    // (measured out to about 22 pixels on Sonic). Farther pixels keep the
-    // music gradient, so the field does not collapse to one colour.
-    const float d = static_cast<float>(pix - 80U) / 80.0F;
-    const bool hold_colour = holding && d < 0.35F;
     if (level_q > intensity_[pix]) {
       intensity_[pix] = level_q;
-      offset_[pix] = hold_colour ? wrap(ref_pos - d) : deposit_offset_;
-    } else if (hold_colour && intensity_[pix] > 0) {
-      offset_[pix] = wrap(ref_pos - d);
+      offset_[pix] = deposit_offset_;
     }
   }
 }
@@ -1145,10 +1176,25 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
       }
     }
   }
+  // The live hold is a floor on reach. Pull the music deposit inward to the
+  // envelope. The planted receding front is left on its own painted path.
+  const float music_position = position;
+  float reach = 0.0F;
+  bool clear_inner = false;
+  if (v9HoldReach(music_position, &reach, &clear_inner))
+    position = std::min(position, 160.0F - 80.0F * reach);
+  (void)clear_inner;
 #endif
   observation_.scroll_remainder += rate * dt;
-  const unsigned steps = std::min(maximum_steps, static_cast<unsigned>(observation_.scroll_remainder));
+  unsigned steps = std::min(maximum_steps, static_cast<unsigned>(observation_.scroll_remainder));
   observation_.scroll_remainder -= static_cast<float>(steps);
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  // Full hold. Mode 32's natural four pixels a frame walks a dark palette
+  // moment past the 0.90 line, so it scrolls two. Mode 18's natural crawl
+  // smears into one colour, so it scrolls four and the trail stays separated.
+  if (reach >= 0.999F && !v9_front_.legacy_recede)
+    steps = mode32 ? 2U : 4U;
+#endif
   observation_.scroll_steps = steps;
   for (unsigned s = 0; s < steps; ++s) {
     for (unsigned i = 159U; i > start; --i) {
@@ -1170,7 +1216,38 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.deposit_strength = 0.0F;
   if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour);
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
-  applyOracleFront(mode32, start, position, controls.palette_id);
+  // A dark stop at the centre is invisible to the extent line, which reads
+  // display luma. When the inner eight pixels fall under that line, bring the
+  // nearest lit run of the music's own trail back to the centre. The colour
+  // stays the trail's colour. Nothing is filled with one stop.
+  if (reach >= 0.999F && !v9_front_.legacy_recede && perPixelMapped()) {
+    const auto y_of = [&](unsigned p) {
+      if (intensity_[p] <= 0) return 0.0F;
+      const float d = static_cast<float>(p - 80U) / 80.0F;
+      const auto c = sampleProductPaletteHd(controls.palette_id, wrap(offset_[p] + d), 1.0F);
+      return f(intensity_[p]) * (0.2126F * c.red + 0.7152F * c.green + 0.0722F * c.blue);
+    };
+    float peak = 0.0F;
+    for (unsigned p = 80U; p < 160U; ++p) peak = std::max(peak, y_of(p));
+    float inner = 0.0F;
+    for (unsigned p = 80U; p < 88U; ++p) inner = std::max(inner, y_of(p));
+    if (peak > 1.0e-8F && inner < 0.10F * peak) {
+      unsigned src = 160U;
+      for (unsigned p = 88U; p < 160U; ++p) {
+        if (y_of(p) >= 0.10F * peak) { src = p; break; }
+      }
+      if (src + 8U <= 160U) {
+        const float shift = static_cast<float>(src - 80U) / 80.0F;
+        for (unsigned k = 0; k < 8U; ++k) {
+          intensity_[80U + k] = intensity_[src + k];
+          colour_[80U + k] = colour_[src + k];
+          offset_[80U + k] = wrap(offset_[src + k] + shift);
+          history_[80U + k] = history_[src + k];
+        }
+      }
+    }
+  }
+  applyOracleFront(mode32, start, music_position, controls.palette_id);
 #endif
   outputV9(controls, colour, output);
   return true;

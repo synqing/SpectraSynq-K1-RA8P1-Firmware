@@ -88,9 +88,12 @@ struct InhouseV9Front final {
   bool legacy_recede = false;
   float travel_s = 0.12F;         // R01 travel, inside 0.100..0.180 s (donor floor is 0.200 s)
   float hold_lead_s = 6.0F;       // riser hold, ending at the labelled drop
-  // After the front arrives, keep full extension for the low end of the atlas
-  // R01 hold (1–2 s), then ease the reach back toward the music deposit with
-  // the R02 Progressive Ignition fall (0.40 s). P6-EXT3-HOLD-FROZEN.json.
+  // After the front arrives, the reach is a minimum extent: 1.0 for hold_s
+  // (the low end of atlas R01, 1–2 s), then an exponential fall toward the
+  // music-driven extent with time constant decay_s (atlas R02, 0.40 s).
+  // Deposits, trails and per-pixel palette colour keep running under that
+  // floor. The front does not paint a constant fill.
+  // P6-EXT3-HOLD-FROZEN.json, P6-EXT3-HOLD-LIVE-FROZEN.json.
   float hold_s = 1.0F;
   float decay_s = 0.40F;
   std::array<float, 8> drop_s{};  // probe clock, file time in seconds
@@ -313,6 +316,9 @@ class InhouseWaveformRenderer final {
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
   void applyOracleFront(bool mode32, unsigned start, float music_position,
                         std::uint16_t palette_id) noexcept;
+  // Minimum extent while a non-legacy front is active. 0 is the edge, 1 is the
+  // centre. clear_inner is set only while that minimum is falling after hold_s.
+  bool v9HoldReach(float music_position, float* reach, bool* clear_inner) const noexcept;
 #endif
   void outputV9(const InhouseWaveformControls& controls, const FixedRgb& colour,
                 Pixel16* output) noexcept;
