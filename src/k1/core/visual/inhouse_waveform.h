@@ -28,10 +28,17 @@ enum class InhouseV9Fault : std::uint8_t {
   kNone = 0, kPerChannelMax = 1, kBrightnessFloor = 2, kRgbBlend = 3,
 };
 // Chosen by the frozen P6 rule at matched optical energy (TOLERANCE-FROZEN-P6.json,
-// iteration 3). Gains match v8's mean light on the BOOM file/room + Sonic corpus per mode.
+// iteration 4, palette variant B). Gains match v8's mean light on the BOOM file/room +
+// Sonic corpus per mode.
 inline constexpr InhouseV9Variant kInhouseV9Variant = InhouseV9Variant::kLevelEmphasis;
-inline constexpr float kInhouseV9Gain32 = 0.853441F;  // mode 32 deposit gain
-inline constexpr float kInhouseV9Gain18 = 0.965298F;  // mode 18 deposit gain
+inline constexpr float kInhouseV9Gain32 = 0.395878F;  // mode 32 deposit gain
+inline constexpr float kInhouseV9Gain18 = 0.591745F;  // mode 18 deposit gain
+// P6 iteration 4 test variants (P6-IT4-PALETTE-VARIANTS-FROZEN.json), v9 only; product
+// palettes and v8 are untouched. A lifts the dark low end of palettes 32/39 (ids 31/38)
+// keeping each stop's hue; B folds the colour circle onto a sub-range without the ends.
+enum class InhouseV9Palette : std::uint8_t { kAsIs = 0, kLiftedLowEnd = 1, kRestrictedRange = 2 };
+// TEST VARIANT under the Captain's testing ruling (14 Oct 2026); not a palette change.
+inline constexpr InhouseV9Palette kInhouseV9Palette = InhouseV9Palette::kRestrictedRange;
 #endif
 
 // One coherent producer observation; spectrum is the source 80-note bank after
@@ -128,6 +135,11 @@ class InhouseWaveformRenderer final {
     v9_variant_ = variant; v9_fault_ = fault; v9_gain_[0] = gain32; v9_gain_[1] = gain18;
     return true;
   }
+  [[nodiscard]] bool setV9HostPalette(InhouseV9Palette palette) noexcept {
+    if (static_cast<unsigned>(palette) > 2U) return false;
+    v9_palette_ = palette;
+    return true;
+  }
   // C5b hue probe: one deposit of an explicit palette position through the v9 release,
   // deposit and output code (dt > 0 applies one release step first).
   [[nodiscard]] bool probeV9Deposit(const InhouseWaveformControls& controls, float palette_position,
@@ -170,6 +182,7 @@ class InhouseWaveformRenderer final {
   InhouseV9Variant v9_variant_ = kInhouseV9Variant;
   InhouseV9Fault v9_fault_ = InhouseV9Fault::kNone;
   float v9_gain_[2] = {kInhouseV9Gain32, kInhouseV9Gain18};
+  InhouseV9Palette v9_palette_ = kInhouseV9Palette;
 #endif
   [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
@@ -177,6 +190,7 @@ class InhouseWaveformRenderer final {
   void updateColourV9(const InhouseWaveformControls& controls, float dt, bool silent,
                       float level) noexcept;
   void fadeV9(bool mode32, bool silent, float dt) noexcept;
+  [[nodiscard]] PaletteLinearRgb colourV9(std::uint16_t palette_id, float coordinate) const noexcept;
   void depositV9(bool mode32, unsigned start, float position, float level,
                  const FixedRgb& colour) noexcept;
   void outputV9(const InhouseWaveformControls& controls, const FixedRgb& colour,

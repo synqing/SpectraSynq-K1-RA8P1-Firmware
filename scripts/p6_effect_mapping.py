@@ -148,7 +148,7 @@ def run(exe: Path, inputs: Path, out: Path, v9: list[str] | None, only: list[str
     (out / "replay.json").write_text(json.dumps(meta, indent=2) + "\n")
 
 
-def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str) -> dict:
+def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str, palette: str | None = None) -> dict:
     """Matched optical energy: per-mode gain so the calibration-corpus mean S equals v8's."""
     sys.path.insert(0, str(ROOT / "scripts"))
     import p6_evaluate
@@ -157,12 +157,13 @@ def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str) -> di
     gains, steps = [1.0, 1.0], []
     for i in range(3):  # start, then two multiplicative refinements
         out = work / f"cal-{variant}-{i}"
-        run(exe, inputs, out, [variant, "none", f"{gains[0]:.6f}", f"{gains[1]:.6f}"], p6_evaluate.CALIBRATION)
+        run(exe, inputs, out, [variant, "none", f"{gains[0]:.6f}", f"{gains[1]:.6f}"] + ([palette] if palette else []),
+            p6_evaluate.CALIBRATION)
         got = p6_evaluate.energy(out, manifest)
         steps.append({"gains": list(gains), "mean_S": got})
         if i < 2:
             gains = [min(64.0, g * t / m) for g, t, m in zip(gains, target, got)]
-    return {"variant": variant, "target_mean_S_v8": target, "steps": steps,
+    return {"variant": variant, "palette": palette or "asis", "target_mean_S_v8": target, "steps": steps,
             "final_gains": steps[-1]["gains"], "final_mean_S": steps[-1]["mean_S"]}
 
 
@@ -172,13 +173,14 @@ def main(argv=None) -> int:
     b = sub.add_parser("build"); b.add_argument("--profile", choices=("v8", "v9"), required=True); b.add_argument("--exe", type=Path, required=True)
     p = sub.add_parser("prepare"); p.add_argument("--exe", type=Path, required=True); p.add_argument("--out", type=Path, required=True)
     r = sub.add_parser("run"); r.add_argument("--exe", type=Path, required=True); r.add_argument("--inputs", type=Path, required=True)
-    r.add_argument("--out", type=Path, required=True); r.add_argument("--v9", nargs=4); r.add_argument("--only", nargs="*")
+    r.add_argument("--out", type=Path, required=True); r.add_argument("--v9", nargs="+"); r.add_argument("--only", nargs="*")
     c = sub.add_parser("calibrate"); c.add_argument("--exe", type=Path, required=True); c.add_argument("--inputs", type=Path, required=True)
     c.add_argument("--v8", type=Path, required=True); c.add_argument("--work", type=Path, required=True)
     c.add_argument("--variant", choices=("peak", "energy", "emphasis"), required=True); c.add_argument("--out", type=Path, required=True)
+    c.add_argument("--palette", choices=("asis", "lifted", "range"))  # iteration 4 test variants
     a = ap.parse_args(argv)
     if a.cmd == "calibrate":
-        a.out.write_text(json.dumps(calibrate(a.exe, a.inputs, a.v8, a.work, a.variant), indent=2) + "\n")
+        a.out.write_text(json.dumps(calibrate(a.exe, a.inputs, a.v8, a.work, a.variant, a.palette), indent=2) + "\n")
         return 0
     if a.cmd == "build":
         build(a.profile, a.exe)

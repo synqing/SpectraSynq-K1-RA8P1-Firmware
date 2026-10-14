@@ -16,6 +16,7 @@
 //   v8: p6_effect_probe in.s16 out.csv frames.bin
 //   v9: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18
 //       variant: peak|energy|emphasis|default (firmware constants) ; fault: none|channel_max|floor
+//       optional 9th argument (iteration 4): palette test variant asis|lifted|range
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
 #include "core/visual/product_palette.h"
@@ -68,7 +69,10 @@ std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
 
 int main(int argc, char** argv) {
 #ifdef K1_INHOUSE_MAPPING_V9
-  if (argc != 8) { std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18\n"); return 2; }
+  if (argc != 8 && argc != 9) {
+    std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range]\n");
+    return 2;
+  }
 #else
   if (argc != 4) { std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin\n"); return 2; }
 #endif
@@ -109,6 +113,15 @@ int main(int argc, char** argv) {
     const float gains[2] = {std::strtof(argv[6], nullptr), std::strtof(argv[7], nullptr)};
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostConfig(variant, fault, gains[0], gains[1])) return 2;
+  }
+  if (argc == 9) {  // iteration 4 palette test variant (P6-IT4-PALETTE-VARIANTS-FROZEN.json)
+    using k1::core::visual::InhouseV9Palette;
+    const std::string pname = argv[8];
+    const InhouseV9Palette palette = pname == "asis" ? InhouseV9Palette::kAsIs
+        : pname == "lifted" ? InhouseV9Palette::kLiftedLowEnd
+        : pname == "range" ? InhouseV9Palette::kRestrictedRange : static_cast<InhouseV9Palette>(255);
+    for (unsigned b = 0; b < 2; ++b)
+      if (!renderer[b].setV9HostPalette(palette)) return 2;
   }
 #endif
   InhouseWaveformControls controls[2];

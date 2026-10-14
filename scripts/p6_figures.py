@@ -160,13 +160,47 @@ def posthoc(manifest, v9, out):
     return res
 
 
+def compare_figure(manifest, runs, out):
+    """Iteration 4: BOOM build->drop, light S and luma L per board and input, one line per profile."""
+    colours = {"v8": "#8a8f98", "v9 it3 (palettes as is)": "#c8361f", "v9 A lifted low end": "#e08a1e",
+               "v9 B restricted range": "#3b6fb6"}
+    fig, axes = plt.subplots(4, 2, figsize=(13, 12), sharex=True)
+    for col, tag in enumerate(("boom_source", "boom_room")):
+        sp = spec_of(manifest, tag)
+        for name, d in runs.items():
+            x = load(d, tag, sp)
+            for k, (board, metric) in enumerate(((0, "S"), (1, "S"), (0, "L"), (1, "L"))):
+                y = x[(x.board == board) & (x.t_song >= 40) & (x.t_song <= 65)]
+                v, t = smooth(y.t_song.to_numpy(), y[metric].to_numpy() * 1000)
+                axes[k, col].plot(t, v, color=colours.get(name, "k"), lw=1.2, label=name)
+        for k, (board, metric) in enumerate(((0, "S"), (1, "S"), (0, "L"), (1, "L"))):
+            ax = axes[k, col]
+            ax.axvspan(45, 50, color="#f2c14e", alpha=0.18)
+            ax.axvspan(55.5, 60, color="#3b6fb6", alpha=0.10)
+            ax.set_title(f"{'lower (mode 32)' if board == 0 else 'upper (mode 18)'} — "
+                         f"{'light S' if metric == 'S' else 'Rec.709 luma L'} — {'song file' if tag == 'boom_source' else 'room recording'}",
+                         fontsize=9.5)
+            ax.set_ylabel("per-mille", fontsize=8)
+            ax.grid(alpha=0.25)
+    axes[0, 0].legend(fontsize=8, loc="upper left")
+    for ax in axes[3]:
+        ax.set_xlabel("BOOM song time (s)   yellow = build 45–50 s, blue = drop 55.5–60 s")
+    fig.suptitle("P6 iteration 4: BOOM build to drop at matched average light — v8, v9 it3, variant A, variant B", fontsize=12)
+    fig.tight_layout()
+    fig.savefig(out / "fig-boom-build-drop-4way.png", dpi=120)
+    plt.close(fig)
+
+
 def main():
     ap = argparse.ArgumentParser()
     for k in ("--inputs", "--v8", "--v9", "--eval8", "--eval9", "--out"):
         ap.add_argument(k, type=Path, required=True)
+    ap.add_argument("--compare", nargs="*", default=[], help="NAME=DIR pairs for the iteration-4 4-way figure")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((a.inputs / "inputs.json").read_text())
+    if a.compare:
+        compare_figure(manifest, {k: Path(v) for k, v in (c.split("=", 1) for c in a.compare)}, a.out)
     boom_figure(manifest, a.v8, a.v9, a.out)
     order_figure(json.loads(a.eval8.read_text()), json.loads(a.eval9.read_text()), a.out)
     split_figure(manifest, a.v9, a.out)

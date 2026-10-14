@@ -21,6 +21,7 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--work", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--palette", choices=("asis", "lifted", "range"), default="asis")  # iteration 4
     a = ap.parse_args(argv)
     a.work.mkdir(parents=True, exist_ok=True)
     exe = a.work / "p6_c5b_hue_probe"
@@ -30,11 +31,11 @@ def main(argv=None) -> int:
                     "src/k1/core/visual/product_palette_data.cpp", "-o", str(exe)], cwd=ROOT, check=True)
     runs = {}
     for fault in ("none", "channel_max", "rgb_blend"):
-        out = subprocess.run([str(exe), fault], capture_output=True, text=True, check=True).stdout
+        out = subprocess.run([str(exe), fault, a.palette], capture_output=True, text=True, check=True).stdout
         runs[fault] = [json.loads(line) for line in out.splitlines()]
     clean = all(r["off_px"] == 0 and r["lit_px"] > 0 for r in runs["none"])
     red = {f: all(r["off_px"] > 0 for r in runs[f]) for f in ("channel_max", "rgb_blend")}
-    res = {"criterion": "TOLERANCE-FROZEN-P6-C5b.json", "runs": runs, "v9_clean": clean,
+    res = {"criterion": "TOLERANCE-FROZEN-P6-C5b.json", "palette": a.palette, "runs": runs, "v9_clean": clean,
            "planted_red": red, "discriminating": all(red.values()), "pass": clean and all(red.values())}
     a.out.write_text(json.dumps(res, indent=2) + "\n")
     print(json.dumps({k: res[k] for k in ("v9_clean", "planted_red", "pass")}))

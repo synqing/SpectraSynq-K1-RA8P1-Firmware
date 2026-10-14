@@ -513,6 +513,60 @@ bool InhouseWaveformRenderer::renderFamily(const InhouseWaveformAudio& audio,
 }
 
 #if defined(K1_INHOUSE_MAPPING_V9)
+namespace {
+// Iteration 4 variant A stops (P6-IT4-PALETTE-VARIANTS-FROZEN.json): same positions and
+// hue per stop as product palettes 32/39, with the dark low end lifted.
+constexpr ProductPaletteStop kLifted32[] = {{0, {150, 0, 0}}, {42, {200, 0, 0}}, {84, {255, 0, 0}},
+    {127, {255, 0, 45}}, {170, {255, 0, 255}}, {212, {255, 55, 45}}, {255, {255, 255, 0}}};
+constexpr ProductPaletteStop kLifted39[] = {{0, {150, 0, 125}}, {32, {190, 0, 131}}, {64, {220, 0, 121}},
+    {96, {220, 0, 70}}, {128, {255, 36, 24}}, {160, {255, 92, 0}}, {192, {255, 145, 0}},
+    {218, {255, 190, 40}}, {240, {255, 70, 120}}, {255, {150, 0, 125}}};
+
+PaletteLinearRgb sampleStops(const ProductPaletteStop* stops, unsigned count, float coordinate) noexcept {
+  coordinate = f(q(wrap(coordinate)));  // same coordinate quantisation as sample()
+  unsigned i = 0;
+  while (i + 1U < count && float(stops[i + 1U].position) / 255.0F < coordinate) ++i;
+  const auto convert = [](const ProductPaletteStop& stop) {
+    return PaletteLinearRgb{float(stop.colour.red) / 255.0F, float(stop.colour.green) / 255.0F,
+                            float(stop.colour.blue) / 255.0F};
+  };
+  PaletteLinearRgb colour{};
+  if (i + 1U >= count || coordinate <= float(stops[0].position) / 255.0F) {
+    colour = convert(stops[coordinate <= float(stops[0].position) / 255.0F ? 0U : count - 1U]);
+  } else {
+    const float position = float(stops[i].position) / 255.0F;
+    const float span = float(stops[i + 1U].position) / 255.0F - position;
+    const float fraction = span > 1.0e-6F ? clamp01((coordinate - position) / span) : 0.0F;
+    const auto first = convert(stops[i]), next = convert(stops[i + 1U]);
+    colour = {first.red + (next.red - first.red) * fraction, first.green + (next.green - first.green) * fraction,
+              first.blue + (next.blue - first.blue) * fraction};
+  }
+  return {f(q(colour.red)), f(q(colour.green)), f(q(colour.blue))};
+}
+}  // namespace
+
+// Palette colour for the v9 colour coordinate under the selected test variant.
+PaletteLinearRgb InhouseWaveformRenderer::colourV9(std::uint16_t palette_id, float coordinate) const noexcept {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const InhouseV9Palette variant = v9_palette_;
+#else
+  constexpr InhouseV9Palette variant = kInhouseV9Palette;
+#endif
+  if (variant == InhouseV9Palette::kLiftedLowEnd && (palette_id == 31U || palette_id == 38U)) {
+    return palette_id == 31U ? sampleStops(kLifted32, sizeof(kLifted32) / sizeof(kLifted32[0]), coordinate)
+                             : sampleStops(kLifted39, sizeof(kLifted39) / sizeof(kLifted39[0]), coordinate);
+  }
+  if (variant == InhouseV9Palette::kRestrictedRange && (palette_id == 31U || palette_id == 38U)) {
+    // Continuous fold of the colour circle onto [lo, hi], excluding the near-black ends.
+    const float lo = palette_id == 31U ? 0.3294F : 0.2510F;
+    const float hi = palette_id == 31U ? 1.0F : 0.9412F;
+    const float c = wrap(coordinate);
+    const float p = lo + (hi - lo) * (1.0F - std::fabs(2.0F * c - 1.0F));
+    return sample(palette_id, std::min(p, 65535.0F / 65536.0F), 1.0F);
+  }
+  return sample(palette_id, coordinate, 1.0F);
+}
+
 // Colour is the slow layer. Confident harmony (tonality gate open, strong centroid, and
 // audible light being deposited) pulls the palette coordinate with capped momentum. When
 // confidence is low the colour holds, drifting only toward its own long-term confident
@@ -654,7 +708,7 @@ bool InhouseWaveformRenderer::probeV9Deposit(const InhouseWaveformControls& cont
     float palette_position, float level, float position, float dt, Pixel16* output) noexcept {
   if (output == nullptr || (controls.mode != 32U && controls.mode != 18U)) return false;
   const bool mode32 = controls.mode == 32U;
-  const auto colour_f = sample(controls.palette_id, palette_position, 1.0F);
+  const auto colour_f = colourV9(controls.palette_id, palette_position);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
   if (dt > 0.0F) fadeV9(mode32, false, dt);
   depositV9(mode32, mode32 || controls.mirror ? 80U : 0U, position, clamp01(level), colour);
@@ -678,7 +732,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.tonality_gate = f(tonality_gate_);
   observation_.centroid_strength = centroid_strength_;
   updateColourV9(controls, dt, silent, level);
-  const auto colour_f = sample(controls.palette_id, colour_position_, 1.0F);
+  const auto colour_f = colourV9(controls.palette_id, colour_position_);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
   observation_.smoothed_colour = colour_f;
   fadeV9(mode32, silent, dt);
