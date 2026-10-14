@@ -1,0 +1,16 @@
+8894f7c3e10e592153fbd30dad9dbfff4519f0130891b9efabedf04601e94f0e  ./candidate/dbs-pilot-rejected-integration.patch
+f8658013098a2eeb65211d01d5bfddd3bb3b967d936457a96076d22ed26d9672  ./comparison/deposit-60-62s.png
+a5308f01e248fded40de21b66953e6193428e73e8b4a69468f5e7ebabd93f303  ./comparison/payload-strip-60-62s.png
+666c195b884561913212f063629713eb3f79fde0df5c9a1c05e677553cf9a21a  ./criteria/calibration.json
+1514ac9c49e60e6814b53863455df0f51b39eae84cf3bc8b2bd03d10d02dddad  ./criteria/DBS-CRITERIA-FROZEN.json
+98b145aa3393df58cd3cc85c13870b0fbb41b2615e0c806b6d2a74a7e2176a46  ./criteria/DBS-CRITERIA-v2-AMENDMENT-FROZEN.json
+fb495d64ea6e5f481d001599d1033932aacf61e041b24f99d5bbb9d986cda383  ./criteria/missed-set-boom_room.json
+fc8384880783f6dd3f3f3789adb90ac92218b32bf00a4024e35f0cb4f3a4fc72  ./criteria/missed-set-boom_source.json
+4c321451a8ee87f0893985152d04f7e45d01f57292dd2c1524e7a39d35d132a9  ./RECEIPT.md
+36f855173a5c5f381c39dce8326de5faba16b6b66ab3b2f09b030efdefae56b8  ./reference/boom-onsets.json
+529f3b01f7b86a20e0339195e77f356f262467c42982c30c972cf5460c58f7cf  ./reference/boom-onsets.png
+532c79d9d781c557e2ace1887c131dc028f5e746d8407d07bcfaf6f5266fbb69  ./reference/README.md
+21915afec8f98bfadb31521f7b0b45f0c3a6517e9c782640a33a29b266c5df9d  ./reference/sonic-6-30-onsets.json
+fc8fa2ee28633cd7faf80f15663dfac831daef4a2f44a123cb2101fcd619aec7  ./reference/sonic-6-30-onsets.png
+590fd652132b2bb2c6a1f2966a4586848e824289cf9580e91b927dcd41cbe01e  ./results/scores.json
+2e1c16df64fc103489001718abbf5084cf4708c41595776ec6418f6b878c90b3  ./step1/stage-explore.png
