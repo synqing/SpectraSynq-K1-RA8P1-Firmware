@@ -59,6 +59,8 @@ def summarise(records, window=None):
     # P4 correction 1: k1_poly24 push+pull cycles per donor hop (v2 spare u16 = cycles/16).
     if any("a24_cycles_div16" in r for r in rows):
         out["a24_cycles"] = distribution([16 * r.get("a24_cycles_div16", 0) for r in rows])
+        # The u16 field saturates at 0xFFFF (~1.05 M cycles); count saturated rows so a ceiling never hides.
+        out["a24_cycles"]["saturated_rows"] = sum(1 for r in rows if r.get("a24_cycles_div16", 0) >= 0xFFFF)
     return out
 
 
