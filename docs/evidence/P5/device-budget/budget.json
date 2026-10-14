@@ -1,0 +1,713 @@
+{
+  "title": "P5 device-side latency budget",
+  "image_build": "f2f1983a53649f1c6f5e2d909d977d1029a704e9a51025e9839789293cc7d901",
+  "image_short": "f2f1983a",
+  "source": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+  "uid": "545433931bd25436593630352d068363",
+  "clock_hz_reported": 1000000000,
+  "contract": "sr12800.hop64.bins64.emotiscope",
+  "render_hz_reported": 100,
+  "timing_sha256": "ca3345699993b6ab2b1fe49b1cd295a30573bb79d991bf8ffd04bdd8268a70f1",
+  "truth_sha256": "f0bdb3f4f42a5b357cb2df3e31062a8e1e28f11eab04fd0b0a7820c2774ade6d",
+  "rows": 94996,
+  "clock": {
+    "cpu_hz": 1000000000,
+    "fact": "info.json clock_hz is 1000000000. hal_entry.c passes SystemCoreClock into k1_fixture_initialise, which initialises the live clock. Capture microseconds divide the same DWT by SystemCoreClock."
+  },
+  "wire": {
+    "profile": 3,
+    "pixels_per_din": 80,
+    "bytes_per_pixel": 6,
+    "period_ns": 1250,
+    "reset_us": 300,
+    "lanes_parallel": true,
+    "formula": "emit_ns = pixels * bytes_per_pixel * 8 * period_ns + reset_us * 1000",
+    "emit_ms": 5.1,
+    "source": "platform/ra8p1/ws281x_waveform.c k1_ws281x_gpt_cost_lanes; ws281x_diag.h profile 3; fixture_app.cpp submit profile 3"
+  },
+  "frame": {
+    "period_us": 10000,
+    "model": "uniform 0 to 10 ms, independent of the hop phase",
+    "p50_ms": 5.0,
+    "p99_ms": 9.9,
+    "max_ms": 10.0
+  },
+  "sections_definition": {
+    "sample_rate": 44100,
+    "truth_seconds": 468.6191156462585,
+    "n_clicks": 520,
+    "first_click_s": 4.39,
+    "last_click_s": 386.36725623582765,
+    "click_s": 0.03,
+    "boom_start_sample": 17165004,
+    "boom_start_s": 389.2291156462585,
+    "boom_end_s": 464.2291156462585,
+    "boom_length_s": 75.0,
+    "boom_source": "_scratch/waveform-migration-001/audio-boom-001/boom-0-75s-pcm16.wav",
+    "sync_start_s": [
+      2.0,
+      2.17,
+      2.34
+    ],
+    "sync_end_s": [
+      466.2291156462585,
+      466.3991156462585,
+      466.5691156462585
+    ],
+    "rule": "Clicks: first truth click <= _music_s < boom_start. BOOM: boom_start <= _music_s < boom_start+75. _music_s is host monotonic time since afplay started, stamped once per USB read."
+  },
+  "row_counts": {
+    "total": 94996,
+    "music_before_playback": 599,
+    "lead_in_including_sync": 882,
+    "clicks": 76964,
+    "boom": 14996,
+    "tail_after_boom": 1555,
+    "music_s_min": -1.0,
+    "music_s_max": 471.9820661249687,
+    "unique_music_stamps": 17732,
+    "music_stamp_step_s": {
+      "count": 17731,
+      "min": 0.020675000036135316,
+      "p50": 0.026730499987024814,
+      "p99": 0.03126605369034224,
+      "max": 0.04202824999811128,
+      "mean": 0.026618920153965206
+    }
+  },
+  "integrity": {
+    "write_seq_first": 47272,
+    "write_seq_last": 142267,
+    "write_seq_span_inclusive": 94996,
+    "missing_steps": 0,
+    "gap_events": 0,
+    "duplicate_steps": 0,
+    "backward_steps": 0,
+    "first_non_unit_steps": [],
+    "hop_sequence_matches_write_seq": true,
+    "capture_time_zero": 0,
+    "publish_before_capture": 0,
+    "capture_nonincreasing_among_nonzero": 0,
+    "capture_nonincreasing_examples": [],
+    "successive_capture_step_ms": {
+      "count": 94995,
+      "min": 4.991,
+      "p50": 5.0,
+      "p99": 5.003,
+      "max": 5.009,
+      "mean": 5.000189757355651
+    },
+    "publish_span_s": 474.994102,
+    "capture_span_s": 474.993026,
+    "valid_rows": 94996
+  },
+  "device_frame_witness": {
+    "emitted_during_capture": 47505,
+    "publish_span_s": 474.994102,
+    "implied_fps": 100.01176814612322,
+    "skipped_releases": 0,
+    "emit_errors": 0,
+    "poll_max_cycles_since_boot": 8672049,
+    "poll_max_ms_since_boot": 8.672049,
+    "analysis24_note": "not exported by this image"
+  },
+  "donor_hop_ms": 5.0,
+  "bands": {
+    "clicks": {
+      "short_hop_under_1ms": {
+        "rows": 23131,
+        "fraction": 0.3005431110649135,
+        "capture_to_publish_ms": {
+          "count": 23131,
+          "min": 1.922,
+          "p50": 3.803,
+          "p99": 5.126400000000001,
+          "max": 5.588,
+          "mean": 3.8166675457178676
+        },
+        "hop_dt_ms": {
+          "count": 23131,
+          "min": 0.285,
+          "p50": 0.305,
+          "p99": 0.712,
+          "max": 0.723,
+          "mean": 0.3496266049889758
+        }
+      },
+      "ordinary_hop_at_least_5ms": {
+        "rows": 53833,
+        "fraction": 0.6994568889350865,
+        "capture_to_publish_ms": {
+          "count": 53833,
+          "min": 3.77,
+          "p50": 7.035,
+          "p99": 9.61168,
+          "max": 10.269,
+          "mean": 7.0390838519123955
+        },
+        "hop_dt_ms": {
+          "count": 53833,
+          "min": 5.336,
+          "p50": 7.035,
+          "p99": 7.972,
+          "max": 8.646,
+          "mean": 6.998380658703769
+        }
+      }
+    },
+    "boom": {
+      "short_hop_under_1ms": {
+        "rows": 4507,
+        "fraction": 0.3005468124833289,
+        "capture_to_publish_ms": {
+          "count": 4507,
+          "min": 1.952,
+          "p50": 3.846,
+          "p99": 5.203879999999999,
+          "max": 5.528,
+          "mean": 3.804762591524295
+        },
+        "hop_dt_ms": {
+          "count": 4507,
+          "min": 0.287,
+          "p50": 0.305,
+          "p99": 0.709,
+          "max": 0.721,
+          "mean": 0.348625027734635
+        }
+      },
+      "ordinary_hop_at_least_5ms": {
+        "rows": 10489,
+        "fraction": 0.6994531875166711,
+        "capture_to_publish_ms": {
+          "count": 10489,
+          "min": 4.154,
+          "p50": 7.007,
+          "p99": 9.624,
+          "max": 10.215,
+          "mean": 7.043912670416628
+        },
+        "hop_dt_ms": {
+          "count": 10489,
+          "min": 5.406,
+          "p50": 7.048,
+          "p99": 7.861,
+          "max": 8.39,
+          "mean": 6.999204404614358
+        }
+      }
+    }
+  },
+  "clicks": {
+    "rows_in_section": 76964,
+    "rows_valid": 76964,
+    "rows_capture_zero": 0,
+    "rows_publish_before_capture": 0,
+    "music_s_min": 4.412064790958539,
+    "music_s_max": 389.2220876250067,
+    "stages": {
+      "a_slot": {
+        "kind": "derived_from_constants",
+        "in_additive_sum": false,
+        "what": "PDM slot duration 296/measured_hz. Block granularity. Acoustic travel, the microphone and the PDM sinc group delay are unmeasured and are not given a millisecond.",
+        "stats_ms": {
+          "count": 76964,
+          "min": 7.1483771251932,
+          "p50": 7.1483771251932,
+          "p99": 7.1483771251932,
+          "max": 7.1483771251932,
+          "mean": 7.148377125193202
+        }
+      },
+      "a_fir": {
+        "kind": "derived_from_constants",
+        "in_additive_sum": false,
+        "what": "47-sample causal FIR at the measured PDM rate. Already subtracted inside the capture stamp, so it already sits inside stage (c).",
+        "stats_ms": {
+          "count": 76964,
+          "min": 1.135046367851623,
+          "p50": 1.135046367851623,
+          "p99": 1.135046367851623,
+          "max": 1.135046367851623,
+          "mean": 1.135046367851623
+        }
+      },
+      "b_before_analysis": {
+        "kind": "inferred",
+        "in_additive_sum": false,
+        "what": "publish-capture minus ap_cycles. Everything from the content stamp to the start of the measured analysis span, including the FIR, the rest of the DMA block, the queue and descriptor pull. This is a split of (c), not a second clock.",
+        "stats_ms": {
+          "count": 76964,
+          "min": 1.636375,
+          "p50": 4.9459805,
+          "p99": 8.42541876,
+          "max": 9.0076,
+          "mean": 5.258894829257835
+        },
+        "negative_rows": 0
+      },
+      "c_capture_to_publish": {
+        "kind": "measured_on_device",
+        "in_additive_sum": true,
+        "what": "publish_time_us - capture_time_us on rows with a valid capture stamp.",
+        "stats_ms": {
+          "count": 76964,
+          "min": 1.922,
+          "p50": 5.955,
+          "p99": 9.546,
+          "max": 10.269,
+          "mean": 6.070608830102385
+        },
+        "stats_us": {
+          "count": 76964,
+          "min": 1922.0,
+          "p50": 5955.0,
+          "p99": 9546.0,
+          "max": 10269.0,
+          "mean": 6070.608830102386
+        }
+      },
+      "c_analysis_cpu": {
+        "kind": "measured_on_device",
+        "in_additive_sum": false,
+        "what": "ap_cycles at 1 GHz. Donor plus in-house work inside (c). Not added on top of (c).",
+        "stats_ms": {
+          "count": 76964,
+          "min": 0.269722,
+          "p50": 0.977519,
+          "p99": 1.27583237,
+          "max": 1.289844,
+          "mean": 0.8117140008445507
+        },
+        "donor_ms": {
+          "count": 76964,
+          "min": 0.269074,
+          "p50": 0.284947,
+          "p99": 0.29820284999999996,
+          "max": 0.308944,
+          "mean": 0.285013059274466
+        },
+        "inhouse_ms": {
+          "count": 76964,
+          "min": 0.000498,
+          "p50": 0.693289,
+          "p99": 0.986267,
+          "max": 0.993207,
+          "mean": 0.5266516628943402
+        },
+        "inhouse_under_10000_cycles": 25655,
+        "inhouse_idle_fraction": 0.3333376643625591
+      },
+      "d_render": {
+        "kind": "measured_on_device",
+        "in_additive_sum": true,
+        "what": "vp_cycles at 1 GHz. One cost per change in the sticky field (the last completed render). All-row figures are stored beside it.",
+        "stats_ms": {
+          "count": 38483,
+          "min": 0.1652,
+          "p50": 0.196752,
+          "p99": 0.27697118000000004,
+          "max": 0.282476,
+          "mean": 0.20388947145492814
+        },
+        "all_rows_ms": {
+          "count": 76964,
+          "min": 0.1652,
+          "p50": 0.196516,
+          "p99": 0.276988,
+          "max": 0.282476,
+          "mean": 0.20292310033262304
+        },
+        "zero_rows_in_section_valid": 0
+      },
+      "e_pack_cpu": {
+        "kind": "measured_on_device",
+        "in_additive_sum": true,
+        "what": "emit_cycles_last at 1 GHz. Pack and submit of both DINs. One cost per change in the sticky field. The wire time is not inside this number.",
+        "stats_ms": {
+          "count": 38428,
+          "min": 0.121672,
+          "p50": 0.127963,
+          "p99": 0.131451,
+          "max": 0.134287,
+          "mean": 0.12800202459144375
+        },
+        "all_rows_ms": {
+          "count": 76964,
+          "min": 0.121672,
+          "p50": 0.127963,
+          "p99": 0.131844,
+          "max": 0.134287,
+          "mean": 0.12802332018865964
+        }
+      },
+      "e_wire": {
+        "kind": "derived_from_constants",
+        "in_additive_sum": true,
+        "what": "WS2816 profile 3, 80 pixels, one lane, because the two DINs shift bits at the same time.",
+        "stats_ms": {
+          "count": 76964,
+          "min": 5.1,
+          "p50": 5.1,
+          "p99": 5.1,
+          "max": 5.1,
+          "mean": 5.1
+        }
+      },
+      "e_pack_plus_wire": {
+        "kind": "measured_on_device_plus_derived",
+        "in_additive_sum": true,
+        "stats_ms": {
+          "p50": 5.227963,
+          "p99": 5.231451,
+          "max": 5.234286999999999
+        }
+      },
+      "f_frame_wait": {
+        "kind": "inferred",
+        "in_additive_sum": true,
+        "what": "Uniform wait from publish to the next 10 ms palette tick. Not stamped per hop.",
+        "stats_ms": {
+          "count": 76964,
+          "min": 0.0,
+          "p50": 5.0,
+          "p99": 9.9,
+          "max": 10.0,
+          "mean": 5.0
+        }
+      },
+      "joint_measured_to_end_of_wire": {
+        "kind": "measured_on_device_plus_derived",
+        "in_additive_sum": false,
+        "what": "Per valid row: (publish-capture) + sticky vp + sticky emit + 5.100 ms wire. This is the percentile of the sum. It does not include the frame wait.",
+        "stats_ms": {
+          "count": 76964,
+          "min": 7.333874999999999,
+          "p50": 11.383938,
+          "p99": 14.975584289999999,
+          "max": 15.69473,
+          "mean": 11.501555250623667
+        }
+      }
+    },
+    "sum_of_stage_percentiles_ms": {
+      "p50": 16.379715,
+      "p99": 24.954422179999998,
+      "max": 25.785763,
+      "formula": "c + d + e_pack + 5.100 + f. Sum of each stage's own percentile."
+    },
+    "context": {
+      "hop_dt_ms": {
+        "count": 76964,
+        "min": 0.285,
+        "p50": 6.846,
+        "p99": 7.854,
+        "max": 8.646,
+        "mean": 5.00014343069487
+      },
+      "hop_dt_under_1ms": 23131,
+      "hop_dt_5_to_8ms": 53309,
+      "measured_hz": {
+        "count": 76964,
+        "min": 41408.0,
+        "p50": 41408.0,
+        "p99": 41408.0,
+        "max": 41408.0,
+        "mean": 41408.0
+      },
+      "queue_filled_samples": {
+        "count": 76964,
+        "min": 207.0,
+        "p50": 355.0,
+        "p99": 500.0,
+        "max": 503.0,
+        "mean": 354.54408554648927
+      },
+      "poll_cycles_max": {
+        "count": 76964,
+        "min": 0.0,
+        "p50": 161870.0,
+        "p99": 166136.11,
+        "max": 171145.0,
+        "mean": 113522.5371082584
+      },
+      "poll_calls": {
+        "count": 76964,
+        "min": 0.0,
+        "p50": 1183.0,
+        "p99": 1610.0,
+        "max": 1744.0,
+        "mean": 914.1986383244114
+      },
+      "asrc_cycles_sum": {
+        "count": 76964,
+        "min": 0.0,
+        "p50": 133412.0,
+        "p99": 137144.0,
+        "max": 141586.0,
+        "mean": 93506.71611402734
+      },
+      "a24_cycles_div16_zero": 76964,
+      "a24_cycles_div16_saturated": 0,
+      "flags_nonzero": 0,
+      "asrc_starved_nonzero": 0
+    }
+  },
+  "boom": {
+    "rows_in_section": 14996,
+    "rows_valid": 14996,
+    "rows_capture_zero": 0,
+    "rows_publish_before_capture": 0,
+    "music_s_min": 389.2528535829624,
+    "music_s_max": 464.2054012499866,
+    "stages": {
+      "a_slot": {
+        "kind": "derived_from_constants",
+        "in_additive_sum": false,
+        "what": "PDM slot duration 296/measured_hz. Block granularity. Acoustic travel, the microphone and the PDM sinc group delay are unmeasured and are not given a millisecond.",
+        "stats_ms": {
+          "count": 14996,
+          "min": 7.1483771251932,
+          "p50": 7.1483771251932,
+          "p99": 7.1483771251932,
+          "max": 7.1483771251932,
+          "mean": 7.148377125193203
+        }
+      },
+      "a_fir": {
+        "kind": "derived_from_constants",
+        "in_additive_sum": false,
+        "what": "47-sample causal FIR at the measured PDM rate. Already subtracted inside the capture stamp, so it already sits inside stage (c).",
+        "stats_ms": {
+          "count": 14996,
+          "min": 1.135046367851623,
+          "p50": 1.135046367851623,
+          "p99": 1.135046367851623,
+          "max": 1.135046367851623,
+          "mean": 1.1350463678516225
+        }
+      },
+      "b_before_analysis": {
+        "kind": "inferred",
+        "in_additive_sum": false,
+        "what": "publish-capture minus ap_cycles. Everything from the content stamp to the start of the measured analysis span, including the FIR, the rest of the DMA block, the queue and descriptor pull. This is a split of (c), not a second clock.",
+        "stats_ms": {
+          "count": 14996,
+          "min": 1.674231,
+          "p50": 4.956756,
+          "p99": 8.432785,
+          "max": 8.947717,
+          "mean": 5.254855481795145
+        },
+        "negative_rows": 0
+      },
+      "c_capture_to_publish": {
+        "kind": "measured_on_device",
+        "in_additive_sum": true,
+        "what": "publish_time_us - capture_time_us on rows with a valid capture stamp.",
+        "stats_ms": {
+          "count": 14996,
+          "min": 1.952,
+          "p50": 6.027,
+          "p99": 9.563349999999996,
+          "max": 10.215,
+          "mean": 6.070396439050414
+        },
+        "stats_us": {
+          "count": 14996,
+          "min": 1952.0,
+          "p50": 6027.0,
+          "p99": 9563.349999999995,
+          "max": 10215.0,
+          "mean": 6070.396439050413
+        }
+      },
+      "c_analysis_cpu": {
+        "kind": "measured_on_device",
+        "in_additive_sum": false,
+        "what": "ap_cycles at 1 GHz. Donor plus in-house work inside (c). Not added on top of (c).",
+        "stats_ms": {
+          "count": 14996,
+          "min": 0.271181,
+          "p50": 0.983928,
+          "p99": 1.27990445,
+          "max": 1.292308,
+          "mean": 0.815540957255268
+        },
+        "donor_ms": {
+          "count": 14996,
+          "min": 0.270479,
+          "p50": 0.285112,
+          "p99": 0.29728604999999997,
+          "max": 0.308068,
+          "mean": 0.2850964114430515
+        },
+        "inhouse_ms": {
+          "count": 14996,
+          "min": 0.000485,
+          "p50": 0.700079,
+          "p99": 0.9917876,
+          "max": 0.996839,
+          "mean": 0.5303952466657775
+        },
+        "inhouse_under_10000_cycles": 4999,
+        "inhouse_idle_fraction": 0.33335556148306217
+      },
+      "d_render": {
+        "kind": "measured_on_device",
+        "in_additive_sum": true,
+        "what": "vp_cycles at 1 GHz. One cost per change in the sticky field (the last completed render). All-row figures are stored beside it.",
+        "stats_ms": {
+          "count": 7499,
+          "min": 0.1706,
+          "p50": 0.196985,
+          "p99": 0.27691530000000003,
+          "max": 0.288174,
+          "mean": 0.20446802146952928
+        },
+        "all_rows_ms": {
+          "count": 14996,
+          "min": 0.1706,
+          "p50": 0.196953,
+          "p99": 0.27700594999999995,
+          "max": 0.288174,
+          "mean": 0.20316367751400372
+        },
+        "zero_rows_in_section_valid": 0
+      },
+      "e_pack_cpu": {
+        "kind": "measured_on_device",
+        "in_additive_sum": true,
+        "what": "emit_cycles_last at 1 GHz. Pack and submit of both DINs. One cost per change in the sticky field. The wire time is not inside this number.",
+        "stats_ms": {
+          "count": 7492,
+          "min": 0.122587,
+          "p50": 0.127895,
+          "p99": 0.13145136000000002,
+          "max": 0.133439,
+          "mean": 0.12793236772557395
+        },
+        "all_rows_ms": {
+          "count": 14996,
+          "min": 0.122587,
+          "p50": 0.127892,
+          "p99": 0.13172415,
+          "max": 0.133439,
+          "mean": 0.12794443211523074
+        }
+      },
+      "e_wire": {
+        "kind": "derived_from_constants",
+        "in_additive_sum": true,
+        "what": "WS2816 profile 3, 80 pixels, one lane, because the two DINs shift bits at the same time.",
+        "stats_ms": {
+          "count": 14996,
+          "min": 5.1,
+          "p50": 5.1,
+          "p99": 5.1,
+          "max": 5.1,
+          "mean": 5.1
+        }
+      },
+      "e_pack_plus_wire": {
+        "kind": "measured_on_device_plus_derived",
+        "in_additive_sum": true,
+        "stats_ms": {
+          "p50": 5.227894999999999,
+          "p99": 5.231451359999999,
+          "max": 5.233439
+        }
+      },
+      "f_frame_wait": {
+        "kind": "inferred",
+        "in_additive_sum": true,
+        "what": "Uniform wait from publish to the next 10 ms palette tick. Not stamped per hop.",
+        "stats_ms": {
+          "count": 14996,
+          "min": 0.0,
+          "p50": 5.0,
+          "p99": 9.9,
+          "max": 10.0,
+          "mean": 5.0
+        }
+      },
+      "joint_measured_to_end_of_wire": {
+        "kind": "measured_on_device_plus_derived",
+        "in_additive_sum": false,
+        "what": "Per valid row: (publish-capture) + sticky vp + sticky emit + 5.100 ms wire. This is the percentile of the sum. It does not include the frame wait.",
+        "stats_ms": {
+          "count": 14996,
+          "min": 7.369655,
+          "p50": 11.459275,
+          "p99": 14.991634599999998,
+          "max": 15.622285999999999,
+          "mean": 11.501504548679645
+        }
+      }
+    },
+    "sum_of_stage_percentiles_ms": {
+      "p50": 16.45188,
+      "p99": 24.971716659999995,
+      "max": 25.736613,
+      "formula": "c + d + e_pack + 5.100 + f. Sum of each stage's own percentile."
+    },
+    "context": {
+      "hop_dt_ms": {
+        "count": 14996,
+        "min": 0.287,
+        "p50": 6.849,
+        "p99": 7.852,
+        "max": 8.39,
+        "mean": 5.000393971725793
+      },
+      "hop_dt_under_1ms": 4507,
+      "hop_dt_5_to_8ms": 10410,
+      "measured_hz": {
+        "count": 14996,
+        "min": 41408.0,
+        "p50": 41408.0,
+        "p99": 41408.0,
+        "max": 41408.0,
+        "mean": 41408.0
+      },
+      "queue_filled_samples": {
+        "count": 14996,
+        "min": 207.0,
+        "p50": 355.0,
+        "p99": 500.0,
+        "max": 503.0,
+        "mean": 354.5155374766604
+      },
+      "poll_cycles_max": {
+        "count": 14996,
+        "min": 0.0,
+        "p50": 161865.0,
+        "p99": 166182.19999999998,
+        "max": 170696.0,
+        "mean": 113523.40697519339
+      },
+      "poll_calls": {
+        "count": 14996,
+        "min": 0.0,
+        "p50": 1186.0,
+        "p99": 1605.0499999999993,
+        "max": 1732.0,
+        "mean": 913.3372232595359
+      },
+      "asrc_cycles_sum": {
+        "count": 14996,
+        "min": 0.0,
+        "p50": 133405.5,
+        "p99": 137186.8,
+        "max": 141750.0,
+        "mean": 93505.74839957322
+      },
+      "a24_cycles_div16_zero": 14996,
+      "a24_cycles_div16_saturated": 0,
+      "flags_nonzero": 0,
+      "asrc_starved_nonzero": 0
+    }
+  },
+  "chart_points_above_ylim": 0,
+  "png": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/runs/P5-20261014T1315Z/device-budget/budget.png"
+}
