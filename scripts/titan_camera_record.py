@@ -8,6 +8,7 @@ nothing here is a latency or colour measurement.
   titan_camera_record.py probe                       # 2 s test clip; fails fast if the camera stalls
   titan_camera_record.py record --seconds 80 --label boom-host-006
   titan_camera_record.py sheet --video V --every 0.5 # contact sheet of frames for viewing
+  titan_camera_record.py request --label L --seconds S --audio 'MacBook Pro Microphone'
 
 Heavy video is written to the external drive (storage policy, >50 MB). A stalled camera open
 (locked phone not mounted, macOS permission prompt) is killed after --open-timeout seconds.
@@ -25,11 +26,16 @@ DEVICE = 'EiP Camera'
 ROOT = Path('/Volumes/Disk Storage/SpectraSynq-Scratch/titan-lagfree-20261014/camera')
 
 
-def record(out: Path, seconds: float, open_timeout: float) -> dict:
+def record(out: Path, seconds: float, open_timeout: float, audio: str | None = None) -> dict:
     out.parent.mkdir(parents=True, exist_ok=True)
+    # Audio in the same file lets light be timed against the room sound (atlas
+    # Experiment 3 step 0). Bluetooth playback lags by a variable 100-250 ms, so
+    # the played file's clock is not the room's clock.
     cmd = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-f', 'avfoundation',
-           '-framerate', '30', '-video_size', '1920x1080', '-i', f'{DEVICE}:none',
+           '-thread_queue_size', '1024', '-framerate', '30', '-video_size', '1920x1080',
+           '-i', f'{DEVICE}:{audio or "none"}',
            '-t', f'{seconds:.1f}', '-c:v', 'h264_videotoolbox', '-b:v', '12M',
+           *(['-c:a', 'aac', '-b:a', '160k'] if audio else []),
            # Fragmented MP4: a recording cut short (server tab closed) is still readable.
            '-movflags', '+frag_keyframe+empty_moov', str(out)]
     start = time.monotonic()
@@ -48,7 +54,15 @@ def record(out: Path, seconds: float, open_timeout: float) -> dict:
         time.sleep(0.5)
     err = proc.stderr.read().decode(errors='replace')[-800:] if proc.stderr else ''
     ok = proc.returncode == 0 and out.exists() and out.stat().st_size > 0
+    streams = []
+    if out.exists():
+        probe = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'stream=codec_type',
+                                '-of', 'csv=p=0', str(out)], capture_output=True, text=True)
+        streams = probe.stdout.split()
+    if audio and 'audio' not in streams:
+        ok = False
     return {'ok': ok, 'returncode': proc.returncode, 'bytes': out.stat().st_size if out.exists() else 0,
+            'streams': streams, 'audio_device': audio,
             'stderr_tail': err, 'path': str(out), 'started_monotonic': start}
 
 
@@ -77,18 +91,18 @@ def serve(open_timeout: float) -> int:
             spec = json.loads(req.read_text())
             label = spec['label']
             print(f'recording {label} for {spec["seconds"]} s', flush=True)
-            res = record(ROOT / f'{label}.mp4', float(spec['seconds']), open_timeout)
+            res = record(ROOT / f'{label}.mp4', float(spec['seconds']), open_timeout, spec.get('audio'))
             (QUEUE / f'{label}.result.json').write_text(json.dumps(res))
             req.unlink()
             print(json.dumps(res), flush=True)
         time.sleep(0.5)
 
 
-def request(label: str, seconds: float, wait: bool) -> dict:
+def request(label: str, seconds: float, wait: bool, audio: str | None = None) -> dict:
     hb = QUEUE / 'heartbeat'
     if not hb.exists() or time.time() - float(hb.read_text() or 0) > 10:
         return {'ok': False, 'error': 'camera server not running (start it in a Cursor terminal tab)'}
-    (QUEUE / f'{label}.request.json').write_text(json.dumps({'label': label, 'seconds': seconds}))
+    (QUEUE / f'{label}.request.json').write_text(json.dumps({'label': label, 'seconds': seconds, 'audio': audio}))
     if not wait:
         return {'ok': True, 'queued': label}
     out = QUEUE / f'{label}.result.json'
@@ -107,6 +121,7 @@ def main() -> int:
     rq.add_argument('--label', required=True)
     rq.add_argument('--seconds', type=float, required=True)
     rq.add_argument('--no-wait', action='store_true')
+    rq.add_argument('--audio', default=None, help="audio device to record with the video, e.g. 'MacBook Pro Microphone'")
     p = sub.add_parser('probe')
     p.add_argument('--open-timeout', type=float, default=20.0)
     r = sub.add_parser('record')
@@ -120,7 +135,7 @@ def main() -> int:
     if a.cmd == 'serve':
         return serve(a.open_timeout)
     if a.cmd == 'request':
-        res = request(a.label, a.seconds, not a.no_wait)
+        res = request(a.label, a.seconds, not a.no_wait, a.audio)
     elif a.cmd == 'probe':
         res = record(ROOT / 'probe.mp4', 2.0, a.open_timeout)
     elif a.cmd == 'record':
