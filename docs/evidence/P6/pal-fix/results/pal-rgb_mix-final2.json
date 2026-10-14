@@ -1,0 +1,188 @@
+{
+  "criterion": "TOLERANCE-FROZEN-P6-PAL.json",
+  "rows": [
+    {
+      "input": "boom_source",
+      "board": 0,
+      "offpal_fraction": 0.3295379098221827,
+      "lit_px": 442814,
+      "median_bins": 9.0,
+      "median_span": 0.5933,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "boom_source",
+      "board": 1,
+      "offpal_fraction": 0.5540784808366522,
+      "lit_px": 402748,
+      "median_bins": 9.0,
+      "median_span": 0.4797,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "boom_room",
+      "board": 0,
+      "offpal_fraction": 0.3108217372047751,
+      "lit_px": 776696,
+      "median_bins": 11.0,
+      "median_span": 0.6606,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "boom_room",
+      "board": 1,
+      "offpal_fraction": 0.6024889700643037,
+      "lit_px": 687674,
+      "median_bins": 12.0,
+      "median_span": 0.6367,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "sonic_room",
+      "board": 0,
+      "offpal_fraction": 0.2888558102609904,
+      "lit_px": 302310,
+      "median_bins": 11.0,
+      "median_span": 0.6421,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "sonic_room",
+      "board": 1,
+      "offpal_fraction": 0.6942352908886307,
+      "lit_px": 218606,
+      "median_bins": 8.0,
+      "median_span": 0.3906,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "dopex_room",
+      "board": 0,
+      "offpal_fraction": 0.2860281604961703,
+      "lit_px": 621722,
+      "median_bins": 11.0,
+      "median_span": 0.6523,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    },
+    {
+      "input": "dopex_room",
+      "board": 1,
+      "offpal_fraction": 0.5521665955641399,
+      "lit_px": 426614,
+      "median_bins": 8.0,
+      "median_span": 0.436,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": false,
+        "b_spread": true,
+        "c_motion_vs_v8": true
+      }
+    }
+  ],
+  "ladder": [
+    {
+      "song": "boom_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "boom_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    }
+  ],
+  "pass": false
+}

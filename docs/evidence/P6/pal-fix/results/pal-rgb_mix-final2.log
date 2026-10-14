@@ -1,0 +1,16 @@
+boom_source  b0 off 0.3295 bins 9 span 0.59 motion 1.00 (v8 1.00) FAIL a_fidelity
+boom_source  b1 off 0.5541 bins 9 span 0.48 motion 1.00 (v8 1.00) FAIL a_fidelity
+boom_room    b0 off 0.3108 bins 11 span 0.66 motion 1.00 (v8 1.00) FAIL a_fidelity
+boom_room    b1 off 0.6025 bins 12 span 0.64 motion 1.00 (v8 1.00) FAIL a_fidelity
+sonic_room   b0 off 0.2889 bins 11 span 0.64 motion 1.00 (v8 1.00) FAIL a_fidelity
+sonic_room   b1 off 0.6942 bins 8 span 0.39 motion 1.00 (v8 1.00) FAIL a_fidelity
+dopex_room   b0 off 0.2860 bins 11 span 0.65 motion 1.00 (v8 1.00) FAIL a_fidelity
+dopex_room   b1 off 0.5522 bins 8 span 0.44 motion 1.00 (v8 1.00) FAIL a_fidelity
+ladder boom_room   b0 [1.0, 1.0, 1.0] ok
+ladder boom_room   b1 [1.0, 1.0, 1.0] ok
+ladder sonic_room  b0 [1.0, 1.0, 1.0] ok
+ladder sonic_room  b1 [1.0, 1.0, 1.0] ok
+ladder dopex_room  b0 [1.0, 1.0, 1.0] ok
+ladder dopex_room  b1 [1.0, 1.0, 1.0] ok
+overall FAIL
+PAL_EXIT:1

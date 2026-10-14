@@ -1,0 +1,7 @@
+{
+  "label": "PRE-SILICON",
+  "start": "2026-10-14T17:43:23.310776+00:00",
+  "pass": false,
+  "error": "Adapted source hash mismatch: core/audio/tempo_tracker.cpp",
+  "end": "2026-10-14T17:43:23.417415+00:00"
+}

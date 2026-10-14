@@ -90,6 +90,10 @@ class InhouseAudio final {
   struct Conditioning final {
     std::array<float, 80> magnitude_last{};
     std::array<float, 80> spectrum{};
+#if defined(K1_INHOUSE_MAPPING_V9)
+    // Path P chroma only: magnitude_last * tilt, before AGC gain, soft knee and unity clamp.
+    std::array<float, 80> linear_shape{};
+#endif
     float spectral_energy = 0.0F;
     float novelty = 0.0F;
     float mood = 0.05F;

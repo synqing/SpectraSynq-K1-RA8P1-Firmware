@@ -1,0 +1,210 @@
+{
+  "criterion": "TOLERANCE-FROZEN-P6-PAL-HD-v2.json",
+  "tolerance": 0.004,
+  "fraction_limit": 0.001,
+  "rows": [
+    {
+      "input": "boom_source",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 398860,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0026552118360996246,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "boom_source",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 389638,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0027889960911124945,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "boom_room",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 670228,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0026913380715996027,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "boom_room",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 647670,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0027807506266981363,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "sonic_room",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 266636,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0026844837702810764,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "sonic_room",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 207386,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0027724739629775286,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "dopex_room",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 538730,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.0027293660677969456,
+      "a_hd_fidelity": true
+    },
+    {
+      "input": "dopex_room",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 394100,
+      "off_px": 0,
+      "off_fraction": 0.0,
+      "max_error": 0.002772475127130747,
+      "a_hd_fidelity": true
+    }
+  ],
+  "motion": [
+    {
+      "input": "boom_source",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "boom_source",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "boom_room",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "boom_room",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "sonic_room",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "sonic_room",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "dopex_room",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "dopex_room",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    }
+  ],
+  "ladder": [
+    {
+      "song": "boom_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "boom_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    }
+  ],
+  "a_hd_fidelity": true,
+  "c_motion": true,
+  "pass": true
+}

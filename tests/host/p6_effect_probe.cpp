@@ -8,8 +8,11 @@
 // intensity 0.25, the P3 payload metric. Not modelled: the donor admission gate, the wire
 // packer, gamma, dither and the 24/255 hardware cap. Host oracle (Apple clang), not M85.
 //
-// Build without K1_INHOUSE_MAPPING_V9 for v8, with it (plus K1_INHOUSE_V9_HOST_VARIANTS)
-// for v9. Per 10 ms frame per board one CSV row: inputs, renderer observation, channel
+// Build without K1_INHOUSE_MAPPING_V9 for v8. The product v9 image defines
+// K1_INHOUSE_MAPPING_V9 and not K1_INHOUSE_V9_HOST_VARIANTS: argc is 4 and the
+// palette, gains and variant are the compile-time firmware constants. The scored
+// host build defines both and selects the palette with the 9th argument (mapped = path P).
+// Per 10 ms frame per board one CSV row: inputs, renderer observation, channel
 // sum S and Rec.709 luma L (both means over 160 pixels), and the palette-hue check on the
 // renderer output. frames.bin receives every renderer Pixel16 frame (board 0 then 1) for
 // the byte-identity hash.
@@ -73,12 +76,13 @@ std::vector<std::array<float, 4>> paletteCurve(std::uint16_t id) {
 }  // namespace
 
 int main(int argc, char** argv) {
-#ifdef K1_INHOUSE_MAPPING_V9
+#if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
   if (argc != 8 && argc != 9 && argc != 11 && argc != 18 && argc != 25 && argc != 27) {
-    std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range]\n");
+    std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range|mapped]\n");
     return 2;
   }
 #else
+  // v8, and the product v9 image (mapping on, host-variant switch off).
   if (argc != 4) { std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin\n"); return 2; }
 #endif
   std::FILE* in = std::fopen(argv[1], "rb");
@@ -102,7 +106,7 @@ int main(int argc, char** argv) {
   static InhouseWaveformRenderer renderer[2];
   renderer[0].reset();
   renderer[1].reset();
-#ifdef K1_INHOUSE_MAPPING_V9
+#if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
   using k1::core::visual::InhouseV9Fault;
   using k1::core::visual::InhouseV9Variant;
   const std::string vname = argv[4], fname = argv[5];

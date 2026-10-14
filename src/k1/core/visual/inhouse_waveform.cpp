@@ -98,6 +98,7 @@ void InhouseWaveformRenderer::reset() noexcept {
   dip_acc_ = dip_acc_s_ = 0.0F;
   colour_valid_ = false;
   tonality_gate_ = 0;
+  shape_.fill(0.0F);
 #endif
 }
 
@@ -183,11 +184,15 @@ bool InhouseWaveformRenderer::render(const InhouseWaveformAudio& audio,
 
 #if defined(K1_INHOUSE_MAPPING_V9)
   // v9 reads levelling stage 4's outputs (tonality gate, centroid); the stage itself
-  // above is unchanged and shared with v8.
+  // above is unchanged and shared with v8. Path P replaces only its own centroid,
+  // from the pre-knee shape, because the knee'd vector collapses when the input is loud.
   if (controls.mode == 32U || controls.mode == 18U) {
     tonality_gate_ = gate;
-    centroid_ = centroid;
-    centroid_strength_ = total_weight > 0.0001F ? ::sqrtf(x*x + y*y) / total_weight : 0.0F;
+    if (perPixelMapped()) applyShapeCentroidP(audio, controls, dt, fresh);
+    else {
+      centroid_ = centroid;
+      centroid_strength_ = total_weight > 0.0001F ? ::sqrtf(x*x + y*y) / total_weight : 0.0F;
+    }
     return renderV9(audio, controls, dt, fresh, silent, output);
   }
 #endif
@@ -583,6 +588,40 @@ bool InhouseWaveformRenderer::perPixelMapped() const noexcept {
 #else
   return kInhouseV9Palette == InhouseV9Palette::kPerPixelMapped;
 #endif
+}
+
+// Path P centroid. The knee'd stage-4 vector is left in place for the tonality gate and for
+// every palette that is not per-pixel mapped. This one max-normalises the pre-knee shape so
+// a louder input cannot flatten the harmony, then uses stage-4's spectrum_mix smoother.
+void InhouseWaveformRenderer::applyShapeCentroidP(const InhouseWaveformAudio& audio,
+    const InhouseWaveformControls& controls, float dt, bool fresh) noexcept {
+  const float mix = 1.0F - ::powf(0.25F, dt * 100.0F);
+  float incoming_peak = 0.0F;
+  if (fresh) {
+    for (const float value : audio.linear_shape) incoming_peak = std::max(incoming_peak, value);
+  }
+  for (std::size_t i = 0; i < shape_.size(); ++i) {
+    const float target = incoming_peak > 1.0e-8F
+        ? std::max(0.0F, audio.linear_shape[i]) / incoming_peak : 0.0F;
+    const float distance = std::fabs(target - shape_[i]);
+    shape_[i] += target > shape_[i] ? distance * mix : -distance * mix;
+  }
+  const unsigned range = std::max(1U, std::min(80U, static_cast<unsigned>(controls.chroma_range)));
+  std::array<float, 12> notes{};
+  for (unsigned i = 0; i < range; ++i) notes[i % 12U] += shape_[i];
+  float maximum = 0.0F;
+  for (const float note : notes) maximum = std::max(maximum, note);
+  float x = 0.0F, y = 0.0F, total = 0.0F;
+  if (maximum > 1.0e-8F) {
+    for (unsigned i = 0; i < 12U; ++i) {
+      const float weight = std::min(1.0F, std::max(0.0F, notes[i] / maximum));
+      x += ::cosf(static_cast<float>(i) / 12.0F * tau) * weight;
+      y += ::sinf(static_cast<float>(i) / 12.0F * tau) * weight;
+      total += weight;
+    }
+  }
+  centroid_ = (x == 0.0F && y == 0.0F) ? 0.0F : wrap(::atan2f(y, x) / tau);
+  centroid_strength_ = total > 0.0001F ? ::sqrtf(x * x + y * y) / total : 0.0F;
 }
 
 // Path P colour offset, the K1 ae5d90a rule (v8 familyColour): the PRE-gate chroma centroid

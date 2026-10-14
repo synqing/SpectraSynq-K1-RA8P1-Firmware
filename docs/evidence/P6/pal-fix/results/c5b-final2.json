@@ -1,0 +1,85 @@
+{
+  "criterion": "TOLERANCE-FROZEN-P6-C5b.json",
+  "palette": "mapped",
+  "runs": {
+    "none": [
+      {
+        "palette": "mapped",
+        "fault": "none",
+        "board": 0,
+        "mode": 32,
+        "palette_id": 31,
+        "scenarios": 864,
+        "lit_px": 16544,
+        "off_px": 0,
+        "scenarios_with_off": 0
+      },
+      {
+        "palette": "mapped",
+        "fault": "none",
+        "board": 1,
+        "mode": 18,
+        "palette_id": 38,
+        "scenarios": 864,
+        "lit_px": 17600,
+        "off_px": 0,
+        "scenarios_with_off": 0
+      }
+    ],
+    "channel_max": [
+      {
+        "palette": "mapped",
+        "fault": "channel_max",
+        "board": 0,
+        "mode": 32,
+        "palette_id": 31,
+        "scenarios": 864,
+        "lit_px": 17536,
+        "off_px": 16750,
+        "scenarios_with_off": 864
+      },
+      {
+        "palette": "mapped",
+        "fault": "channel_max",
+        "board": 1,
+        "mode": 18,
+        "palette_id": 38,
+        "scenarios": 864,
+        "lit_px": 17600,
+        "off_px": 17498,
+        "scenarios_with_off": 864
+      }
+    ],
+    "rgb_blend": [
+      {
+        "palette": "mapped",
+        "fault": "rgb_blend",
+        "board": 0,
+        "mode": 32,
+        "palette_id": 31,
+        "scenarios": 864,
+        "lit_px": 17044,
+        "off_px": 16500,
+        "scenarios_with_off": 864
+      },
+      {
+        "palette": "mapped",
+        "fault": "rgb_blend",
+        "board": 1,
+        "mode": 18,
+        "palette_id": 38,
+        "scenarios": 864,
+        "lit_px": 17520,
+        "off_px": 17458,
+        "scenarios_with_off": 864
+      }
+    ]
+  },
+  "v9_clean": true,
+  "planted_red": {
+    "channel_max": true,
+    "rgb_blend": true
+  },
+  "discriminating": true,
+  "pass": true
+}

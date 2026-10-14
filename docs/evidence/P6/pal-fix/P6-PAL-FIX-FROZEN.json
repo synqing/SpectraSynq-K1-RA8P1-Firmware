@@ -1,0 +1,33 @@
+{
+  "lane": "P6 effect mapping",
+  "name": "P6-PAL-FIX",
+  "status": "design change for the frozen PAL ladder, declared before any new PAL result",
+  "does_not_edit": "TOLERANCE-FROZEN-P6-PAL.json stays as frozen. The 1/32 moving-window test and the 0.02 ladder tolerance are not widened. v8 stays bit-identical.",
+  "diagnosis": {
+    "what_failed": "On the pre-fix path P replay, motion M is 1.0 at -6 dB and at 0 dB, and 0.956 at +6 dB, on both boards, for boom_room and dopex_room. That is the only frozen-PAL failure.",
+    "still_seconds": {
+      "boom_room_+6dB": "t = 32, 48, 49 and 71 s. Circular range of palette_coordinate is 0.007 to 0.028, under 1/32 (0.03125). These are the loud seconds (level about 0.69 to 1.0).",
+      "dopex_room_+6dB": "t = 40, 41, 56 and 70 s. Range 0.021 to 0.030. Level about 0.79 to 0.90.",
+      "both_boards": "The same seconds, the same ranges."
+    },
+    "not_the_cause": "Int16 clipping in write_s16 is not the cause. sonic_room at +6 dB clips about 0.1 percent of samples and its centroid strength also falls by about half per +6 dB, but its windows stay above 1/32 so M stays 1.0. The tonality gate closes on the loudest boom seconds, and path P does not read that gate.",
+    "cause": "Saturation of the published spectrum pins the palette offset. Loud input hits the AGC gain floor, then the soft knee and the unity clamp flatten the tall bins. The 12-note chroma vector shrinks, strength falls through 0.08, and the offset ease holds the deposited position for that whole second.",
+    "file_lines_before_this_repair": [
+      "platform/ra8p1/inhouse_audio.cpp InhouseAudio::condition: AGC target is clamped to a gain floor of 0.1, so a loud envelope cannot be turned back down to 0.25",
+      "platform/ra8p1/inhouse_audio.cpp InhouseAudio::condition: above 0.5 the value is a soft knee, then it is clamped to 1.0, so tall bins compress more than short ones",
+      "src/k1/core/visual/inhouse_waveform.cpp InhouseWaveformRenderer::render: stage-4 folds min(1, spectrum) into 12 notes and sets centroid_strength_ from that vector; a zero vector forces the centroid to 0",
+      "src/k1/core/visual/inhouse_waveform.cpp InhouseWaveformRenderer::updateOffsetP: when strength is below 0.08 the step is scaled by strength/0.08, and when strength is 0 the update is skipped and the offset stays where it was"
+    ]
+  },
+  "design_change": {
+    "why_the_offset_formula_cannot_fix_it": "The frozen ease rule already holds the offset when strength falls to 0. The centroid itself has stopped moving because its input spectrum is knee-clipped. Restoring motion needs a level-invariant chroma for path P. That changes the declared source of c and s, which the frozen PAL text calls existing stage-4 outputs.",
+    "scope": "v9 only, and only while the palette variant is kPerPixelMapped (path P). The shared knee, AGC, novelty, knee'd spectrum, tonality gate, deposit intensity, transport, and the 0.08 ease rule are unchanged. No rainbow, no brightness floor, no RGB mix, no 16-slot palette on the clean path.",
+    "pre_knee_shape": "Each conditioning bin publishes linear_shape = magnitude_last times the same per-bin tilt (1.30 below 200 Hz, 0.85 above 3000 Hz, otherwise 1.0). No AGC gain, no soft knee, no unity clamp. Copied per board in acquire. The field exists only under K1_INHOUSE_MAPPING_V9.",
+    "path_p_centroid": "When perPixelMapped(), the renderer max-normalises that shape every frame (level cancels), smooths it with the same spectrum_mix time constant as stage-4 (1 - 0.25^(dt*100)), folds the same chroma_range into 12 notes, and sets centroid_ and centroid_strength_ from that vector before updateOffsetP. tonality_gate_ and the knee'd spectrum stay on the stage-4 path for every other consumer.",
+    "offset_rule": "Unchanged: if strength < 0.08 and a held offset exists, o = wrap(held + shortest_delta(c, held) * clamp01(strength/0.08)); otherwise o = c and held = c.",
+    "gain": "Host replay gains are re-run with the existing matched-average-light calibration after this repair, because the deposited palette position changes average light. The image's constexpr gains are not that host pair."
+  },
+  "acceptance_unchanged": "Re-score with the existing p6_pal.py evaluate against TOLERANCE-FROZEN-P6-PAL.json. Path P passes only if (a), (b), (c) and the ladder pass, and the three planted faults stay red as that file already states. Then C2, C3, C5b and the C4 v8 identity test.",
+  "frozen_utc": "2026-10-14T15:40:00Z",
+  "frozen_sha256": "529a5f3ea25a6ebe110af72a9ba8784472d37aa4c798f6bc201de1c66c327c2b"
+}

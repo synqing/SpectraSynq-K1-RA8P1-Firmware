@@ -302,6 +302,9 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   publication_.spectrum = conditioning_[0].spectrum;
   publication_.spectral_energy = conditioning_[0].spectral_energy;
   publication_.novelty = conditioning_[0].novelty;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  publication_.linear_shape = conditioning_[0].linear_shape;
+#endif
   if (raw_.q0_overflow_count != 0U) publication_.valid = false;
   peaks_[generation_ % peaks_.size()] = Peak{generation_, peak_scaled_};
   unstamped_ = true;
@@ -340,6 +343,11 @@ void InhouseAudio::condition(Conditioning& state, float dt) noexcept {
   for (std::size_t bin = 0; bin < frequencies_.size(); ++bin) {
     const float hz = frequencies_[bin].target_frequency_hz;
     const auto tilt = q(hz < 200.0F ? 1.30F : (hz > 3000.0F ? 0.85F : 1.0F));
+#if defined(K1_INHOUSE_MAPPING_V9)
+    // Path P chroma. Same tilt as the published spectrum, before gain, knee and the unity clamp.
+    state.linear_shape[bin] = state.magnitude_last[bin] *
+        (hz < 200.0F ? 1.30F : (hz > 3000.0F ? 0.85F : 1.0F));
+#endif
     auto value = mul(mul(q(state.magnitude_last[bin]), state.gain_q16), tilt);
     if (value > q(0.5F)) {
       const auto excess = value - q(0.5F);
@@ -374,6 +382,9 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
   out.spectrum = conditioning_[board].spectrum;
   out.spectral_energy = conditioning_[board].spectral_energy;
   out.novelty = conditioning_[board].novelty;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  out.linear_shape = conditioning_[board].linear_shape;
+#endif
   const auto tempo = core::audio::readTempoTracker(tempo_[board]);
   out.tempo_bpm = tempo.bpm;
   out.tempo_phase01 = tempo.phase01;

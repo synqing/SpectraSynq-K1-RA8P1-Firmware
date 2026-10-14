@@ -6,7 +6,7 @@ Offline, host only; touches no device. Agent cannot listen; the visual verdict i
   p6_effect_mapping.py build   --profile v8|v9 --exe PATH
   p6_effect_mapping.py prepare --exe V8EXE --out RUN/inputs        # P3-method level calibration
   p6_effect_mapping.py run     --exe EXE --inputs RUN/inputs --out RUN/replay/NAME [--v9 VARIANT FAULT G32 G18]
-                               [--only NAME ...]
+                               [--only NAME ...] [--keep-frames]
   p6_effect_mapping.py hash    RUN/replay/NAME                     # per-input SHA-256 of renderer frames
 
 Inputs (the P3 inputs): the BOOM song file (P2 raw, 40 kHz) and the room recordings of BOOM,
@@ -47,6 +47,11 @@ def build(profile: str, exe: Path) -> None:
     flags = ["-O2", "-fno-fast-math", "-DK1_EMOTISCOPE_PORT=1", "-Iplatform/ra8p1", "-Isrc", "-Isrc/k1"]
     if profile == "v9":
         flags += ["-DK1_INHOUSE_MAPPING_V9=1", "-DK1_INHOUSE_V9_HOST_VARIANTS=1"]
+    elif profile == "v9-product":
+        # The product image: v9 mapping, no host-variant switch. Palette is kInhouseV9Palette.
+        flags += ["-DK1_INHOUSE_MAPPING_V9=1"]
+    elif profile != "v8":
+        raise SystemExit(f"unknown profile {profile}")
     obj = exe.with_suffix(".poly24.o")
     subprocess.run(["cc", "-std=c11", *flags, "-c", "platform/ra8p1/k1_poly24.c", "-o", str(obj)], cwd=ROOT, check=True)
     subprocess.run(["c++", "-std=c++17", *flags, *SOURCES, str(obj), "-o", str(exe)], cwd=ROOT, check=True)
@@ -129,7 +134,8 @@ def prepare(exe: Path, out: Path) -> None:
     (out / "inputs.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
 
-def run(exe: Path, inputs: Path, out: Path, v9: list[str] | None, only: list[str] | None) -> None:
+def run(exe: Path, inputs: Path, out: Path, v9: list[str] | None, only: list[str] | None,
+        keep_frames: bool = False) -> None:
     out.mkdir(parents=True, exist_ok=True)
     manifest = json.loads((inputs / "inputs.json").read_text())
     hashes = {}
@@ -142,7 +148,8 @@ def run(exe: Path, inputs: Path, out: Path, v9: list[str] | None, only: list[str
             hashes[tag] = {"frames_sha256": hashlib.sha256(frames.read_bytes()).hexdigest(),
                            "frames_bytes": frames.stat().st_size,
                            "csv_sha256": hashlib.sha256((out / f"{tag}.csv").read_bytes()).hexdigest()}
-            frames.unlink()  # the hash is the record; bytes are reproducible from the inputs
+            if not keep_frames:
+                frames.unlink()  # the hash is the record; bytes are reproducible from the inputs
             print(tag, hashes[tag]["frames_sha256"][:16], flush=True)
     meta = {"exe": str(exe), "exe_sha256": hashlib.sha256(exe.read_bytes()).hexdigest(), "v9": v9, "hashes": hashes}
     (out / "replay.json").write_text(json.dumps(meta, indent=2) + "\n")
@@ -251,10 +258,11 @@ def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str, palet
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest="cmd", required=True)
-    b = sub.add_parser("build"); b.add_argument("--profile", choices=("v8", "v9"), required=True); b.add_argument("--exe", type=Path, required=True)
+    b = sub.add_parser("build"); b.add_argument("--profile", choices=("v8", "v9", "v9-product"), required=True); b.add_argument("--exe", type=Path, required=True)
     p = sub.add_parser("prepare"); p.add_argument("--exe", type=Path, required=True); p.add_argument("--out", type=Path, required=True)
     r = sub.add_parser("run"); r.add_argument("--exe", type=Path, required=True); r.add_argument("--inputs", type=Path, required=True)
     r.add_argument("--out", type=Path, required=True); r.add_argument("--v9", nargs="+"); r.add_argument("--only", nargs="*")
+    r.add_argument("--keep-frames", action="store_true")
     c = sub.add_parser("calibrate"); c.add_argument("--exe", type=Path, required=True); c.add_argument("--inputs", type=Path, required=True)
     c.add_argument("--v8", type=Path, required=True); c.add_argument("--work", type=Path, required=True)
     c.add_argument("--variant", choices=("peak", "energy", "emphasis"), required=True); c.add_argument("--out", type=Path, required=True)
@@ -279,7 +287,7 @@ def main(argv=None) -> int:
     elif a.cmd == "prepare":
         prepare(a.exe, a.out)
     elif a.cmd == "run":
-        run(a.exe, a.inputs, a.out, a.v9, a.only)
+        run(a.exe, a.inputs, a.out, a.v9, a.only, a.keep_frames)
     return 0
 
 

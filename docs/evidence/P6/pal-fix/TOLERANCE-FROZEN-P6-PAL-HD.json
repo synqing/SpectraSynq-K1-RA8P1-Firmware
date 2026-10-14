@@ -1,0 +1,23 @@
+{
+  "lane": "P6 effect mapping",
+  "name": "P6-PAL-HD",
+  "why": "TOLERANCE-FROZEN-P6-PAL.json (a) uses L-inf 0.03. The planted 16-slot palette stays inside that band (pre-fix offpal_fraction 0.0; oracle max of quantised slot16 is 0.0093). This tightens the same comparison.",
+  "measurement": {
+    "curve": "Same curve as tests/host/p6_effect_probe.cpp paletteCurve: HD stops interpolated at 4097 phases, channels in stop units, kept when max > 0.5, then divided by that max.",
+    "pixel": "A lit pixel has max output channel >= 0.01. Its colour is divided by that max. Error is the minimum L-infinity distance to the curve.",
+    "tolerance": 0.004,
+    "why_0.004": "Oracle, palettes 31 and 38, phases every 1/4096, levels 700,1500,4000,10000,30000,65536 through the same q/mul/outputChannel path as outputV9. Quantised HD: max error 0.00285, none exceed 0.004. Quantised 16-slot: 11.9% (palette 31) and 7.7% (palette 38) exceed 0.004; max 0.0093. RGB mix of HD(p) and HD(p+0.25): 57% and 85% exceed 0.004. Pass limit is the same 0.001 fraction as PAL (a).",
+    "frames": "Music frames: fresh, not confirmed quiet, at least one lit pixel, t_s < file_seconds. Same inputs as PAL."
+  },
+  "pass": {
+    "a_hd_fidelity": "off pixels (error > 0.004) / lit pixels <= 0.001 on every 0 dB input and both boards",
+    "c_motion": "Same motion test as TOLERANCE-FROZEN-P6-PAL.json (c), including the ladder. Required because a held HD sample is still on the HD curve, so fidelity alone cannot see frozen_position."
+  },
+  "planted_faults_must_go_red": {
+    "slot16": "must fail a_hd_fidelity",
+    "rgb_mix": "must fail a_hd_fidelity",
+    "frozen_position": "stays on the HD curve (it still calls sampleProductPaletteHd). Must fail c_motion."
+  },
+  "frozen_utc": "2026-10-14T15:48:22Z",
+  "frozen_sha256": "daaa982b6bdd1a9839ee3ae7e881ed496283892925ac835081ba1724fb1670af"
+}

@@ -1,0 +1,45 @@
+{
+  "lane": "P6 effect mapping",
+  "name": "P6-PAL-HD-v2",
+  "why": "TOLERANCE-FROZEN-P6-PAL.json (a) uses L-inf 0.03. The planted 16-slot palette stays inside that band (pre-fix offpal_fraction 0.0; oracle max of quantised slot16 is 0.0093). This tightens the same comparison. v1 (TOLERANCE-FROZEN-P6-PAL-HD.json) stored that curve as 4097 samples. On boom_source board 1 every one of the 752 misses in results/pal/palhd-off-pixels-boom-source-b1.csv is a true HD sample of palette 38 at position 0.99667358 to 0.99993896, the steep dark end between stops 240 and 255. Distance to the nearest stored sample reaches 0.012161 (608 of 752 above 0.004). Distance of the same float colour to the piecewise-linear curve is at most 1.84e-7 before output quantisation, and the quantised pixel is at most 0.002236 from that curve. The renderer at inhouse_waveform.cpp outputV9 was not changed. This replaces the table with the curve. It does not widen the 0.004 tolerance, the 0.001 fraction, the lit threshold, the frames, or the motion and ladder test.",
+  "measurement": {
+    "curve": "Exact distance to the piecewise-linear HD palette segments in the same normalised space as v1. Stop channels are interpolated in stop units, a sample is kept when its max exceeds 0.5, and the kept sample is divided by that max. The error of a lit pixel is the minimum L-infinity distance to that continuous image. There is no stored phase table.",
+    "distance": "exact_piecewise_linear",
+    "pixel": "A lit pixel has max output channel >= 0.01. Its colour is divided by that max. Error is the minimum L-infinity distance to the curve.",
+    "tolerance": 0.004,
+    "why_0.004": "Oracle, palettes 31 and 38, phases every 1/4096, levels 700,1500,4000,10000,30000,65536 through the same q/mul/outputChannel path as outputV9. Quantised HD: max error 0.00285, none exceed 0.004. Quantised 16-slot: 11.9% (palette 31) and 7.7% (palette 38) exceed 0.004; max 0.0093. RGB mix of HD(p) and HD(p+0.25): 57% and 85% exceed 0.004. Pass limit is the same 0.001 fraction as PAL (a).",
+    "frames": "Music frames: fresh, not confirmed quiet, at least one lit pixel, t_s < file_seconds. Same inputs as PAL."
+  },
+  "pass": {
+    "a_hd_fidelity": "off pixels (error > 0.004) / lit pixels <= 0.001 on every 0 dB input and both boards",
+    "c_motion": "Same motion test as TOLERANCE-FROZEN-P6-PAL.json (c), including the ladder. Required because a held HD sample is still on the HD curve, so fidelity alone cannot see frozen_position."
+  },
+  "planted_faults_must_go_red": {
+    "slot16": "must fail a_hd_fidelity",
+    "rgb_mix": "must fail a_hd_fidelity",
+    "frozen_position": "stays on the HD curve (it still calls sampleProductPaletteHd). Must fail c_motion."
+  },
+  "v1_defect": {
+    "file": "TOLERANCE-FROZEN-P6-PAL-HD.json",
+    "cause": "4097-point table, not the renderer",
+    "evidence": "results/pal/palhd-off-pixels-boom-source-b1.csv",
+    "boom_source_board": 1,
+    "palette_id": 38,
+    "off_px": 752,
+    "position_min": 0.99667358,
+    "position_max": 0.99993896,
+    "table_distance_max": 0.012161076,
+    "table_distance_over_0.004": 608,
+    "true_curve_before_quantisation_max": 1.8403232405345138e-07,
+    "true_curve_after_quantisation_max": 0.0022355651,
+    "limits_unchanged": [
+      "tolerance 0.004",
+      "fraction 0.001",
+      "lit threshold 0.01",
+      "frames",
+      "motion and ladder"
+    ]
+  },
+  "frozen_utc": "2026-10-14T17:00:45Z",
+  "frozen_sha256": "894ef9f8ce2f3ab5a38980a089d90e49730d8b413c349ed564367d7096ae162f"
+}

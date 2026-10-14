@@ -131,6 +131,8 @@ EMOTISCOPE_SECONDARY_FILES = ['emotiscope_secondary.cpp', 'emotiscope_secondary.
                               'musical_conditioning.h', 'emotiscope_ml.h', 'emotiscope_ml.cpp',
                               'composed_motion.h', 'composed_scene_runtime.h', 'composed_timing.h']
 INHOUSE_WAVEFORM_FILES = ['core/visual/inhouse_waveform.cpp', 'core/visual/inhouse_waveform.h']
+# Included by platform/ra8p1/inhouse_audio.h only when K1_INHOUSE_MAPPING_V9 is set.
+V9_SUB_BAND_FILE = 'core/audio/sub_band.h'
 EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
 
 def emotiscope_inputs():
@@ -757,6 +759,10 @@ def main():
                 assert all(path.is_file() for path in secondary_material), 'required secondary visual source missing'
                 port_material += secondary_material
             material += [ROOT/'src/k1'/name for name in INHOUSE_WAVEFORM_FILES]
+            if args.live_defaults and args.live_defaults.is_file():
+                _composition = json.loads(args.live_defaults.read_text()).get('composition')
+                if isinstance(_composition, dict) and _composition.get('profile_version') == 9:
+                    material.append(ROOT/'src/k1'/V9_SUB_BAND_FILE)
             material += port_material
             receipt['emotiscope_port'] = dict(
                 enabled=True, **port_provenance,
@@ -1166,7 +1172,12 @@ def main():
             for name in INHOUSE_WAVEFORM_FILES:
                 target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
                 shutil.copy2(ROOT/'src/k1'/name,target)
-            receipt['inhouse_waveform_sources']={'files':INHOUSE_WAVEFORM_FILES,'mode_ids':[32,18,8,7,11],'precision_bits':16,'pixels_per_board':160}
+            receipt['inhouse_waveform_sources']={'files':list(INHOUSE_WAVEFORM_FILES),'mode_ids':[32,18,8,7,11],'precision_bits':16,'pixels_per_board':160}
+            if any('K1_INHOUSE_MAPPING_V9' in item for item in defines):
+                target=stage/'src/k1'/V9_SUB_BAND_FILE
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/V9_SUB_BAND_FILE, target)
+                receipt['inhouse_waveform_sources']['files'].append(V9_SUB_BAND_FILE)
         if args.palette_runtime:
             for name in PRODUCT_OUTPUT_CHAIN_FILES:
                 target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)

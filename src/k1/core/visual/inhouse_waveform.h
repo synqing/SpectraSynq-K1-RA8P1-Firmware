@@ -32,8 +32,11 @@ enum class InhouseV9Fault : std::uint8_t {
 // iteration 4, palette variant B). Gains match v8's mean light on the BOOM file/room +
 // Sonic corpus per mode.
 inline constexpr InhouseV9Variant kInhouseV9Variant = InhouseV9Variant::kLevelEmphasis;
-inline constexpr float kInhouseV9Gain32 = 0.395878F;  // mode 32 deposit gain
-inline constexpr float kInhouseV9Gain18 = 0.591745F;  // mode 18 deposit gain
+// P6 path P matched-average-light calibration (calibration-P-fix.json); test parameter under the Captain's testing ruling.
+// Scored replay-pfix/P passed these as "%.6f" argv ("0.580092", "0.830949"). That is the float32 the probe executed.
+// 0.58009236F / 0.83094886F are a different rounding of the same JSON doubles and were not the executed gains.
+inline constexpr float kInhouseV9Gain32 = 0.580092F;  // mode 32 deposit gain
+inline constexpr float kInhouseV9Gain18 = 0.830949F;  // mode 18 deposit gain
 // P6 iteration 4 test variants (P6-IT4-PALETTE-VARIANTS-FROZEN.json), v9 only; product
 // palettes and v8 are untouched. A lifts the dark low end of palettes 32/39 (ids 31/38)
 // keeping each stop's hue; B folds the colour circle onto a sub-range without the ends.
@@ -43,7 +46,8 @@ enum class InhouseV9Palette : std::uint8_t {
   kAsIs = 0, kLiftedLowEnd = 1, kRestrictedRange = 2, kPerPixelMapped = 3,
 };
 // TEST VARIANT under the Captain's testing ruling (14 Oct 2026); not a palette change.
-inline constexpr InhouseV9Palette kInhouseV9Palette = InhouseV9Palette::kRestrictedRange;
+// Path P: K1 per-bin HD mapping, TOLERANCE-FROZEN-P6-PAL / PAL-HD-v2.
+inline constexpr InhouseV9Palette kInhouseV9Palette = InhouseV9Palette::kPerPixelMapped;
 // Level transfer ceiling (dBFS at l = 1; floor -33 dBFS) and emphasis exponent (peak = g l^gamma).
 inline constexpr float kInhouseV9LevelCeilingDb = -9.0F;
 inline constexpr float kInhouseV9Emphasis = 1.5F;
@@ -107,6 +111,8 @@ struct InhouseWaveformAudio final {
   bool valid = false;
 #if defined(K1_INHOUSE_MAPPING_V9)
   float sub_rms = 0.0F;  // v9: 40-110 Hz band RMS of the hop PCM (core/audio/sub_band.h)
+  // Path P only: pre-knee bin shape (magnitude_last * tilt). Unused by v8 and by other v9 palettes.
+  std::array<float, 80> linear_shape{};
 #endif
 };
 
@@ -252,6 +258,7 @@ class InhouseWaveformRenderer final {
   std::int32_t tonality_gate_ = 0;
   float centroid_ = 0.0F;
   float centroid_strength_ = 0.0F;
+  std::array<float, 80> shape_{};  // path P: smoothed max-normalised pre-knee shape
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
   InhouseV9Variant v9_variant_ = kInhouseV9Variant;
   InhouseV9Fault v9_fault_ = InhouseV9Fault::kNone;
@@ -267,6 +274,8 @@ class InhouseWaveformRenderer final {
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
       Pixel16* output) noexcept;
   void updateOffsetP(const InhouseWaveformControls& controls, bool silent) noexcept;
+  void applyShapeCentroidP(const InhouseWaveformAudio& audio, const InhouseWaveformControls& controls,
+                           float dt, bool fresh) noexcept;
   [[nodiscard]] bool perPixelMapped() const noexcept;
   void updateColourV9(const InhouseWaveformControls& controls, float dt, bool silent,
                       float level) noexcept;

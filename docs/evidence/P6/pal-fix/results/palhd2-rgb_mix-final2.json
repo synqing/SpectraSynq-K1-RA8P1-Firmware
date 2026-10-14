@@ -1,0 +1,210 @@
+{
+  "criterion": "TOLERANCE-FROZEN-P6-PAL-HD-v2.json",
+  "tolerance": 0.004,
+  "fraction_limit": 0.001,
+  "rows": [
+    {
+      "input": "boom_source",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 442814,
+      "off_px": 264008,
+      "off_fraction": 0.5962051786980538,
+      "max_error": 0.22778664529323578,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "boom_source",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 402748,
+      "off_px": 288108,
+      "off_fraction": 0.7153555076623596,
+      "max_error": 0.12727752327919006,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "boom_room",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 776696,
+      "off_px": 412392,
+      "off_fraction": 0.5309567707314059,
+      "max_error": 0.2277391403913498,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "boom_room",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 687674,
+      "off_px": 516274,
+      "off_fraction": 0.7507539909899167,
+      "max_error": 0.12706810235977173,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "sonic_room",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 302310,
+      "off_px": 141682,
+      "off_fraction": 0.46866461579173696,
+      "max_error": 0.2277378886938095,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "sonic_room",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 218606,
+      "off_px": 175566,
+      "off_fraction": 0.8031161084325225,
+      "max_error": 0.12699292600154877,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "dopex_room",
+      "board": 0,
+      "palette_id": 31,
+      "lit_px": 621722,
+      "off_px": 319074,
+      "off_fraction": 0.5132100842498737,
+      "max_error": 0.22775964438915253,
+      "a_hd_fidelity": false
+    },
+    {
+      "input": "dopex_room",
+      "board": 1,
+      "palette_id": 38,
+      "lit_px": 426614,
+      "off_px": 302316,
+      "off_fraction": 0.7086405978237938,
+      "max_error": 0.12701553106307983,
+      "a_hd_fidelity": false
+    }
+  ],
+  "motion": [
+    {
+      "input": "boom_source",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "boom_source",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "boom_room",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "boom_room",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "sonic_room",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "sonic_room",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "dopex_room",
+      "board": 0,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    },
+    {
+      "input": "dopex_room",
+      "board": 1,
+      "motion": 1.0,
+      "motion_v8": 1.0,
+      "c_motion_vs_v8": true
+    }
+  ],
+  "ladder": [
+    {
+      "song": "boom_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "boom_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "not_falling": true
+    }
+  ],
+  "a_hd_fidelity": false,
+  "c_motion": true,
+  "pass": false
+}

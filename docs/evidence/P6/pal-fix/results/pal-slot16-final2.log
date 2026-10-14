@@ -1,0 +1,16 @@
+boom_source  b0 off 0.0000 bins 10 span 0.34 motion 1.00 (v8 1.00) ok
+boom_source  b1 off 0.0000 bins 11 span 0.38 motion 1.00 (v8 1.00) ok
+boom_room    b0 off 0.0000 bins 11 span 0.39 motion 1.00 (v8 1.00) ok
+boom_room    b1 off 0.0000 bins 15 span 0.52 motion 1.00 (v8 1.00) ok
+sonic_room   b0 off 0.0000 bins 10 span 0.48 motion 1.00 (v8 1.00) ok
+sonic_room   b1 off 0.0000 bins 10 span 0.36 motion 1.00 (v8 1.00) ok
+dopex_room   b0 off 0.0000 bins 9 span 0.34 motion 1.00 (v8 1.00) ok
+dopex_room   b1 off 0.0000 bins 9 span 0.31 motion 1.00 (v8 1.00) ok
+ladder boom_room   b0 [1.0, 1.0, 1.0] ok
+ladder boom_room   b1 [1.0, 1.0, 1.0] ok
+ladder sonic_room  b0 [1.0, 1.0, 1.0] ok
+ladder sonic_room  b1 [1.0, 1.0, 1.0] ok
+ladder dopex_room  b0 [1.0, 1.0, 1.0] ok
+ladder dopex_room  b1 [1.0, 1.0, 1.0] ok
+overall PASS
+PAL_EXIT:0
