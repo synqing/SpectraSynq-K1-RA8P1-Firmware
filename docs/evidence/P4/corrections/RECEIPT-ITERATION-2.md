@@ -1,6 +1,6 @@
 # P4 — ANALYSIS RATE — RECEIPT, iteration 2 (required corrections 1–3, plus F9)
 
-THE TITAN MUST ALWAYS BE VISUALISING MUSIC. Installed image: **`f6daf7fb`**, the correction image, deployed 13:52:13Z. It runs v8: readback 127 fields with 0 differences, 99.8 frames/s, 0 LED faults, emission ON. **All frozen device criteria D1–D5 pass** (section "Device" below). The earlier G10 USB absence is recorded in `runs/G10-20261014T1215Z/permitted/RECORD.md`.
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. Correction image **`f6daf7fb`** was deployed at 13:52:13Z and measured. *(Installed now: P6 image `b5595c35`, which carries every P4 correction; see Amendments.)* During its run it ran v8: readback 127 fields with 0 differences, 99.8 frames/s, 0 LED faults, emission ON. **All frozen device criteria D1–D5 pass** (section "Device" below). The earlier G10 USB absence is recorded in `runs/G10-20261014T1215Z/permitted/RECORD.md`.
 
 This receipt amends `RECEIPT.md` (iteration 1). It does not replace it. Criteria for the new checks were frozen first: `TOLERANCE-FROZEN-corrections.json`, 2026-10-14T12:11:59Z, body sha256 `8780cd10…`, mode 0444.
 
@@ -10,11 +10,11 @@ This receipt amends `RECEIPT.md` (iteration 1). It does not replace it. Criteria
   - The device already records the longest single capture poll since boot. On both P4 images it was about **8.66 ms** (8,655,499 and 8,664,475 cycles), longer than one 7.15 ms microphone slot.
   - It caused no capture reset on those boots (donor epoch 1). Under the review's criterion it fails all the same.
   - So the fix removes the stall rather than measuring it. The part of the filter design that does not depend on the clock rate is now a table computed once, offline. The device computes only the rate-dependent part.
-  - The new filter matches the old one to one part in a million, and the frozen P4 host gate passes unchanged. Whether the poll now stays under 7.15 ms is a **device** check that has not run yet.
+  - The new filter matches the old one to one part in a million, and the frozen P4 host gate passes unchanged. Whether the poll now stays under 7.15 ms is a **device** check that has not run yet. *[Superseded: the device section below shows 0.81 M cycles, PASS.]*
 - **The new path's loss counter and epoch are now reported.**
   - They appear in the device's MIR snapshot, along with how often the filter was designed and what each design cost.
   - The resampler's own cycles are now in every hop record.
-  - Whether loss is zero on the device has not been run yet. Until it has, iteration 1's "no loss" covers only the counters that existed.
+  - Whether loss is zero on the device has not been run yet. Until it has, iteration 1's "no loss" covers only the counters that existed. *[Superseded: the device section shows 0 drops and epoch Δ 0, PASS.]*
 - **The 28.8-hour timing bug is fixed.** The arithmetic is now modular, and a long-index host test covers it. That test goes red when the old arithmetic is planted back.
 - **Five text corrections to iteration 1 are below.**
 
@@ -22,8 +22,8 @@ This receipt amends `RECEIPT.md` (iteration 1). It does not replace it. Criteria
 
 | What | Where | Status |
 |---|---|---|
-| `analysis24` object in MIR: `wanted`, `epoch`, `sequence`, `drops`, `source_hz`, `designs`, `design_last_cycles`, `design_max_cycles` | `pdm_target.{h,c}` `k1_pdm_target_analysis24_status`; `k1_live_runtime.cpp` `mirJson` | configured; **device not run** |
-| poly24 push + pull cycles per donor hop, in the v2 timing record's spare u16 as cycles/16 (saturating at ~1.05 M) | `k1_live_runtime.cpp`; decoder `live_protocol.unpack_timing` key `a24_cycles_div16` | configured; **device not run** |
+| `analysis24` object in MIR: `wanted`, `epoch`, `sequence`, `drops`, `source_hz`, `designs`, `design_last_cycles`, `design_max_cycles` | `pdm_target.{h,c}` `k1_pdm_target_analysis24_status`; `k1_live_runtime.cpp` `mirJson` | configured; **device not run** *(superseded: demonstrated, see Device)* |
+| poly24 push + pull cycles per donor hop, in the v2 timing record's spare u16 as cycles/16 (saturating at ~1.05 M) | `k1_live_runtime.cpp`; decoder `live_protocol.unpack_timing` key `a24_cycles_div16` | configured; **device not run** *(superseded: demonstrated, see Device)* |
 | Capture tool reads MIR before and after, and reports drops/epoch/designs deltas and an `a24_cycles` distribution | `scripts/titan_cost_capture.py` | configured |
 
 ## Correction 2 — the rate-lock design stall (review F3)
@@ -39,10 +39,10 @@ This receipt amends `RECEIPT.md` (iteration 1). It does not replace it. Criteria
   - The filter still follows the measured rate.
 - **Host results (frozen H1–H5):**
   - **H1:** max |coefficient − previous formula| = 1.01e-6 at 36,000 Hz, 5.96e-7 at 40,000, 8.94e-7 at 41,417 and 8.94e-7 at 44,000 (limit 2e-6); step_q32 identical. Host design time: 23–54 µs against 186–193 µs.
-  - **H2:** the frozen `TOLERANCE-FROZEN-analysis24.json` gate (sha `7841d4fb…`) re-run with the new design: **PASS**, all four gates and all planted faults (`analysis24-gate-run3-corrections-PASS.json`). Every value moved by at most about 1e-5; gate (iv) is identical. This run started from an accidental `--help` invocation (the script takes no arguments); its output is kept as the H2 record.
+  - **H2:** the frozen `TOLERANCE-FROZEN-analysis24.json` gate (sha `7841d4fb…`) re-run with the new design: **PASS**, all four gates and all planted faults (`analysis24-gate-run3-corrections-PASS.json`). Every value moved by at most 4.8e-5 absolute (about 1.3e-5 relative; corrected per REVIEW-ITERATION-2); gate (iv) is identical. This run started from an accidental `--help` invocation (the script takes no arguments); its output is kept as the H2 record.
   - **H3:** `test_poly24.py` passes. One test harness copied only `.c`/`.h` into a planted directory and now also copies the window header; its assertion is unchanged.
   - **H5:** pass, with the planted edit red.
-- **Device (D1, D2):** not run.
+- **Device (D1, D2):** not run. *[Superseded: run 13:52–13:58Z, see Device.]*
 
 ## Correction 3 — receipt text (iteration 1)
 
@@ -98,7 +98,7 @@ The donor-stream max-difference check promised in the frozen file is **not demon
 | Frozen | Result | Verdict |
 |---|---|---|
 | D1 stall | since-boot `poll_max_cycles` **808,555** (was 8,655,499 / 8,664,475); donor `stream_epoch` 1 | **PASS** (< 7,150,000) |
-| D2 design cost | `designs` 3 since boot, `design_max_cycles` **660,956**, last 616,271; `source_hz` 41,415 | reported. It demonstrates the attribution: the remaining design costs 0.66 M cycles |
+| D2 design cost | `designs` 3 since boot, `design_max_cycles` **660,956**, last 616,271; `source_hz` 41,415 | reported. It demonstrates the new design's cost (0.66 M cycles). It is *consistent with* the old 8.66 M being the design: a paired A/B inference on identical flags, not a direct measurement (the old image had no design counter) |
 | D3 24 kHz loss | `drops` 0 since boot; over the capture, drops Δ 0, epoch Δ 0 (epoch 2), sequence 5,555 → 16,362 | **PASS** |
 | D4 resampler cycles | poly24 push + pull per donor hop, BOOM 28–75 s: p50 286,032, p99 293,648, max 295,952 (mean 191,371; about one hop in three carries no pull) | reported |
 | D5 no regression vs `f2f1983a` (`cost-compare-dtcm003a-vs-corr001.json`) | in-house p50 700,131 → 699,507 (−0.09 %); VP 196,054 → 195,723 (−0.17 %); emit 127,879 → 128,075 (+0.15 %); queue p50 355 → 355; no non-zero counter delta on either run | **PASS** (±3 %) |
@@ -107,4 +107,36 @@ The donor-stream max-difference check promised in the frozen file is **not demon
 
 **Correction 2 is demonstrated on the device.** The longest poll since boot fell from 8.66 M to 0.81 M cycles, under one PDM slot, with no capture reset.
 
-**Installed now:** `f6daf7fb` (P4 corrections). Recovery images: `f2f1983a`, `a8215f75`.
+**Installed at the time of the capture:** `f6daf7fb` (13:52–13:56Z). **Installed now:** `b5595c35` (P6 v9 evaluation image, 13:56:51Z), which is `f6daf7fb` + v9 and carries every P4 correction. Recovery images: `f6daf7fb`, `f2f1983a`, `a8215f75`.
+
+## Amendments after REVIEW-ITERATION-2 (lane owner, 14 Oct 2026)
+
+**Naming.** The USB defect previously called "D1" is renamed **USB-CDC-NOATTACH** in this receipt and in the canon. It collided with frozen criterion D1. Frozen D1 means the stall criterion only.
+
+**Stop-rule deviation (review F-F), disclosed.**
+- [FACT] At 13:50:50Z, after the first programming of `f6daf7fb` (rc 0), `deploy_titan_image.sh` reported `identity: MISMATCH no-info`. It printed its USB-CDC-NOATTACH remedy ("one rfp-cli -noquery -run -sig reset … recover the known-good image only if the node is still absent") and stopped on the OLD admission.
+- That is the plan's stop clause firing ("no USB serial link after one reset → recover"). It was not followed as written.
+- What replaced it:
+  - Before that deploy, two `-run -sig` resets (13:47:3x and 13:48:xx) had not attached the serial interfaces.
+  - A hub-port power cycle had (13:49:01Z).
+  - So the lane owner cycled the port again (node at 13:51:02Z) and **re-programmed the same image** (13:51:24–13:51:58). A background watcher cycled the port 8 s after `programme rc=0` (13:52:06Z), and identity MATCHed at 13:52:13Z.
+- Cost: a second programming, about 33 s more known dark, and a third USB-CDC-NOATTACH occurrence.
+- **Reason:** the hub-port cycle had restored the serial link where the scripted remedy had failed twice. Re-programming the same identity-checked image was judged less disruptive than recovering `f2f1983a` and then flashing `f6daf7fb` again.
+- **It remains a deviation** from the written stop rule. It is recorded here and canonised, with guards, in the mixer skill.
+
+**Hub-port cycle facts (review F-G/F-7).** [FACT] Device uptime shows the Titan booted at programming end, **not** at the port cycle. The cycle only re-enumerates USB (the Titan is not powered from that port). **It is not a power-on and cannot stand in for the G10 cold boot.**
+
+**Unobserved and dark intervals, complete (review F-I), UTC:**
+
+| Interval | State |
+|---|---|
+| 13:44:38–13:49:01 | E2 Lite plugged in, so the Titan was off USB (enumerated without interfaces after 13:47:36). Light **unobserved**. The resets at about 13:47:3x and 13:48:xx each restarted the application (short dark at each reset). |
+| 13:49:12–13:49:46 | Programming `f6daf7fb`, **known dark** (about 34 s). |
+| 13:49:46–13:51:24 | Running, serial unattached until 13:51:02; light **unobserved**. |
+| 13:51:25–13:51:58 | Second programming, **known dark** (about 33 s). |
+| 13:51:58–13:52:13 | Running, identity pending; light **unobserved** (about 15 s). |
+| 13:56:01–13:56:34 | P6 programming of `b5595c35`, known dark (about 33 s); then a hub-port cycle at 13:56:43; identity 13:56:51. |
+
+**E2 Lite status after deploy:** still attached on the hub (location `0x00140000`) as of this amendment. Per PL14-A10 it should be unplugged when not programming. The Captain has been asked.
+
+**USB-CDC-NOATTACH rate on this cabling (E2 Lite on the same hub):** 4 of 4 programming events (13:49, 13:51, 13:52, 13:56Z). Two SWD resets no longer clear it; the hub-port cycle did, 4 of 4.
