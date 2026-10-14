@@ -60,7 +60,8 @@ def main(out: Path):
     for tt, bb, c, lab in ((t0, b0, GOLD, "lower board (Hybrid K1)"), (t1, b1, CRIMSON, "upper board (Tempo, Crimson Gold)")):
         mm = (tt > 44) & (tt < 62)
         ax[2].plot(tt[mm], bb[mm] * 1000, color=c, lw=1.4, marker="o", ms=3, label=lab)
-    ax[2].set_ylabel("submitted payload\nbrightness (‰ FS)"); ax[2].legend(loc="upper left", fontsize=9)
+    ax[2].set_ylabel("submitted payload\nbrightness (‰ FS)")
+    ax[2].legend(loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, fontsize=8.5, borderaxespad=0.2)
     ax[2].set_xlabel("song time (s)")
     for a_ in ax:
         a_.axvspan(45, 50, color=TEAL, alpha=0.08)
@@ -100,41 +101,73 @@ def main(out: Path):
     fig.suptitle("Q2  Silence: the payload dims when the device hears quiet; the camera brightens at silence edges", fontweight="bold", fontsize=11)
     fig.tight_layout(rect=(0, 0.04, 1, 1)); fig.savefig(out / "fig-q2.png", dpi=110); plt.close(fig)
 
-    # Q3 (iteration 3: edge-padded detrend, q3-iteration3.json; host-replay payload luma added)
+    # Q3 (iteration 4: rate spectra and loudness alignment, iteration4.json; REVIEW-ITERATION-3.md F1/F2/F4)
     import pandas as pd
+    from scipy.signal import welch
     import p3_q3_alignment as q3m
-    q3i = json.loads((out / "q3-iteration3.json").read_text())
+    it4 = json.loads((out / "iteration4.json").read_text())
     B_ = data["boom"]
     vt3 = np.array(B_["video"]["t"]); m3 = (vt3 >= 55.5) & (vt3 <= 75)
     at3, adb3 = np.array(B_["audio"]["t"]), np.array(B_["audio"]["rms_dbfs"]); am3 = (at3 >= 55.4) & (at3 <= 75.1)
-    on3 = np.maximum(0, np.diff(adb3[am3], prepend=adb3[am3][0]))
+    ma3 = (at3 >= 55.5) & (at3 <= 75)
+    lin3 = 10 ** (adb3 / 20.0)
     room = pd.read_csv(ROOT / "docs/evidence/P3/agc-trace-boom-recording.csv")
-    fig, ax = plt.subplots(1, 2, figsize=(11, 4.6))
-    ra = q3m.acf(q3m.detrend(on3[(at3[am3] >= 55.5) & (at3[am3] <= 75)], 20.0))
-    ax[0].plot(np.arange(len(ra)) / 20.0, ra, color=FG, lw=1.6, label="music onsets (received audio)")
-    rl = q3m.acf(q3m.detrend(np.array(B_["video"]["lower_band"])[m3], 30.0))
-    ax[0].plot(np.arange(len(rl)) / 30.0, rl, color=GOLD, lw=1.4, label="camera band near lower edge")
-    for b, c, lab in ((1, CRIMSON, "host payload luma, upper (room replay)"), (0, TEAL, "host payload luma, lower (room replay)")):
-        w = room[(room.board == b) & (room.t_s >= 55.5) & (room.t_s <= 75)]
-        rr = q3m.acf(q3m.detrend(w.luma.values, 100.0))
-        ax[0].plot(np.arange(len(rr)) / 100.0, rr, color=c, lw=1.2, label=lab)
-    beat = 60 / 138
-    for k, lab in ((1, "beat"), (4, "bar")):
-        ax[0].axvline(k * beat, color=GREY, lw=1, ls="--"); ax[0].text(k * beat + 0.02, -0.55, lab, color=GREY, fontsize=9)
-    ax[0].set_xlim(0, 2.0); ax[0].set_ylim(-0.6, 1.3); ax[0].grid(alpha=0.4)
-    ax[0].legend(fontsize=7.5, loc="upper right")
-    ax[0].set_xlabel("lag (s)"); ax[0].set_ylabel("self-similarity (autocorrelation)")
-    ax[0].set_title("Does it repeat? The light repeats once per bar,\nnot once per beat", fontsize=11)
-    lags = np.arange(len(q3i["light_upper_band"]["curve"])) / 30.0
-    for key, col, lab in (("light_upper_band", CRIMSON, "camera band near upper edge"), ("light_lower_band", GOLD, "camera band near lower edge")):
-        r = q3i[key]
-        ax[1].plot(lags * 1000, r["curve"], color=col, lw=1.8, label=f"{lab}: best r {r['max_r']:.2f}, p={r['p_value']:.3f}")
-        ax[1].axhline(r["null_p95"], color=col, lw=0.9, ls=":")
-    ax[1].set_xlabel("light delay after the music (ms)"); ax[1].set_ylabel("correlation with music onsets")
-    ax[1].set_ylim(-0.5, 0.5); ax[1].grid(alpha=0.4); ax[1].legend(fontsize=8, loc="lower right")
-    ax[1].set_title("Does it follow the onsets? The lower-edge band does\n(dotted = 95th pct of shifted controls)", fontsize=11)
-    fig.suptitle("Q3  BOOM 55.5–75 s: camera bands (not attributable to a board) and host-replay payload", fontweight="bold", fontsize=11)
-    fig.tight_layout(); fig.savefig(out / "fig-q3.png", dpi=110); plt.close(fig)
+    rw = {b: room[(room.board == b) & (room.t_s >= 55.5) & (room.t_s <= 75)] for b in (0, 1)}
+    rows = (("music loudness (room audio, linear RMS)", lin3[ma3], 20.0, FG, "room_audio_linear_rms_20hz"),
+            ("host replay: upper board (Tempo)", rw[1].luma.values, 100.0, CRIMSON, "host_luma_room_recording_upper_tempo"),
+            ("host replay: lower board (Hybrid K1)", rw[0].luma.values, 100.0, TEAL, "host_luma_room_recording_lower_hybrid_k1"),
+            ("camera band near lower edge", np.array(B_["video"]["lower_band"])[m3], 30.0, GOLD, "camera_lower_edge_band_30hz"))
+    fig = plt.figure(figsize=(11, 6.4))
+    gs = fig.add_gridspec(4, 2, width_ratios=(1.25, 1), hspace=0.18, wspace=0.22)
+    rates = (("bar", 0.575), ("half-time", 1.15), ("accent", 1.725), ("beat", 2.30))
+    for i, (lab, x, fs, col, key) in enumerate(rows):
+        a_ = fig.add_subplot(gs[i, 0])
+        n = int(8 * fs)
+        f, p = welch(x, fs=fs, window="hann", nperseg=n, noverlap=n // 2, nfft=8 * n, detrend="linear")
+        sel = (f >= 0.3) & (f <= 3.2)
+        p = p / p[(f >= 0.3) & (f <= 5.0)].sum()
+        a_.fill_between(f[sel], p[sel], color=col, alpha=0.35, lw=0); a_.plot(f[sel], p[sel], color=col, lw=1.3)
+        for nm, r in rates:
+            a_.axvline(r, color=GREY, lw=0.9, ls="--")
+            if i == 0:
+                a_.text(r, 1.02, nm, transform=a_.get_xaxis_transform(), color=GREY, fontsize=8.5, ha="center", va="bottom")
+        sh = it4["A_B_series"][key]["rate_share_primary"]
+        a_.text(0.99, 0.92, f"{lab}\nbar {sh['bar']*100:.0f}% · beat {sh['beat']*100:.0f}% of rhythmic power",
+                transform=a_.transAxes, ha="right", va="top", fontsize=8, color=FG,
+                bbox=dict(facecolor=BG, edgecolor="none", alpha=0.75, pad=1.5))
+        a_.set_xlim(0.3, 3.2); a_.set_yticks([]); a_.grid(alpha=0.3)
+        if i < 3:
+            a_.set_xticklabels([])
+        else:
+            a_.set_xlabel("rate (Hz)")
+        if i == 0:
+            a_.set_title("Which rates carry power?  BOOM drop, 55.5–75 s\n", fontsize=11)
+    ax1 = fig.add_subplot(gs[:, 1])
+    t30 = vt3[m3]
+    band = q3m.detrend(np.array(B_["video"]["lower_band"])[m3], 30.0)
+    accent3 = np.maximum(0, np.diff(adb3[am3], prepend=adb3[am3][0]))
+    D = it4["D_alignment"]
+    for rn, env, col, lab in (("linear_rms", q3m.detrend(np.interp(t30, at3[am3], lin3[am3]), 30.0), FG, "music loudness (linear RMS)"),
+                              ("accent_rise_envelope", q3m.detrend(np.interp(t30, at3[am3], accent3), 30.0), GREY, "accent-weighted rise envelope")):
+        lagc = q3m.xcorr_curve(env, band, 15); leadc = q3m.xcorr_curve(band, env, 15)
+        x_ms = np.r_[-np.arange(15, 0, -1), np.arange(16)] / 30.0 * 1000
+        ax1.plot(x_ms, np.r_[leadc[:0:-1], lagc], color=col, lw=1.8, label=lab)
+        d = D[rn]["camera_lower_edge_band"]
+        ax1.hlines(d["light_lags_music_0_500ms"]["null_p95"], 0, 500, color=col, lw=0.9, ls=":")
+        ax1.hlines(d["light_leads_music_0_500ms"]["null_p95"], -500, 0, color=col, lw=0.9, ls=":")
+    d = D["linear_rms"]["camera_lower_edge_band"]["light_lags_music_0_500ms"]
+    ax1.annotate(f"r {d['max_r']:.2f} at {d['lag_s']*1000:.0f} ms, p {d['p_value']:.3f}", xy=(d["lag_s"] * 1000, d["max_r"]),
+                 xytext=(120, 0.80), color=FG, fontsize=9, arrowprops=dict(arrowstyle="->", color=FG, lw=0.8))
+    ax1.axvline(0, color=GRID, lw=1)
+    ax1.set_xlim(-500, 500); ax1.set_ylim(-0.72, 0.92); ax1.grid(alpha=0.4)
+    ax1.text(0.02, 0.025, "◀ light leads", transform=ax1.transAxes, color=GREY, fontsize=9)
+    ax1.text(0.98, 0.025, "light lags ▶", transform=ax1.transAxes, color=GREY, fontsize=9, ha="right")
+    ax1.set_xlabel("delay of the light against the music (ms)"); ax1.set_ylabel("correlation (1 s detrended)")
+    ax1.legend(fontsize=8, loc="upper left")
+    ax1.set_title("Does the camera band follow the music?\n(dotted = 95th pct of shifted controls)", fontsize=11)
+    fig.suptitle("Q3  The host replay carries the beat; on camera the lower band follows loudness, but no beat is found", fontweight="bold", fontsize=11)
+    fig.subplots_adjust(left=0.03, right=0.985, top=0.86, bottom=0.09)
+    fig.savefig(out / "fig-q3.png", dpi=110); plt.close(fig)
 
     # Q4
     q4 = q["q4"]
@@ -237,7 +270,7 @@ def main(out: Path):
             g = g * g * (3 - 2 * g)  # the iteration-2 CSV stored the gate before smoothstep
         ax[1].plot(u.t_s, pd.Series(g).rolling(25, center=True, min_periods=1).mean(), color=c, lw=1.1, label=lab)
     ax[0].axhline(138, color=TEAL, lw=1, ls="--"); ax[0].text(0.5, 141, "138 BPM (song)", color=TEAL, fontsize=9)
-    ax[0].text(0.5, 74, "69 = half-time · 92 = 2/3 of 138", color=GREY, fontsize=9)
+    ax[0].text(14, 104, "69 = half-time\n92 = 2/3 of 138", color=GREY, fontsize=9, va="center")
     ax[0].set_ylabel("BPM"); ax[0].set_ylim(50, 165)
     ax[0].legend(fontsize=7.5, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=3, borderaxespad=0.2)
     ax[1].set_ylabel("effective beat gate"); ax[1].set_xlabel("BOOM source time (s)"); ax[1].set_ylim(-0.05, 1.1)

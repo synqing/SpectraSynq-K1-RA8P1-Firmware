@@ -1,0 +1,580 @@
+{
+  "detrend": "edge-padded 1 s moving mean (p3_q3_alignment.detrend, iteration 3)",
+  "A_crosstalk_55p5_75": {
+    "bands_r_detrended": 0.12286578726814838,
+    "bands_r_raw": 0.3292169495648486
+  },
+  "B_camera_light_acf_55p5_75": {
+    "upper_edge_band": {
+      "3/8 bar": {
+        "acf": -0.026373066908312932,
+        "lag_s": 0.6666666666666666,
+        "percentile_among_lags_0p3_2p2": 41.37931034482759
+      },
+      "one beat": {
+        "acf": -0.31217425262712506,
+        "lag_s": 0.43333333333333335,
+        "percentile_among_lags_0p3_2p2": 6.896551724137931
+      },
+      "2 beats": {
+        "acf": 0.13341795405354026,
+        "lag_s": 0.8666666666666667,
+        "percentile_among_lags_0p3_2p2": 94.82758620689656
+      },
+      "5/8 bar": {
+        "acf": 0.07006452894842775,
+        "lag_s": 1.1,
+        "percentile_among_lags_0p3_2p2": 84.48275862068965
+      },
+      "one bar": {
+        "acf": 0.02556208097239043,
+        "lag_s": 1.7333333333333334,
+        "percentile_among_lags_0p3_2p2": 60.3448275862069
+      },
+      "max_abs_0p4_1p2": 0.3750556904062639
+    },
+    "lower_edge_band": {
+      "3/8 bar": {
+        "acf": 0.08032929196095583,
+        "lag_s": 0.6666666666666666,
+        "percentile_among_lags_0p3_2p2": 70.6896551724138
+      },
+      "one beat": {
+        "acf": -0.13728886634210707,
+        "lag_s": 0.43333333333333335,
+        "percentile_among_lags_0p3_2p2": 31.03448275862069
+      },
+      "2 beats": {
+        "acf": -0.17713185783846266,
+        "lag_s": 0.8666666666666667,
+        "percentile_among_lags_0p3_2p2": 22.413793103448278
+      },
+      "5/8 bar": {
+        "acf": 0.12939837107601493,
+        "lag_s": 1.1,
+        "percentile_among_lags_0p3_2p2": 79.3103448275862
+      },
+      "one bar": {
+        "acf": 0.3105347981289095,
+        "lag_s": 1.7333333333333334,
+        "percentile_among_lags_0p3_2p2": 98.27586206896551
+      },
+      "max_abs_0p4_1p2": 0.2256304539693284
+    }
+  },
+  "C_q3_power": {
+    "detected_of_20": {
+      "0.1": 0,
+      "0.2": 0,
+      "0.3": 13,
+      "0.5": 19
+    },
+    "false_positives_of_40": 0,
+    "camera_onset_test": 0.000999000999000999
+  },
+  "D_q2_medians": {
+    "boom": {
+      "lower": {
+        "music_median_permille": 4.1008105783169295,
+        "silence_median_permille": 0.021248607614251926,
+        "music_over_silence": 192.9919669449975,
+        "n_music": 146,
+        "n_silence": 25
+      },
+      "upper": {
+        "music_median_permille": 3.728338807507439,
+        "silence_median_permille": 0.2763292133974212,
+        "music_over_silence": 13.492380199936663,
+        "n_music": 146,
+        "n_silence": 25
+      }
+    },
+    "sonic": {
+      "lower": {
+        "music_median_permille": 1.266270008392462,
+        "silence_median_permille": 1.1078086900129704,
+        "music_over_silence": 1.143040327998904,
+        "n_music": 44,
+        "n_silence": 25
+      },
+      "upper": {
+        "music_median_permille": 9.885720454718854,
+        "silence_median_permille": 0.29691111619745175,
+        "music_over_silence": 33.295218384968294,
+        "n_music": 44,
+        "n_silence": 25
+      }
+    },
+    "dopex": {
+      "lower": {
+        "music_median_permille": 3.1563316166933704,
+        "silence_median_permille": 0.0,
+        "music_over_silence": null,
+        "n_music": 149,
+        "n_silence": 27
+      },
+      "upper": {
+        "music_median_permille": 2.3025438315403983,
+        "silence_median_permille": 0.0,
+        "music_over_silence": null,
+        "n_music": 149,
+        "n_silence": 26
+      }
+    }
+  },
+  "D_dopex_post_roll": {
+    "median_peak_scaled": 0.676553,
+    "median_raw_rms": 0.0176544,
+    "music_median_peak_scaled": 0.69298,
+    "music_median_raw_rms": 0.0961609,
+    "silence_flag_fraction": 0.391304347826087,
+    "first_dark_lower_payload_s": 76.29634216599516,
+    "first_silence_flag_s": 80.70506491599372,
+    "n": 23,
+    "darkness_gate": "[INFERENCE] the donor admission gate (palette_runtime.cpp:258-264; composed_scene_runtime.h:26-33, PCM peak^2 0.0048 open / 0.0034 close): consistent with donor PCM RMS 0.012-0.025 after 76 s, but pcm_peak_squared is not recorded in the snapshots"
+  },
+  "E_donor_bpm_boom": {
+    "28-55.5": {
+      "bpm_median": 139.0,
+      "conf_max": 0.247783
+    },
+    "55.5-75": {
+      "bpm_median": 103.0,
+      "conf_max": 0.158275
+    }
+  },
+  "F_tempo": {
+    "song_file_gain_sweep": {
+      "0.7": {
+        "7-33": {
+          "bpm_mode": 69.0,
+          "share": 0.9138461538461539,
+          "gate_effective_mean": 0.9411621538461539
+        },
+        "33-43": {
+          "bpm_mode": 139.0,
+          "share": 0.643,
+          "gate_effective_mean": 0.9057059
+        },
+        "55.5-57": {
+          "bpm_mode": 112.0,
+          "share": 0.9733333333333334,
+          "gate_effective_mean": 0.0
+        },
+        "57-67": {
+          "bpm_mode": 92.0,
+          "share": 0.824,
+          "gate_effective_mean": 0.9546367
+        },
+        "67-75": {
+          "bpm_mode": 92.0,
+          "share": 0.5,
+          "gate_effective_mean": 0.9551768749999999
+        },
+        "drop_55p5_75": {
+          "share_near_138": 0.0,
+          "top_bpm_shares": {
+            "92.0": 0.6276923076923077,
+            "69.0": 0.20512820512820512,
+            "93.0": 0.09230769230769231
+          }
+        }
+      },
+      "0.85": {
+        "7-33": {
+          "bpm_mode": 69.0,
+          "share": 0.9123076923076923,
+          "gate_effective_mean": 0.9594563076923077
+        },
+        "33-43": {
+          "bpm_mode": 138.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.8971336999999999
+        },
+        "55.5-57": {
+          "bpm_mode": 112.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.0006813333333333333
+        },
+        "57-67": {
+          "bpm_mode": 92.0,
+          "share": 0.835,
+          "gate_effective_mean": 0.9438913999999999
+        },
+        "67-75": {
+          "bpm_mode": 69.0,
+          "share": 0.8575,
+          "gate_effective_mean": 0.961124875
+        },
+        "drop_55p5_75": {
+          "share_near_138": 0.0,
+          "top_bpm_shares": {
+            "92.0": 0.4866666666666667,
+            "69.0": 0.3517948717948718,
+            "112.0": 0.0841025641025641
+          }
+        }
+      },
+      "1.0": {
+        "7-33": {
+          "bpm_mode": 69.0,
+          "share": 0.9865384615384616,
+          "gate_effective_mean": 0.9482971153846155
+        },
+        "33-43": {
+          "bpm_mode": 138.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.8950852
+        },
+        "55.5-57": {
+          "bpm_mode": 113.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.024370666666666665
+        },
+        "57-67": {
+          "bpm_mode": 92.0,
+          "share": 0.828,
+          "gate_effective_mean": 0.9351586
+        },
+        "67-75": {
+          "bpm_mode": 69.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.9367837499999999
+        },
+        "drop_55p5_75": {
+          "share_near_138": 0.0,
+          "top_bpm_shares": {
+            "92.0": 0.4246153846153846,
+            "69.0": 0.4230769230769231,
+            "113.0": 0.0841025641025641
+          }
+        }
+      },
+      "1.155": {
+        "7-33": {
+          "bpm_mode": 69.0,
+          "share": 0.9853846153846154,
+          "gate_effective_mean": 0.9546234230769233
+        },
+        "33-43": {
+          "bpm_mode": 138.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.8970205
+        },
+        "55.5-57": {
+          "bpm_mode": 113.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.07088733333333333
+        },
+        "57-67": {
+          "bpm_mode": 69.0,
+          "share": 0.417,
+          "gate_effective_mean": 0.8788858
+        },
+        "67-75": {
+          "bpm_mode": 69.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.9422985
+        },
+        "drop_55p5_75": {
+          "share_near_138": 0.15333333333333332,
+          "top_bpm_shares": {
+            "69.0": 0.6241025641025642,
+            "138.0": 0.15333333333333332,
+            "92.0": 0.08102564102564103
+          }
+        }
+      },
+      "1.3": {
+        "7-33": {
+          "bpm_mode": 69.0,
+          "share": 0.9853846153846154,
+          "gate_effective_mean": 0.960386576923077
+        },
+        "33-43": {
+          "bpm_mode": 138.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.9042227
+        },
+        "55.5-57": {
+          "bpm_mode": 113.0,
+          "share": 0.9733333333333334,
+          "gate_effective_mean": 0.09128133333333334
+        },
+        "57-67": {
+          "bpm_mode": 69.0,
+          "share": 0.419,
+          "gate_effective_mean": 0.8660352
+        },
+        "67-75": {
+          "bpm_mode": 69.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.943360625
+        },
+        "drop_55p5_75": {
+          "share_near_138": 0.15487179487179487,
+          "top_bpm_shares": {
+            "69.0": 0.6251282051282051,
+            "138.0": 0.15487179487179487,
+            "92.0": 0.08051282051282051
+          }
+        }
+      },
+      "1.6": {
+        "7-33": {
+          "bpm_mode": 69.0,
+          "share": 0.9919230769230769,
+          "gate_effective_mean": 0.9639410384615386
+        },
+        "33-43": {
+          "bpm_mode": 138.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.9669441
+        },
+        "55.5-57": {
+          "bpm_mode": 113.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.124612
+        },
+        "57-67": {
+          "bpm_mode": 69.0,
+          "share": 0.419,
+          "gate_effective_mean": 0.8538726
+        },
+        "67-75": {
+          "bpm_mode": 69.0,
+          "share": 1.0,
+          "gate_effective_mean": 0.93242475
+        },
+        "drop_55p5_75": {
+          "share_near_138": 0.15692307692307692,
+          "top_bpm_shares": {
+            "69.0": 0.6251282051282051,
+            "138.0": 0.15692307692307692,
+            "92.0": 0.09333333333333334
+          }
+        }
+      }
+    },
+    "room_recording_replay": {
+      "7-33": {
+        "bpm_mode": 69.0,
+        "share": 0.7880769230769231,
+        "gate_effective_mean": 0.8173768076923076
+      },
+      "33-43": {
+        "bpm_mode": 140.0,
+        "share": 0.667,
+        "gate_effective_mean": 0.864
+      },
+      "55.5-57": {
+        "bpm_mode": 112.0,
+        "share": 0.8066666666666666,
+        "gate_effective_mean": 0.12918933333333332
+      },
+      "57-67": {
+        "bpm_mode": 92.0,
+        "share": 0.838,
+        "gate_effective_mean": 0.9902812
+      },
+      "67-75": {
+        "bpm_mode": 92.0,
+        "share": 1.0,
+        "gate_effective_mean": 1.0
+      },
+      "drop_55p5_75": {
+        "share_near_138": 0.0,
+        "top_bpm_shares": {
+          "92.0": 0.84,
+          "93.0": 0.09333333333333334,
+          "112.0": 0.062051282051282054
+        }
+      }
+    },
+    "gate": "effective gate after smoothstep (inhouse_waveform.cpp:347-348)",
+    "drives": "mode 18 travel rate 24*(bpm/60)*(1+0.5*cos(2*pi*phase)) px/s (inhouse_waveform.cpp:349-352)"
+  },
+  "G_host_payload_luma_55p5_75": {
+    "song_file": {
+      "lower": {
+        "3/8 bar": {
+          "acf": 0.0045741971091644235,
+          "lag_s": 0.65,
+          "percentile_among_lags_0p3_2p2": 59.68586387434554
+        },
+        "one beat": {
+          "acf": 0.07176428145309884,
+          "lag_s": 0.43,
+          "percentile_among_lags_0p3_2p2": 83.24607329842932
+        },
+        "2 beats": {
+          "acf": 0.033653584615900276,
+          "lag_s": 0.87,
+          "percentile_among_lags_0p3_2p2": 71.72774869109948
+        },
+        "5/8 bar": {
+          "acf": -0.021151608571709942,
+          "lag_s": 1.09,
+          "percentile_among_lags_0p3_2p2": 48.69109947643979
+        },
+        "one bar": {
+          "acf": 0.373121381242326,
+          "lag_s": 1.74,
+          "percentile_among_lags_0p3_2p2": 99.47643979057592
+        },
+        "max_abs_0p4_1p2": 0.10150767955767982,
+        "onset_alignment": {
+          "max_r": 0.2783884653043712,
+          "lag_s": 0.43333333333333335,
+          "null_p95": 0.22483829602136543,
+          "p_value": 0.000999000999000999,
+          "detected": true
+        }
+      },
+      "upper": {
+        "3/8 bar": {
+          "acf": -0.008076917495727217,
+          "lag_s": 0.65,
+          "percentile_among_lags_0p3_2p2": 54.973821989528794
+        },
+        "one beat": {
+          "acf": 0.0058860546049209345,
+          "lag_s": 0.43,
+          "percentile_among_lags_0p3_2p2": 58.63874345549738
+        },
+        "2 beats": {
+          "acf": 0.11529037761842396,
+          "lag_s": 0.87,
+          "percentile_among_lags_0p3_2p2": 77.4869109947644
+        },
+        "5/8 bar": {
+          "acf": -0.07766050443094066,
+          "lag_s": 1.09,
+          "percentile_among_lags_0p3_2p2": 27.225130890052355
+        },
+        "one bar": {
+          "acf": 0.3596714984509633,
+          "lag_s": 1.74,
+          "percentile_among_lags_0p3_2p2": 98.95287958115183
+        },
+        "max_abs_0p4_1p2": 0.14445207200522495,
+        "onset_alignment": {
+          "max_r": 0.5209060957675541,
+          "lag_s": 0.13333333333333333,
+          "null_p95": 0.30071273527135106,
+          "p_value": 0.000999000999000999,
+          "detected": true
+        }
+      }
+    },
+    "room_recording": {
+      "lower": {
+        "3/8 bar": {
+          "acf": -0.019376658882942772,
+          "lag_s": 0.65,
+          "percentile_among_lags_0p3_2p2": 57.59162303664922
+        },
+        "one beat": {
+          "acf": 0.14154829098941904,
+          "lag_s": 0.43,
+          "percentile_among_lags_0p3_2p2": 85.86387434554975
+        },
+        "2 beats": {
+          "acf": 0.1321115553212133,
+          "lag_s": 0.87,
+          "percentile_among_lags_0p3_2p2": 84.29319371727748
+        },
+        "5/8 bar": {
+          "acf": -0.02837832216392145,
+          "lag_s": 1.09,
+          "percentile_among_lags_0p3_2p2": 54.45026178010471
+        },
+        "one bar": {
+          "acf": 0.4857137504073114,
+          "lag_s": 1.74,
+          "percentile_among_lags_0p3_2p2": 99.47643979057592
+        },
+        "max_abs_0p4_1p2": 0.14154829098941904,
+        "onset_alignment": {
+          "max_r": 0.3044367890580384,
+          "lag_s": 0.3,
+          "null_p95": 0.21699504760810828,
+          "p_value": 0.000999000999000999,
+          "detected": true
+        }
+      },
+      "upper": {
+        "3/8 bar": {
+          "acf": -0.14857512578614868,
+          "lag_s": 0.65,
+          "percentile_among_lags_0p3_2p2": 24.60732984293194
+        },
+        "one beat": {
+          "acf": 0.12816501344416198,
+          "lag_s": 0.43,
+          "percentile_among_lags_0p3_2p2": 72.77486910994764
+        },
+        "2 beats": {
+          "acf": 0.2883293611631789,
+          "lag_s": 0.87,
+          "percentile_among_lags_0p3_2p2": 89.00523560209425
+        },
+        "5/8 bar": {
+          "acf": -0.1710924665669973,
+          "lag_s": 1.09,
+          "percentile_among_lags_0p3_2p2": 16.230366492146597
+        },
+        "one bar": {
+          "acf": 0.35992929225770953,
+          "lag_s": 1.74,
+          "percentile_among_lags_0p3_2p2": 99.47643979057592
+        },
+        "max_abs_0p4_1p2": 0.2883293611631789,
+        "onset_alignment": {
+          "max_r": 0.3864104552055505,
+          "lag_s": 0.0,
+          "null_p95": 0.26194957331195307,
+          "p_value": 0.000999000999000999,
+          "detected": true
+        }
+      }
+    }
+  },
+  "G_scope": "host replay (tests/host/p3_tempo_probe.cpp, v8 controls, display stage, x0.25); device payload snapshots are 0.3-0.5 s apart and cannot resolve a 0.435 s beat",
+  "H_display_full_scale": {
+    "full_scale_code": 15407.254563160066,
+    "formula": "65535 x 0.25 x (0.75 + 0.25 tanh(1))",
+    "hits": {
+      "boom": {
+        "lower": {
+          "snapshots": 178,
+          "at_full_scale_code": 4
+        },
+        "upper": {
+          "snapshots": 178,
+          "at_full_scale_code": 0
+        }
+      },
+      "sonic": {
+        "lower": {
+          "snapshots": 75,
+          "at_full_scale_code": 0
+        },
+        "upper": {
+          "snapshots": 75,
+          "at_full_scale_code": 0
+        }
+      },
+      "dopex": {
+        "lower": {
+          "snapshots": 183,
+          "at_full_scale_code": 1
+        },
+        "upper": {
+          "snapshots": 183,
+          "at_full_scale_code": 0
+        }
+      }
+    }
+  }
+}
