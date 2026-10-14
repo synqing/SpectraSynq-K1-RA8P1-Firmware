@@ -2211,6 +2211,22 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
 #ifdef K1_LIVE_BOOT_COMPOSITION
 #include "live_boot_composition.h"
 #endif
+#if defined(K1_PDM_TARGET) && defined(K1_LIVE_RUNTIME) && defined(K1_EMOTISCOPE_PORT)
+static void fixture_make_pcm_room() {
+  live_runtime.setInhouseActive(k1_emotiscope_is_inhouse_mode(palettes.config().mode_a) ||
+                                k1_emotiscope_is_inhouse_mode(palettes.config().mode_b));
+  live_runtime.setInhouseTempoDemand(0U, palettes.config().mode_a == 18U);
+  live_runtime.setInhouseTempoDemand(1U, palettes.config().mode_b == 18U);
+  for (unsigned catchup = 0; catchup < 3U && !k1_pdm_target_pcm_push_room(); ++catchup) {
+    const auto hop_status = live_runtime.serviceOneHop();
+    if (hop_status == k1::titan::LiveHopStatus::Discontinuity ||
+        hop_status == k1::titan::LiveHopStatus::Fault) palettes.resetAudioState();
+    palette_pair_poll();
+    if (palettes.frameDue(live_runtime.nowUs())) palette_step(true);
+    if (hop_status != k1::titan::LiveHopStatus::Ok) break;
+  }
+}
+#endif
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   k1_ws2816_set_clock(hz);
@@ -2276,6 +2292,9 @@ extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t h
 #endif
 #ifdef K1_LIVE_RUNTIME
   live_runtime.initialise(hz);
+#if defined(K1_PDM_TARGET) && defined(K1_EMOTISCOPE_PORT)
+  k1_pdm_target_set_pcm_drain(&fixture_make_pcm_room);
+#endif
   live_cfg.version = 1U;
   live_cfg.palette_version = 3U;
 #ifdef K1_LIVE_BOOT_MODE

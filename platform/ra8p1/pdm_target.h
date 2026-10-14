@@ -56,6 +56,13 @@ extern "C" {
 
 int k1_pdm_target_initialise(void);
 void k1_pdm_target_poll(void);
+#ifdef K1_EMOTISCOPE_PORT
+/* Sole-main-loop consumer, never an ISR or a recursive producer poll. It may
+   drain at most three existing AP hops before a raw block needs queue room. */
+typedef void (*k1_pdm_pcm_drain_t)(void);
+void k1_pdm_target_set_pcm_drain(k1_pdm_pcm_drain_t drain);
+int k1_pdm_target_pcm_push_room(void);
+#endif
 
 /* Sole-main-loop observation; cycle durations use unsigned 32-bit subtraction
    across a counter wrap. Rejection fields describe the last failed ASRC push

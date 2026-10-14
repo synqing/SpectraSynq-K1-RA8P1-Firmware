@@ -25,6 +25,7 @@ spec.loader.exec_module(admission)
 C_SEAM = r'''
 void pressure_reset(void) {
     initialise_host();
+    k1_pdm_target_set_pcm_drain(0);
     assert(k1_asrc24_set_rate(&capture_asrc, 41417u) == k1_asrc24_ok);
     capture_rate_locked = 1u; /* Replay an already measured steady-state rate. */
     capture_measured_hz = 41417u;
@@ -77,6 +78,10 @@ def main():
     start = entry.index("void hal_entry(void)")
     assert entry.index("k1_pdm_target_poll();", start) < entry.index("k1_fixture_poll(", start)
     candidate, old_loop = owner_loop(owner)
+    begin = owner.index("static void fixture_make_pcm_room() {")
+    end = owner.index("\n}\n#endif\nextern", begin) + 2
+    drain = owner[begin:end]
+    assert "k1_pdm_target_set_pcm_drain(&fixture_make_pcm_room);" in owner
     cases = (ROOT / "tests/host/test_pdm_asrc_admission_cases.c").read_text()
     capture_unit = admission.harness(capture).split(
         "/* Appended by test_pdm_asrc_admission.py")[0]
@@ -86,8 +91,10 @@ def main():
     fixture = (ROOT / "tests/host/test_fixture_capture_pressure.cpp").read_text()
     assert fixture.count("// INSERT_CURRENT_OWNER_LOOP") == 1
     assert fixture.count("// INSERT_INTERLEAVED_OWNER_LOOP") == 1
+    assert fixture.count("// INSERT_PRODUCTION_PCM_DRAIN") == 1
     fixture = fixture.replace("// INSERT_CURRENT_OWNER_LOOP", old_loop).replace(
         "// INSERT_INTERLEAVED_OWNER_LOOP", candidate)
+    fixture = fixture.replace("// INSERT_PRODUCTION_PCM_DRAIN", drain)
     results = []
     with tempfile.TemporaryDirectory(prefix="titan-capture-pressure-") as temporary:
         td = Path(temporary)
@@ -113,9 +120,10 @@ def main():
                    *objects, "-o", str(binary)]
         subprocess.run(command, check=True, capture_output=True, text=True)
         commands.append(command)
-        for variant in ("observed", "interleaved", "require-lossless-current"):
+        for variant in ("observed", "interleaved", "require-lossless-current",
+                        "third-pair-old", "third-pair-drain", "require-lossless-third-pair"):
             ran = subprocess.run([str(binary), variant], capture_output=True, text=True)
-            expected_failure = variant == "require-lossless-current"
+            expected_failure = variant in ("require-lossless-current", "require-lossless-third-pair")
             accepted = (ran.returncode != 0 and "pressure_rejected() == 0u" in ran.stderr
                         if expected_failure else ran.returncode == 0)
             results.append({"case": variant, "exit": ran.returncode,
@@ -137,7 +145,8 @@ def main():
                   "source_sha256": {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                                     for p in source_paths},
                   "mocked": ["DSP cost 2500us", "render cost 1500us and due clock",
-                             "palette_step render/emit boundary", "pair progress call", "DMA completion injection",
+                             "palette_step render/emit boundary", "feature-demand setters",
+                             "pair progress call", "DMA completion injection",
                              "two-pair poll wall cost 4468us", "constructed valid prefix"],
                   "not_established": ["actual pre-fault scheduling history",
                                       "USB causal attribution", "Sonic versus BOOM causal difference",

@@ -200,6 +200,28 @@ static volatile int capture_initialised;
 static volatile int capture_running;
 static volatile int capture_restart_requested;
 static volatile int32_t capture_last_fsp_error;
+#ifdef K1_EMOTISCOPE_PORT
+static k1_pdm_pcm_drain_t capture_pcm_drain;
+void k1_pdm_target_set_pcm_drain(k1_pdm_pcm_drain_t drain) {
+    capture_pcm_drain = drain;
+}
+int k1_pdm_target_pcm_push_room(void) {
+    return capture_asrc.filled <= K1_ASRC24_RING - K1_PDM_TARGET_SLOT_ELEMENTS;
+}
+static int k1_pdm_target_pair_waiting(void) {
+    /* READY is a producer-published 32-bit state. This is only a look-ahead;
+       the existing acquire still validates the actual ownership token. */
+    uint32_t lane;
+    for (lane = 0u; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
+        uint32_t slot;
+        int ready = capture_owner[lane].valid;
+        for (slot = 0u; !ready && slot < K1_PDM_STREAM_SLOT_COUNT; ++slot)
+            ready = capture_stream[lane].slots[slot].state == K1_PDM_SLOT_READY;
+        if (!ready) return 0;
+    }
+    return 1;
+}
+#endif
 static uint32_t capture_paired_slots;
 static uint32_t capture_pair_skew_drops;
 static uint32_t capture_startup_discard_pairs;
@@ -790,12 +812,25 @@ void k1_pdm_target_poll(void) {
     for (;;) {
         /* Drain capture promptly. ASRC pressure is an explicit logical
            discontinuity, never permission to retain completed DMA slots. */
+#ifdef K1_EMOTISCOPE_PORT
+        /* Make room through the existing sole AP/render owner before taking
+           another raw pair. No DMA-owned buffer is held during this call. */
+        if (!k1_pdm_target_pair_waiting()) break;
+        if (capture_pcm_drain && !capture_stale_active &&
+            !capture_owner[K1_PDM_TARGET_PROGRAMME_LANE].valid &&
+            !capture_owner[K1_PDM_TARGET_MEASUREMENT_LANE].valid &&
+            !k1_pdm_target_pcm_push_room()) capture_pcm_drain();
+#endif
         const uint32_t before = capture_paired_slots;
         (void) k1_pdm_target_acquire(K1_PDM_TARGET_PROGRAMME_LANE);
         (void) k1_pdm_target_acquire(K1_PDM_TARGET_MEASUREMENT_LANE);
         k1_pdm_target_process_pair();
         if (capture_paired_slots == before) break;
         ++capture_poll_pairs;
+#ifdef K1_EMOTISCOPE_PORT
+        /* Bound this producer pass even if DMA completes while AP drains. */
+        if (capture_poll_pairs >= K1_PDM_STREAM_SLOT_COUNT) break;
+#endif
     }
     k1_pdm_target_finish_poll();
 }

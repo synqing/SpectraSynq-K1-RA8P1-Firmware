@@ -41,6 +41,10 @@ static void advance(std::uint64_t delta) {
 }
 static void palette_pair_poll() { ++pair_polls; }
 static struct Runtime {
+    void setInhouseActive(bool active) { assert(active); }
+    void setInhouseTempoDemand(unsigned board, bool enabled) {
+        assert(board < 2u && enabled == (board == 1u));
+    }
     Status serviceOneHop() {
         ++calls;
         k1_audio_hop_t hop{};
@@ -55,6 +59,8 @@ static struct Runtime {
     std::uint64_t nowUs() { return now_us; }
 } live_runtime;
 static struct Palettes {
+    struct Config { unsigned mode_a = 32u, mode_b = 18u; } configuration;
+    const Config& config() const { return configuration; }
     void resetAudioState() { ++resets; }
     bool frameDue(std::uint64_t time) { return time >= frame_due_us; }
     void renderDue() {
@@ -71,6 +77,10 @@ static void palette_step(bool emit) {
     assert(emit);
     palettes.renderDue();
 }
+static bool k1_emotiscope_is_inhouse_mode(unsigned mode) {
+    return mode == 32u || mode == 18u;
+}
+// INSERT_PRODUCTION_PCM_DRAIN
 
 static void current_owner() {
     // INSERT_CURRENT_OWNER_LOOP
@@ -177,8 +187,63 @@ static void scenario(unsigned blocks, unsigned hops, unsigned witness,
                 calls, renders, pressure_raw_faults(), received.size());
 }
 
+static void third_pair(bool drain, bool require_lossless) {
+    constexpr unsigned prefix_blocks = 74u, prefix_hops = 105u;
+    constexpr unsigned total_blocks = prefix_blocks + 3u;
+    const auto oracle = serial_oracle(total_blocks);
+    pressure_reset();
+    received.clear();
+    for (unsigned sequence = 1u; sequence <= prefix_blocks; ++sequence) {
+        pressure_raw(sequence, receipt(sequence));
+        pressure_poll();
+        while (received.size() < prefix_hops) {
+            k1_audio_hop_t hop{};
+            const int result = pressure_pull(&hop);
+            if (result == K1_AUDIO_READ_NOT_READY) break;
+            assert(result == K1_AUDIO_READ_OK);
+            received.push_back(hop);
+        }
+    }
+    assert(received.size() == prefix_hops && pressure_filled() == 161u);
+    for (unsigned sequence = prefix_blocks + 1u; sequence <= total_blocks; ++sequence)
+        pressure_raw(sequence, receipt(sequence));
+    now_us = receipt(total_blocks) + 100u;
+    pressure_time(now_us);
+    frame_due_us = now_us + 2000u;
+    calls = pair_polls = renders = resets = 0u;
+    inject_pending = false;
+    k1_pdm_target_set_pcm_drain(drain ? &fixture_make_pcm_room : nullptr);
+    pressure_poll();
+    if (require_lossless) assert(pressure_rejected() == 0u);
+    if (!drain) {
+        const auto fault = pressure_service();
+        assert(fault.reject_poll_entry_filled == 161u);
+        assert(fault.reject_filled == 753u && fault.reject_poll_pair_index == 3u);
+        assert(pressure_rejected() == 1u && pressure_discarded() == 1049u);
+    } else {
+        assert(pressure_rejected() == 0u && pressure_discarded() == 0u);
+        assert(calls == 1u && pair_polls == 1u && renders == 1u && resets == 0u);
+        collect_ready();
+        assert(received.size() == oracle.size());
+        for (std::size_t i = 0; i < oracle.size(); ++i) {
+            assert(std::memcmp(received[i].pcm, oracle[i].pcm, sizeof(oracle[i].pcm)) == 0);
+            assert(received[i].stream_epoch == 1u && received[i].hop_sequence == i + 1u);
+            assert(received[i].source_first_index == oracle[i].source_first_index);
+            assert(received[i].source_last_index == oracle[i].source_last_index);
+            assert(received[i].source_first_frac_q16 == oracle[i].source_first_frac_q16);
+        }
+        assert(pressure_consumed() + pressure_filled() == total_blocks * 296u);
+    }
+    assert(pressure_raw_faults() == 0u);
+    std::printf("third_pair drain=%u rejected=%u discarded=%u calls=%u renders=%u pcm_hops=%zu\n",
+                drain, pressure_rejected(), pressure_discarded(), calls, renders, received.size());
+}
+
 int main(int argc, char** argv) {
     assert(argc == 2);
+    if (std::strcmp(argv[1], "third-pair-old") == 0) { third_pair(false, false); return 0; }
+    if (std::strcmp(argv[1], "third-pair-drain") == 0) { third_pair(true, false); return 0; }
+    if (std::strcmp(argv[1], "require-lossless-third-pair") == 0) { third_pair(false, true); return 0; }
     const bool interleaved = std::strcmp(argv[1], "interleaved") == 0;
     const bool require_lossless = std::strcmp(argv[1], "require-lossless-current") == 0;
     assert(interleaved || require_lossless || std::strcmp(argv[1], "observed") == 0);
