@@ -2457,9 +2457,10 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
 #ifdef K1_EMOTISCOPE_PORT
     palette_pair_poll();
     if (hop_status != k1::titan::LiveHopStatus::Ok) break;
-    // A second analyser can make the old three-hop burst overrun a due frame.
-    // Yield to the existing renderer/USB owner, without dropping queued PCM.
-    if (palettes.frameDue(live_runtime.nowUs())) break;
+    // Keep the due frame on its existing owner path, then finish the bounded
+    // audio drain. Leaving after one hop can overflow the PCM queue at the
+    // next raw-pair poll even though neither analyser missed its own deadline.
+    if (palettes.frameDue(live_runtime.nowUs())) palette_step(true);
     }
 #endif
     live_runtime.setCaptureMeta(k1_pdm_target_first_capture_start_us(),
