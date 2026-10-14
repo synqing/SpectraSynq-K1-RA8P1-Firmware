@@ -160,6 +160,35 @@ def emotiscope_inputs():
         'modified_donor_sources': changes,
     }
 
+def verify_dtcm_zero_init(objects, readelf) -> dict:
+    """fsp.ld places input section .dtcm in __dtcm_zero$$ (NOLOAD, zero-filled at startup). An object
+    compiled with a non-zero initialiser (or a relocation, e.g. a pointer initialiser) into .dtcm links
+    without warning and silently starts as zero on the device. Lane P4 lesson: use .dtcm_from_flash for
+    initialised state. `readelf(path, *args)` returns readelf text; returns evidence or raises."""
+    checked, carriers = 0, []
+    for obj in objects:
+        sections = readelf(obj, '-S', '-W')
+        if not re.search(r'\]\s+\.dtcm\s', sections):
+            continue
+        checked += 1
+        problems = []
+        if re.search(r'\]\s+\.rela?\.dtcm\s', sections):
+            problems.append('relocation into .dtcm (pointer or address initialiser)')
+        dump = readelf(obj, '-x', '.dtcm')
+        words = []
+        for line in dump.splitlines():
+            m = re.match(r'^\s*0x[0-9a-f]+((?:\s[0-9a-f]{2,8}){1,4})', line)
+            if m:
+                words += m.group(1).split()
+        if any(int(w, 16) for w in words):
+            problems.append('non-zero initial bytes')
+        carriers.append({'object': str(obj), 'problems': problems})
+    bad = [c for c in carriers if c['problems']]
+    if bad:
+        raise RuntimeError('initialised data in NOLOAD .dtcm (use .dtcm_from_flash): ' + repr(bad))
+    return {'objects_with_dtcm': checked, 'carriers': [c['object'] for c in carriers]}
+
+
 ANALYSIS_DTCM_OBJECTS = ['(anonymous namespace)::palettes', 'k1::titan::inhouseAudioDtcm()::state']
 
 
@@ -1241,6 +1270,9 @@ def main():
             receipt['tempo_placement_evidence']=verify_tempo_elf_placement(
                 symbols, args.tempo_placement, scratch_only=args.emotiscope_port and not args.asrc_tcm,
                 declared_regions=('__dtcm_from_flash',) if args.analysis_dtcm else ())
+        objects=sorted(stage.rglob('*.o'))
+        receipt['dtcm_zero_init_evidence']=verify_dtcm_zero_init(
+            objects, lambda path,*a: command([TOOLCHAIN/'arm-none-eabi-readelf',*a,str(path)]))
         if args.analysis_dtcm:
             # Lane P4 step 7: the flash-initialised DTCM region holds exactly the scene
             # state (palettes) and the in-house analysis state, nothing else.
