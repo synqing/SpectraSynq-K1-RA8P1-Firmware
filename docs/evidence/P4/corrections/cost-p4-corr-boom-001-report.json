@@ -1,0 +1,255 @@
+{
+  "build": "f6daf7fb39800e1263792259bfb31231aec20ce5809304ca9f9f9c58a3b55c31",
+  "records": 16200,
+  "record_bytes": 88,
+  "missing_write_seq": 0,
+  "ring_gaps": [],
+  "reads": 3038,
+  "cycles_per_us": 1000.0,
+  "whole_run": {
+    "poll_cycles_max": {
+      "count": 16200,
+      "min": 0,
+      "p50": 161720.0,
+      "p95": 163061.1,
+      "p99": 165970.13,
+      "max": 170920,
+      "mean": 113428.44469135802
+    },
+    "poll_cycles_sum": {
+      "count": 16200,
+      "min": 0,
+      "p50": 261393.0,
+      "p95": 291200.05,
+      "p99": 297602.73000000004,
+      "max": 311787,
+      "mean": 189468.94543209876
+    },
+    "asrc_cycles_sum": {
+      "count": 16200,
+      "min": 0,
+      "p50": 133331.0,
+      "p95": 134367.05,
+      "p99": 137056.03,
+      "max": 141768,
+      "mean": 93470.03469135803
+    },
+    "ap_cycles": {
+      "count": 16200,
+      "min": 271309,
+      "p50": 982482.0,
+      "p95": 1252607.65,
+      "p99": 1259561.27,
+      "max": 1269211,
+      "mean": 809909.4744444444
+    },
+    "donor_cycles": {
+      "count": 16200,
+      "min": 270608,
+      "p50": 284767.5,
+      "p95": 292763.1,
+      "p99": 297660.04,
+      "max": 308482,
+      "mean": 284873.0534567901
+    },
+    "inhouse_cycles": {
+      "count": 16200,
+      "min": 525,
+      "p50": 699474.0,
+      "p95": 963931.0,
+      "p99": 969071.08,
+      "max": 974894,
+      "mean": 524985.8779012345
+    },
+    "vp_cycles": {
+      "count": 16200,
+      "min": 164489,
+      "p50": 195529.0,
+      "p95": 273167.05,
+      "p99": 276482.0,
+      "max": 286806,
+      "mean": 202134.19907407407
+    },
+    "emit_cycles_last": {
+      "count": 16200,
+      "min": 123495,
+      "p50": 128063.0,
+      "p95": 129384.34999999999,
+      "p99": 132039.0,
+      "max": 133207,
+      "mean": 128133.27888888889
+    },
+    "queue_filled_at_consume": {
+      "count": 16200,
+      "min": 207,
+      "p50": 355.0,
+      "p95": 488.0,
+      "p99": 500.0,
+      "max": 503,
+      "mean": 354.5841358024691
+    },
+    "poll_calls": {
+      "count": 16200,
+      "min": 0,
+      "p50": 1222.0,
+      "p95": 1594.0,
+      "p99": 1651.0,
+      "max": 1757,
+      "mean": 936.9766049382716
+    },
+    "a24_cycles": {
+      "count": 16200,
+      "min": 144,
+      "p50": 286032.0,
+      "p95": 288192.0,
+      "p99": 293728.0,
+      "max": 295952,
+      "mean": 191368.6972839506
+    }
+  },
+  "scored_28_75s": {
+    "poll_cycles_max": {
+      "count": 9402,
+      "min": 0,
+      "p50": 161716.0,
+      "p95": 163071.0,
+      "p99": 166249.24,
+      "max": 170920,
+      "mean": 113425.73324824506
+    },
+    "poll_cycles_sum": {
+      "count": 9402,
+      "min": 0,
+      "p50": 262014.0,
+      "p95": 290154.05,
+      "p99": 297355.73,
+      "max": 310858,
+      "mean": 189451.705488194
+    },
+    "asrc_cycles_sum": {
+      "count": 9402,
+      "min": 0,
+      "p50": 133331.0,
+      "p95": 134385.0,
+      "p99": 137112.9,
+      "max": 141768,
+      "mean": 93471.40374388428
+    },
+    "ap_cycles": {
+      "count": 9402,
+      "min": 271584,
+      "p50": 982819.5,
+      "p95": 1252716.0,
+      "p99": 1259170.91,
+      "max": 1267468,
+      "mean": 810138.5734950011
+    },
+    "donor_cycles": {
+      "count": 9402,
+      "min": 270899,
+      "p50": 284938.5,
+      "p95": 292792.2,
+      "p99": 297121.58,
+      "max": 308482,
+      "mean": 284937.1273133376
+    },
+    "inhouse_cycles": {
+      "count": 9402,
+      "min": 528,
+      "p50": 699507.0,
+      "p95": 964031.0,
+      "p99": 968912.54,
+      "max": 974894,
+      "mean": 525150.8275898745
+    },
+    "vp_cycles": {
+      "count": 9402,
+      "min": 166538,
+      "p50": 195723.0,
+      "p95": 273236.0,
+      "p99": 276531.0,
+      "max": 286806,
+      "mean": 202541.9261859179
+    },
+    "emit_cycles_last": {
+      "count": 9402,
+      "min": 124056,
+      "p50": 128075.0,
+      "p95": 129383.0,
+      "p99": 132023.0,
+      "max": 132723,
+      "mean": 128141.55062752606
+    },
+    "queue_filled_at_consume": {
+      "count": 9402,
+      "min": 207,
+      "p50": 355.0,
+      "p95": 488.0,
+      "p99": 500.0,
+      "max": 503,
+      "mean": 354.56860242501597
+    },
+    "poll_calls": {
+      "count": 9402,
+      "min": 0,
+      "p50": 1232.0,
+      "p95": 1571.0,
+      "p99": 1652.0,
+      "max": 1753,
+      "mean": 936.7271857051691
+    },
+    "a24_cycles": {
+      "count": 9402,
+      "min": 160,
+      "p50": 286032.0,
+      "p95": 288208.0,
+      "p99": 293647.83999999997,
+      "max": 295952,
+      "mean": 191370.67007019784
+    }
+  },
+  "deltas": {
+    "skipped_releases": 0,
+    "emit_errors": 0,
+    "emitted": 8105,
+    "push_rejected": 0,
+    "asrc_discarded": 0,
+    "stream_epoch": 0,
+    "ap_hops": 16209
+  },
+  "analysis24": {
+    "drops": 0,
+    "epoch": 0,
+    "designs": 0
+  },
+  "analysis24_after": {
+    "wanted": 1,
+    "epoch": 2,
+    "sequence": 16362,
+    "drops": 0,
+    "source_hz": 41415,
+    "designs": 3,
+    "design_last_cycles": 616271,
+    "design_max_cycles": 660956
+  },
+  "capture_service_after": {
+    "available": true,
+    "poll_last_cycles": 112,
+    "poll_max_cycles": 808555,
+    "poll_max_pairs": 1,
+    "reject_count": 0,
+    "reject_poll_entry_filled": 0,
+    "reject_filled": 0,
+    "reject_poll_pair_index": 0,
+    "reject_poll_cycles": 0
+  },
+  "donor_stream_epoch_after": 1,
+  "faults_after": {
+    "pair_fault": 0,
+    "lane_a0_fault": 0,
+    "lane_a1_fault": 0
+  },
+  "secondary_fault_after": 0,
+  "scope": "on-device DWT cycles at 1 GHz, every hop; host-read timestamps are host monotonic",
+  "musical_verdict": "UNASSESSED: agent cannot listen"
+}
