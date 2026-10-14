@@ -58,9 +58,53 @@ def sheet(video: Path, every: float, out: Path) -> dict:
     return {'ok': rc == 0 and out.exists(), 'path': str(out)}
 
 
+QUEUE = ROOT / 'queue'
+
+
+def serve(open_timeout: float) -> int:
+    """Run from a plain Cursor terminal tab (Cursor holds the macOS camera grant).
+
+    Agent sessions are not attributed to Cursor by macOS (camera authorisation reads
+    notDetermined there and the open hangs), so they queue requests here instead.
+    """
+    QUEUE.mkdir(parents=True, exist_ok=True)
+    print(f'camera server: watching {QUEUE} (Ctrl-C to stop)', flush=True)
+    while True:
+        (QUEUE / 'heartbeat').write_text(str(time.time()))
+        for req in sorted(QUEUE.glob('*.request.json')):
+            spec = json.loads(req.read_text())
+            label = spec['label']
+            print(f'recording {label} for {spec["seconds"]} s', flush=True)
+            res = record(ROOT / f'{label}.mp4', float(spec['seconds']), open_timeout)
+            (QUEUE / f'{label}.result.json').write_text(json.dumps(res))
+            req.unlink()
+            print(json.dumps(res), flush=True)
+        time.sleep(0.5)
+
+
+def request(label: str, seconds: float, wait: bool) -> dict:
+    hb = QUEUE / 'heartbeat'
+    if not hb.exists() or time.time() - float(hb.read_text() or 0) > 10:
+        return {'ok': False, 'error': 'camera server not running (start it in a Cursor terminal tab)'}
+    (QUEUE / f'{label}.request.json').write_text(json.dumps({'label': label, 'seconds': seconds}))
+    if not wait:
+        return {'ok': True, 'queued': label}
+    out = QUEUE / f'{label}.result.json'
+    deadline = time.time() + seconds + 90
+    while time.time() < deadline and not out.exists():
+        time.sleep(0.5)
+    return json.loads(out.read_text()) if out.exists() else {'ok': False, 'error': 'no result before deadline'}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     sub = ap.add_subparsers(dest='cmd', required=True)
+    sv = sub.add_parser('serve')
+    sv.add_argument('--open-timeout', type=float, default=20.0)
+    rq = sub.add_parser('request')
+    rq.add_argument('--label', required=True)
+    rq.add_argument('--seconds', type=float, required=True)
+    rq.add_argument('--no-wait', action='store_true')
     p = sub.add_parser('probe')
     p.add_argument('--open-timeout', type=float, default=20.0)
     r = sub.add_parser('record')
@@ -71,7 +115,11 @@ def main() -> int:
     s.add_argument('--video', type=Path, required=True)
     s.add_argument('--every', type=float, default=0.5)
     a = ap.parse_args()
-    if a.cmd == 'probe':
+    if a.cmd == 'serve':
+        return serve(a.open_timeout)
+    if a.cmd == 'request':
+        res = request(a.label, a.seconds, not a.no_wait)
+    elif a.cmd == 'probe':
         res = record(ROOT / 'probe.mp4', 2.0, a.open_timeout)
     elif a.cmd == 'record':
         res = record(ROOT / f'{a.label}.mp4', a.seconds, a.open_timeout)
