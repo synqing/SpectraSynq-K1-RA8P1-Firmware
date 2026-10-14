@@ -133,7 +133,9 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         b2 = Path(tmp) / "build"; b2.mkdir()
         _seed_build(b2, build_id=RESIDENT["build_id"], hex_bytes=b":00000001FF\n", elf_bytes=b"x", source_pin=RESIDENT["source_pin"])
-        for patch in ({"deploy_admissible": False}, {"asrc_tcm": "data+code"}):
+        for patch in ({"deploy_admissible": False}, {"asrc_tcm": "data+code"}, {"asrc_tcm": True},
+                      {"asrc_tcm_evidence": {"k1_asrc24_push": "0x00000000", "capture_asrc": "0x20000000"}},
+                      {"build_id": next(iter(m.UNBOOTABLE_BUILD_IDS))}):
             r = json.loads((b2 / "receipt.json").read_text()); r.update(patch)
             (b2 / "receipt.json").write_text(json.dumps(r) + "\n")
             try:
@@ -142,9 +144,27 @@ def main() -> None:
                 assert "deploy-admissible" in str(exc)
             else:
                 raise AssertionError(f"non-admissible receipt accepted: {patch}")
-            r.pop("deploy_admissible", None); r.pop("asrc_tcm", None)
+            for k in ("deploy_admissible", "asrc_tcm", "asrc_tcm_evidence"):
+                r.pop(k, None)
+            r["build_id"] = RESIDENT["build_id"]
             (b2 / "receipt.json").write_text(json.dumps(r) + "\n")
         assert m.load_receipt(b2)["pass"] is True  # receipts without the field (older known-good images) still load
+        r = json.loads((b2 / "receipt.json").read_text())
+        r.update({"asrc_tcm": "data", "asrc_tcm_evidence": {"k1_asrc24_push": "0x0207a44c", "capture_asrc": "0x20000000"}})
+        (b2 / "receipt.json").write_text(json.dumps(r) + "\n")
+        assert m.load_receipt(b2)["pass"] is True  # DTCM-data-only images (booted) stay admissible
+
+    # Through main(): the real known-unbootable build (old receipt format) must be refused, rc 2.
+    real = ROOT / "_scratch/waveform-migration-001/arm-p2-after-o3-asrctcm-006"
+    if real.is_dir():
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = Path(tmp) / "b006"
+            copy.mkdir()
+            for name in ("receipt.json", "rtthread.hex", "rtthread.elf"):
+                shutil.copy2(real / name, copy / name)
+            rc, receipt = _run(copy, Path(tmp) / "out006")
+            assert rc == 2 and receipt["pass"] is False, (rc, receipt.get("error"))
+            assert "deploy-admissible" in receipt["error"]
 
     print("K1_PROGRAMME_RFP_SWD_HOST=PASS (ok, wrong hex/elf/build/uid/source/range/speed/run/flag, getAllRegisters refuse, execute gate, mismatched image)")
 

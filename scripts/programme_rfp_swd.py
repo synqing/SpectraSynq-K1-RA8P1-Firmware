@@ -42,14 +42,36 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+# Lane P2, 14 Oct 2026: images that place ASRC code in ITCM did not boot. Known
+# unbootable image 2e550b62 (arm-p2-after-o3-asrctcm-006) predates the
+# deploy_admissible field, so it is also refused by identity.
+UNBOOTABLE_BUILD_IDS = {"2e550b6248044fec547424cdf084d0f5a372312dc5301b1db14fbe414ace4018"}
+UNBOOTABLE_HEX_SHA256 = {"f6b77172bb3c2a63eccc4bd4dbb9647270a7e58b545d0c7961d0d090d587546c"}
+ITCM_END = 0x00020000
+
+
+def refuse_unbootable(receipt: dict) -> None:
+    reasons = []
+    if receipt.get("deploy_admissible") is False:
+        reasons.append("deploy_admissible=false")
+    if receipt.get("asrc_tcm") is True or receipt.get("asrc_tcm") == "data+code":
+        reasons.append(f"asrc_tcm={receipt.get('asrc_tcm')!r} (ASRC code in ITCM)")
+    push = (receipt.get("asrc_tcm_evidence") or {}).get("k1_asrc24_push")
+    if push is not None and int(str(push), 0) < ITCM_END:
+        reasons.append(f"k1_asrc24_push at {push} (ITCM)")
+    if receipt.get("build_id") in UNBOOTABLE_BUILD_IDS:
+        reasons.append("build_id is the known-unbootable 2e550b62")
+    if (receipt.get("artifacts") or {}).get("rtthread.hex") in UNBOOTABLE_HEX_SHA256:
+        reasons.append("HEX is the known-unbootable f6b77172")
+    if reasons:
+        raise IdentityError("build is not deploy-admissible (ITCM ASRC image did not boot): " + "; ".join(reasons))
+
+
 def load_receipt(build: Path) -> dict:
     receipt = json.loads((build / "receipt.json").read_text())
     if not receipt.get("pass"):
         raise IdentityError("build receipt pass is not true")
-    # Lane P2: an image built with --asrc-tcm data+code did not boot (14 Oct 2026).
-    # build_scalar marks such receipts deploy_admissible=false; refuse them here too.
-    if receipt.get("deploy_admissible") is False or receipt.get("asrc_tcm") == "data+code":
-        raise IdentityError("build receipt is not deploy-admissible (ITCM ASRC experiment did not boot)")
+    refuse_unbootable(receipt)
     return receipt
 
 
@@ -196,6 +218,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.expected_build_id and build_id != args.expected_build_id:
             raise IdentityError(f"build_id mismatch: receipt={build_id} expected={args.expected_build_id}")
         hex_digest = require_hex_binding(args.build, build_receipt)
+        if hex_digest in UNBOOTABLE_HEX_SHA256:
+            raise IdentityError("build is not deploy-admissible: HEX is the known-unbootable f6b77172")
         elf_digest = require_elf_binding(args.build, build_receipt)
         if args.expected_hex_sha256 and hex_digest != args.expected_hex_sha256:
             raise IdentityError(f"HEX hash mismatch vs pin: {hex_digest}")
