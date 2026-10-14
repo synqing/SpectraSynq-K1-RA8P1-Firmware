@@ -29,7 +29,9 @@ def record(out: Path, seconds: float, open_timeout: float) -> dict:
     out.parent.mkdir(parents=True, exist_ok=True)
     cmd = ['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-f', 'avfoundation',
            '-framerate', '30', '-video_size', '1920x1080', '-i', f'{DEVICE}:none',
-           '-t', f'{seconds:.1f}', '-c:v', 'h264_videotoolbox', '-b:v', '12M', str(out)]
+           '-t', f'{seconds:.1f}', '-c:v', 'h264_videotoolbox', '-b:v', '12M',
+           # Fragmented MP4: a recording cut short (server tab closed) is still readable.
+           '-movflags', '+frag_keyframe+empty_moov', str(out)]
     start = time.monotonic()
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     # The file appears once frames flow. If it never appears, the camera open has stalled.
