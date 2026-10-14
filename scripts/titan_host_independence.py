@@ -93,12 +93,16 @@ def _same(got, want) -> bool:
     return got == want
 
 
-def profile_diff(boards: dict, profile: dict, palette: dict | None = None) -> dict:
+_NOT_GIVEN = object()
+
+
+def profile_diff(boards: dict, profile: dict, palette=_NOT_GIVEN) -> dict:
     """Every expected field must be present in the readback and equal the profile.
 
     Compares per board: all ``boards[b]`` fields (current_mode -> mode), every
     ``pair`` field and every ``output`` field except ``period_us``, which is
-    compared against broker palette stats when ``palette`` is supplied. A missing
+    compared against broker palette stats whenever ``palette`` is passed (``None``
+    counts as missing). A missing
     field is a difference, never a skip.
     """
     out = {}
@@ -115,8 +119,8 @@ def profile_diff(boards: dict, profile: dict, palette: dict | None = None) -> di
                 delta[k] = [row[k], v]
         if delta:
             out[b] = delta
-    if palette is not None and "period_us" in profile["output"]:
-        got = palette.get("period_us", MISSING)
+    if palette is not _NOT_GIVEN and "period_us" in profile["output"]:
+        got = (palette or {}).get("period_us", MISSING)
         if not _same(got, profile["output"]["period_us"]):
             out["palette"] = {"period_us": [got, profile["output"]["period_us"]]}
     return out
@@ -235,9 +239,44 @@ def rfp_reset(run: Run) -> dict:
     return receipt
 
 
+def titan_usb_snapshot() -> dict:
+    """Registry-only view of the Titan USB device: interfaces attached and user clients."""
+    text = subprocess.run(["ioreg", "-p", "IOService", "-w0", "-r", "-n", "CDC USB Demonstration@01140000"],
+                          capture_output=True, text=True).stdout
+    clients = sorted(set(re.findall(r"\+-o (.+?)  <class AppleUSBHostDeviceUserClient", text)))
+    return {"device_present": "CDC USB Demonstration" in text,
+            "interfaces": len(re.findall(r"IOUSBHostInterface@", text)),
+            "serial_client": "IOSerialBSDClient" in text,
+            "user_clients": clients,
+            "node": Path(PORTS[0]).exists()}
+
+
+def reset_rate(run: Run, trials: int, settle_s: float, node_limit_s: float) -> dict:
+    """D1 rate: repeated E2 Lite signature+run resets (no write); does the CDC node return?"""
+    rows = []
+    for i in range(trials):
+        r = subprocess.run(RFP_SIG_RUN, capture_output=True, text=True, timeout=30)
+        ok = (r.returncode == 0 and "Operation successful" in r.stdout
+              and UID.upper() in r.stdout and "Emulator power supply: OFF" in r.stdout)
+        t0 = time.monotonic()
+        while time.monotonic() - t0 < node_limit_s and not Path(PORTS[0]).exists():
+            time.sleep(0.1)
+        node_s = time.monotonic() - t0 if Path(PORTS[0]).exists() else None
+        row = {"trial": i, "rfp_ok": ok, "rfp_rc": r.returncode, "node_after_s": node_s, **titan_usb_snapshot()}
+        rows.append(row)
+        run.event("reset_trial", **row)
+        if not ok:
+            raise RuntimeError(f"E2 Lite reset trial {i} failed identity/power predicates")
+        time.sleep(settle_s)
+    enumerated = sum(1 for x in rows if x["node_after_s"] is not None)
+    return {"trials": trials, "enumerated": enumerated, "failed": trials - enumerated, "rows": rows,
+            "node_limit_s": node_limit_s, "settle_s": settle_s}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("mode", choices=("readback", "disconnect", "noboot"))
+    ap.add_argument("mode", choices=("readback", "disconnect", "noboot", "reset-rate"))
+    ap.add_argument("--trials", type=int, default=12)
     ap.add_argument("--out", required=True)
     ap.add_argument("--expected-build", required=True)
     ap.add_argument("--profile", required=True, help="expected boot profile JSON (v8)")
@@ -259,6 +298,23 @@ def main() -> int:
     try:
         before = {"broker": c.identity(a.expected_build), "boards": c.fresh_boards(0)}
         run.write("before.json", before)
+        if a.mode == "reset-rate":
+            if not 1 <= a.trials <= 20:
+                raise RuntimeError("trials must be 1..20")
+            bootout(run); broker_stopped = True
+            result = reset_rate(run, a.trials, settle_s=5.0, node_limit_s=20.0)
+            recovery = 0
+            while not Path(PORTS[0]).exists() and recovery < 2:
+                recovery += 1
+                result.setdefault("recovery", []).append(reset_rate(run, 1, 2.0, 20.0)["rows"][0])
+            run.write("reset-rate.json", result)
+            restore_stats = bootstrap(run, a.expected_build); restored = True
+            after = {"broker": restore_stats, "boards": c.fresh_boards(0)}
+            run.write("after.json", after)
+            diff = profile_diff(after["boards"], profile, after["broker"]["palette"])
+            run.event("completed", enumerated=result["enumerated"], failed=result["failed"],
+                      profile_differences_after=diff, profile_fields_compared=compared_field_count(profile))
+            return 0 if not diff else 3
         if a.mode == "readback":
             diff = profile_diff(before["boards"], profile, before["broker"]["palette"])
             run.write("profile-diff.json", diff)

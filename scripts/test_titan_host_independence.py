@@ -96,6 +96,7 @@ def test_pair_and_period_are_compared():
     assert h.profile_diff(boards, p, palette_from(p)) == {"0": {"pair_link": [1, 0]}}
     assert h.profile_diff(boards_from(p), p, {"period_us": 8333}) == {"palette": {"period_us": [8333, 10000]}}
     assert "palette" in h.profile_diff(boards_from(p), p, {})
+    assert h.profile_diff(boards_from(p), p, None) == {"palette": {"period_us": [h.MISSING, 10000]}}
 
 
 def test_profile_planted_faults_go_red():
