@@ -23,7 +23,24 @@ using k1::core::visual::pushVisualWaveform;
 
 }  // namespace
 
+#ifdef K1_EMOTISCOPE_PORT
+void LiveAudioRuntime::setInhouseActive(bool active) noexcept {
+  inhouse_active_ = active;
+#if defined(K1_INHOUSE_ANALYSIS24) && defined(K1_PDM_TARGET)
+  k1_pdm_target_set_analysis24(active ? 1 : 0);
+#endif
+}
+#endif
+
 void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
+#ifdef K1_INHOUSE_ANALYSIS24
+  {
+    // Lane P4: in-house analysis on 24 kHz / 180 (all 80 bins below Nyquist).
+    InhouseAudioConfig config{};
+    config.analysis_rate_hz = kInhouseAnalysis24Rate;
+    (void)inhouse_audio_.configure(config);
+  }
+#endif
   resetAudioOwned();
 #ifdef K1_EMOTISCOPE_PORT
   donor_cycles_ = inhouse_cycles_ = donor_max_cycles_ = inhouse_max_cycles_ = 0U;
@@ -214,8 +231,22 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
 #endif
   inhouse_cycles_ = 0U;
   if (inhouse_active_) {
+#if defined(K1_INHOUSE_ANALYSIS24) && defined(K1_PDM_TARGET)
+    // At most two 7.5 ms descriptors are due per 5 ms donor hop; four bounds a
+    // late service without letting this loop starve capture.
+    for (unsigned n = 0; n < 4U; ++n) {
+      if (k1_pdm_target_try_read_analysis24(&hop24_) != K1_AUDIO_READ_OK) break;
+      int mapped_ok = 0;
+      const auto mapped = k1_live_clock_capture_to_live(&capture_link_,
+          hop24_.newest_sample_capture_estimate_us, &mapped_ok);
+      const bool stamp = hop24_.capture_estimate_valid != 0U && mapped_ok != 0 &&
+          mapped <= private_.features.publish_time_us;
+      (void)inhouse_audio_.consume(hop24_, stamp ? mapped : 0U, stamp);
+    }
+#else
     (void)inhouse_audio_.consume(hop, private_.features.capture_time_us,
         capture_stamp_valid_ && hop.capture_estimate_valid != 0U);
+#endif
 #ifdef K1_RA8P1_TARGET
     inhouse_cycles_ = k1_cycle_count() - inhouse_begin;
 #else
@@ -824,7 +855,11 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       "\"poll_max_cycles\":%lu,\"poll_max_pairs\":%lu,\"reject_count\":%lu,"
       "\"reject_poll_entry_filled\":%lu,\"reject_filled\":%lu,"
       "\"reject_poll_pair_index\":%lu,\"reject_poll_cycles\":%lu},"
+#ifdef K1_INHOUSE_ANALYSIS24
+      "\"inhouse\":{\"contract\":\"sr24000.hop180.bins80.note12\","
+#else
       "\"inhouse\":{\"contract\":\"sr12800.hop96.bins80.note12\","
+#endif
       "\"valid\":%s,\"generation\":%llu,\"sample_end\":%llu,"
       "\"capture_us\":%llu,\"publish_us\":%llu,\"raw_peak_pcm\":%.6g,"
       "\"drive_floor_pcm\":%.6g,\"peak_scaled\":%.6g,\"vu\":%.6g,"

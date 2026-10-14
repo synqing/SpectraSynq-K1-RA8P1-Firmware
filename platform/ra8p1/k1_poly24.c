@@ -68,6 +68,26 @@ void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz)
     k1_poly24_design(st);
 }
 
+void k1_poly24_flush(k1_poly24_t *st)
+{
+    if (st == 0) {
+        return;
+    }
+    memset(st->ring, 0, sizeof(st->ring));
+    st->read_pos = 0u;
+    st->filled = K1_POLY24_ALIGN_ZEROS;
+    st->pos_q32 = (uint64_t)(K1_POLY24_TAPS / 2u - 1u) << 32;
+    st->consumed = 0u;
+}
+
+uint64_t k1_poly24_last_output_source_q32(const k1_poly24_t *st)
+{
+    /* Ring index of the last output's centre, minus the pre-roll. */
+    const uint64_t centre = (st->consumed << 32) + st->pos_q32 - st->step_q32;
+    const uint64_t zeros = (uint64_t)K1_POLY24_ALIGN_ZEROS << 32;
+    return centre >= zeros ? centre - zeros : 0u;
+}
+
 int k1_poly24_set_rate(k1_poly24_t *st, uint32_t source_hz)
 {
     if (st == 0) {
@@ -145,6 +165,7 @@ int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
     const uint32_t drop = (uint32_t)(pos >> 32) - (K1_POLY24_TAPS / 2u - 1u);
     st->read_pos = (st->read_pos + drop) % K1_POLY24_RING;
     st->filled -= drop;
+    st->consumed += drop;
     st->pos_q32 = pos - ((uint64_t)drop << 32);
     st->produced += K1_POLY24_OUT_FRAMES;
     return k1_poly24_ok;

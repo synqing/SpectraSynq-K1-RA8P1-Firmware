@@ -68,7 +68,7 @@ class LiveAudioRuntime final {
 #ifdef K1_EMOTISCOPE_PORT
   // Only selected Waveform consumers pay for the additional analysis. Capture
   // remains donor-owned; resumption uses the analyser's existing gap reset.
-  void setInhouseActive(bool active) noexcept { inhouse_active_ = active; }
+  void setInhouseActive(bool active) noexcept;
   bool inhouseActive() const noexcept { return inhouse_active_; }
   void setInhouseTempoDemand(unsigned board, bool enabled) noexcept {
     inhouse_audio_.setTempoDemand(board, enabled);
@@ -130,6 +130,10 @@ class LiveAudioRuntime final {
   K1EmotiscopeStatus donor_status_{};
   InhouseAudio inhouse_audio_{};
   bool inhouse_active_ = false;
+#ifdef K1_INHOUSE_ANALYSIS24
+  // Lane P4: 24 kHz / 180 descriptors from k1_poly24, drained after each donor hop.
+  k1_audio_hop_t hop24_{};
+#endif
   float pcm_rms_ = 0.0F;
   // Last admitted hop and boot maxima, retained across capture gaps so a
   // failed analyser cannot erase the cost that caused its discontinuity.

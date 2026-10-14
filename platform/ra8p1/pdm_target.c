@@ -10,6 +10,9 @@
 
 #include "hal_data.h"
 #include "k1_asrc_24k.h"
+#ifdef K1_INHOUSE_ANALYSIS24
+#include "k1_poly24.h"
+#endif
 #include "k1_cycle_clock.h"
 #include "k1/core/audio/k1_audio_hop.h"
 #include "k1_pdm_sensitivity.h"
@@ -88,6 +91,19 @@ static k1_asrc24_t capture_asrc __attribute__((section(".dtcm"), aligned(32)));
 static k1_asrc24_t capture_asrc;
 #endif
 static int16_t capture_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
+#ifdef K1_INHOUSE_ANALYSIS24
+/* Lane P4: the same accepted blocks also feed k1_poly24 (24 kHz / 180) for the
+   in-house analysis. Its own epoch and sequence; a full ring flushes only this
+   path (no redesign, no trig) and never resets the donor stream. Fed only while
+   a consumer has asked for it (k1_pdm_target_set_analysis24). */
+static k1_poly24_t capture_poly24;
+static uint8_t capture_a24_wanted;
+static uint64_t capture_a24_epoch;
+static uint64_t capture_a24_sequence;
+static uint64_t capture_a24_source_base;
+static uint32_t capture_a24_drops;
+static uint32_t capture_a24_cycles_sum;
+#endif
 static k1_capture_block_meta_t capture_meta[K1_CAPTURE_META_CAP];
 static uint32_t capture_meta_head;
 static uint32_t capture_meta_count;
@@ -315,6 +331,14 @@ static void k1_pdm_target_reset_logical_stream(uint32_t reason) {
     capture_discontinuity_pending = reason != 0u ? 1u : 0u;
     capture_discontinuity_reason = reason;
     k1_asrc24_reset(&capture_asrc, (uint32_t)capture_stream_epoch, hz);
+#ifdef K1_INHOUSE_ANALYSIS24
+    /* Redesign only when the rate changed; otherwise an empty ring suffices. */
+    if (capture_poly24.source_hz != hz) k1_poly24_reset(&capture_poly24, hz);
+    else k1_poly24_flush(&capture_poly24);
+    capture_a24_epoch += 1u;
+    capture_a24_sequence = 0u;
+    capture_a24_source_base = 0u;
+#endif
     capture_asrc.discarded_samples = prior_discarded + discarded;
     capture_asrc.push_rejected = prior_rejected;
     capture_asrc.consumed_samples = prior_consumed;
@@ -513,6 +537,9 @@ static void k1_pdm_target_observe_rate(const k1_pdm_owner_t *programme) {
               K1_PDM_TARGET_SLOT_ELEMENTS;
     hz = (uint32_t)((samples * 1000000ull) / elapsed_us);
     if (k1_asrc24_set_rate(&capture_asrc, hz) == k1_asrc24_ok) {
+#ifdef K1_INHOUSE_ANALYSIS24
+        (void)k1_poly24_set_rate(&capture_poly24, hz);
+#endif
         capture_measured_hz = hz;
         capture_rate_provisional = 1u;
         capture_rate_locked = elapsed_us >= 2000000ull ? 1u : 0u;
@@ -622,6 +649,23 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
                 meta->raw_epoch = owner->epoch;
                 meta->receipt_us = owner->capture_end_us;
                 meta->receipt_cycles = k1_pdm_target_now_cycles();
+#ifdef K1_INHOUSE_ANALYSIS24
+                if (capture_a24_wanted) {
+                    const uint32_t a24_t0 = DWT->CYCCNT;
+                    if (k1_poly24_push(&capture_poly24, capture_pcm,
+                                       K1_PDM_TARGET_SLOT_ELEMENTS) != k1_poly24_ok) {
+                        /* Consumer fell behind: restart this path at the NEXT
+                           block. The donor stream is untouched. */
+                        capture_a24_drops++;
+                        k1_poly24_flush(&capture_poly24);
+                        capture_a24_epoch += 1u;
+                        capture_a24_sequence = 0u;
+                        capture_a24_source_base =
+                            capture_source_write_index + K1_PDM_TARGET_SLOT_ELEMENTS;
+                    }
+                    capture_a24_cycles_sum += DWT->CYCCNT - a24_t0;
+                }
+#endif
                 capture_source_write_index += K1_PDM_TARGET_SLOT_ELEMENTS;
                 capture_meta_head = (capture_meta_head + 1u) % K1_CAPTURE_META_CAP;
                 capture_meta_count += 1u;
@@ -943,6 +987,89 @@ uint32_t k1_pdm_target_asrc_discarded(void) { return capture_asrc.discarded_samp
 uint32_t k1_pdm_target_push_rejected(void) { return capture_asrc.push_rejected; }
 uint64_t k1_pdm_target_stream_epoch(void) { return capture_stream_epoch; }
 uint32_t k1_pdm_target_pair_epoch_drops(void) { return capture_pair_epoch_drops; }
+
+#ifdef K1_INHOUSE_ANALYSIS24
+void k1_pdm_target_set_analysis24(int wanted) {
+    const uint8_t next = wanted ? 1u : 0u;
+    if (next == capture_a24_wanted) return;
+    capture_a24_wanted = next;
+    /* Feeding resumes at the next accepted block, on a fresh epoch. */
+    k1_poly24_flush(&capture_poly24);
+    capture_a24_epoch += 1u;
+    capture_a24_sequence = 0u;
+    capture_a24_source_base = capture_source_write_index;
+}
+
+uint32_t k1_pdm_target_analysis24_drops(void) { return capture_a24_drops; }
+
+uint32_t k1_pdm_target_take_analysis24_cycles(void) {
+    const uint32_t c = capture_a24_cycles_sum;
+    capture_a24_cycles_sum = 0u;
+    return c;
+}
+
+/* 24 kHz / 180 descriptor for the in-house analysis. Contract version 2, as for
+   the 12.8 kHz descriptor; stream_epoch is this path's own counter. The newest
+   sample's content instant is k1_poly24's stream clock (47-sample causal
+   convention, same as the 12.8 kHz FIR), back-projected from the newest
+   accepted block's DMA receipt at the measured rate. */
+k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out) {
+    uint64_t ready_us;
+    uint64_t content_q32;
+    const k1_capture_block_meta_t *anchor;
+    if (out == 0) return K1_AUDIO_READ_FAULT;
+    if (!capture_running || capture_stale_active || !capture_a24_wanted)
+        return K1_AUDIO_READ_NOT_READY;
+    if (capture_a24_sequence >= UINT64_MAX / K1_POLY24_OUT_FRAMES)
+        return K1_AUDIO_READ_FAULT;
+    {
+        const uint32_t a24_t0 = DWT->CYCCNT;
+        const int rc = k1_poly24_pull180(&capture_poly24, out->pcm);
+        capture_a24_cycles_sum += DWT->CYCCNT - a24_t0;
+        if (rc == k1_poly24_err_not_ready) return K1_AUDIO_READ_NOT_READY;
+        if (rc != k1_poly24_ok) return K1_AUDIO_READ_FAULT;
+    }
+    ready_us = k1_pdm_target_now_us();
+    out->contract_version = K1_PDM_TARGET_AUDIO_CONTRACT_VERSION;
+    out->samples = K1_POLY24_OUT_FRAMES;
+    out->analysis_rate_hz = K1_POLY24_OUT_HZ;
+    out->stream_epoch = capture_a24_epoch;
+    out->hop_sequence = capture_a24_sequence + 1u;
+    out->analysis_begin = capture_a24_sequence * K1_POLY24_OUT_FRAMES;
+    out->analysis_end_exclusive = out->analysis_begin + K1_POLY24_OUT_FRAMES;
+    out->discontinuity_reason = 0u;
+    out->source_rate_hz = capture_poly24.source_hz;
+    out->rate_segment = capture_rate_segment;
+    out->rate_state = capture_rate_locked ? K1_AUDIO_RATE_LOCKED : K1_AUDIO_RATE_CALIBRATING;
+    out->descriptor_ready_us = ready_us;
+    out->timestamp_provenance = K1_AUDIO_TS_DMA_ISR_BACKPROJECTION;
+    out->physical_timestamp_valid = 0;
+    out->uncertainty_known = 0;
+    out->capture_estimate_valid = 0;
+    out->newest_sample_capture_estimate_us = 0;
+    capture_a24_sequence += 1u;
+    content_q32 = k1_poly24_last_output_source_q32(&capture_poly24) +
+                  (capture_a24_source_base << 32);
+    anchor = capture_meta_count == 0u ? 0
+        : &capture_meta[(capture_meta_head + K1_CAPTURE_META_CAP - 1u) % K1_CAPTURE_META_CAP];
+    if (anchor != 0 && capture_poly24.source_hz != 0u) {
+        const uint64_t newest_q32 = (anchor->source_end_exclusive - 1ull) << 32;
+        out->supporting_dma_receipt_cycles = anchor->receipt_cycles;
+        out->supporting_dma_receipt_us = anchor->receipt_us;
+        if (newest_q32 >= content_q32) {
+            const uint64_t delta_q32 = newest_q32 - content_q32;
+            const uint64_t delta_us = (uint64_t)(((delta_q32 >> 16) * 1000000ull) /
+                                                 ((uint64_t)capture_poly24.source_hz << 16));
+            if (anchor->receipt_us >= delta_us) {
+                out->newest_sample_capture_estimate_us = anchor->receipt_us - delta_us;
+                out->capture_estimate_valid =
+                    out->newest_sample_capture_estimate_us <= ready_us ? 1u : 0u;
+            }
+        }
+    }
+    return K1_AUDIO_READ_OK;
+}
+#endif
 
 k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     uint32_t required;

@@ -129,6 +129,14 @@ uint32_t k1_pdm_target_gain_clip_neg(void);
 uint32_t k1_pdm_target_measured_hz(void);
 uint32_t k1_pdm_target_rate_locked(void);
 k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out);
+#ifdef K1_INHOUSE_ANALYSIS24
+/* Lane P4: 24 kHz / 180 in-house analysis descriptors (k1_poly24), fed from the
+   same accepted capture blocks as the 12.8 kHz donor descriptor. */
+void k1_pdm_target_set_analysis24(int wanted);
+k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out);
+uint32_t k1_pdm_target_analysis24_drops(void);
+uint32_t k1_pdm_target_take_analysis24_cycles(void);
+#endif
 int k1_pdm_target_pull_ap_hop(int16_t out180[K1_ASRC24_OUT_FRAMES]);
 uint32_t k1_pdm_target_asrc_consumed(void);
 uint32_t k1_pdm_target_asrc_discarded(void);

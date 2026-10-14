@@ -44,11 +44,18 @@ typedef struct {
   uint32_t filled;
   uint32_t produced;
   uint32_t rejected;
+  /* Ring samples retired since reset/flush, pre-roll included: the ring's
+     read_pos element is stream sample (consumed - K1_POLY24_ALIGN_ZEROS). */
+  uint64_t consumed;
   float table[K1_POLY24_PHASES + 1u][K1_POLY24_TAPS];
 } k1_poly24_t;
 
 void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz);
 int k1_poly24_set_rate(k1_poly24_t *st, uint32_t source_hz);
+/* Empty the stream (pre-roll restored) but keep the designed table: no trig. */
+void k1_poly24_flush(k1_poly24_t *st);
+/* Stream sample (Q32, since reset/flush) named by the most recent output. */
+uint64_t k1_poly24_last_output_source_q32(const k1_poly24_t *st);
 int k1_poly24_push(k1_poly24_t *st, const int16_t *src, uint32_t count);
 int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES]);
 /* Stream clock: output sample m names source instant m * step - DELAY, the same

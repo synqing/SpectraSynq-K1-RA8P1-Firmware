@@ -107,3 +107,35 @@ def test_planted_wrong_rate_fails(tools):
 def test_planted_short_filter_fails(tools):
     tmp, _, short = tools
     assert not (alias_ok(short, tmp) and top_bin_ok(short, tmp))
+
+
+def _clock(tmp, extra=()):
+    exe = tmp / ("clock" + "".join(e.replace("=", "_").replace("-", "") for e in extra))
+    subprocess.run(["cc", "-std=c11", "-O2", "-Wall", "-Wextra", "-Werror", "-fno-fast-math", *extra,
+                    "-I" + str(P), str(ROOT / "tests/host/poly24_clock_probe.c"), str(P / "k1_poly24.c"),
+                    "-lm", "-o", str(exe)], check=True)
+    return subprocess.run([str(exe)], capture_output=True, text=True)
+
+
+def test_stream_clock_names_the_source_sample(tmp_path):
+    r = _clock(tmp_path)
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_stream_clock_red_when_delay_constant_is_wrong(tmp_path):
+    # Planted fault: the declared delay disagrees with the pre-roll by one sample.
+    src = (P / "k1_poly24.h").read_text().replace(
+        "#define K1_POLY24_ALIGN_ZEROS (2u * K1_POLY24_DELAY_SOURCE_SAMPLES)",
+        "#define K1_POLY24_ALIGN_ZEROS (2u * K1_POLY24_DELAY_SOURCE_SAMPLES + 1u)")
+    d = tmp_path / "planted"
+    d.mkdir()
+    (d / "k1_poly24.h").write_text(src)
+    # Both translation units must see the planted header (quoted includes
+    # resolve beside the source file first), so the source is copied too.
+    (d / "k1_poly24.c").write_text((P / "k1_poly24.c").read_text())
+    exe = tmp_path / "clock_planted"
+    subprocess.run(["cc", "-std=c11", "-O2", "-fno-fast-math", "-I" + str(d),
+                    str(ROOT / "tests/host/poly24_clock_probe.c"), str(d / "k1_poly24.c"), "-lm", "-o", str(exe)],
+                   check=True)
+    r = subprocess.run([str(exe)], capture_output=True, text=True)
+    assert r.returncode == 1, r.stdout

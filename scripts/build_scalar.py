@@ -106,6 +106,7 @@ PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_targe
                     'k1_asrc_24k.c', 'k1_asrc_24k.h', 'k1_cycle_clock.h',
                     'k1_pdm_sensitivity.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/titan-onboard-lmd2718-source-contract.json'
+ANALYSIS24_FILES = ['k1_poly24.c', 'k1_poly24.h']
 PCM1808_TARGET_FILES = [
     'pcm1808_core.cpp', 'pcm1808_core.h', 'pcm1808_target.c', 'pcm1808_target.h',
 ]
@@ -518,6 +519,8 @@ def main():
     parser.add_argument('--dual-edge-donor',action='store_true',help='live May Bloom/Waveform adaptation on the continuous 160-pixel strip')
     parser.add_argument('--emotiscope-port',action='store_true',
                         help='complete Emotiscope v1.1_build AP/VP: 12800 Hz/64 samples, native 128 pixels mapped to continuous 160')
+    parser.add_argument('--inhouse-analysis24',action='store_true',
+                        help='lane P4: in-house analysis on k1_poly24 24 kHz/180 (donor stays 12.8 kHz/64); needs --emotiscope-port --pdm-target --live-runtime')
     parser.add_argument('--tempo-field',action='store_true',
                         help='admit only the hash-pinned TempoField portable adaptation')
     parser.add_argument('--tempo-acf-slice',action='store_true',
@@ -644,6 +647,8 @@ def main():
         if args.pdm_target:
             material += [ROOT/'platform/ra8p1'/name for name in PDM_TARGET_FILES]
             material.append(PDM_SOURCE_CONTRACT)
+            if args.inhouse_analysis24:
+                material += [ROOT/'platform/ra8p1'/name for name in ANALYSIS24_FILES]
         if args.pcm1808_target:
             material += [ROOT/'platform/ra8p1'/name for name in PCM1808_TARGET_FILES]
             material += [ROOT/'platform/ra8p1/pcm1808'/name for name in PCM1808_DONOR_HEADERS]
@@ -715,7 +720,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {})),sort_keys=True).encode()).hexdigest()
         receipt.update(deploy_admissible=args.asrc_tcm != 'data+code')
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
@@ -728,6 +733,7 @@ def main():
                        product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),
                        live_runtime=args.live_runtime,
                        live_emit=args.live_emit,
+                       inhouse_analysis24=bool(args.inhouse_analysis24),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -802,6 +808,10 @@ def main():
         if args.palette_ws2816_gpt_pair: defines.append('-DK1_PALETTE_WS2816_GPT_PAIR=1')
         if args.dual_edge_donor: defines.append('-DK1_DUAL_EDGE_DONOR=1')
         if args.emotiscope_port: defines.append('-DK1_EMOTISCOPE_PORT=1')
+        if args.inhouse_analysis24:
+            if not (args.emotiscope_port and args.pdm_target and args.live_runtime):
+                raise RuntimeError('--inhouse-analysis24 needs --emotiscope-port --pdm-target --live-runtime')
+            defines.append('-DK1_INHOUSE_ANALYSIS24=1')
         if args.titan_top_output: defines.append('-DK1_TITAN_TOP_OUTPUT=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
@@ -930,6 +940,8 @@ def main():
                             "src += ws281x_diagnostic + Glob('ws281x_gpt_dma_hw_top.c')"))
         if args.pdm_target:
             for name in PDM_TARGET_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+            if args.inhouse_analysis24:
+                for name in ANALYSIS24_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.pcm1808_target:
             for name in PCM1808_TARGET_FILES:
                 shutil.copy2(ROOT/'platform/ra8p1'/name, stage/'src'/name)
