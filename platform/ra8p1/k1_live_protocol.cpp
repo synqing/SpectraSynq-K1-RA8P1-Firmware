@@ -158,6 +158,14 @@ std::size_t liveEncodeTiming(std::uint8_t* out, const LiveTimingRecord& rec) noe
   livePutU32(out + 48, rec.measured_hz);
   livePutU16(out + 52, rec.flags);
   livePutU16(out + 54, rec.reserved);
+  livePutU32(out + 56, rec.poll_cycles_sum);
+  livePutU32(out + 60, rec.poll_cycles_max);
+  livePutU32(out + 64, rec.poll_calls);
+  livePutU32(out + 68, rec.asrc_cycles_sum);
+  livePutU32(out + 72, rec.queue_filled_at_consume);
+  livePutU32(out + 76, rec.emit_cycles_last);
+  livePutU32(out + 80, rec.donor_cycles);
+  livePutU32(out + 84, rec.inhouse_cycles);
   return kLiveTimingBytes;
 }
 

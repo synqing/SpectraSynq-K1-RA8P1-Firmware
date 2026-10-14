@@ -17,7 +17,8 @@ EVENT_HIST_MAGIC = 0x48454C54
 TIMING_HIST_MAGIC = 0x48544C54
 SNAPSHOT_BYTES = 1184
 EVENT_BYTES = 192
-TIMING_BYTES = 56
+TIMING_BYTES = 88  # v2 record; v1 records were 56 B (decoded by header record_bytes)
+TIMING_BYTES_V1 = 56
 HEADER_BYTES = 64
 CONFIG_BYTES_V1 = 896
 CONFIG_BYTES_V2 = 1156
@@ -176,6 +177,10 @@ def unpack_history(buf: bytes, rec_bytes: int, decoder) -> dict:
     if len(buf) < HEADER_BYTES:
         raise ValueError("short history")
     count = _u16(buf, 32)
+    header_rec = _u16(buf, 36)
+    if count and header_rec:
+        # The producer states its record size; trust it over the caller's default.
+        rec_bytes = header_rec
     expect = HEADER_BYTES + count * rec_bytes
     if len(buf) < expect:
         raise ValueError("short history records")
@@ -230,7 +235,7 @@ def unpack_event(buf: bytes) -> dict:
 
 
 def unpack_timing(buf: bytes) -> dict:
-    if len(buf) < TIMING_BYTES:
+    if len(buf) < TIMING_BYTES_V1:
         raise ValueError("short timing")
     return {
         "write_seq": _u64(buf, 0),
@@ -243,6 +248,16 @@ def unpack_timing(buf: bytes) -> dict:
         "asrc_starved": _u32(buf, 44),
         "measured_hz": _u32(buf, 48),
         "flags": _u16(buf, 52),
+        **({} if len(buf) < 88 else {
+            "poll_cycles_sum": _u32(buf, 56),
+            "poll_cycles_max": _u32(buf, 60),
+            "poll_calls": _u32(buf, 64),
+            "asrc_cycles_sum": _u32(buf, 68),
+            "queue_filled_at_consume": _u32(buf, 72),
+            "emit_cycles_last": _u32(buf, 76),
+            "donor_cycles": _u32(buf, 80),
+            "inhouse_cycles": _u32(buf, 84),
+        }),
     }
 
 

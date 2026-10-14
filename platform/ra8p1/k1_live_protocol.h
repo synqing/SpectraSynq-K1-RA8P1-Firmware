@@ -85,13 +85,13 @@ bool liveNotePairCompleted(LiveRenderReceipt* receipt, std::uint32_t completed_g
 
 inline constexpr std::size_t kLiveSnapshotBytes = 1184U;
 inline constexpr std::size_t kLiveEventBytes = 192U;
-inline constexpr std::size_t kLiveTimingBytes = 56U;
+inline constexpr std::size_t kLiveTimingBytes = 88U;  // v2: +32 B per-hop cost witness
 inline constexpr std::size_t kLiveHistoryHeaderBytes = 64U;
 inline constexpr std::size_t kLiveMaxResponseBody = 4096U;
 inline constexpr std::uint32_t kLiveEventRing = 256U;
 inline constexpr std::uint32_t kLiveTimingRing = 1024U;
 inline constexpr std::uint32_t kLiveEventReadMax = 20U;
-inline constexpr std::uint32_t kLiveTimingReadMax = 64U;
+inline constexpr std::uint32_t kLiveTimingReadMax = 40U;  // 64 + 40*88 <= 4096
 inline constexpr std::uint32_t kLiveStaleSourceUs = 120000U;
 inline constexpr std::uint32_t kLiveConfigBlobBytesV1 = 896U;
 inline constexpr std::uint32_t kLiveVisualControlsBytes = 128U;
@@ -212,6 +212,15 @@ struct LiveTimingRecord final {
   std::uint32_t measured_hz = 0;
   std::uint16_t flags = 0;
   std::uint16_t reserved = 0;
+  // v2 per-hop cost witness (DWT cycles; instrumentation only).
+  std::uint32_t poll_cycles_sum = 0;
+  std::uint32_t poll_cycles_max = 0;
+  std::uint32_t poll_calls = 0;
+  std::uint32_t asrc_cycles_sum = 0;
+  std::uint32_t queue_filled_at_consume = 0;
+  std::uint32_t emit_cycles_last = 0;
+  std::uint32_t donor_cycles = 0;
+  std::uint32_t inhouse_cycles = 0;
 };
 
 struct LiveSnapshotFields final {

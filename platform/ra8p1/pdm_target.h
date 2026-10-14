@@ -78,6 +78,19 @@ typedef struct {
     uint32_t reject_poll_cycles;
 } k1_pdm_capture_service_t;
 k1_pdm_capture_service_t k1_pdm_target_capture_service(void);
+/* Per-AP-hop cost witness: instrumentation only, no behaviour change. The sole
+   main-loop owner accumulates between consecutive hop reads; the live runtime
+   takes (and resets the accumulators of) one record per published hop. */
+typedef struct {
+    uint32_t poll_cycles_sum;
+    uint32_t poll_cycles_max;
+    uint32_t poll_calls;
+    uint32_t asrc_cycles_sum;
+    uint32_t queue_filled_at_consume;
+    uint32_t emit_cycles_last;
+} k1_pdm_hop_cost_t;
+void k1_pdm_target_take_hop_cost(k1_pdm_hop_cost_t *out);
+void k1_pdm_target_note_emit_cycles(uint32_t cycles);
 
 int k1_pdm_target_initialised(void);
 int k1_pdm_target_running(void);

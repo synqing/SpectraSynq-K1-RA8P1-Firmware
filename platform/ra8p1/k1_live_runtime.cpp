@@ -370,6 +370,20 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   timing.hop_dt_us = last_hop_dt_us_;
   timing.asrc_starved = asrc_starved_;
   timing.measured_hz = measured_hz_;
+#ifdef K1_PDM_TARGET
+  k1_pdm_hop_cost_t cost{};
+  k1_pdm_target_take_hop_cost(&cost);
+  timing.poll_cycles_sum = cost.poll_cycles_sum;
+  timing.poll_cycles_max = cost.poll_cycles_max;
+  timing.poll_calls = cost.poll_calls;
+  timing.asrc_cycles_sum = cost.asrc_cycles_sum;
+  timing.queue_filled_at_consume = cost.queue_filled_at_consume;
+  timing.emit_cycles_last = cost.emit_cycles_last;
+#endif
+#ifdef K1_EMOTISCOPE_PORT
+  timing.donor_cycles = donor_cycles_;
+  timing.inhouse_cycles = inhouse_cycles_;
+#endif
   timing_.push(timing);
   return LiveHopStatus::Ok;
 }

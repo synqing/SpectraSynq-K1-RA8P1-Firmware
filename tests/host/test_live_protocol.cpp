@@ -213,6 +213,23 @@ int main() {
   std::uint8_t timing[4096];
   const auto tm = runtime.encodeTiming(timing, sizeof(timing), 0);
   assert(tm >= 64);
+  assert(k1::titan::liveGetU16(timing + 36) == k1::titan::kLiveTimingBytes);
+  {
+    // v2 per-hop cost witness: every new field at its frozen offset.
+    static_assert(k1::titan::kLiveTimingBytes == 88U, "timing record v2 size");
+    static_assert(k1::titan::kLiveHistoryHeaderBytes + k1::titan::kLiveTimingReadMax * k1::titan::kLiveTimingBytes <= k1::titan::kLiveMaxResponseBody,
+                  "timing read must fit one response");
+    k1::titan::LiveTimingRecord rec{};
+    rec.poll_cycles_sum = 0x11111111U; rec.poll_cycles_max = 0x22222222U;
+    rec.poll_calls = 0x33333333U; rec.asrc_cycles_sum = 0x44444444U;
+    rec.queue_filled_at_consume = 0x55555555U; rec.emit_cycles_last = 0x66666666U;
+    rec.donor_cycles = 0x77777777U; rec.inhouse_cycles = 0x88888888U;
+    std::uint8_t raw[k1::titan::kLiveTimingBytes];
+    assert(k1::titan::liveEncodeTiming(raw, rec) == k1::titan::kLiveTimingBytes);
+    const std::uint32_t want[8] = {0x11111111U, 0x22222222U, 0x33333333U, 0x44444444U,
+                                   0x55555555U, 0x66666666U, 0x77777777U, 0x88888888U};
+    for (unsigned i = 0; i < 8; ++i) assert(k1::titan::liveGetU32(raw + 56 + 4 * i) == want[i]);
+  }
 
   std::printf("LIVE_PROTOCOL_HOST_PASS snap=%u events=%u timing=%u schema=%s\n",
               unsigned(kLiveSnapshotBytes), unsigned(ev), unsigned(tm), kTitanLiveSchemaSha256);

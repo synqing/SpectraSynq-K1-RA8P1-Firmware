@@ -249,9 +249,28 @@ static uint64_t k1_pdm_target_now_us(void) {
            (uint64_t) SystemCoreClock;
 }
 
+static k1_pdm_hop_cost_t capture_hop_cost;
+
+void k1_pdm_target_take_hop_cost(k1_pdm_hop_cost_t *out) {
+    if (out == 0) return;
+    *out = capture_hop_cost;
+    capture_hop_cost.poll_cycles_sum = 0u;
+    capture_hop_cost.poll_cycles_max = 0u;
+    capture_hop_cost.poll_calls = 0u;
+    capture_hop_cost.asrc_cycles_sum = 0u;
+}
+
+void k1_pdm_target_note_emit_cycles(uint32_t cycles) {
+    capture_hop_cost.emit_cycles_last = cycles;
+}
+
 static void k1_pdm_target_finish_poll(void) {
     capture_service.poll_last_cycles =
         (uint32_t)k1_pdm_target_now_cycles() - capture_poll_start_cycles;
+    capture_hop_cost.poll_cycles_sum += capture_service.poll_last_cycles;
+    if (capture_service.poll_last_cycles > capture_hop_cost.poll_cycles_max)
+        capture_hop_cost.poll_cycles_max = capture_service.poll_last_cycles;
+    capture_hop_cost.poll_calls += 1u;
     if (capture_service.poll_last_cycles > capture_service.poll_max_cycles)
         capture_service.poll_max_cycles = capture_service.poll_last_cycles;
     if (capture_poll_pairs > capture_service.poll_max_pairs)
@@ -570,8 +589,10 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
             capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
             k1_pdm_target_reset_logical_stream(2u);
         } else {
+            const uint32_t asrc_t0 = DWT->CYCCNT;
             const int status = k1_asrc24_push(&capture_asrc, capture_pcm,
                                              K1_PDM_TARGET_SLOT_ELEMENTS);
+            capture_hop_cost.asrc_cycles_sum += DWT->CYCCNT - asrc_t0;
             if (status != k1_asrc24_ok) {
                 ++capture_service.reject_count;
                 capture_service.reject_poll_entry_filled = capture_poll_entry_filled;
@@ -994,7 +1015,11 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
         return K1_AUDIO_READ_FAULT;
     }
 #endif
-    rc = k1_asrc24_pull180(&capture_asrc, out->pcm);
+    {
+        const uint32_t filled_at_consume = capture_asrc.filled;
+        rc = k1_asrc24_pull180(&capture_asrc, out->pcm);
+        if (rc == k1_asrc24_ok) capture_hop_cost.queue_filled_at_consume = filled_at_consume;
+    }
     if (rc == k1_asrc24_err_not_ready) {
         return K1_AUDIO_READ_NOT_READY;
     }
