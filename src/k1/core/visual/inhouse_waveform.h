@@ -83,8 +83,16 @@ inline constexpr InhouseV9Release kInhouseV9ReleaseConfig{};
 struct InhouseV9Front final {
   bool enabled = false;
   bool hold_contraction = false;  // R03: keep the outer-band contraction until the drop
+  // Plant of the Experiment 1 front: paint only during travel_s and clear pixels
+  // the front has not reached. Default off. The product image does not see this type.
+  bool legacy_recede = false;
   float travel_s = 0.12F;         // R01 travel, inside 0.100..0.180 s (donor floor is 0.200 s)
   float hold_lead_s = 6.0F;       // riser hold, ending at the labelled drop
+  // After the front arrives, keep full extension for the low end of the atlas
+  // R01 hold (1–2 s), then ease the reach back toward the music deposit with
+  // the R02 Progressive Ignition fall (0.40 s). P6-EXT3-HOLD-FROZEN.json.
+  float hold_s = 1.0F;
+  float decay_s = 0.40F;
   std::array<float, 8> drop_s{};  // probe clock, file time in seconds
   unsigned drop_count = 0;
 };
@@ -303,7 +311,8 @@ class InhouseWaveformRenderer final {
   void depositV9(bool mode32, unsigned start, float position, float level,
                  const FixedRgb& colour) noexcept;
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
-  void applyOracleFront(bool mode32, unsigned start) noexcept;
+  void applyOracleFront(bool mode32, unsigned start, float music_position,
+                        std::uint16_t palette_id) noexcept;
 #endif
   void outputV9(const InhouseWaveformControls& controls, const FixedRgb& colour,
                 Pixel16* output) noexcept;

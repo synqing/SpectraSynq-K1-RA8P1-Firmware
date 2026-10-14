@@ -1,0 +1,340 @@
+{
+  "drops": [
+    {
+      "drop": "BOOM 55.7 s",
+      "tag": "boom_source",
+      "t_d": 55.7,
+      "climax": [
+        47.0,
+        48.5
+      ],
+      "classes": {
+        "kick": {
+          "events_in_plot": 2,
+          "first_event_rel_s": -0.12499900000000252,
+          "first_event_at_or_after_anchor_s": 0.08499999999999375,
+          "in_0_to_50ms": 0,
+          "climax_events": 1,
+          "strength": 0.11403415,
+          "uncapped_flux": 2.668051,
+          "flux_p95_climax": 0.5662489019999954,
+          "flux_p95_build_8s": 1.286486624999999,
+          "strength_over_climax_p95": 4.711798981996122
+        },
+        "snare": {
+          "events_in_plot": 4,
+          "first_event_rel_s": -0.1550020000000032,
+          "first_event_at_or_after_anchor_s": 0.05500099999999719,
+          "in_0_to_50ms": 0,
+          "climax_events": 4,
+          "strength": 0.20716749,
+          "uncapped_flux": 3.1482425,
+          "flux_p95_climax": 0.36092848999999977,
+          "flux_p95_build_8s": 0.8204973504999984,
+          "strength_over_climax_p95": 8.72262120399529
+        },
+        "hat": {
+          "events_in_plot": 4,
+          "first_event_rel_s": -0.1550020000000032,
+          "first_event_at_or_after_anchor_s": 0.09999899999999684,
+          "in_0_to_50ms": 0,
+          "climax_events": 11,
+          "strength": 0.052292962,
+          "uncapped_flux": 0.48669159,
+          "flux_p95_climax": 0.2854659785,
+          "flux_p95_build_8s": 0.49280190999999984,
+          "strength_over_climax_p95": 1.7049022533520575
+        },
+        "transient": {
+          "events_in_plot": 3,
+          "first_event_rel_s": -0.17750099999999946,
+          "first_event_at_or_after_anchor_s": 0.0400019999999941,
+          "in_0_to_50ms": 1,
+          "climax_events": 12,
+          "strength": 1.0,
+          "uncapped_flux": 5.9553847,
+          "flux_p95_climax": 1.594808484999999,
+          "flux_p95_build_8s": 2.919173435,
+          "strength_over_climax_p95": 3.7342318880376433
+        }
+      }
+    },
+    {
+      "drop": "Sonic 27.7 s",
+      "tag": "sonic_source",
+      "t_d": 27.7,
+      "climax": [
+        19.7,
+        21.2
+      ],
+      "classes": {
+        "kick": {
+          "events_in_plot": 3,
+          "first_event_rel_s": -0.07750099999999804,
+          "first_event_at_or_after_anchor_s": 0.07249900000000054,
+          "in_0_to_50ms": 0,
+          "climax_events": 2,
+          "strength": 0.087911904,
+          "uncapped_flux": 1.9536014,
+          "flux_p95_climax": 0.5460489159999999,
+          "flux_p95_build_8s": 0.7281131724999993,
+          "strength_over_climax_p95": 3.5777040165390606
+        },
+        "snare": {
+          "events_in_plot": 2,
+          "first_event_rel_s": 0.06499900000000025,
+          "first_event_at_or_after_anchor_s": 0.06499900000000025,
+          "in_0_to_50ms": 0,
+          "climax_events": 6,
+          "strength": 0.060893536,
+          "uncapped_flux": 1.3533776,
+          "flux_p95_climax": 0.5234572305,
+          "flux_p95_build_8s": 0.5697344019999997,
+          "strength_over_climax_p95": 2.5854597494188205
+        },
+        "hat": {
+          "events_in_plot": 8,
+          "first_event_rel_s": -0.15999899999999911,
+          "first_event_at_or_after_anchor_s": 0.03500100000000117,
+          "in_0_to_50ms": 1,
+          "climax_events": 17,
+          "strength": 0.025419613,
+          "uncapped_flux": 0.18767792,
+          "flux_p95_climax": 0.3066317549999996,
+          "flux_p95_build_8s": 0.3883532064999998,
+          "strength_over_climax_p95": 0.6120628960950252
+        },
+        "transient": {
+          "events_in_plot": 5,
+          "first_event_rel_s": -0.1675009999999979,
+          "first_event_at_or_after_anchor_s": 0.03500100000000117,
+          "in_0_to_50ms": 1,
+          "climax_events": 8,
+          "strength": 0.70562696,
+          "uncapped_flux": 2.185684,
+          "flux_p95_climax": 1.442785199999999,
+          "flux_p95_build_8s": 1.8655868799999968,
+          "strength_over_climax_p95": 1.5149060303640498
+        }
+      }
+    },
+    {
+      "drop": "Sonic 54.7 s",
+      "tag": "sonic_source",
+      "t_d": 54.7,
+      "climax": [
+        45.6,
+        47.1
+      ],
+      "classes": {
+        "kick": {
+          "events_in_plot": 1,
+          "first_event_rel_s": 0.11750099999999719,
+          "first_event_at_or_after_anchor_s": 0.11750099999999719,
+          "in_0_to_50ms": 0,
+          "climax_events": 6,
+          "strength": 0.15266304,
+          "uncapped_flux": 3.3580132,
+          "flux_p95_climax": 0.7226580125000001,
+          "flux_p95_build_8s": 0.5815692349999997,
+          "strength_over_climax_p95": 4.646752878838384
+        },
+        "snare": {
+          "events_in_plot": 2,
+          "first_event_rel_s": 0.04999999999999716,
+          "first_event_at_or_after_anchor_s": 0.04999999999999716,
+          "in_0_to_50ms": 1,
+          "climax_events": 5,
+          "strength": 0.018074034,
+          "uncapped_flux": 0.29048693,
+          "flux_p95_climax": 0.6978177589999984,
+          "flux_p95_build_8s": 0.5059036679999995,
+          "strength_over_climax_p95": 0.4162790732300647
+        },
+        "hat": {
+          "events_in_plot": 5,
+          "first_event_rel_s": -0.13750000000000284,
+          "first_event_at_or_after_anchor_s": 0.1025019999999941,
+          "in_0_to_50ms": 0,
+          "climax_events": 13,
+          "strength": 0.12120205,
+          "uncapped_flux": 0.9813599,
+          "flux_p95_climax": 0.3044182649999998,
+          "flux_p95_build_8s": 0.348165665,
+          "strength_over_climax_p95": 3.22372213769762
+        },
+        "transient": {
+          "events_in_plot": 3,
+          "first_event_rel_s": -0.21250100000000316,
+          "first_event_at_or_after_anchor_s": 0.035000999999994065,
+          "in_0_to_50ms": 1,
+          "climax_events": 8,
+          "strength": 0.013816059,
+          "uncapped_flux": 0.66465914,
+          "flux_p95_climax": 1.79577729,
+          "flux_p95_build_8s": 1.4849713999999992,
+          "strength_over_climax_p95": 0.3701233686945668
+        }
+      }
+    },
+    {
+      "drop": "Carte 27.4 s (seen)",
+      "tag": "carte_source",
+      "t_d": 27.4,
+      "climax": [
+        24.4,
+        25.9
+      ],
+      "classes": {
+        "kick": {
+          "events_in_plot": 2,
+          "first_event_rel_s": -0.2349989999999984,
+          "first_event_at_or_after_anchor_s": 0.057500000000000995,
+          "in_0_to_50ms": 0,
+          "climax_events": 4,
+          "strength": 0.25959566,
+          "uncapped_flux": 6.193223,
+          "flux_p95_climax": 1.113101949999999,
+          "flux_p95_build_8s": 1.0033656899999999,
+          "strength_over_climax_p95": 5.563931497918951
+        },
+        "snare": {
+          "events_in_plot": 3,
+          "first_event_rel_s": -0.129999999999999,
+          "first_event_at_or_after_anchor_s": 0.057500000000000995,
+          "in_0_to_50ms": 0,
+          "climax_events": 5,
+          "strength": 0.053683788,
+          "uncapped_flux": 1.0901787,
+          "flux_p95_climax": 0.5891212155,
+          "flux_p95_build_8s": 0.6004655404999998,
+          "strength_over_climax_p95": 1.8505167889340766
+        },
+        "hat": {
+          "events_in_plot": 6,
+          "first_event_rel_s": -0.15250099999999733,
+          "first_event_at_or_after_anchor_s": 0.057500000000000995,
+          "in_0_to_50ms": 0,
+          "climax_events": 10,
+          "strength": 0.11863315,
+          "uncapped_flux": 1.1830959,
+          "flux_p95_climax": 0.3408993344999999,
+          "flux_p95_build_8s": 0.31885651249999997,
+          "strength_over_climax_p95": 3.4705139619449756
+        },
+        "transient": {
+          "events_in_plot": 3,
+          "first_event_rel_s": -0.2425009999999972,
+          "first_event_at_or_after_anchor_s": 0.04249900000000295,
+          "in_0_to_50ms": 1,
+          "climax_events": 7,
+          "strength": 1.0,
+          "uncapped_flux": 4.6484351,
+          "flux_p95_climax": 1.5757372899999995,
+          "flux_p95_build_8s": 1.5372582499999998,
+          "strength_over_climax_p95": 2.9500064062074722
+        }
+      }
+    }
+  ],
+  "cues": {
+    "kick": {
+      "hits_every_drop_inside_50ms": false,
+      "silent_on_every_climax": false,
+      "feasible": false,
+      "per_drop_hit": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "per_drop_climax_silent": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "snare": {
+      "hits_every_drop_inside_50ms": false,
+      "silent_on_every_climax": false,
+      "feasible": false,
+      "per_drop_hit": [
+        false,
+        false,
+        true,
+        false
+      ],
+      "per_drop_climax_silent": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "hat": {
+      "hits_every_drop_inside_50ms": false,
+      "silent_on_every_climax": false,
+      "feasible": false,
+      "per_drop_hit": [
+        false,
+        true,
+        false,
+        false
+      ],
+      "per_drop_climax_silent": [
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    "transient": {
+      "hits_every_drop_inside_50ms": true,
+      "silent_on_every_climax": false,
+      "feasible": false,
+      "per_drop_hit": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "per_drop_climax_silent": [
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "any_feasible_cue": false,
+  "energy": {
+    "boom_source": {
+      "rows": 11066,
+      "events_kick": 235,
+      "events_snare": 284,
+      "events_hat": 402,
+      "events_transient": 424,
+      "energy_pre_p50": 7.86546565,
+      "energy_post_p50": 0.56984377
+    },
+    "sonic_source": {
+      "rows": 11066,
+      "events_kick": 166,
+      "events_snare": 182,
+      "events_hat": 692,
+      "events_transient": 421,
+      "energy_pre_p50": 8.7992392,
+      "energy_post_p50": 0.57369578
+    },
+    "carte_source": {
+      "rows": 11066,
+      "events_kick": 198,
+      "events_snare": 233,
+      "events_hat": 385,
+      "events_transient": 454,
+      "energy_pre_p50": 8.716315250000001,
+      "energy_post_p50": 0.63797903
+    }
+  }
+}

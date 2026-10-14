@@ -1,0 +1,211 @@
+{
+  "pass": true,
+  "plant_black": true,
+  "rows": [
+    {
+      "case": "boom_source",
+      "drop_s": 55.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 55.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 1.1500000000000057,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 55.7,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_source",
+      "drop_s": 55.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 55.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 1.1400000000000006,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 55.7,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_room",
+      "drop_s": 55.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 55.766479000000025,
+        "lag_s": 0.06647900000002238,
+        "sustain_s": 1.0,
+        "above_s": 1.0699999999999932,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 55.70647900000002,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_room",
+      "drop_s": 55.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 55.766479000000025,
+        "lag_s": 0.06647900000002238,
+        "sustain_s": 1.0,
+        "above_s": 1.1299999999999955,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 55.70647900000002,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 27.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 27.76,
+        "lag_s": 0.060000000000002274,
+        "sustain_s": 1.0,
+        "above_s": 1.1099999999999994,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 27.7,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 54.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 54.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 1.1700000000000017,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 54.7,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 27.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 27.76,
+        "lag_s": 0.060000000000002274,
+        "sustain_s": 1.0,
+        "above_s": 1.0999999999999979,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 27.7,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 54.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 54.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 1.1500000000000057,
+        "frames": 101,
+        "pass": true
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 54.7,
+            "fully_black": true,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": true
+    }
+  ],
+  "criterion": "P6-EXT3-HOLD-FROZEN.json",
+  "frozen_sha256": "50991d99de93940f8dacbc44805f6eaf87e3f1f02ec5da541cacc2a64be1052e",
+  "replay": "/tmp/p6-ext3b/r01",
+  "switch": "plant-black",
+  "argv": "[\"plant zero frame at song t_d\"]"
+}

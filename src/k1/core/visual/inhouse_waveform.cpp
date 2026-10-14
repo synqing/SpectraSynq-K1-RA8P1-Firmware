@@ -935,6 +935,8 @@ bool InhouseWaveformRenderer::probeV9Deposit(const InhouseWaveformControls& cont
 bool InhouseWaveformRenderer::setV9HostFront(const InhouseV9Front& front) noexcept {
   if (!(front.travel_s >= 0.100F && front.travel_s <= 0.180F)) return false;
   if (!(front.hold_lead_s >= 0.0F && front.hold_lead_s <= 8.0F)) return false;
+  if (!(front.hold_s >= 0.0F && front.hold_s <= 2.0F)) return false;
+  if (!(front.decay_s >= 0.05F && front.decay_s <= 2.0F)) return false;
   if (front.drop_count > front.drop_s.size()) return false;
   for (unsigned i = 0; i < front.drop_count; ++i)
     if (!std::isfinite(front.drop_s[i])) return false;
@@ -947,16 +949,23 @@ bool InhouseWaveformRenderer::setV9HostFront(const InhouseV9Front& front) noexce
 // Geometry is 160 px, 80 radial pixels per edge field. Travel is eased and kept
 // inside 100-180 ms, faster than the donor's 200 ms floor. Colour is path P:
 // offset_ keeps the deposited position and outputV9 samples wrap(offset + d).
-void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start) noexcept {
+void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start,
+                                              float music_position,
+                                              std::uint16_t palette_id) noexcept {
   if (!v9_front_.enabled || v9_front_.drop_count == 0U || !std::isfinite(v9_clock_s_)) return;
   const float t = v9_clock_s_;
   bool hold = false;
   float release_age = -1.0F;
+  // legacy_recede paints only while the front is travelling. The hold keeps the
+  // full reach, then the fall follows the music deposit for about four time constants.
+  const float tail = v9_front_.legacy_recede
+      ? v9_front_.travel_s
+      : v9_front_.travel_s + v9_front_.hold_s + 4.0F * v9_front_.decay_s;
   for (unsigned n = 0; n < v9_front_.drop_count; ++n) {
     const float td = v9_front_.drop_s[n];
     if (v9_front_.hold_contraction && t >= td - v9_front_.hold_lead_s && t < td) hold = true;
     const float age = t - td;
-    if (age >= 0.0F && age <= v9_front_.travel_s) release_age = age;
+    if (age >= 0.0F && age <= tail) release_age = age;
   }
   if (hold) {
     // Drop the inner pixels. Leave the outer band lit so the riser is not blacked out.
@@ -969,12 +978,53 @@ void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start) noex
   }
   if (!(release_age >= 0.0F)) return;
   const float travel = v9_front_.travel_s;
-  const float u = clamp01(release_age / travel);
-  const float ease = 1.0F - (1.0F - u) * (1.0F - u) * (1.0F - u);
+  // Reach in path units: 0 is the edge, 1 is the centre. During travel the reach
+  // is the eased front. After it arrives, the reach stays at the centre for hold_s,
+  // then eases toward the music deposit (loud still parks near the edge).
+  float centre = 0.0F;
+  // The Experiment 1 front cleared every pixel ahead of a reach that starts at the
+  // edge, so the drop frame kept only the outer sparks. That clear stays on the
+  // planted receding front. The hold path leaves existing light alone while the
+  // front travels, and clears only while the reach is retreating after the hold.
+  bool clear_beyond = v9_front_.legacy_recede;
+  if (release_age <= travel) {
+    const float u = clamp01(release_age / travel);
+    centre = 1.0F - (1.0F - u) * (1.0F - u) * (1.0F - u);
+  } else {
+    float sustain = 1.0F;
+    const float held_until = travel + v9_front_.hold_s;
+    if (release_age > held_until)
+      sustain = ::expf(-(release_age - held_until) / v9_front_.decay_s);
+    if (sustain < 0.02F) return;
+    const float music_extent = clamp01((160.0F - music_position) / 80.0F);
+    centre = music_extent + (1.0F - music_extent) * sustain;
+    clear_beyond = release_age > held_until;
+  }
+  // Palettes 31 and 38 are dark at both ends. The centre samples offset + d
+  // with d near 0, so a few frames put that dark stop at the centre and the
+  // extent line steps back while the reach is still full. Through the hold,
+  // the inner pixels take the palette position of the brightest lit pixel
+  // already on this half. The outer gradient is left as the music drew it.
+  const bool holding = !v9_front_.legacy_recede && release_age > travel &&
+      release_age <= travel + v9_front_.hold_s;
+  float ref_pos = deposit_offset_;
+  if (holding) {
+    float best = -1.0F;
+    for (unsigned pix = 80U; pix < 160U; ++pix) {
+      if (intensity_[pix] <= 0) continue;
+      const float d = static_cast<float>(pix - 80U) / 80.0F;
+      const auto sample = sampleProductPaletteHd(palette_id, wrap(offset_[pix] + d), 1.0F);
+      const float luma = (0.2126F * sample.red + 0.7152F * sample.green + 0.0722F * sample.blue) *
+          f(intensity_[pix]);
+      if (luma > best) {
+        best = luma;
+        ref_pos = wrap(offset_[pix] + d);
+      }
+    }
+  }
   const float width = 0.10F;
   const float feather = 0.5F * width;
   const float trail_s = 0.016F;
-  const float centre = ease;
   const auto envelope = [](float delta, float band, float feather_px) {
     const float a = std::fabs(delta);
     const float half = band * 0.5F;
@@ -994,16 +1044,25 @@ void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start) noex
       shape += envelope(delta, width, feather) * (trail == 0U ? 0.66F : 0.17F);
     }
     if (path > centre + width * 0.5F) {
-      intensity_[pix] = 0;
-      colour_[pix] = {};
-      offset_[pix] = 0.0F;
+      if (clear_beyond) {
+        intensity_[pix] = 0;
+        colour_[pix] = {};
+        offset_[pix] = 0.0F;
+      }
       continue;
     }
     const float body = path <= centre ? 0.55F : 0.0F;
     const auto level_q = q(std::max(body, shape));
+    // d < 0.35 covers the centre gap that fell under 10% of the half
+    // (measured out to about 22 pixels on Sonic). Farther pixels keep the
+    // music gradient, so the field does not collapse to one colour.
+    const float d = static_cast<float>(pix - 80U) / 80.0F;
+    const bool hold_colour = holding && d < 0.35F;
     if (level_q > intensity_[pix]) {
       intensity_[pix] = level_q;
-      offset_[pix] = deposit_offset_;
+      offset_[pix] = hold_colour ? wrap(ref_pos - d) : deposit_offset_;
+    } else if (hold_colour && intensity_[pix] > 0) {
+      offset_[pix] = wrap(ref_pos - d);
     }
   }
 }
@@ -1111,7 +1170,7 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.deposit_strength = 0.0F;
   if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour);
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
-  applyOracleFront(mode32, start);
+  applyOracleFront(mode32, start, position, controls.palette_id);
 #endif
   outputV9(controls, colour, output);
   return true;

@@ -1,0 +1,250 @@
+{
+  "criterion": "TOLERANCE-FROZEN-P6-EXT-v3.json",
+  "frozen_sha256": "c12890e6b0035e88be14566ae20b93804ff95a3178c1a4a4497281c46c0f0d98",
+  "set": "tuning",
+  "plant": false,
+  "ref": "/Users/spectrasynq/.claude/jobs/c8f0d616/tmp/p6/replayx/b5595c35",
+  "rows": [
+    {
+      "case": "boom_source",
+      "board": 0,
+      "edge_field": 0,
+      "E_pre": 0.33125000000000004,
+      "E_climax": 0.475,
+      "E_early": 0.4875,
+      "E_drop_max": 1.0,
+      "T90": 0.05999999999999517,
+      "lag": 0.03999999999999915,
+      "speed_per_s": 15.416666666666668,
+      "jump": 1.0,
+      "contraction": 0.012500000000000011,
+      "ref_E_climax": 0.475,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.05999999999999517,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_source",
+      "board": 1,
+      "edge_field": 1,
+      "E_pre": 0.05,
+      "E_climax": 0.2875,
+      "E_early": 0.35,
+      "E_drop_max": 1.0,
+      "T90": 0.05999999999999517,
+      "lag": 0.02999999999999403,
+      "speed_per_s": 13.750000000000002,
+      "jump": 1.0,
+      "contraction": 0.0625,
+      "ref_E_climax": 0.2875,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.05999999999999517,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_room",
+      "board": 0,
+      "edge_field": 0,
+      "E_pre": 0.3375,
+      "E_climax": 0.675,
+      "E_early": 0.45,
+      "E_drop_max": 1.0,
+      "T90": 0.06647900000001528,
+      "lag": 0.036479000000021244,
+      "speed_per_s": 12.91666666666667,
+      "jump": 1.0,
+      "contraction": -0.22500000000000003,
+      "ref_E_climax": 0.675,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.06647900000002238,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_room",
+      "board": 1,
+      "edge_field": 1,
+      "E_pre": 0.05,
+      "E_climax": 0.55,
+      "E_early": 0.275,
+      "E_drop_max": 1.0,
+      "T90": 0.06647900000001528,
+      "lag": 0.02647900000001613,
+      "speed_per_s": 17.083333333333332,
+      "jump": 1.0,
+      "contraction": -0.275,
+      "ref_E_climax": 0.55,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.06647900000002238,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source@27.7",
+      "board": 0,
+      "edge_field": 0,
+      "E_pre": 0.325,
+      "E_climax": 0.4625,
+      "E_early": 0.425,
+      "E_drop_max": 1.0,
+      "T90": 0.060000000000002274,
+      "lag": 0.03999999999999915,
+      "speed_per_s": 15.416666666666668,
+      "jump": 1.0,
+      "contraction": -0.03750000000000003,
+      "ref_E_climax": 0.475,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.060000000000002274,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source@27.7",
+      "board": 1,
+      "edge_field": 1,
+      "E_pre": 0.0375,
+      "E_climax": 0.2625,
+      "E_early": 0.225,
+      "E_drop_max": 1.0,
+      "T90": 0.060000000000002274,
+      "lag": 0.030000000000001137,
+      "speed_per_s": 13.750000000000002,
+      "jump": 1.0,
+      "contraction": -0.037500000000000006,
+      "ref_E_climax": 0.2625,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.060000000000002274,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source@54.7",
+      "board": 0,
+      "edge_field": 0,
+      "E_pre": 0.325,
+      "E_climax": 0.43125,
+      "E_early": 0.4625,
+      "E_drop_max": 1.0,
+      "T90": 0.05999999999999517,
+      "lag": 0.04999999999999716,
+      "speed_per_s": 12.5,
+      "jump": 1.0,
+      "contraction": 0.03125,
+      "ref_E_climax": 0.45,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.05999999999999517,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source@54.7",
+      "board": 1,
+      "edge_field": 1,
+      "E_pre": 0.0375,
+      "E_climax": 0.2375,
+      "E_early": 0.2625,
+      "E_drop_max": 1.0,
+      "T90": 0.05999999999999517,
+      "lag": 0.02999999999999403,
+      "speed_per_s": 18.333333333333332,
+      "jump": 1.0,
+      "contraction": 0.025000000000000022,
+      "ref_E_climax": 0.2375,
+      "checks": {
+        "release_speed": true,
+        "congruence": true,
+        "release_size": true,
+        "build_contraction_kept": true,
+        "travel": true
+      },
+      "travel": {
+        "T90_frames": 0.05999999999999517,
+        "monotonic_right": true,
+        "monotonic_left": true,
+        "full_extension": true,
+        "pass": true
+      },
+      "pass": true
+    }
+  ],
+  "pass": true
+}

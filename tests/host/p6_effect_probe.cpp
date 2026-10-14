@@ -24,7 +24,11 @@
 //       optional 12th-18th (iteration 6): boost widen ratio_full epsilon fast_s slow_s luma_hold
 //       optional 19th-25th (extent release): enabled fast_s slow_s lo_db span_db release_s newpeak_db_s
 //       optional 26th-27th (kick trigger): trigger_sub(0|1) dip_db
-//       optional final token (Experiment 1, default off): r01@t1,t2 or r01+r03@t1,t2
+//       optional final token (Experiment 1, default off):
+//         r01@t1,t2              inward front, then the 1.0 s hold and 0.40 s fall
+//         r01+r03@t1,t2          same, with the riser contraction held until the drop
+//         r01-recede@t1,t2       planted Experiment 1 front (no hold; clears ahead)
+//         r01+r03-recede@t1,t2   planted front plus the riser contraction
 //       Drop times are probe file-time seconds. Absent token leaves the front off.
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
@@ -86,8 +90,11 @@ int main(int argc, char** argv) {
       --argc;
       front.enabled = true;
       front.hold_contraction = tail.compare(0, 7, "r01+r03") == 0;
+      front.legacy_recede = tail.find("-recede") != std::string::npos;
       front.travel_s = 0.12F;
       front.hold_lead_s = 6.0F;
+      front.hold_s = front.legacy_recede ? 0.0F : 1.0F;
+      front.decay_s = 0.40F;
       const auto at = tail.find('@');
       if (at != std::string::npos) {
         const std::string list = tail.substr(at + 1);

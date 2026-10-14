@@ -1,0 +1,199 @@
+{
+  "pass": false,
+  "plant_black": false,
+  "rows": [
+    {
+      "case": "boom_source",
+      "drop_s": 55.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 55.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 0.09000000000000341,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 55.7,
+            "fully_black": false,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": false
+    },
+    {
+      "case": "boom_source",
+      "drop_s": 55.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 55.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 0.17999999999999972,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 55.7,
+            "fully_black": false,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": false
+    },
+    {
+      "case": "boom_room",
+      "drop_s": 55.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 55.766479000000025,
+        "lag_s": 0.06647900000002238,
+        "sustain_s": 1.0,
+        "above_s": 0.0799999999999983,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": true,
+        "faults": []
+      },
+      "pass": false
+    },
+    {
+      "case": "boom_room",
+      "drop_s": 55.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 55.766479000000025,
+        "lag_s": 0.06647900000002238,
+        "sustain_s": 1.0,
+        "above_s": 0.23999999999999488,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": true,
+        "faults": []
+      },
+      "pass": false
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 27.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 27.76,
+        "lag_s": 0.060000000000002274,
+        "sustain_s": 1.0,
+        "above_s": 0.08999999999999986,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 27.7,
+            "fully_black": false,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": false
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 54.7,
+      "edge_field": 0,
+      "hold": {
+        "reached": true,
+        "t_full": 54.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 0.09000000000000341,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 54.7,
+            "fully_black": false,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": false
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 27.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 27.76,
+        "lag_s": 0.060000000000002274,
+        "sustain_s": 1.0,
+        "above_s": 0.17999999999999972,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 27.7,
+            "fully_black": false,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": false
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 54.7,
+      "edge_field": 1,
+      "hold": {
+        "reached": true,
+        "t_full": 54.76,
+        "lag_s": 0.05999999999999517,
+        "sustain_s": 1.0,
+        "above_s": 0.1600000000000037,
+        "frames": 101,
+        "pass": false
+      },
+      "black": {
+        "pass": false,
+        "faults": [
+          {
+            "t": 54.7,
+            "fully_black": false,
+            "edge_cut": true
+          }
+        ]
+      },
+      "pass": false
+    }
+  ],
+  "criterion": "P6-EXT3-HOLD-FROZEN.json",
+  "frozen_sha256": "50991d99de93940f8dacbc44805f6eaf87e3f1f02ec5da541cacc2a64be1052e",
+  "replay": "/tmp/p6-ext3b/recede",
+  "switch": "recede",
+  "argv": "[\"r01-recede\",\"file-time corrected for boom_room\"]"
+}
