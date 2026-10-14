@@ -223,7 +223,10 @@ static void k1_usb_irq_resume(void) {
 #endif
 
 void hal_entry(void) {
-#if BSP_CFG_DCACHE_ENABLED && !defined(K1_KEEP_DCACHE_ENABLED)
+#if BSP_CFG_DCACHE_ENABLED && defined(K1_FORCE_DCACHE_OFF)
+    /* Historical reproduction only (build_scalar --dcache disabled). The product
+       keeps the FSP D-cache (write-through, MPU no-cache regions) with explicit
+       per-buffer maintenance on the PDM RX and LED TX DMA buffers. */
     SCB_DisableDCache(); __DSB(); __ISB();
 #endif
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;

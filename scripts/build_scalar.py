@@ -29,8 +29,18 @@ from repo_layout import sibling
 BSP = sibling(ROOT, 'sdk-bsp-ra8p1-titan-mini')
 BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
 TOOLCHAIN = sibling(ROOT, 'toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin')
-SCALAR = '-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard'
-SAFETY = '-ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage'
+# Build profiles. Canon (Kx-Titan TITAN-CANON-2026-10-13 §4/§5): the Titan product is
+# never down-rated. 'titan-product' keeps MVE + hardware double precision (no sp-only
+# -mfpu, which turns every double into a software call), contraction and vectorisation
+# on, and keeps -fno-fast-math so finite/NaN guards survive. 'resident-scalar' exists
+# only to reproduce historical (hobbled) images and as a measured BEFORE baseline.
+PROFILES = {
+    'resident-scalar': ('-march=armv8.1-m.main+fp.dp -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard',
+                        '-ffp-contract=off -fno-fast-math -fno-tree-vectorize -fno-tree-slp-vectorize -fstack-usage'),
+    'titan-product': ('-march=armv8.1-m.main+mve.fp+fp.dp -mthumb -mfpu=auto -mfloat-abi=hard',
+                      '-ffp-contract=fast -fno-fast-math -fstack-usage'),
+}
+SCALAR, SAFETY = PROFILES['titan-product']
 OPTIMISATIONS = {
     'o2': '-O2',
     'o3-unroll': '-O3 -funroll-loops -frename-registers',
@@ -445,6 +455,7 @@ def stage_pcm1808_vectors(stage: Path) -> None:
     )
 
 def main():
+    global SCALAR, SAFETY
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--debug', action='store_true',
@@ -452,8 +463,10 @@ def main():
     parser.add_argument('--debug-info', action='store_true',
                         help='keep the selected optimisation and add DWARF; not the -O0 --debug build')
     parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
-    parser.add_argument('--dcache',choices=('disabled','enabled'),default='disabled',
-                        help='retain the proven disabled default or build an identified BSP-enabled experiment')
+    parser.add_argument('--profile',choices=tuple(PROFILES),default='titan-product',
+                        help='titan-product (default, canon) or resident-scalar (historical/BEFORE only)')
+    parser.add_argument('--dcache',choices=('disabled','enabled'),default=None,
+                        help='default: enabled for titan-product, disabled for resident-scalar')
     parser.add_argument('--resident-controls',type=Path,help='hash-bound generated schedule header')
     parser.add_argument('--npu-model',type=Path,help='hash-bound generated smoke-graph C source directory')
     parser.add_argument('--npu-input',type=Path,help='hash-bound generated NPU input header')
@@ -493,6 +506,9 @@ def main():
     parser.add_argument('--live-defaults',type=Path,
                         help='optional hashed live-default JSON; omitted uses firmware canonical defaults')
     args=parser.parse_args()
+    SCALAR, SAFETY = PROFILES[args.profile]
+    if args.dcache is None:
+        args.dcache = 'enabled' if args.profile == 'titan-product' else 'disabled'
     if args.titan_top_output and (not args.emotiscope_port or args.p601_loopback):
         parser.error('--titan-top-output requires --emotiscope-port and excludes diagnostic loopback')
     if args.debug and args.debug_info:
@@ -667,8 +683,8 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
-        receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback)),sort_keys=True).encode()).hexdigest()
+        receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
                        palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,
@@ -692,7 +708,11 @@ def main():
         rtconfig=stage/'rtconfig.py'
         text=rtconfig.read_text()
         assert text.count('-march=armv8.1-m.main+mve.fp+fp.dp')==1
-        text=text.replace('-march=armv8.1-m.main+mve.fp+fp.dp','-march=armv8.1-m.main+fp.dp')
+        assert text.count('-mfpu=fpv5-sp-d16')==1
+        if args.profile == 'titan-product':
+            text=text.replace('-mfpu=fpv5-sp-d16','-mfpu=auto')
+        else:
+            text=text.replace('-march=armv8.1-m.main+mve.fp+fp.dp','-march=armv8.1-m.main+fp.dp')
         text=text.replace("CFLAGS = DEVICE + ' -Dgcc'", "CFLAGS = DEVICE + ' -Dgcc "+SAFETY+"'")
         if not args.debug:
             text=text.replace("BUILD = 'debug'", "BUILD = 'release'")
@@ -840,9 +860,9 @@ def main():
         if defines:
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc',' '.join(defines)+' -Dgcc')
-        if args.dcache=='enabled':
+        if args.dcache=='disabled':
             assert text.count('-Dgcc')==1
-            text=text.replace('-Dgcc','-DK1_KEEP_DCACHE_ENABLED=1 -Dgcc')
+            text=text.replace('-Dgcc','-DK1_FORCE_DCACHE_OFF=1 -Dgcc')
         rtconfig.write_text(text)
         config=stage/'rtconfig.h'
         text=config.read_text()
