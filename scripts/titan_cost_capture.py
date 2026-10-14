@@ -55,7 +55,11 @@ def summarise(records, window=None):
     if window is not None:
         a, b = window
         rows = [r for r in rows if a <= r["_music_s"] <= b]
-    return {stage: distribution([r[stage] for r in rows]) for stage in STAGES}
+    out = {stage: distribution([r[stage] for r in rows]) for stage in STAGES}
+    # P4 correction 1: k1_poly24 push+pull cycles per donor hop (v2 spare u16 = cycles/16).
+    if any("a24_cycles_div16" in r for r in rows):
+        out["a24_cycles"] = distribution([16 * r.get("a24_cycles_div16", 0) for r in rows])
+    return out
 
 
 def main() -> int:
@@ -64,11 +68,17 @@ def main() -> int:
     ap.add_argument("--expected-build", required=True)
     ap.add_argument("--gain", type=float, default=0.25)
     ap.add_argument("--preroll", type=float, default=3.0)
+    ap.add_argument("--wav", type=Path, default=None,
+                    help="play this file instead of the approved BOOM fixture (sha256 recorded)")
+    ap.add_argument("--duration", type=float, default=75.0, help="playback length in seconds")
     a = ap.parse_args()
     out = a.out
     out.mkdir(parents=True, exist_ok=False)
     run = hi.Run(out)
-    fx = hi.fixture("boom")
+    if a.wav is None:
+        fx = hi.fixture("boom")
+    else:
+        fx = {"wav": str(a.wav.resolve()), "wav_sha256": hashlib.sha256(a.wav.read_bytes()).hexdigest()}
     run.event("start", expected_build=a.expected_build, wav=fx["wav"], wav_sha256=fx["wav_sha256"])
     broker_stopped = False
     port = handle = lease = player = None
@@ -97,14 +107,14 @@ def main() -> int:
         def js(op):
             return json.loads(raw(op))
 
-        counters["before"] = {"pdm": js(6), "palette": js(17)}
+        counters["before"] = {"pdm": js(6), "palette": js(17), "mir": js(21)}
         newest = live_protocol.unpack_snapshot(raw(23))["timing_write_seq"]
         cursor = newest
         gaps, reads = [], 0
         start = time.monotonic()
         last_renew = start
         player_start = None
-        total = a.preroll + 75.0 + 3.0
+        total = a.preroll + a.duration + 3.0
         while time.monotonic() - start < total:
             now = time.monotonic()
             if player is None and now - start >= a.preroll:
@@ -132,7 +142,7 @@ def main() -> int:
         if player is not None:
             rc = player.wait(timeout=10)
             run.event("audio_process_finished", returncode=rc)
-        counters["after"] = {"pdm": js(6), "palette": js(17)}
+        counters["after"] = {"pdm": js(6), "palette": js(17), "mir": js(21)}
         # continuity: write_seq must be consecutive
         seqs = [r["write_seq"] for r in records]
         missing = sum(max(0, b - a - 1) for a, b in zip(seqs, seqs[1:]))
@@ -157,6 +167,13 @@ def main() -> int:
                 "stream_epoch": pa["stream_epoch"] - pb["stream_epoch"],
                 "ap_hops": pa["ap_hops"] - pb["ap_hops"],
             },
+            # P4 correction 1: the 24 kHz path's own loss counter and epoch (absent on older images).
+            "analysis24": ({k: counters["after"]["mir"]["analysis24"][k] - counters["before"]["mir"]["analysis24"][k]
+                            for k in ("drops", "epoch", "designs")}
+                           if "analysis24" in counters["after"]["mir"] else "not exported by this image"),
+            "analysis24_after": counters["after"]["mir"].get("analysis24"),
+            "capture_service_after": counters["after"]["mir"].get("capture_service"),
+            "donor_stream_epoch_after": counters["after"]["mir"].get("stream_epoch"),
             "faults_after": {k: la.get(k) for k in ("pair_fault", "lane_a0_fault", "lane_a1_fault")},
             "secondary_fault_after": (la.get("secondary_output") or {}).get("fault"),
             "scope": "on-device DWT cycles at 1 GHz, every hop; host-read timestamps are host monotonic",
