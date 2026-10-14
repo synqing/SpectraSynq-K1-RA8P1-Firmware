@@ -1,0 +1,12 @@
+{
+  "uid": "545433931bd25436593630352d068363",
+  "build": "28939057530760701db101cf58ed6bbcf79a090c97f79a40a30a797e387dc1d6",
+  "schema_sha256": "e99c1ec147288a7beaed728fc91e42530efc91c26f223164e03d07745b68c2da",
+  "hex_sha256": "50fab0690d5c830fb626136dd7baa23e38261cd67ef794a4872cb57718a690ea",
+  "elf_sha256": "e305590d0a5d61fbdc2db64e3b5dd5e5137cf03c07b8b7ab11625ef42875655b",
+  "ops": [
+    "emotiscope_get",
+    "emotiscope_patch"
+  ],
+  "scope": "Lane P6 v9 evaluation image host-007: host-006 (path P colour fix, scored gains) + Captain's 15 Oct brightness ruling 100/255 (intensity 0.392157 x hardware 255) + Experiment 1 release code compiled but switched OFF (product pixels identical); lane commit b18f02a (217/217 receipt sources match)."
+}

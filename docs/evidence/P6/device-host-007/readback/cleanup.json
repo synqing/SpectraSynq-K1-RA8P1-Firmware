@@ -1,0 +1,7 @@
+{
+  "broker_stopped": false,
+  "broker_restored_in_body": false,
+  "error": null,
+  "never_emit_disarm": true,
+  "no_control_writes": true
+}
