@@ -625,6 +625,8 @@ void palette_step(bool emit) {
 #endif
   if (emit && palettes.emitEnabled()) {
 #ifdef K1_PALETTE_WS2816_GPT_PAIR
+    // Lane P2 cost witness: pack + submit of both boards (instrumentation only).
+    const std::uint32_t pack_t0 = k1_cycle_count();
     const auto& config = palettes.config();
     const auto& selected = palettes.channel(config.output_channel);
     constexpr unsigned lane_bytes=480U,native_bytes=480U,lane_pixels=80U,version=1U;
@@ -714,6 +716,9 @@ void palette_step(bool emit) {
 #endif
       }
     }
+#endif
+#ifdef K1_PDM_TARGET
+    k1_pdm_target_note_emit_cycles(k1_cycle_count() - pack_t0);
 #endif
 #elif defined(K1_PALETTE_WS2816)
     const auto& config = palettes.config();

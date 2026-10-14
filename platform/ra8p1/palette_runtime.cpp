@@ -22,9 +22,6 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#ifdef K1_PDM_TARGET
-#include "pdm_target.h"
-#endif
 
 #ifdef K1_EMOTISCOPE_PORT
 static_assert(K1_EMOTISCOPE_PALETTES == k1::core::visual::kProductPaletteCount,
@@ -985,8 +982,5 @@ void PaletteRuntime::recordEmit(int result, std::uint32_t cycles) noexcept {
   if (result) ++emit_errors_; else ++emitted_;
   last_emit_cycles_ = cycles;
   if (cycles > maximum_emit_cycles_) maximum_emit_cycles_ = cycles;
-#ifdef K1_PDM_TARGET
-  k1_pdm_target_note_emit_cycles(cycles);
-#endif
 }
 } // namespace k1::titan
