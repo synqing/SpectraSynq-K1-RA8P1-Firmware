@@ -56,14 +56,46 @@ def boards_from(profile):
     boards = {}
     for b, row in profile["boards"].items():
         r = {("mode" if k == "current_mode" else k): v for k, v in row.items()}
-        r.update({k: (int(v) if isinstance(v, bool) else v) for k, v in profile["output"].items()})
+        r.update(profile["pair"])
+        r.update({k: (int(v) if isinstance(v, bool) else v) for k, v in profile["output"].items() if k != "period_us"})
         boards[b] = {"values": r}
     return boards
 
 
+def palette_from(profile):
+    return {"period_us": profile["output"]["period_us"]}
+
+
 def test_profile_matches_itself():
     p = h.load_profile(PROFILE)
-    assert h.profile_diff(boards_from(p), p) == {}
+    assert h.profile_diff(boards_from(p), p, palette_from(p)) == {}
+    assert h.compared_field_count(p) == 2 * (49 + 6 + 8) + 1
+
+
+def test_missing_field_is_a_difference_not_a_skip():
+    p = h.load_profile(PROFILE)
+    boards = boards_from(p)
+    del boards["1"]["values"]["palette"]
+    assert h.profile_diff(boards, p, palette_from(p)) == {"1": {"palette": [h.MISSING, 39]}}
+
+
+def test_empty_or_renamed_readback_goes_red():
+    p = h.load_profile(PROFILE)
+    empty = {"0": {"values": {}}, "1": {"values": {}}}
+    diff = h.profile_diff(empty, p, palette_from(p))
+    assert len(diff["0"]) == 63 and len(diff["1"]) == 63
+    renamed = {b: {"values": {"x_" + k: v for k, v in r["values"].items()}} for b, r in boards_from(p).items()}
+    assert len(h.profile_diff(renamed, p, palette_from(p))["0"]) == 63
+    assert "0" in h.profile_diff({"1": boards_from(p)["1"]}, p, palette_from(p))
+
+
+def test_pair_and_period_are_compared():
+    p = h.load_profile(PROFILE)
+    boards = boards_from(p)
+    boards["0"]["values"]["pair_link"] = 1
+    assert h.profile_diff(boards, p, palette_from(p)) == {"0": {"pair_link": [1, 0]}}
+    assert h.profile_diff(boards_from(p), p, {"period_us": 8333}) == {"palette": {"period_us": [8333, 10000]}}
+    assert "palette" in h.profile_diff(boards_from(p), p, {})
 
 
 def test_profile_planted_faults_go_red():

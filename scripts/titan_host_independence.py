@@ -82,30 +82,49 @@ def load_profile(path: Path) -> dict:
     return raw.get("composition", raw)
 
 
-def profile_diff(boards: dict, profile: dict) -> dict:
-    """Every profile field the readback exposes must equal the expected profile."""
+MISSING = "MISSING_FROM_READBACK"
+
+
+def _same(got, want) -> bool:
+    if isinstance(want, bool):
+        return got == want or got == int(want)
+    if isinstance(want, float):
+        return isinstance(got, (int, float)) and not isinstance(got, bool) and abs(float(got) - want) <= 1e-4
+    return got == want
+
+
+def profile_diff(boards: dict, profile: dict, palette: dict | None = None) -> dict:
+    """Every expected field must be present in the readback and equal the profile.
+
+    Compares per board: all ``boards[b]`` fields (current_mode -> mode), every
+    ``pair`` field and every ``output`` field except ``period_us``, which is
+    compared against broker palette stats when ``palette`` is supplied. A missing
+    field is a difference, never a skip.
+    """
     out = {}
     for b, want in profile["boards"].items():
-        row = boards[b].get("values", boards[b])
+        row = (boards.get(b) or {}).get("values", boards.get(b) or {})
         delta = {}
-        for k, v in want.items():
-            rk = "mode" if k == "current_mode" else k
-            if rk not in row:
-                continue
-            got = row[rk]
-            same = (abs(float(got) - float(v)) <= 1e-4) if isinstance(v, float) and not isinstance(v, bool) else (got == v or (isinstance(v, bool) and got == int(v)))
-            if not same:
-                delta[k] = [got, v]
-        for k in OUTPUT_KEYS:
-            if k not in row or k not in profile["output"]:
-                continue
-            v, got = profile["output"][k], row[k]
-            same = (abs(float(got) - float(v)) <= 1e-4) if isinstance(v, float) else (got == v or (isinstance(v, bool) and got == int(v)))
-            if not same:
-                delta["output." + k] = [got, v]
+        expected = {("mode" if k == "current_mode" else k): v for k, v in want.items()}
+        expected.update({k: v for k, v in profile.get("pair", {}).items()})
+        expected.update({k: v for k, v in profile["output"].items() if k != "period_us"})
+        for k, v in expected.items():
+            if k not in row:
+                delta[k] = [MISSING, v]
+            elif not _same(row[k], v):
+                delta[k] = [row[k], v]
         if delta:
             out[b] = delta
+    if palette is not None and "period_us" in profile["output"]:
+        got = palette.get("period_us", MISSING)
+        if not _same(got, profile["output"]["period_us"]):
+            out["palette"] = {"period_us": [got, profile["output"]["period_us"]]}
     return out
+
+
+def compared_field_count(profile: dict) -> int:
+    per_board = len(profile["boards"]["0"]) + len(profile.get("pair", {})) + len([k for k in profile["output"] if k != "period_us"])
+    return per_board * len(profile["boards"]) + (1 if "period_us" in profile["output"] else 0)
 
 
 def broker_running() -> bool:
@@ -241,9 +260,9 @@ def main() -> int:
         before = {"broker": c.identity(a.expected_build), "boards": c.fresh_boards(0)}
         run.write("before.json", before)
         if a.mode == "readback":
-            diff = profile_diff(before["boards"], profile)
+            diff = profile_diff(before["boards"], profile, before["broker"]["palette"])
             run.write("profile-diff.json", diff)
-            run.event("completed", profile_differences=diff)
+            run.event("completed", profile_differences=diff, profile_fields_compared=compared_field_count(profile))
             return 0 if not diff else 3
 
         if a.mode == "disconnect":
@@ -283,7 +302,8 @@ def main() -> int:
         pal_b, pal_a = before["broker"]["palette"], after["broker"]["palette"]
         report = {
             "mode": a.mode,
-            "profile_differences_after": profile_diff(after["boards"], profile),
+            "profile_differences_after": profile_diff(after["boards"], profile, after["broker"]["palette"]),
+            "profile_fields_compared": compared_field_count(profile),
             "boot_id_before_after": [before["broker"]["identity"].get("boot_id"), after["broker"]["identity"].get("boot_id")],
             "frames_before_after": [pal_b.get("frames"), pal_a.get("frames")],
             "secondary_completions_before_after": [pal_b["secondary_output"]["completions"], pal_a["secondary_output"]["completions"]],
