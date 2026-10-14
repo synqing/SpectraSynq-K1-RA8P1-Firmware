@@ -63,6 +63,8 @@ void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz)
     st->source_hz = (source_hz < K1_POLY24_MIN_IN_HZ || source_hz > K1_POLY24_MAX_IN_HZ)
         ? 40000u : source_hz;
     st->pos_q32 = (uint64_t)(K1_POLY24_TAPS / 2u - 1u) << 32;
+    /* The ring is already zero: count the alignment pre-roll as filled. */
+    st->filled = K1_POLY24_ALIGN_ZEROS;
     k1_poly24_design(st);
 }
 

@@ -14,6 +14,14 @@ inline constexpr std::size_t kInhouseHopSamples = 96U;
 inline constexpr std::size_t kInhousePeakHistory = 8U;
 static_assert(kInhouseSampleRate == core::audio::kLegacy12800AudioRate.sample_rate_hz);
 static_assert(kInhouseHopSamples == core::audio::kLegacy12800AudioRate.hop_samples);
+// Lane P4: optional 24 kHz / 180 analysis input (k1_poly24 output). Same 7.5 ms
+// hop, so every time constant, the tempo cadence and the publication rate hold.
+inline constexpr std::uint32_t kInhouseAnalysis24Rate = 24000U;
+inline constexpr std::size_t kInhouseAnalysis24Hop = 180U;
+inline constexpr std::size_t kInhouseMaxHopSamples = kInhouseAnalysis24Hop;
+static_assert(kInhouseAnalysis24Rate == core::audio::kProductionAudioRate.sample_rate_hz);
+static_assert(kInhouseAnalysis24Hop == core::audio::kProductionAudioRate.hop_samples);
+static_assert(kInhouseAnalysis24Hop * kInhouseSampleRate == kInhouseHopSamples * kInhouseAnalysis24Rate);
 
 // Explicit reconstruction settings, NOT a transferred microphone calibration.
 // Source HEAD 96e6839: globals/config_types, i2s_audio, k1_agc_dt_clock,
@@ -30,6 +38,9 @@ struct InhouseAudioConfig final {
   // SYSTEM_FPS was a visual clock in the source. Explicit 100 Hz reconstructed
   // presentation profile, not the 133.333 Hz audio cadence.
   std::uint32_t reference_presentation_hz = 100U;
+  // 12800: consumes the donor's 64-sample 12.8 kHz descriptors (96-sample frames).
+  // 24000: consumes 180-sample 24 kHz descriptors from k1_poly24 (one frame each).
+  std::uint32_t analysis_rate_hz = kInhouseSampleRate;
 };
 
 struct InhouseAudioCursor final {
@@ -90,7 +101,7 @@ class InhouseAudio final {
   core::audio::GdftConfiguration frequencies_{};
   core::audio::GdftSampleWindow window_{};
   core::audio::GdftRawFrame raw_{};
-  std::array<std::int16_t, kInhouseHopSamples> pending_{};
+  std::array<std::int16_t, kInhouseMaxHopSamples> pending_{};
   std::array<float, 80> magnitude_average_{};
   std::array<Conditioning, 2> conditioning_{};
   std::array<core::audio::TempoTrackerState, 2> tempo_{};
@@ -108,6 +119,9 @@ class InhouseAudio final {
   std::uint64_t quiet_samples_ = 0;
   std::size_t pending_count_ = 0;
   std::size_t support_samples_ = 0;
+  std::uint32_t rate_hz_ = kInhouseSampleRate;
+  std::size_t hop_ = kInhouseHopSamples;
+  std::uint32_t input_samples_ = 64U;
   float follower_ = 350.0F;
   float peak_scaled_ = 0.0F;
   float previous_rms_ = 0.0F;

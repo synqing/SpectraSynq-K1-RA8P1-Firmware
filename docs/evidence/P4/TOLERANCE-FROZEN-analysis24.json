@@ -1,0 +1,36 @@
+{
+  "purpose": "P4 step 3: the in-house analysis at 24 kHz / 180 (k1_poly24 output) against the current 12.8 kHz / 96 analysis (k1_asrc24 Emotiscope profile output), same PCM, host probe tests/host/p4_analysis24_probe.cpp",
+  "frozen_before_results": "Written before the 24 kHz InhouseAudio path or its probe exist; no 24 kHz feature has been computed. Never regenerated. If a gate fails: report FAIL, do not flash.",
+  "inputs": {
+    "boom_song": "BOOM song file at the device-calibrated gain 1.155 (scripts/p3_agc_trace.py source_pcm), 40 kHz nominal into both resamplers",
+    "boom_room": "BOOM iPhone room recording at the device-calibrated gain (scripts/p3_agc_trace.py), 40 kHz nominal",
+    "dopex_room": "Dopex iPhone room recording including the post-roll silence, same calibration method",
+    "alignment": "both paths publish one generation per 7.5 ms; generations are paired by time with a lag search of -3..+3 generations, chosen once per input on raw_rms and then held for every stream"
+  },
+  "gates": {
+    "i_bins_below_5120hz": {
+      "stream": "raw GDFT normalised magnitude per bin (InhouseAudio raw frame), every generation 0-75 s",
+      "bins": "every bin whose target frequency is below 5,120 Hz (0.8 x the 12.8 kHz Nyquist); bins from 5,120 Hz to 6,400 Hz are reported only (the 12.8 kHz anti-alias transition band)",
+      "pass": "Pearson r over time >= 0.90 for every such bin AND the median over those bins >= 0.97, on boom_song and boom_room"
+    },
+    "ii_bins_above_6400hz": {
+      "bins": "every bin whose target frequency is above 6,400 Hz (zero at 12.8 kHz by construction)",
+      "pass_a_nonzero": "each such bin's mean magnitude over 28-75 s (boom_song) >= 0.001 x the mean magnitude of the bins below 5,120 Hz",
+      "pass_b_real": "Pearson r >= 0.60 between the sum of those bins' magnitudes and a 6.5-11 kHz band RMS envelope of the 40 kHz source on the same 7.5 ms grid (best lag within +/-30 ms), boom_song 0-75 s"
+    },
+    "iii_level_streams": {
+      "pass": "on boom_song, boom_room and dopex_room: raw_rms median ratio (24k / 12.8k) within 0.90-1.15 and Spearman rho >= 0.95; vu_level the same; peak_scaled Spearman rho >= 0.90 and median |difference| <= 0.10; silence flag agreement >= 99% of generations; on dopex_room the first post-roll silence-flag generation within +/-0.5 s of the 12.8 kHz path's"
+    },
+    "iv_tempo": {
+      "stream": "board-1 (Tempo) in-house tempo_bpm, tempo demand on",
+      "pass": "|median 24k - median 12.8k| <= 2 BPM over BOOM 33-43 s, on boom_song and boom_room"
+    }
+  },
+  "planted_faults_must_fail": {
+    "i": "24 kHz path told the source is 5% faster than it is (k1_poly24_set_rate x1.05)",
+    "ii": "24 kHz path fed a linear upsample of the 12.8 kHz output instead of the source (no real content above 6.4 kHz)",
+    "iii": "24 kHz path input scaled x1.25",
+    "iv": "same as i (5% rate error)"
+  },
+  "unchanged": "The donor Emotiscope analysis stays on the 12.8 kHz / 64 output, bit-exact; checked separately by comparing the donor hop stream before and after (max |difference| = 0)."
+}

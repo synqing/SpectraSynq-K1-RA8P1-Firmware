@@ -51,8 +51,13 @@ void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz);
 int k1_poly24_set_rate(k1_poly24_t *st, uint32_t source_hz);
 int k1_poly24_push(k1_poly24_t *st, const int16_t *src, uint32_t count);
 int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES]);
-/* Group delay in source samples (centre of the K-tap window). */
-#define K1_POLY24_DELAY_SOURCE_SAMPLES (K1_POLY24_TAPS / 2u)
+/* Stream clock: output sample m names source instant m * step - DELAY, the same
+   causal convention as k1_asrc24's 12.8 kHz Emotiscope profile (47 samples), so
+   both outputs' sample indices name the same source moment. reset() pre-fills
+   2 * DELAY zero samples to achieve it (P4 step-3 gate, run 1: without it the
+   24 kHz index named a moment 2.35 ms later than the 12.8 kHz index). */
+#define K1_POLY24_DELAY_SOURCE_SAMPLES (K1_POLY24_TAPS / 2u - 1u)
+#define K1_POLY24_ALIGN_ZEROS (2u * K1_POLY24_DELAY_SOURCE_SAMPLES)
 
 #ifdef __cplusplus
 }

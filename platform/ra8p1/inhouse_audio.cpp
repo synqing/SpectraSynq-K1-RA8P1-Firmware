@@ -44,14 +44,14 @@ inline void stepInhouseLane(InhouseLane& lane, std::int32_t sample,
 
 void analyseInhouseScalar(const core::audio::GdftSampleWindow& window,
                           const core::audio::GdftConfiguration& frequencies,
-                          core::audio::GdftRawFrame& output) noexcept {
+                          core::audio::GdftRawFrame& output, float nyquist_hz) noexcept {
   // Source audio/k1_gdft_core.cpp:151-242, unchanged per-bin recurrence order.
   // On this ARM target the scalar state stays in registers. Four-lane grouping
   // introduced uncached stack traffic despite sharing its PCM sample loads.
   output = {};
   for (std::size_t bin = 0; bin < frequencies.size(); ++bin) {
     const auto& frequency = frequencies[bin];
-    if (frequency.target_frequency_hz > static_cast<float>(kInhouseSampleRate) * 0.5F)
+    if (frequency.target_frequency_hz > nyquist_hz)
       continue;
     ++output.nyquist_safe_bin_high;
     InhouseLane lane{frequency.coefficient_q14, frequency.block_size, 0, 0};
@@ -81,8 +81,14 @@ bool InhouseAudio::configure(const InhouseAudioConfig& config) noexcept {
       !std::isfinite(config.silence_rms_enter) || config.silence_rms_enter < 0.0F ||
       !std::isfinite(config.silence_rms_exit) ||
       config.silence_rms_exit < config.silence_rms_enter || config.silence_rms_exit > 1.0F ||
-      config.reference_presentation_hz == 0U) return false;
+      config.reference_presentation_hz == 0U ||
+      (config.analysis_rate_hz != kInhouseSampleRate &&
+       config.analysis_rate_hz != kInhouseAnalysis24Rate)) return false;
   config_ = config;
+  const bool analysis24 = config.analysis_rate_hz == kInhouseAnalysis24Rate;
+  rate_hz_ = config.analysis_rate_hz;
+  hop_ = analysis24 ? kInhouseAnalysis24Hop : kInhouseHopSamples;
+  input_samples_ = analysis24 ? static_cast<std::uint32_t>(kInhouseAnalysis24Hop) : 64U;
   for (auto& state : conditioning_) state.mood = config.mood;
   reset();
   return true;
@@ -110,13 +116,17 @@ void InhouseAudio::setTempoDemand(unsigned board, bool enabled) noexcept {
   if (board >= tempo_.size() || tempo_demand_[board] == enabled) return;
   tempo_demand_[board] = enabled;
   tempo_capture_us_[board] = 0;
+  // The tracker reads only rate / hop (133.333 Hz), identical for both inputs.
   if (enabled)
-    core::audio::initialiseTempoTracker(tempo_[board], core::audio::kLegacy12800AudioRate);
+    core::audio::initialiseTempoTracker(tempo_[board], rate_hz_ == kInhouseAnalysis24Rate
+        ? core::audio::kProductionAudioRate : core::audio::kLegacy12800AudioRate);
   else core::audio::resetTempoTracker(tempo_[board]);
 }
 
 void InhouseAudio::reset() noexcept {
   frequencies_ = core::audio::makeGdftConfiguration(core::audio::kLegacy12800AudioRate);
+  if (rate_hz_ == kInhouseAnalysis24Rate)
+    frequencies_ = core::audio::makeGdftConfiguration(core::audio::kProductionAudioRate);
   window_ = {};
   raw_ = {};
   pending_ = {};
@@ -137,7 +147,7 @@ void InhouseAudio::reset() noexcept {
   epoch_ = expected_begin_ = admitted_samples_ = quiet_samples_ = 0;
   pending_count_ = support_samples_ = 0;
   for (const auto& bin : frequencies_) {
-    if (bin.target_frequency_hz <= static_cast<float>(kInhouseSampleRate) * 0.5F)
+    if (bin.target_frequency_hz <= static_cast<float>(rate_hz_) * 0.5F)
       support_samples_ = std::max(support_samples_, static_cast<std::size_t>(bin.block_size));
   }
   follower_ = config_.follower_floor_pcm;
@@ -148,11 +158,12 @@ void InhouseAudio::reset() noexcept {
 bool InhouseAudio::consume(const k1_audio_hop_t& hop, std::uint64_t capture_us,
                            bool capture_valid) noexcept {
   // Defence in depth for host replay; live admission still has one owner.
-  if (hop.contract_version != 2U || hop.samples != 64U ||
-      hop.analysis_rate_hz != kInhouseSampleRate || hop.stream_epoch == 0U ||
-      hop.hop_sequence == 0U || hop.hop_sequence > UINT64_MAX / 64U ||
-      hop.analysis_begin != (hop.hop_sequence - 1U) * 64U ||
-      hop.analysis_end_exclusive != hop.hop_sequence * 64U || hop.discontinuity_reason != 0U) {
+  if (hop.contract_version != 2U || hop.samples != input_samples_ ||
+      hop.analysis_rate_hz != rate_hz_ || hop.stream_epoch == 0U ||
+      hop.hop_sequence == 0U || hop.hop_sequence > UINT64_MAX / input_samples_ ||
+      hop.analysis_begin != (hop.hop_sequence - 1U) * input_samples_ ||
+      hop.analysis_end_exclusive != hop.hop_sequence * input_samples_ ||
+      hop.discontinuity_reason != 0U) {
     reset();
     return false;
   }
@@ -169,9 +180,9 @@ bool InhouseAudio::consume(const k1_audio_hop_t& hop, std::uint64_t capture_us,
   bool completed = false;
   for (std::size_t i = 0; i < hop.samples; ++i) {
     pending_[pending_count_++] = hop.pcm[i];
-    if (pending_count_ == kInhouseHopSamples) {
+    if (pending_count_ == hop_) {
       const std::uint64_t tail = hop.samples - 1U - i;
-      const std::uint64_t tail_us = tail * 1000000U / kInhouseSampleRate;
+      const std::uint64_t tail_us = tail * 1000000U / rate_hz_;
       const bool stamp_valid = capture_valid && capture_us >= tail_us;
       analyse(hop.analysis_begin + i + 1U,
               stamp_valid ? capture_us - tail_us : 0U, stamp_valid);
@@ -185,16 +196,16 @@ bool InhouseAudio::consume(const k1_audio_hop_t& hop, std::uint64_t capture_us,
 
 void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
                            bool capture_valid) noexcept {
-  std::memmove(window_.data(), window_.data() + kInhouseHopSamples,
-      (window_.size() - kInhouseHopSamples) * sizeof(window_[0]));
-  std::memcpy(window_.data() + window_.size() - kInhouseHopSamples,
-      pending_.data(), kInhouseHopSamples * sizeof(pending_[0]));
-  admitted_samples_ += kInhouseHopSamples;
+  std::memmove(window_.data(), window_.data() + hop_,
+      (window_.size() - hop_) * sizeof(window_[0]));
+  std::memcpy(window_.data() + window_.size() - hop_,
+      pending_.data(), hop_ * sizeof(pending_[0]));
+  admitted_samples_ += hop_;
   ++generation_;
   publication_ = {};
   publication_.epoch = epoch_;
   publication_.generation = generation_;
-  publication_.analysis_begin_sample = end_sample - kInhouseHopSamples;
+  publication_.analysis_begin_sample = end_sample - hop_;
   publication_.analysis_end_sample_exclusive = end_sample;
   publication_.capture_us = capture_us;
   publication_.valid = capture_valid && admitted_samples_ >= support_samples_;
@@ -203,20 +214,24 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   // each completed 96-sample frame. Mode 11 sums all four rows, not a waveform
   // invented from spectrum bins. Never join partial frames across an epoch.
   pcm_history_index_ = (pcm_history_index_ + 1U) % pcm_history_.size();
-  pcm_history_[pcm_history_index_] = pending_;
+  // At 24 kHz the 7.5 ms frame is shown as the same 96 points (nearest sample),
+  // so mode 11 keeps its geometry; the analysis itself uses every sample.
+  for (std::size_t i = 0; i < kInhouseHopSamples; ++i)
+    pcm_history_[pcm_history_index_][i] = pending_[i * hop_ / kInhouseHopSamples];
   pcm_history_count_ = std::min(pcm_history_count_ + 1U, 4U);
   publication_.pcm_history = pcm_history_;
   publication_.pcm_history_valid = pcm_history_count_ == 4U;
 
   float square_sum = 0.0F;
-  for (const auto sample : pending_) {
+  for (std::size_t i = 0; i < hop_; ++i) {
+    const auto sample = pending_[i];
     publication_.raw_peak_pcm = std::max(publication_.raw_peak_pcm,
         std::fabs(static_cast<float>(sample)));
     // Source waveform_fixed_point = SQ15x16(sample) * SQ15x16(1/32768).
     const auto normalised_q16 = static_cast<std::int32_t>(sample) * 2;
     square_sum += f(mul(normalised_q16, normalised_q16));
   }
-  const float rms = f(q(std::sqrt(square_sum / static_cast<float>(kInhouseHopSamples))));
+  const float rms = f(q(std::sqrt(square_sum / static_cast<float>(hop_))));
   publication_.raw_rms = rms;
   publication_.quiet_entry_rms = config_.silence_rms_enter;
   publication_.vu_level = f(divq(std::max<std::int32_t>(0, q(rms) - q(config_.vu_floor)),
@@ -225,7 +240,7 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   previous_vu_ = publication_.vu_level;
   const float drive = std::max(0.0F, publication_.raw_peak_pcm - config_.drive_floor_pcm);
   // Source's first dt-clock call uses 10 ms; later calls use sample chronology.
-  const float dt = admitted_samples_ == kInhouseHopSamples ? 0.010F : kDt;
+  const float dt = admitted_samples_ == hop_ ? 0.010F : kDt;
   follower_ += (drive - follower_) * alpha(drive > follower_ ? 0.25F : 0.005F, dt);
   follower_ = std::max(config_.follower_floor_pcm, follower_);
   const float ratio = drive / follower_;
@@ -234,8 +249,8 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   // Production SPH source uses the previous calculate_vu() RMS at this stage.
   rms_silent_ = previous_rms_ < (rms_silent_ ? config_.silence_rms_exit : config_.silence_rms_enter);
   if (rms_silent_) {
-    quiet_samples_ += kInhouseHopSamples;
-    if (quiet_samples_ * 1000U >= static_cast<std::uint64_t>(config_.silence_dwell_ms) * kInhouseSampleRate)
+    quiet_samples_ += hop_;
+    if (quiet_samples_ * 1000U >= static_cast<std::uint64_t>(config_.silence_dwell_ms) * rate_hz_)
       silence_ = true;
   } else {
     quiet_samples_ = 0;
@@ -247,7 +262,7 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   // Source k1_gdft_core.cpp INT64_RECURRENCE + INT64_MAGNITUDE, Cross40,
   // rectangular windows. The parked native kernel deliberately wraps int32
   // products, so only its configuration generator is reused here.
-  analyseInhouseScalar(window_, frequencies_, raw_);
+  analyseInhouseScalar(window_, frequencies_, raw_, static_cast<float>(rate_hz_) * 0.5F);
   for (std::size_t bin = 0; bin < frequencies_.size(); ++bin) {
     if (bin < raw_.nyquist_safe_bin_high) {
       magnitude_average_[bin] = raw_.bins[bin].normalised_magnitude * 0.3F + magnitude_average_[bin] * 0.7F;
