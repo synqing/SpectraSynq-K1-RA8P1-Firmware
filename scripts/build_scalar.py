@@ -209,6 +209,23 @@ def assert_scalar_generated_code(dump, attributes):
     assert 'Tag_MVE_arch' not in attributes, 'ELF advertises MVE'
     assert not re.search(r'\t(?:v\w+(?:\.\w+)?\s+[^\n]*\bq[0-7]\b|(?:vctp|vpst|wlstp|dlstp|letp)(?:\.\w+)?\b)',dump), 'vector instructions in generated code'
 
+INT64_CONVERSIONS = {'__aeabi_d2lz', '__aeabi_d2ulz', '__aeabi_l2d', '__aeabi_ul2d'}
+SOFT_DOUBLE_CALL = re.compile(r'\bbl\s+[0-9a-f]+ <(__aeabi_d\w+)>')
+
+def assert_product_generated_code(dump, attributes, macros):
+    """titan-product: the unhobbled properties, measured on the built image."""
+    assert 'Tag_MVE_arch' in attributes, 'ELF does not advertise MVE'
+    assert '#define __ARM_FEATURE_MVE 3' in macros, 'compiler does not enable MVE integer+float'
+    fp = re.search(r'#define __ARM_FP (\d+)', macros)
+    assert fp and int(fp.group(1)) & 8, 'compiler lacks hardware double precision'
+    soft = SOFT_DOUBLE_CALL.findall(dump)
+    # FPv5-D16 has no double<->64-bit-integer instruction; these four are library
+    # conversions in every hardware-double build. All other helpers mean software
+    # double arithmetic and are refused.
+    arithmetic = [name for name in soft if name not in INT64_CONVERSIONS]
+    assert not arithmetic, f'software double-precision helpers still called: {sorted(set(arithmetic))}'
+    return {name: soft.count(name) for name in sorted(set(soft))}
+
 def stage_dual_pdm_vectors(stage: Path) -> None:
     """Add the second DMAC and falling-lane PDM error vectors to the copy.
 
@@ -1040,7 +1057,8 @@ def main():
             verify_tempo_placement_receipt(receipt)
         macros=command([TOOLCHAIN/'arm-none-eabi-g++',*SCALAR.split(),'-dM','-E','-x','c++','/dev/null'])
         (args.output/'compiler-macros.txt').write_text(macros)
-        assert '__ARM_FEATURE_MVE ' not in macros, 'compiler enables MVE'
+        if args.profile == 'resident-scalar':
+            assert '__ARM_FEATURE_MVE ' not in macros, 'compiler enables MVE'
         env=dict(os.environ,RTT_EXEC_PATH=str(TOOLCHAIN),SOURCE_DATE_EPOCH='1788912000')
         with (args.output/'build.log').open('w') as log:
             result=subprocess.run(['uvx','--from','scons','scons','-j8','--verbose'],cwd=stage,env=env,stdout=log,stderr=subprocess.STDOUT,timeout=240)
@@ -1053,8 +1071,16 @@ def main():
         (args.output/'symbols.txt').write_text(symbols)
         attrs=command([TOOLCHAIN/'arm-none-eabi-readelf','-A',args.output/'rtthread.elf'])
         (args.output/'attributes.txt').write_text(attrs)
-        # Scalar VFP s/d registers allowed. Q-register MVE and tail predication are not.
-        assert_scalar_generated_code(dump,attrs)
+        if args.profile == 'resident-scalar':
+            # Historical: scalar VFP s/d registers allowed; Q-register MVE/tail predication not.
+            assert_scalar_generated_code(dump,attrs)
+        else:
+            conversions = assert_product_generated_code(dump,attrs,macros)
+            receipt['product_profile_checks'] = {
+                'mve_attribute': True, 'mve_macro': 3,
+                'software_double_arithmetic_call_sites': 0,
+                'int64_conversion_call_sites': conversions,
+                'vector_instructions': len(re.findall(r'\t(?:v\w+(?:\.\w+)?\s+[^\n]*\bq[0-7]\b|(?:vctp|vpst|wlstp|dlstp|letp)(?:\.\w+)?\b)', dump))}
         active_symbols = (['k1_emotiscope_init', 'k1_emotiscope_push_pcm64', 'k1_emotiscope_render',
                            'k1_emotiscope_status', 'LiveAudioRuntime::consume', 'PaletteRuntime::step']
                           if args.emotiscope_port else
