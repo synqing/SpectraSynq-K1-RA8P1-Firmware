@@ -1,0 +1,223 @@
+{
+ "started_utc": "2026-10-14T14:33:06Z",
+ "inputs": {
+  "video": "/Users/spectrasynq/Pictures/IMG_E9881.MOV",
+  "truth": "_scratch/waveform-migration-001/audio-p5-001/p5-clicks-boom.truth.json",
+  "truth_sha256": "f0bdb3f4f42a5b357cb2df3e31062a8e1e28f11eab04fd0b0a7820c2774ade6d",
+  "video_sha256": "d41d85961ce151ef8943c42bbacd2de60ad75a8c115a454518811225a26a1396",
+  "stimulus_wav_sha256": "638c7fa9eda058e3bcfef318b9e899fefec26be9c0b178ec4cec3adc943338a5"
+ },
+ "rules": {
+  "path": "_scratch/waveform-migration-001/runs/P5-PREP/P5-RULES-v2-PROPOSED.json",
+  "sha256": "406ad1b19b588161b6bf1b03a52cc987ccb0f70f007486d74491ecdc834920bd",
+  "frozen": true,
+  "frozen_utc": "2026-10-14T14:29:07Z",
+  "tool_sha256": "753a361fc3505ce60314ead5d00e181a1cfd679479eb4ab12e5974c632d01fb0",
+  "bound_tool_sha256": "753a361fc3505ce60314ead5d00e181a1cfd679479eb4ab12e5974c632d01fb0",
+  "tool_matches_rules": true,
+  "freeze_verify": "ok"
+ },
+ "timeline": {
+  "kind": "container (identity edit lists applied by the demuxer)",
+  "video_track": {
+   "track_id": 1,
+   "edits": [
+    {
+     "segment_duration": 21541821,
+     "media_time": 0,
+     "media_rate": 1.0
+    }
+   ],
+   "edit_identity": true,
+   "media_offset_s": 0.0
+  },
+  "audio_track": {
+   "track_id": 2,
+   "edits": [
+    {
+     "segment_duration": 21541821,
+     "media_time": 2112,
+     "media_rate": 1.0
+    }
+   ],
+   "edit_identity": true,
+   "media_offset_s": -0.04789115646258504
+  }
+ },
+ "media": {
+  "video_codec": "hevc",
+  "audio_codec": "aac",
+  "r_frame_rate": "240/1",
+  "avg_frame_rate": "35124600/146543",
+  "color_transfer": "bt709",
+  "width": 1920,
+  "height": 1080,
+  "video_stream_duration_s": "488.476667",
+  "audio_stream_duration_s": "488.476667",
+  "audio_sample_rate": "44100",
+  "audio_decoded_sr": 44100,
+  "audio_t0_s": 0.0,
+  "audio_span_s": 488.4766666666667,
+  "audio_max_discontinuity_s": 5.684341886080802e-14,
+  "displayed_width": 1920,
+  "displayed_height": 1080,
+  "frames": 117082,
+  "video_t0_s": 0.0,
+  "video_span_s": 488.4770833333334,
+  "median_pts_step_ms": 4.166666666662877,
+  "pts_irregular_fraction": 0.0,
+  "filter_time_base": "1/2400"
+ },
+ "alignment": {
+  "method": "v2: click gap fingerprint + local onset clock",
+  "a_s": 12.2908092399271,
+  "b": 1.0000047847288172,
+  "skew_ppm": 4.784728817153194,
+  "identify": {
+   "envelope_events": 844,
+   "anchors": 513,
+   "clicks_that_can_anchor": 513,
+   "identify_a_s": 12.304119407615815,
+   "identify_b": 0.9999838082230073,
+   "inlier_anchors": 513,
+   "identified_fraction": 1.0
+  },
+  "sync": {
+   "v1_rule_triplets": 0,
+   "coarse_triplets": 8,
+   "used_for": "coarse identity anchor only; timing comes from the click onsets",
+   "start": {
+    "expected_rec_s": 14.267472088565821,
+    "found": false,
+    "offset_ms": null
+   },
+   "end": {
+    "expected_rec_s": 478.516505780118,
+    "found": false,
+    "offset_ms": null
+   }
+  },
+  "onsets": {
+   "clicks": 520,
+   "settle_excluded": 12,
+   "settle_before_truth_s": 12.0,
+   "active_clicks": 508,
+   "onset_misses": 0,
+   "off_clock": 4,
+   "valid": 504,
+   "median_onset_minus_mapped_ms": -0.32088295986909543,
+   "median_abs_onset_minus_mapped_ms": 0.636891296338149,
+   "p95_abs_onset_minus_mapped_ms": 5.4984063401605
+  }
+ },
+ "onsets": {
+  "clicks": 520,
+  "settle_excluded": 12,
+  "settle_before_truth_s": 12.0,
+  "active_clicks": 508,
+  "onset_misses": 0,
+  "off_clock": 4,
+  "valid": 504,
+  "median_onset_minus_mapped_ms": -0.32088295986909543,
+  "median_abs_onset_minus_mapped_ms": 0.636891296338149,
+  "p95_abs_onset_minus_mapped_ms": 5.4984063401605
+ },
+ "tool": "scripts/p5_latency.py",
+ "boards": {
+  "board0": {
+   "roi": [
+    340,
+    585,
+    1480,
+    50
+   ],
+   "status": "NO_CONFIDENT_LATENCY",
+   "reasons": [
+    "hit fraction 0.50 < 0.95"
+   ],
+   "valid_onsets": 504,
+   "hits": 254,
+   "misses": 250,
+   "no_noise_window": 0,
+   "hit_fraction": 0.503968253968254,
+   "null_hits": 3,
+   "null_trials": 320,
+   "early_rises_before_onset": 1,
+   "latency_claimed": false,
+   "latency": null,
+   "brief_n_met": false
+  },
+  "board1": {
+   "roi": [
+    340,
+    415,
+    1480,
+    50
+   ],
+   "status": "NO_CONFIDENT_LATENCY",
+   "reasons": [
+    "hit fraction 0.38 < 0.95",
+    "null-control hit fraction 0.25 > 0.05 (detector fires without a click)"
+   ],
+   "valid_onsets": 504,
+   "hits": 191,
+   "misses": 313,
+   "no_noise_window": 0,
+   "hit_fraction": 0.37896825396825395,
+   "null_hits": 81,
+   "null_trials": 320,
+   "early_rises_before_onset": 35,
+   "latency_claimed": false,
+   "latency": null,
+   "brief_n_met": false
+  }
+ },
+ "quantisation_ms_per_event": 4.166666666666667,
+ "search_window_ms": 300.0,
+ "quantisation_statement": "real-time pts input only (re-timed exports are refused). Each latency is a frame pts minus an audio onset; the light changed within the frame period ending at the detected frame, so every event carries one frame (4.17 ms at 240 fps) of quantisation; its random part averages out over N (about 4.17/sqrt(12 N) ms on the mean) but it biases latency late by 0 to 1 frame",
+ "boom_excluded": "only truth clicks are scored; BOOM is never paired",
+ "limits": [
+  "Emission versus exposure: the frame pts names a frame, not the instant the LEDs changed; the light changed within the preceding frame period (quantisation, stated per event).",
+  "Rolling shutter: each sensor row is read at a different time within the frame; an ROI's rows are exposed later than the frame's pts by its row offset times the readout time. Bound: up to the sensor readout fraction of 1/240 s (at most 4.17 ms; an ROI high in the frame sees less) [INFERENCE, not measured].",
+  "iPhone audio/video track offset: any constant offset between the phone's audio and video timelines shifts every latency equally; this tool cannot measure it without an event that is both seen and heard at a known instant [INFERENCE].",
+  "Acoustic path: onsets are when the sound reached the phone's microphone, not the Titan's (about 2.9 ms per metre of path difference).",
+  "AAC pre-echo can move an audio onset earlier by up to a few milliseconds [INFERENCE].",
+  "Responses that darken, or that rise slower than the noise-relative threshold within 300 ms, are MISSES; responses earlier than the onset (negative latency, e.g. from an A/V offset) are not searched (the early-rise count flags them).",
+  "Auto-exposure and white balance changes alter luma; lock exposure (AE/AF lock) when recording."
+ ],
+ "device_alignment": {
+  "source": "_scratch/waveform-migration-001/runs/P5-20261014T1315Z/permitted/device-capture/timing.jsonl",
+  "source_sha256": "ca3345699993b6ab2b1fe49b1cd295a30573bb79d991bf8ffd04bdd8268a70f1",
+  "records": 94996,
+  "available": false,
+  "fields": [
+   "_host_read_s",
+   "_music_s",
+   "a24_cycles_div16",
+   "ap_cycles",
+   "asrc_cycles_sum",
+   "asrc_starved",
+   "capture_time_us",
+   "donor_cycles",
+   "emit_cycles_last",
+   "flags",
+   "hop_dt_us",
+   "hop_sequence",
+   "inhouse_cycles",
+   "measured_hz",
+   "poll_calls",
+   "poll_cycles_max",
+   "poll_cycles_sum",
+   "publish_time_us",
+   "queue_filled_at_consume",
+   "vp_cycles",
+   "write_seq"
+  ],
+  "reason": "the records carry no audio-derived per-hop field (looked for transient, flux, onset_strength, bass_onset, level, rms), so the SYNC bursts cannot be located in device time. _host_read_s and _music_s are host-clock times (serial read and afplay launch); they include unmeasured host audio-output latency and serial/poll delay, so they are not used to align device stamps to the video. Render and wire-complete stamps are also absent from LiveTimingRecord v2."
+ },
+ "p5_admissible": false,
+ "p5_admissible_reasons": [
+  "board0: no confident latency",
+  "board1: no confident latency"
+ ]
+}
