@@ -1,0 +1,403 @@
+<title>Titan Expressiveness Audit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --ground: #eceef1;
+  --surface: #ffffff;
+  --plate: #0f1115;
+  --ink: #15171c;
+  --muted: #565d68;
+  --rule: #cdd2d9;
+  --gold: #946614;
+  --crimson: #a8233a;
+  --teal: #23766e;
+  --gold-soft: #f3e6c8;
+  --crimson-soft: #f4d9de;
+  --teal-soft: #d4ebe8;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0f1115;
+    --surface: #171a20;
+    --plate: #0f1115;
+    --ink: #e8e6e1;
+    --muted: #9ba1aa;
+    --rule: #2a2e36;
+    --gold: #d9a441;
+    --crimson: #e0566b;
+    --teal: #4fb3a9;
+    --gold-soft: #2e2615;
+    --crimson-soft: #34171d;
+    --teal-soft: #13302d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0f1115;
+  --surface: #171a20;
+  --plate: #0f1115;
+  --ink: #e8e6e1;
+  --muted: #9ba1aa;
+  --rule: #2a2e36;
+  --gold: #d9a441;
+  --crimson: #e0566b;
+  --teal: #4fb3a9;
+  --gold-soft: #2e2615;
+  --crimson-soft: #34171d;
+  --teal-soft: #13302d;
+}
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.wrap {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 40px 72px;
+  display: grid;
+  gap: 56px;
+}
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 4.6vw, 46px); letter-spacing: -0.01em; }
+h2 { font-size: clamp(23px, 2.8vw, 30px); }
+h3 { font-size: 18px; }
+p { margin: 0; max-width: 68ch; }
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+header { display: grid; gap: 18px; }
+.lede { font-size: 19px; line-height: 1.5; max-width: 62ch; }
+.lede strong { font-weight: 600; }
+.notice {
+  display: flex; flex-wrap: wrap; gap: 8px 18px;
+  font-size: 14px; color: var(--muted);
+}
+.notice span { overflow-wrap: anywhere; }
+.notice b { color: var(--ink); font-weight: 500; }
+
+/* Answers board */
+.board { display: grid; gap: 0; border-top: 2px solid var(--ink); }
+.row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) 150px minmax(0, 3fr);
+  gap: 8px 24px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+.row .q { font-family: var(--display); font-weight: 600; font-size: 18px; }
+.row .q small { display: block; font-family: var(--body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.row p { font-size: 15.5px; }
+.pill {
+  justify-self: start;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 3px; border: 1px solid currentColor;
+}
+.pill.no { color: var(--crimson); background: var(--crimson-soft); }
+.pill.partly { color: var(--gold); background: var(--gold-soft); }
+.pill.yes { color: var(--teal); background: var(--teal-soft); }
+.row a { color: inherit; text-underline-offset: 3px; }
+
+/* Question sections */
+section.q { display: grid; gap: 20px; scroll-margin-top: 16px; }
+.qhead { display: grid; gap: 8px; }
+.qhead .eyebrow { color: var(--crimson); }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.stat { background: var(--surface); padding: 14px 16px; display: grid; gap: 2px; align-content: start; }
+.stat .v { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 24px; font-weight: 500; line-height: 1.25; }
+.stat .v.long { font-size: 19px; }
+.stat .k { font-size: 13px; color: var(--muted); line-height: 1.35; }
+.stat.hot .v { color: var(--crimson); }
+.stat.calm .v { color: var(--teal); }
+figure { margin: 0; display: grid; gap: 8px; }
+.plate { background: var(--plate); border-radius: 4px; overflow: hidden; }
+.plate img { display: block; width: 100%; height: auto; }
+figcaption { font-size: 13.5px; color: var(--muted); max-width: 90ch; }
+.read { display: grid; gap: 12px; }
+.read p { font-size: 16px; }
+.tag {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--muted); border: 1px solid var(--rule); padding: 1px 6px; border-radius: 3px; margin-right: 6px;
+  white-space: nowrap;
+}
+.correction {
+  border-left: 3px solid var(--gold);
+  background: var(--gold-soft);
+  padding: 12px 16px;
+  font-size: 14.5px;
+  max-width: 82ch;
+}
+.correction b { font-weight: 600; }
+
+/* Camera caveat + meaning */
+.split { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; }
+.panel { background: var(--surface); border: 1px solid var(--rule); padding: 20px 22px; display: grid; gap: 10px; align-content: start; }
+.panel h3 { font-size: 19px; }
+.panel ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.panel li { font-size: 15px; }
+.ears { border-color: var(--teal); }
+.ears h3 { color: var(--teal); }
+.proposal { border-style: dashed; }
+.proposal .eyebrow { color: var(--gold); }
+
+/* Provenance */
+.prov { display: grid; gap: 10px; font-size: 13.5px; color: var(--muted); }
+.prov h2 { font-size: 20px; color: var(--ink); }
+.prov dl { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 6px 18px; margin: 0; }
+.prov dt { color: var(--ink); font-weight: 500; }
+.prov dd { margin: 0; font-family: var(--mono); font-size: 12.5px; overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+  .wrap { gap: 44px; padding-block: 28px 56px; }
+  .row { grid-template-columns: 1fr; gap: 6px; }
+  .stats { grid-template-columns: 1fr; }
+  .prov dl { grid-template-columns: 1fr; }
+  .prov dd { margin-bottom: 6px; }
+}
+code { font-family: var(--mono); font-size: 0.88em; overflow-wrap: anywhere; }
+.read ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; max-width: 68ch; }
+.read li { font-size: 15.5px; }
+.read a { color: inherit; text-underline-offset: 3px; }
+.pill { white-space: nowrap; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Titan · lane P3 · expressiveness audit · iteration 6 · 14 Oct 2026</div>
+  <h1>Does the Titan's light follow the song?</h1>
+  <p class="lede">Partly. In the host replay the boards' output <strong>carries the song's 138 BPM beat</strong>, and the lower board also swells once per bar. On camera the beat is not found, although the camera band near the lower edge follows the music's loudness. The drop in BOOM measures <strong>dimmer</strong> than the build before it. On the lower board that is mostly a colour change from gold to red; on the upper board the light itself halves as well as turning redder. The Tempo board's tempo tracker locks to <strong>half-time (69 BPM)</strong> in the verse. Through most of the drop it reads 92 or 69, not the song's 138. When the device hears quiet, the output goes dark.</p>
+  <div class="notice">
+    <span><b>Measured from</b> the submitted LED payload (pre-emission buffer), the device's own state, the iPhone recording, and a host replay of the v8 effects</span>
+    <span><b>Build</b> <span class="num">9ab90873</span> (14 Oct, before P2)</span>
+    <span><b>Agent cannot listen</b>: musical verdicts are yours</span>
+  </div>
+</header>
+
+<div class="board" aria-label="The four answers">
+  <div class="row">
+    <div class="q"><a href="#q1">The drop</a><small>BOOM, 55.5 s</small></div>
+    <span class="pill no">No</span>
+    <p>The music comes back <span class="num">+8.8 dB</span> after the quiet cut, while luma rises only <span class="num">×1.3–1.4</span>. Compared with the build, the drop is 6 dB louder but the luma is ×0.63 (lower board) and ×0.24 (upper board). On the lower board the light itself is ×0.93: the colour moves from gold to red, and red counts for less luma.</p>
+  </div>
+  <div class="row">
+    <div class="q"><a href="#q2">Silence</a><small>after each song</small></div>
+    <span class="pill yes">Yes, if quiet</span>
+    <p>At the median, the output after BOOM falls <span class="num">÷193</span> (lower) and <span class="num">÷13</span> (upper). After Dopex it is exactly zero. After Sonic the device's microphone still heard bursts (up to <span class="num">0.161</span>, above Sonic's music median of 0.127), and the lower board answered them; it fell only ÷1.1.</p>
+  </div>
+  <div class="row">
+    <div class="q"><a href="#q3">The beat</a><small>BOOM, about 138 BPM</small></div>
+    <span class="pill partly">Replay only</span>
+    <p>In the host replay the light carries the 138 BPM beat (<span class="num">11–14%</span> of its rhythmic power): the frozen test finds it on the Tempo board from both inputs and on the Hybrid K1 board from the room recording. Only the Hybrid K1 board also has a clear once-per-bar line; on the Tempo board no bar line stands out from slow variation. On camera the frozen test finds no beat; the band near the lower edge follows the music's loudness (<span class="num">r 0.66</span>, peak at 67 ms, not a latency). The device's snapshots are too far apart to tell. The Tempo board's tempo is half-time in the verse and mostly 92 or 69 in the drop.</p>
+  </div>
+  <div class="row">
+    <div class="q"><a href="#q4">Song vs song</a><small>Sonic, BOOM, Dopex</small></div>
+    <span class="pill no">Not by loudness</span>
+    <p>All three songs reach the in-house AGC at the same level (medians <span class="num">0.74–0.78</span>). The boards do differ by song: Sonic's upper board is gold and within 5% of its ceiling <span class="num">78%</span> of the time. None of that difference tracks how loud the song is.</p>
+  </div>
+</div>
+
+<section class="q" id="colour">
+  <div class="qhead">
+    <div class="eyebrow">What the boards were given · every pixel over time, from the submitted payload</div>
+    <h2>The lower board stays red in every song; the upper board changes colour by song</h2>
+  </div>
+  <figure>
+    <div class="plate"><img src="analysis/fig-colour.png" alt="Six space-time images, three songs by two boards, built from submitted LED payloads. The lower board lights from both ends in red and pink for all songs, with gold only in parts of BOOM. The upper board lights from the centre: mixed gold and magenta in BOOM, gold in Sonic, magenta in Dopex."></div>
+    <figcaption>Each column is one payload snapshot (about every 0.3–0.5 s); each row is one of the 160 payload pixels. All panels share one display gain, brightened with γ 0.5. Hue is the circular mean of each snapshot's mean colour.</figcaption>
+  </figure>
+</section>
+
+<section class="q" id="q1">
+  <div class="qhead">
+    <div class="eyebrow">Question 1 · BOOM, build 45–50 s → quiet cut 50–55 s → drop 55.5–60 s (9–12 snapshots per window)</div>
+    <h2>When the drop hits, does the light hit with it?</h2>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="v">+8.8 dB</span><span class="k">received audio, quiet → drop (7.6× power)</span></div>
+    <div class="stat"><span class="v">×5.6</span><span class="k">device's own microphone level (raw RMS)</span></div>
+    <div class="stat"><span class="v">×1.52</span><span class="k">in-house AGC output (<code>peak_scaled</code>), one of several renderer inputs</span></div>
+    <div class="stat hot"><span class="v long">×0.63 / ×0.24</span><span class="k">Rec.709 luma, drop vs build, lower / upper (audio 6 dB louder)</span></div>
+    <div class="stat"><span class="v long">×0.93 · ×0.68</span><span class="k">lower board: light × colour (gold → red)</span></div>
+    <div class="stat"><span class="v long">×0.53 · ×0.46</span><span class="k">upper board: light × colour</span></div>
+  </div>
+  <figure>
+    <div class="plate"><img src="analysis/fig-q1.png" alt="Three stacked time plots of BOOM from 44 to 62 seconds: received audio, device level and in-house AGC output, and submitted payload luma of both boards. The output peaks during the build around 48 seconds, falls in the quiet cut, and stays low through the drop."></div>
+    <figcaption>"Brightness" here is Rec.709 luma of the submitted payload. That is the buffer before emission: not photons, and not after the 24/255 cap. Luma weights green 0.72 and red 0.21, so a change from gold to red lowers luma even at the same light output.</figcaption>
+  </figure>
+  <div class="read">
+    <p><span class="tag">fact</span>The flattening stage is the effect mapping, not the AGC. The colour follows the music's harmony and switches from gold to red at about 49.5 s, before the drop, and louder sound makes the trails fade faster. The full trace, with the chain diagram and verdict, is at <a href="https://claude.ai/artifact/5vHcFNe3PazAxWCjRHiue1">What sets Titan brightness?</a> (<code>docs/evidence/P3/agc-trace.html</code>).</p>
+    <p><span class="tag">fact</span>The AGC does squeeze loudness: from quiet to drop the input rises ×5.58 and the AGC output ×1.52. The display stage's full-scale code is 15,407 (65,535 × 0.25 × the shoulder at full input). Payloads reach it in 5 of 436 lower-board snapshots, so clipping is rare and is not the flattening stage.</p>
+    <p><span class="tag">fact</span>Payload luma weakly follows the pre-AGC level and does not follow the AGC output.</p>
+    <ul>
+      <li>Against raw RMS: ρ 0.22 / 0.51 / 0.36 / 0.36 for BOOM lower, Sonic upper and both Dopex boards, each with p ≤ 0.007.</li>
+      <li>Against the AGC output: ρ −0.06…0.12 for five of six board-song pairs.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="q" id="q2">
+  <div class="qhead">
+    <div class="eyebrow">Question 2 · silence before and after each song (median vs median; music window 2 s … end − 0.5 s)</div>
+    <h2>When the music stops, does the light settle?</h2>
+  </div>
+  <div class="stats">
+    <div class="stat calm"><span class="v long">÷193 / ÷13</span><span class="k">BOOM: payload, music → silence, lower / upper</span></div>
+    <div class="stat calm"><span class="v">0</span><span class="k">Dopex: silence median exactly dark on both boards</span></div>
+    <div class="stat calm"><span class="v long">÷33 / ÷1.1</span><span class="k">Sonic: upper / lower (the device heard post-roll sound)</span></div>
+    <div class="stat"><span class="v long">76.3 s · 80.7 s</span><span class="k">Dopex: boards dark from 76.3 s; the silence flag only sets at 80.7 s</span></div>
+  </div>
+  <figure>
+    <div class="plate"><img src="analysis/fig-q2.png" alt="Three time plots, one per song, of both boards' payload, the device microphone level as a dotted teal line, and the camera's luma as a dashed grey line. In shaded silence regions the payload falls while the camera luma rises; after Sonic the device microphone shows bursts that the lower board follows."></div>
+    <figcaption>Solid: payload per board. Dotted teal: device microphone level, scaled. Dashed grey: camera picture brightness. Shaded: no music played.</figcaption>
+  </figure>
+  <div class="read">
+    <p><span class="tag">fact</span>After Sonic, the device heard sound that the iPhone barely registered, and the lower board followed it. That is a question of room sensitivity, not a silence fault.</p>
+    <p><span class="tag">inference</span>After Dopex, the boards go dark 4 s before the device's silence flag sets (5 s dwell). The likely cause is the donor admission gate, which closes on a PCM peak² of 0.0034 or less (<code>palette_runtime.cpp:258–264</code>). That fits the donor's falling PCM level, but the gate's input is not recorded, so it is not traced.</p>
+  </div>
+</section>
+
+<section class="q" id="q3">
+  <div class="qhead">
+    <div class="eyebrow">Question 3 · BOOM 55.5–75 s, about 138 BPM</div>
+    <h2>Does the light carry the beat?</h2>
+  </div>
+  <div class="stats">
+    <div class="stat hot"><span class="v long">3 of 4</span><span class="k">host light series where the frozen test finds the beat: Tempo board, both inputs; Hybrid K1, room recording</span></div>
+    <div class="stat"><span class="v long">11–14%</span><span class="k">share of the light's rhythmic power at the beat, those three series. Bar line (post hoc, × its neighbours): Hybrid K1 4.5–6.2, Tempo 1.3–2.1 (no line)</span></div>
+    <div class="stat"><span class="v long">Not found</span><span class="k">beat on camera by the frozen test, which at the camera's 30 Hz sees a beat reliably only at about 13% of the power and never at about 8% (reviewer); the lower band's 2.30 Hz line holds 3%</span></div>
+    <div class="stat"><span class="v long">r 0.66 · 67 ms</span><span class="k">camera lower band follows loudness, p 0.001; light-leading p 0.17. A correlation peak, not a latency: the iPhone audio–video offset is not calibrated</span></div>
+  </div>
+  <figure>
+    <div class="plate"><img src="analysis/fig-q3.png" alt="Left: four stacked spectra for the BOOM drop with dashed lines at the bar, half-time, accent and beat rates. The music's loudness and both host-replay boards peak at the beat, at 2.3 hertz; the lower board also has a peak at the bar, while the upper board's low-rate hump is broad slow variation, not a bar line. The lower-edge camera band has most of its power at low rates and the accent, with almost nothing at the beat. Right: correlation of the lower-edge camera band with the music against delay, for loudness and for the accent-weighted rise envelope; loudness peaks at r 0.66 with the light 67 milliseconds behind, well above its control line, while the light-leading side stays below it."></div>
+    <figcaption>The device's payload snapshots are 0.3–0.5 s apart and cannot resolve a 0.435 s beat, so the beat question is answered on the host replay (100 Hz, with the v8 controls and display stage, room recording shown) and on the camera (30 fps). Left: each spectrum is scaled to its own power between 0.3 and 5 Hz; the "bar" and "beat" percentages are band shares, not line tests. No moving-mean step is applied first, because a 1 s moving mean keeps only about a fifth of the bar-rate power. Right: dotted lines are the 95th percentile of 1,000 time-shifted controls, on each side. Which board drives the lower-edge band is still not established.</figcaption>
+  </figure>
+  <figure>
+    <div class="plate"><img src="analysis/fig-tempo.png" alt="Two time plots of the Tempo board's in-house tempo and effective beat gate across BOOM, for the song file at two levels and the room recording. All three read about 69 BPM in the verse and about 138 from 33 to 43 seconds. Through the drop they read mostly 92 or 69, with one short stretch at 138 in the song-file replay at the higher level."></div>
+    <figcaption>The tempo the Tempo board reads, from three host replays. The gate shown is the effective one, after smoothstep (<code>inhouse_waveform.cpp:347–348</code>). In mode 18 the tempo sets the travel speed, 24 × (BPM ÷ 60) × (1 + 0.5 cos 2π·phase) px/s. The tracker reads 92 or 69 through most of the drop, so the beat in the host light is more likely carried by the level the effects read: the input holds 15–17% of its rhythmic power at the beat. That is an inference, supported on the song-file replay (reviewer's coherences at 2.30 Hz: the light follows the level, 0.77–0.95, and not the tracker's phase, 0.01–0.06) but undecided on the room recording, where the light also follows the tracker's phase (0.58–0.78) and the tracker's phase itself follows the level (0.80); 2.30 Hz is exactly twice 69 BPM. The decisive test is a host replay with the tracker's phase held still.</figcaption>
+  </figure>
+  <div class="read">
+    <p><span class="tag">fact</span>The beat test was frozen before its final run, but after the iteration-3 reviewer's per-series numbers were read, so its "frozen" status adds little beyond its planted check. The analysis script was edited after a first run; the criterion and the planted recipe did not change. The test: the best repeat period lies within 0.425–0.445 s, and at least 8% of rhythmic power sits at the beat. In practice the period clause decides every verdict. On a synthetic signal it finds a planted beat and rejects the 3+3+2 accent pattern alone at the camera's and the host's sampling rates (40 of 40 seeds, reviewer). At the camera's 30 Hz it sees a beat reliably only when the beat holds about 13% or more of the power, and never at about 8% (reviewer's amplitude sweep). At the audio's 20 Hz it found the planted beat in only 42% of seeds (reviewer), so it gives no verdict on the audio itself. The audio's spectrum still peaks at 2.30 Hz, with 17% of its rhythmic power there.</p>
+    <p><span class="tag">post hoc</span>Band shares cannot separate a once-per-bar line from broadband slow variation, which piles up at low rates. A line test (peak against its neighbours, with off-grid control rates) shows a bar line on the Hybrid K1 board only: 4.5 and 6.2 times its neighbours, against controls up to 1.8 and 3.1. On the Tempo board the bar reads 1.3 and 2.1 against controls of 1.3 and 1.5: no line. The Tempo board's beat line is strong (4.6 and 6.1). The camera lower band's 23% bar share is mostly slow variation. Whether it holds a bar line depends on the test: 4.4 times its neighbours (controls up to 1.6), but only 2.4 times a fitted slow-variation floor, against 2.6 off-grid (reviewer). Not claimed.</p>
+    <p><span class="tag">fact</span>Iteration 3 compared the light with a signal built from rises in loudness, labelled "music onsets". That signal is accent-weighted and holds only 0.2% of its power at the beat, against 17% for plain loudness. With it, the lower-edge camera band scores the same with the light 367 ms <em>ahead</em> (p 0.001), so that match is shared rhythm, not a response. With loudness as the reference, the match holds only with the light behind.</p>
+    <p><span class="tag">fact</span>The band near the upper edge follows neither reference (p 0.82–0.96; one light-leading test reaches p 0.02, out of 24 run). The repeat-period scan finds no musical period in it (best 0.51 s). It holds 8% of its power at the half-time rate, or 14% after a 1 s moving mean. Which board it shows is not established.</p>
+    <p><span class="tag">post hoc</span>The lower-edge band has a small line at 2.30 Hz, 3.5 times its neighbours, where off-grid control rates reach at most 1.6. It carries 3% of the band's power and fails the frozen test, so it is not claimed as the beat.</p>
+    <p><span class="tag">inference</span>Whether the host's beat survives emission, the plate and the 24/255 cap is open. A 30 fps camera with automatic exposure is a weak witness for a 2.3 Hz pulse.</p>
+    <p><span class="tag">fact</span>The 67 ms is where the correlation peaks. It includes the iPhone's own audio–video alignment and the camera's 33 ms frame step, so it is not a measured delay of the Titan.</p>
+    <p><span class="tag">fact</span>The tempo replay was run on three inputs (the song file at gains 0.7–1.6, plus the room recording):</p>
+    <ul>
+      <li><strong>Verse, 7–33 s:</strong> 69 BPM, which is half-time.</li>
+      <li><strong>33–43 s:</strong> about 138.</li>
+      <li><strong>First 1.5 s of the drop:</strong> about 112, with the gate nearly closed.</li>
+      <li><strong>55.5–75 s:</strong> mostly 92 (two-thirds of 138) or 69. The room recording reads 92 for 84% of the drop and is never near 138. The song file reaches 138 for 15–16% of the drop, and only at gain 1.155 or above.</li>
+    </ul>
+    <p><span class="tag">inference</span>The tracker seems to lock onto a sub-multiple or the accent grouping rather than the pulse. Half-time counts as a correct tempo by the usual tolerances; whether it looks wrong on the plate is your call.</p>
+  </div>
+  <div class="correction"><b>Corrections since iteration 4.</b> The once-per-bar swell is now claimed for the Hybrid K1 board only. Both earlier bar figures are band shares. The 1 s moving mean (review 3, "3–5%") removes about 79% of bar power; the undetrended 13–19% (iteration 4) includes broadband slow variation. The line test shows a bar line on the Hybrid K1 board only. "Not found" on camera now carries the test's reach, and the 67 ms carries its caveat.</div>
+  <div class="correction"><b>Corrections since iteration 3.</b> "Bar, not beat" is withdrawn. It read the light's self-similarity only at exactly one beat, and compared against a reference that is nearly blind to the beat. The spectra show the beat in the host replay. The "99th percentile of lags" tile was a descriptive rank among lags of the same curve, not a significance test, and is removed.</div>
+  <div class="correction"><b>Corrections since iteration 2.</b> The camera analysis used a smoothing step that padded with zeros. The edge spikes it created made "camera bands r 0.87", "the light does not repeat" and the weaker onset figure (r 0.18). All three are withdrawn. The corrected numbers are above, a regression test now guards the fix, and the earlier files stay on record unaltered.</div>
+</section>
+
+<section class="q" id="q4">
+  <div class="qhead">
+    <div class="eyebrow">Question 4 · Sonic Samba 6–30 s vs BOOM 28–75 s vs Dopex 28–75 s</div>
+    <h2>Does a softer song look softer than a loud one?</h2>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="v long">−55.1 · −56.8 · −55.3</span><span class="k">median received level, dBFS (Sonic · BOOM · Dopex). BOOM swings twice as wide.</span></div>
+    <div class="stat"><span class="v long">0.78 · 0.77 · 0.74</span><span class="k">median in-house AGC output</span></div>
+    <div class="stat hot"><span class="v long">1.3 · 3.9 · 3.3</span><span class="k">lower board, median payload luma, ‰ of full scale</span></div>
+    <div class="stat hot"><span class="v long">9.8 · 2.5 · 2.6</span><span class="k">upper board, median payload luma, ‰ of full scale</span></div>
+    <div class="stat"><span class="v">78%</span><span class="k">Sonic upper snapshots within 5% of their maximum (12,252); BOOM 10%, Dopex 2%</span></div>
+  </div>
+  <figure>
+    <div class="plate"><img src="analysis/fig-q4.png" alt="Three panels comparing BOOM, Sonic and Dopex: received audio level, in-house AGC output and submitted payload luma per board, each as median with 10th to 90th percentile bars."></div>
+    <figcaption>Medians with 10th–90th percentile bars. The upper board's maximum of about 12,250 is below the display stage's full-scale code. That suggests a palette or effect ceiling, which is an inference and not traced.</figcaption>
+  </figure>
+</section>
+
+<section class="q" id="series">
+  <div class="qhead">
+    <div class="eyebrow">Against time, each song's brief window</div>
+    <h2>Audio, device level, tempo confidence and payload, song by song</h2>
+  </div>
+  <figure><div class="plate"><img src="analysis/fig-ts-boom.png" alt="BOOM 28 to 75 seconds: iPhone audio level, device raw RMS with donor VU and in-house AGC, donor confidence and the host replay's in-house tempo confidence with the gate band, and both boards' payload."></div></figure>
+  <figure><div class="plate"><img src="analysis/fig-ts-sonic.png" alt="Sonic 6 to 30 seconds: the same stacked plots, without a host confidence line."></div></figure>
+  <figure>
+    <div class="plate"><img src="analysis/fig-ts-dopex.png" alt="Dopex 0 to 75 seconds: the same stacked plots, without a host confidence line."></div>
+    <figcaption>The device snapshots do not record most of what the effects read: the in-house tempo and confidence, the windowed peak, spectral energy, novelty and chroma. For BOOM the confidence panel adds the host replay's in-house confidence (room recording), which is what the Tempo board reads; the shaded band is its 0.30–0.60 gate ramp. The donor confidence is shown because it is recorded, but no v8 effect reads it.</figcaption>
+  </figure>
+</section>
+
+<section class="q" id="stages">
+  <div class="qhead">
+    <div class="eyebrow">Where the dynamics go</div>
+    <h2>The AGC flattens section loudness and lifts room noise to music level</h2>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="v long">×5.58 → ×1.52</span><span class="k">BOOM quiet → drop: raw level in, AGC output out (section means)</span></div>
+    <div class="stat hot"><span class="v long">0.68 at 0.018</span><span class="k">Dopex post-roll: median AGC output at median raw level 0.018. The music median is 0.69 at 0.096.</span></div>
+  </div>
+  <figure>
+    <div class="plate"><img src="analysis/fig-stages.png" alt="Grouped bar chart of p90 over p10 ranges in decibels for three songs at each stage."></div>
+    <figcaption>Supporting evidence only. Amplitudes use 20·log10. Light intensity uses 10·log10: the payload, and the camera decoded as sRGB, which is approximate.</figcaption>
+  </figure>
+  <div class="read">
+    <p><span class="tag">fact</span>In true silence after Dopex the AGC output sits at music level, so the darkness comes from gates, not from the level. The gates that can force darkness are the silence flag, the spectral noise gate, the tonality gate and the donor admission gate, as listed in the trace.</p>
+  </div>
+</section>
+
+<div class="split">
+  <div class="panel">
+    <h3>Don't judge brightness from these videos</h3>
+    <p>The iPhone sets its exposure automatically. Going into and out of silence, it brightens the picture as the boards darken. Decoded, the camera spans about 0.7–3 dB where the payload spans 4–11 dB. For brightness, trust the payload.</p>
+  </div>
+  <div class="panel ears">
+    <h3>What only you can judge</h3>
+    <ul>
+      <li>BOOM at 55.5 s: does the drop feel like it lands? (<span class="num">boom-admission-fix-candidate-001/original.mov</span>)</li>
+      <li>The upper board's travel surges at 69 or 92 BPM against a 138 BPM song: on the beat enough, or visibly off?</li>
+      <li>After Sonic ends: should the Titan react to room sound, or hold dark?</li>
+    </ul>
+  </div>
+  <div class="panel proposal">
+    <div class="eyebrow">Proposal — not approved</div>
+    <h3>Two separate fixes, for two separate problems</h3>
+    <p><strong>For the beat:</strong> find on the host why the tempo tracker holds half-time and two-thirds tempo. <strong>For the dim drop:</strong> look at how the effects map harmony to colour and loudness to fade speed (see the trace). Neither touches the AGC, and neither needs hardware. Changing effect behaviour is your call.</p>
+  </div>
+</div>
+
+<div class="prov">
+  <h2>Provenance</h2>
+  <dl>
+    <dt>Recordings</dt><dd>_scratch/waveform-migration-001/canonical-audio-v01/{boom-admission-fix-candidate-001, sonic-6-30-admission-fix-candidate-001, dopex-admission-fix-holdout-001}</dd>
+    <dt>Effects recorded</dt><dd>lower Waveform Hybrid K1 32 · upper Waveform Tempo 18, Crimson Gold, build 9ab90873. The Titan now runs a8215f75 (P2) and has not been re-recorded with music.</dd>
+    <dt>Renderer</dt><dd>palette_runtime.cpp:403–406, 433 → renderInhouse → inhouse_waveform.cpp (mode 32: 117–265; mode 18: 334–374). product_effect_renderer.cpp is compiled but discarded at link (rtthread.map "Discarded input sections"; no symbols), so it is not on the mode-32/18 path.</dd>
+    <dt>Host replay</dt><dd>tests/host/p3_tempo_probe.cpp (v8 controls, display stage, ×0.25); scripts/p3_agc_trace.py; scripts/p3_iteration3.py; scripts/p3_iteration4.py</dd>
+    <dt>Beat test</dt><dd>criterion frozen in TOLERANCE-FROZEN-iteration4.json before its final run, but after the reviewer's numbers were read; planted check passes at 30 and 100 Hz, fails at 20 Hz; recorded red run iteration4-red.json</dd>
+    <dt>Data</dt><dd>docs/evidence/P3/iteration4/ and docs/evidence/P3/iteration3/ (committed copies), docs/evidence/P3/inputs/p3-data-boom.json (the BOOM camera and audio input to iteration 4, committed) · runs/P3-20261014T080935Z/permitted/analysis/{iteration2.json, p3-data.json, colour.json} (untracked)</dd>
+  </dl>
+</div>
+
+</div>
