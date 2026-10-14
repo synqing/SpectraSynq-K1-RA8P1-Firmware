@@ -1,0 +1,248 @@
+<title>Titan Brightness Trace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --ground: #eceef1; --surface: #ffffff; --plate: #0f1115; --ink: #15171c; --muted: #565d68; --rule: #cdd2d9;
+  --gold: #946614; --crimson: #a8233a; --teal: #23766e; --gold-soft: #f3e6c8; --crimson-soft: #f4d9de; --teal-soft: #d4ebe8;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark; --ground: #0f1115; --surface: #171a20; --ink: #e8e6e1; --muted: #9ba1aa; --rule: #2a2e36;
+    --gold: #d9a441; --crimson: #e0566b; --teal: #4fb3a9; --gold-soft: #2e2615; --crimson-soft: #34171d; --teal-soft: #13302d;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark; --ground: #0f1115; --surface: #171a20; --ink: #e8e6e1; --muted: #9ba1aa; --rule: #2a2e36;
+  --gold: #d9a441; --crimson: #e0566b; --teal: #4fb3a9; --gold-soft: #2e2615; --crimson-soft: #34171d; --teal-soft: #13302d;
+}
+body { background: var(--ground); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 4.6vw, 44px); }
+h2 { font-size: clamp(22px, 2.6vw, 28px); }
+p { margin: 0; max-width: 70ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 16px; }
+.lede { font-size: 19px; line-height: 1.5; max-width: 64ch; }
+.notice { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px; color: var(--muted); }
+.notice b { color: var(--ink); font-weight: 500; }
+section { display: grid; gap: 18px; }
+figure { margin: 0; display: grid; gap: 8px; }
+.plate { background: var(--plate); border-radius: 4px; overflow: hidden; }
+.plate img { display: block; width: 100%; height: auto; }
+figcaption { font-size: 13.5px; color: var(--muted); max-width: 92ch; }
+code { font-family: var(--mono); font-size: 0.88em; overflow-wrap: anywhere; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--rule); background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-size: 14.5px; }
+th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+tr:last-child td { border-bottom: 0; }
+td.k { font-family: var(--display); font-weight: 600; font-size: 16px; white-space: nowrap; }
+.pill { display: inline-block; font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 3px; border: 1px solid currentColor; white-space: nowrap; }
+.yes { color: var(--crimson); background: var(--crimson-soft); }
+.partly { color: var(--gold); background: var(--gold-soft); }
+.no { color: var(--teal); background: var(--teal-soft); }
+.tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  border: 1px solid var(--rule); padding: 0 5px; border-radius: 3px; white-space: nowrap; }
+/* Chain diagram */
+.chain { display: grid; gap: 10px; }
+.lane { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+.node { background: var(--surface); border: 1px solid var(--rule); padding: 10px 12px; font-size: 13.5px; line-height: 1.4;
+  flex: 1 1 150px; min-width: 0; display: block; }
+.node > b:first-child { display: block; font-family: var(--display); font-size: 15px; margin-bottom: 3px; }
+.node small { display: block; margin-top: 4px; color: var(--muted); font-family: var(--mono); font-size: 11px; overflow-wrap: anywhere; }
+.node.agc { border-color: var(--gold); box-shadow: inset 3px 0 0 var(--gold); }
+.node.map { border-color: var(--crimson); box-shadow: inset 3px 0 0 var(--crimson); }
+.arrow { align-self: center; color: var(--muted); font-family: var(--mono); font-size: 18px; flex: 0 0 auto; }
+.lane-label { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.fact { background: var(--surface); border: 1px solid var(--rule); padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.fact h3 { font-size: 17px; }
+.fact p, .fact li { font-size: 14.5px; }
+.fact ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.files { font-size: 13px; color: var(--muted); display: grid; gap: 6px; }
+.files code { color: var(--ink); }
+@media (max-width: 720px) {
+  .arrow { display: none; } .wrap { gap: 40px; }
+  table, tbody, tr, td { display: block; } thead { display: none; } table { min-width: 0; }
+  tr { border-bottom: 1px solid var(--rule); padding-block: 10px; } tr:last-child { border-bottom: 0; }
+  td { border: 0; padding: 4px 14px; }
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Titan · P3 follow-up · what sets brightness · BOOM · 14 Oct 2026</div>
+  <h1>What sets Titan brightness?</h1>
+  <p class="lede">The automatic gain control (AGC) does squeeze loudness, but neither v8 effect turns loudness into brightness. <strong>Colour comes from the music's harmony</strong>, and it switches from gold to red <strong>about six seconds before the drop</strong>, when the build's tonal section ends. <strong>Louder sound makes the trails fade faster.</strong> Red counts for much less brightness than gold. So the lower board gives out almost the same light in the drop (×0.93), while its luma falls to ×0.63.</p>
+  <div class="notice">
+    <span><b>Evidence</b>: the device's submitted LED payload (build 9ab90873), plus a host replay of the two effects on the BOOM room recording and on the song file</span>
+    <span><b>No code changed</b>: AGC and effects untouched</span>
+    <span><b>Agent cannot listen</b></span>
+  </div>
+</header>
+
+<section>
+  <div class="eyebrow">Verdict</div>
+  <h2>The dim drop comes from the effect mapping, not the AGC</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Candidate</th><th>Contributes to the dim drop?</th><th>Evidence</th><th>A fix would touch</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="k">AGC configuration</td>
+          <td><span class="pill no">No</span><br><span class="tag">verified</span></td>
+          <td>From build to drop the AGC output <em>rises</em> ×1.34 (0.664 → 0.889, device) while upper luma falls ×0.24. Host replay: luma against AGC output ρ −0.59 (room recording) and −0.69 (song file), upper board. Peak follower: attack time constant 30 ms, release 1.99 s, per 7.5 ms frame (<code>inhouse_audio.cpp:226–233</code>).</td>
+          <td><code>inhouse_audio.cpp:226–233</code>. Changing it would restore loudness contrast in <code>peak_scaled</code>, but under the current mapping louder fades faster <span class="tag">inferred</span>.</td>
+        </tr>
+        <tr>
+          <td class="k">AGC placement</td>
+          <td><span class="pill partly">Partly</span><br><span class="tag">peak AGC verified · spectral path inferred</span></td>
+          <td>The peak AGC runs in the time domain, beside the Goertzel bank, and never reaches the colour path (code). Colour comes from a separate chain: spectral AGC → chroma auto-normaliser → tonality gate. Chroma energy ×0.35 from build to drop; upper palette position 0.41 → 0.23 at ≈49.5 s (host, room recording).</td>
+          <td>The spectral AGC in <code>inhouse_audio.cpp</code> (≈296–330); the chroma normaliser and tonality gate at <code>inhouse_waveform.cpp:130–157</code>.</td>
+        </tr>
+        <tr>
+          <td class="k">Effect mapping</td>
+          <td><span class="pill yes">Yes</span><br><span class="tag">verified</span></td>
+          <td>Device payload, build to drop: lower luma ×0.63 = light ×0.93 × colour ×0.68; upper luma ×0.24 = light ×0.53 × colour ×0.46. Colour follows the chroma centroid (<code>inhouse_waveform.cpp:284–304</code>). Level speeds the fade: decay 0.8 + 3.5 × peak (<code>:222</code>) and fade target 1 − 0.10 × peak (<code>:341</code>). The Tempo board has no path from level up to brightness (<code>:334–352</code>).</td>
+          <td><code>inhouse_waveform.cpp</code>: map level to deposit gain or width rather than faster decay; how colour is held when tonality drops out; the palette's low-luma red end.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Proof on the device's own data</div>
+  <h2>At the drop the green goes and the red stays</h2>
+  <figure>
+    <div class="plate"><img src="fig-colour-split.png" alt="Bar charts of mean red, green and blue payload per board, build against drop. Lower board: red rises from 15.0 to 18.4 per mille, green falls from 4.2 to 0, blue from 1.7 to 1.0. Upper board: red falls from 16.5 to 9.6, green from 8.6 to 0, blue rises from 0.6 to 4.0."></div>
+    <figcaption>Mean payload channels from 10 build snapshots and 9 drop snapshots. Luma uses the Rec.709 weights (ITU-R Recommendation BT.709: red 0.21, green 0.72, blue 0.07), so losing green costs far more than losing the same amount of red. "Light" is the channel sum; "colour" is luma per unit of light.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="eyebrow">The chain, from microphone to <code>peak_scaled</code> and on to the payload</div>
+  <h2>Four adaptive levelling stages, and only one of them is the AGC</h2>
+  <div class="chain" aria-label="Signal chain diagram">
+    <div class="lane-label">Capture (both effects)</div>
+    <div class="lane">
+      <div class="node"><b>PDM microphone</b>pulse-density modulation, clocked by the internal oscillator (MOCO) at ≈41.4 kHz<small>pdm_target.h:21,24</small></div>
+      <div class="arrow">→</div>
+      <div class="node agc"><b>① Loud guard</b>×16, cut per 296-sample block so the peak stays ≤ 30,000<small>k1_pdm_sensitivity.h:12–23 · pdm_target.c:578–588</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Resampler (ASRC)</b>95-tap filter (FIR, 5.2 kHz) then interpolation → 12.8 kHz, 64-sample hops<small>k1_asrc_24k.c:9–30, 173–220</small></div>
+    </div>
+    <div class="lane-label">In-house analysis, every 96-sample frame (7.5 ms)</div>
+    <div class="lane">
+      <div class="node"><b>Frame peak and RMS</b>peak |x|; root-mean-square (RMS) → <code>vu_level</code>, not AGC'd<small>inhouse_audio.cpp:211–225</small></div>
+      <div class="arrow">→</div>
+      <div class="node agc"><b>② Peak AGC</b>drive = peak − 350; follower τ 30 ms up / 1.99 s down; ratio drive ÷ follower, smoothed 5 ms / 57 ms → <code>peak_scaled</code><small>inhouse_audio.cpp:226–233</small></div>
+    </div>
+    <div class="lane">
+      <div class="node"><b>Goertzel bank</b>80 note bins, 110 Hz–10.5 kHz (top 9 above Nyquist at 12.8 kHz)<small>gdft_goertzel.cpp:102–134</small></div>
+      <div class="arrow">→</div>
+      <div class="node agc"><b>③ Spectral AGC</b>envelope τ 26 ms / 490 ms; noise floor ≈10 s; gate; gain → 0.25 ÷ envelope, τ 190 ms, 0.1–10×; soft knee → spectrum, energy, novelty, tempo<small>inhouse_audio.cpp ≈296–330</small></div>
+    </div>
+    <div class="lane-label">Renderer (in-house waveform), then output</div>
+    <div class="lane">
+      <div class="node agc map"><b>④ Chroma normaliser + tonality gate</b>rise ≈0.2 s, decay ≈10 s; gate closes on flat spectra → <b>palette position (colour)</b><small>inhouse_waveform.cpp:130–157, 284–304</small></div>
+      <div class="arrow">→</div>
+      <div class="node map"><b>Level → fade</b><code>peak_scaled</code> / <code>vu_level</code> set deposit gain (≈1 when active), position and <b>decay</b> (louder = faster)<small>inhouse_waveform.cpp:117–124, 169–222, 334–352</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Display + output</b>brightness ×1.0, shoulder above 0.75, warmth, white balance, ×0.25 → payload<small>palette_runtime.cpp:281–294</small></div>
+    </div>
+    <div class="lane-label">Donor analysis (separate)</div>
+    <div class="lane">
+      <div class="node"><b>Donor level (VU)</b>volume-unit level computed in the donor Emotiscope analysis; rises ×3.93 at the drop<small>emotiscope_port.cpp:372–383</small></div>
+      <div class="arrow">→</div>
+      <div class="node"><b>Not read by either v8 effect.</b> Only the donor's PCM peak² opens or closes the admission gate (0.0048 / 0.0034)<small>composed_scene_runtime.h:26–33 · palette_runtime.cpp:258</small></div>
+    </div>
+  </div>
+  <p><span class="tag">fact</span> Gates that can force darkness: the silence flag (5 s dwell), the spectral noise gate, the tonality gate and the donor admission gate. Fixed scalings: response gain 1.0, display brightness 1.0, output intensity 0.25.</p>
+</section>
+
+<section>
+  <div class="eyebrow">Per-frame trace · BOOM 40–65 s · host replay of the room recording</div>
+  <h2>The colour moves at ≈49.5 s; the drop only holds it</h2>
+  <figure>
+    <div class="plate"><img src="fig-trace.png" alt="Five stacked time plots from 40 to 65 seconds. Level inputs rise at the drop. Chroma energy is near zero through the build and drop, with a tonal burst in the quiet cut. Both palette positions fall from about 0.48 to about 0.23 at 49.5 seconds and stay low. Decay rates rise with level. Host luma and device payload markers are low and flat through the drop."></div>
+    <figcaption>Inputs are logged for every 100 Hz frame (<code>agc-trace-boom-recording.csv</code>). The room recording's level was calibrated with one gain factor (×89.6), so that the host's raw RMS median over 28–75 s matches the device's (0.1187). Circles show the device's own payload snapshots.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="eyebrow">Which inputs move brightness · 45–60 s</div>
+  <h2>Upper board: palette position up, level down</h2>
+  <figure>
+    <div class="plate"><img src="fig-correlation.png" alt="Two horizontal bar charts of rank correlation between luma and each input. Upper board: held and current palette position about +0.65, decay rate, deposit position and AGC output about −0.59. Lower board: spectral energy +0.82, chroma energy −0.79, colour brightness +0.65, level +0.58."></div>
+    <figcaption>Spearman rank correlation, with 0.25 s smoothing. For the upper board the replay tracks the device (ρ 0.60 at 1 s smoothing). The song file gives the same ranking: palette position +0.80, AGC output −0.69. For the lower board the replay does <em>not</em> track the device (ρ −0.05), so its ranking is not evidence; its verdict rests on the device colour split above.</figcaption>
+  </figure>
+  <figure>
+    <div class="plate"><img src="fig-source-vs-room.png" alt="Upper-board palette position and luma for the room recording and the song file from 40 to 65 seconds. The room recording holds about 0.45 through the build; the song file sits near 0.15; both sit near 0.2 in the drop."></div>
+    <figcaption>The build's gold depends on what the microphone hears. The room recording, like the device, holds gold through the build, and the clean file does not. Both are red in the drop.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="eyebrow">Fact sheet</div>
+  <h2>Answers to the four AGC questions</h2>
+  <div class="facts">
+    <div class="fact">
+      <h3>1. Follower type and timing</h3>
+      <ul>
+        <li><strong>Peak, not RMS.</strong> <code>drive = max|x| − 350</code> over each 96-sample frame (<code>inhouse_audio.cpp:213, 226</code>).</li>
+        <li><strong>Updated per frame</strong> (7.5 ms; the first call uses 10 ms), not per sample (<code>:228</code>).</li>
+        <li><strong>Rule.</strong> α = dt ÷ (τ + dt), with τ = 10 ms × (1 − r) ÷ r (<code>:23–27</code>).</li>
+        <li><strong>Follower:</strong> attack 0.25 → τ 30 ms; release 0.005 → τ 1.99 s.</li>
+        <li><strong><code>peak_scaled</code> smoother:</strong> 0.65 → 5.4 ms; 0.15 → 57 ms.</li>
+      </ul>
+    </div>
+    <div class="fact">
+      <h3>2. Placement</h3>
+      <p>Time domain, on raw frame peaks, beside the Goertzel bank and not before it. The spectrum has its own AGC (③). <code>peak_scaled</code> never feeds the Goertzel bank or the colour.</p>
+      <p class="num" style="font-size:13px">PDM → DMA → loud guard → ASRC 12.8 kHz → 96-sample frame → peak − 350 → follower → ÷ → smoother → peak_scaled</p>
+    </div>
+    <div class="fact">
+      <h3>3. Donor level (×3.93 at the drop)</h3>
+      <p>Computed in the donor Emotiscope analysis (<code>emotiscope_port.cpp:372–383</code>). Neither v8 effect reads it. The v8 path uses only the donor's PCM peak², and only to open or close the admission gate (<code>composed_scene_runtime.h:26–33</code>).</p>
+    </div>
+    <div class="fact">
+      <h3>4. Other levelling stages and doctrine</h3>
+      <ul>
+        <li><strong>Four adaptive stages:</strong> loud guard, peak AGC, spectral AGC, chroma normaliser.</li>
+        <li><strong>Four gates:</strong> silence flag, noise gate, tonality gate, admission.</li>
+        <li><strong>Fixed scalings:</strong> response gain, display brightness, shoulder, output 0.25.</li>
+        <li><strong>CORE-ARCH-004 / ADR-006 (audio):</strong> not found in this repository, the workspace or shared memory. The ADR-006 that does exist covers governance policy publication. <strong>Not ported.</strong></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Limits</div>
+  <div class="facts">
+    <div class="fact">
+      <ul>
+        <li><strong>The replay is a model.</strong> The device's own microphone audio was never recorded, so the room recording (iPhone) stands in for it. The replay omits the donor admission gate and runs on the host, not the M85.</li>
+        <li><strong>Lower-board replay fidelity is poor</strong> (ρ −0.05 / 0.23). Its verdict uses the device colour split.</li>
+        <li><strong>The brief's citations point at a file this build doesn't run.</strong> <code>product_effect_renderer.cpp:746/797/1326</code> is not compiled into this build (<code>build_scalar.py:728</code>). The v8 effects run in <code>inhouse_waveform.cpp</code>.</li>
+        <li><strong>Earlier P2/P3 probes used the neighbouring palettes.</strong> They passed palette ids 32/39, but the device uses 31/38 (<code>renderInhouse</code> passes palette − 1). The probe is fixed; tempo and level results are unaffected.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="files">
+    <span>Per-frame CSVs: <code>agc-trace-boom-recording.csv</code>, <code>agc-trace-boom-source.csv</code>. Calibration: <code>agc-trace-meta.json</code>. Numbers: <code>agc-trace-summary.json</code>.</span>
+    <span>Replay: <code>tests/host/p3_tempo_probe.cpp</code> (the existing v8 replay entry point), driven by <code>scripts/p3_agc_trace.py</code>. Figures: <code>scripts/p3_agc_trace_plots.py</code>.</span>
+  </div>
+</section>
+
+</div>
