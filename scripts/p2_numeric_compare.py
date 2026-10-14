@@ -107,7 +107,10 @@ def main():
     ap.add_argument("--input", type=Path, required=True)
     ap.add_argument("--tolerance", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--candidate-extra", default="", help="extra candidate flags, e.g. the product -O3 set")
     a = ap.parse_args()
+    if a.candidate_extra:
+        PROFILES["candidate"] = PROFILES["candidate"] + a.candidate_extra.split()
     a.out.mkdir(parents=True, exist_ok=False)
     frozen = json.loads(a.tolerance.read_text())
     tol = {"abs": 2e-5, "rel": 2e-4, "rgb": int(frozen["rgb16_tolerance_lsb"]),
