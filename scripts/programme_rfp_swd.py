@@ -46,6 +46,10 @@ def load_receipt(build: Path) -> dict:
     receipt = json.loads((build / "receipt.json").read_text())
     if not receipt.get("pass"):
         raise IdentityError("build receipt pass is not true")
+    # Lane P2: an image built with --asrc-tcm data+code did not boot (14 Oct 2026).
+    # build_scalar marks such receipts deploy_admissible=false; refuse them here too.
+    if receipt.get("deploy_admissible") is False or receipt.get("asrc_tcm") == "data+code":
+        raise IdentityError("build receipt is not deploy-admissible (ITCM ASRC experiment did not boot)")
     return receipt
 
 

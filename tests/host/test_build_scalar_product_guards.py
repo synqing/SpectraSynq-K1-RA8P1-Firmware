@@ -55,8 +55,8 @@ def test_in_helper_jump_is_not_a_call():
 @pytest.mark.skipif(not FINAL.exists(), reason="final P2 build output not present")
 def test_final_p2_image_passes_with_tail_calls_counted():
     counts = bs.assert_product_generated_code(FINAL.read_text(), ATTRS, MACROS)
-    assert set(counts) <= bs.INT64_CONVERSIONS
-    assert counts.get("__aeabi_d2ulz", 0) >= 1  # the b.w tail call the old guard missed
+    # Exact counts on a8215f75: d2ulz includes the b.w tail call the old guard missed.
+    assert counts == {"__aeabi_d2lz": 1, "__aeabi_d2ulz": 2, "__aeabi_l2d": 2}
 
 
 def test_old_guard_missed_the_tail_call():

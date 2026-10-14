@@ -129,6 +129,23 @@ def main() -> None:
         assert rc == 2 and receipt["pass"] is False
         assert "mismatch" in receipt["error"]
 
+    # Lane P2: deploy_admissible=false (or asrc_tcm data+code) must be refused before any probe use.
+    with tempfile.TemporaryDirectory() as tmp:
+        b2 = Path(tmp) / "build"; b2.mkdir()
+        _seed_build(b2, build_id=RESIDENT["build_id"], hex_bytes=b":00000001FF\n", elf_bytes=b"x", source_pin=RESIDENT["source_pin"])
+        for patch in ({"deploy_admissible": False}, {"asrc_tcm": "data+code"}):
+            r = json.loads((b2 / "receipt.json").read_text()); r.update(patch)
+            (b2 / "receipt.json").write_text(json.dumps(r) + "\n")
+            try:
+                m.load_receipt(b2)
+            except m.IdentityError as exc:
+                assert "deploy-admissible" in str(exc)
+            else:
+                raise AssertionError(f"non-admissible receipt accepted: {patch}")
+            r.pop("deploy_admissible", None); r.pop("asrc_tcm", None)
+            (b2 / "receipt.json").write_text(json.dumps(r) + "\n")
+        assert m.load_receipt(b2)["pass"] is True  # receipts without the field (older known-good images) still load
+
     print("K1_PROGRAMME_RFP_SWD_HOST=PASS (ok, wrong hex/elf/build/uid/source/range/speed/run/flag, getAllRegisters refuse, execute gate, mismatched image)")
 
 
