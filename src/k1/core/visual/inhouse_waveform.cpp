@@ -643,7 +643,15 @@ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float posit
   const float width = 0.5F + 3.5F * level;
   float amplitude = gain;
   if (variant == InhouseV9Variant::kConstantEnergy) amplitude = gain * 2.0F / (width + 1.0F);
-  else if (variant == InhouseV9Variant::kLevelEmphasis) amplitude = gain * level * ::sqrtf(level);
+  else if (variant == InhouseV9Variant::kLevelEmphasis) {
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+    const float emphasis = v9_emphasis_;
+#else
+    constexpr float emphasis = kInhouseV9Emphasis;
+#endif
+    // 1.5 keeps the iteration-4 arithmetic exactly (level * sqrt(level)).
+    amplitude = emphasis == 1.5F ? gain * level * ::sqrtf(level) : gain * ::powf(level, emphasis);
+  }
   amplitude = clamp01(amplitude);
   const float reach = width + 1.0F;
   const int first = std::max(static_cast<int>(start), static_cast<int>(std::ceil(position - reach)));
@@ -723,11 +731,16 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   const bool mode32 = controls.mode == 32U;
   const float motion = std::isfinite(controls.motion_scale)
       ? std::max(0.0F, std::min(4.0F, controls.motion_scale)) : 1.0F;
-  // Level: fixed dB transfer of the pre-AGC RMS (-33 dBFS -> 0, -9 dBFS -> 1). It sets
+  // Level: fixed dB transfer of the pre-AGC RMS (-33 dBFS -> 0, ceiling -> 1). It sets
   // deposit amplitude and width only; it never changes the release.
   const float vu = fresh ? clamp01(audio.vu_level) : 0.0F;
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  const float ceiling_db = v9_ceiling_db_;
+#else
+  constexpr float ceiling_db = kInhouseV9LevelCeilingDb;
+#endif
   const float level = silent || vu <= 0.0F ? 0.0F
-      : clamp01((20.0F * ::log10f(vu) + 33.0F) / 24.0F);
+      : clamp01((20.0F * ::log10f(vu) + 33.0F) / (ceiling_db + 33.0F));
   observation_.level = level;
   observation_.tonality_gate = f(tonality_gate_);
   observation_.centroid_strength = centroid_strength_;

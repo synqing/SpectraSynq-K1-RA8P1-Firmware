@@ -148,7 +148,54 @@ def run(exe: Path, inputs: Path, out: Path, v9: list[str] | None, only: list[str
     (out / "replay.json").write_text(json.dumps(meta, indent=2) + "\n")
 
 
-def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str, palette: str | None = None) -> dict:
+def prepare_it5(exe: Path, base: Path, out: Path, holdout_wav: Path) -> None:
+    """Iteration 5 inputs (TOLERANCE-FROZEN-P6-DI.json): BOOM file + room at 0 dB copied from the
+    P6 inputs unchanged, plus the Carte Blanche holdout (24 kHz -> 40 kHz, one gain so the host
+    raw RMS median over 1-74 s equals the device BOOM median 0.118652, 8 s zeros appended)."""
+    import shutil
+    import wave
+    from scipy.signal import resample_poly
+    out.mkdir(parents=True, exist_ok=True)
+    src = json.loads((base / "inputs.json").read_text())
+    manifest = {"fs": FS, "tail_s": TAIL_S, "method": "iteration 5: BOOM inputs copied; Carte Blanche holdout added",
+                "inputs": {}}
+    for name in ("boom_source", "boom_room"):
+        spec = dict(src["inputs"][name])
+        spec["files"] = {name: spec["files"][name]}
+        shutil.copyfile(base / spec["files"][name]["file"], out / spec["files"][name]["file"])
+        manifest["inputs"][name] = spec
+    w = wave.open(str(holdout_wav))
+    if w.getframerate() != 24000 or w.getnchannels() != 1:
+        raise SystemExit("holdout must be 24 kHz mono")
+    x24 = np.frombuffer(w.readframes(w.getnframes()), dtype="<i2").astype(np.float64) / 32768.0
+    x = resample_poly(x24, 5, 3)
+    target = 0.118652
+    tmp = out / "_cal"
+    tmp.mkdir(exist_ok=True)
+    gain = 0.12 / max(float(np.sqrt(np.mean(x[FS:74 * FS] ** 2))), 1e-9)
+    WINDOW["carte"] = (1.0, 74.0)
+    for _ in range(4):
+        write_s16(x, gain, tmp / "cal.s16")
+        run_probe(exe, tmp / "cal.s16", tmp / "cal.csv", tmp / "cal.bin", None)
+        gain *= target / host_median(tmp / "cal.csv", 0.0, 1.0, "carte")
+    p = out / "carte_source.s16"
+    clipped = write_s16(x, gain, p)
+    run_probe(exe, p, tmp / "cal.csv", tmp / "cal.bin", None)
+    manifest["inputs"]["carte_source"] = {
+        "song": "carte", "gain": gain, "offset_s": 0.0, "scale": 1.0, "fixture_s": None, "file_seconds": len(x) / FS,
+        "device_raw_rms_median": target, "host_raw_rms_median": host_median(tmp / "cal.csv", 0.0, 1.0, "carte"),
+        "window_song_s": list(WINDOW["carte"]), "holdout": True,
+        "source": str(holdout_wav), "source_sha256": hashlib.sha256(holdout_wav.read_bytes()).hexdigest(),
+        "files": {"carte_source": {"file": p.name, "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                                   "ladder_db": 0.0, "clipped_fraction": clipped}}}
+    for f in tmp.iterdir():
+        f.unlink()
+    tmp.rmdir()
+    (out / "inputs.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+
+def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str, palette: str | None = None,
+              level: list[str] | None = None) -> dict:
     """Matched optical energy: per-mode gain so the calibration-corpus mean S equals v8's."""
     sys.path.insert(0, str(ROOT / "scripts"))
     import p6_evaluate
@@ -157,13 +204,14 @@ def calibrate(exe: Path, inputs: Path, v8: Path, work: Path, variant: str, palet
     gains, steps = [1.0, 1.0], []
     for i in range(3):  # start, then two multiplicative refinements
         out = work / f"cal-{variant}-{i}"
-        run(exe, inputs, out, [variant, "none", f"{gains[0]:.6f}", f"{gains[1]:.6f}"] + ([palette] if palette else []),
+        run(exe, inputs, out, [variant, "none", f"{gains[0]:.6f}", f"{gains[1]:.6f}"] + ([palette] if palette else [])
+            + (level or []),
             p6_evaluate.CALIBRATION)
         got = p6_evaluate.energy(out, manifest)
         steps.append({"gains": list(gains), "mean_S": got})
         if i < 2:
             gains = [min(64.0, g * t / m) for g, t, m in zip(gains, target, got)]
-    return {"variant": variant, "palette": palette or "asis", "target_mean_S_v8": target, "steps": steps,
+    return {"variant": variant, "palette": palette or "asis", "level": level, "target_mean_S_v8": target, "steps": steps,
             "final_gains": steps[-1]["gains"], "final_mean_S": steps[-1]["mean_S"]}
 
 
@@ -178,9 +226,15 @@ def main(argv=None) -> int:
     c.add_argument("--v8", type=Path, required=True); c.add_argument("--work", type=Path, required=True)
     c.add_argument("--variant", choices=("peak", "energy", "emphasis"), required=True); c.add_argument("--out", type=Path, required=True)
     c.add_argument("--palette", choices=("asis", "lifted", "range"))  # iteration 4 test variants
+    c.add_argument("--level", nargs=2, metavar=("CEILING_DB", "EMPHASIS"))  # iteration 5 candidates
+    h = sub.add_parser("prepare-it5"); h.add_argument("--exe", type=Path, required=True); h.add_argument("--base", type=Path, required=True)
+    h.add_argument("--out", type=Path, required=True); h.add_argument("--holdout", type=Path, required=True)
     a = ap.parse_args(argv)
+    if a.cmd == "prepare-it5":
+        prepare_it5(a.exe, a.base, a.out, a.holdout)
+        return 0
     if a.cmd == "calibrate":
-        a.out.write_text(json.dumps(calibrate(a.exe, a.inputs, a.v8, a.work, a.variant, a.palette), indent=2) + "\n")
+        a.out.write_text(json.dumps(calibrate(a.exe, a.inputs, a.v8, a.work, a.variant, a.palette, a.level), indent=2) + "\n")
         return 0
     if a.cmd == "build":
         build(a.profile, a.exe)

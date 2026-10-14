@@ -17,6 +17,7 @@
 //   v9: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18
 //       variant: peak|energy|emphasis|default (firmware constants) ; fault: none|channel_max|floor
 //       optional 9th argument (iteration 4): palette test variant asis|lifted|range
+//       optional 10th/11th (iteration 5): level ceiling dBFS, emphasis exponent
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
 #include "core/visual/product_palette.h"
@@ -69,7 +70,7 @@ std::vector<std::array<float, 3>> paletteCurve(std::uint16_t id) {
 
 int main(int argc, char** argv) {
 #ifdef K1_INHOUSE_MAPPING_V9
-  if (argc != 8 && argc != 9) {
+  if (argc != 8 && argc != 9 && argc != 11) {
     std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range]\n");
     return 2;
   }
@@ -123,6 +124,10 @@ int main(int argc, char** argv) {
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostPalette(palette)) return 2;
   }
+  if (argc == 11) {  // iteration 5 candidate: level ceiling (dBFS) and emphasis exponent
+    for (unsigned b = 0; b < 2; ++b)
+      if (!renderer[b].setV9HostLevel(std::strtof(argv[9], nullptr), std::strtof(argv[10], nullptr))) return 2;
+  }
 #endif
   InhouseWaveformControls controls[2];
   const float warmth[2] = {0.5905512F, 0.0F};
@@ -136,7 +141,8 @@ int main(int argc, char** argv) {
 
   std::fprintf(csv, "t_s,board,fresh,silence,raw_rms,vu_level,peak_scaled,tempo_valid,tempo_bpm,tempo_confidence,"
                     "novelty,palette_coordinate,decay_rate,deposit_strength,position,scroll_steps,"
-                    "S,L,lit_px,offpal_px,max_channel,level,tonality_gate,centroid_strength,intensity_mean,tempo_weight\n");
+                    "S,L,lit_px,offpal_px,max_channel,level,tonality_gate,centroid_strength,intensity_mean,tempo_weight,"
+                    "Lstar,Lstar_x3,extent\n");
   constexpr unsigned kSlot = 296U;                   // device PDM block at 40 kHz
   constexpr std::uint64_t kOriginUs = 1000000U;      // keep every timestamp positive
   constexpr std::uint64_t kRenderUs = 10000U;        // palette period (composition period_us)
@@ -185,6 +191,7 @@ int main(int argc, char** argv) {
                                1.0F - warmth[b] + warmth[b] * std::sqrt(.0244F)};
         const float white[3] = {1.0F, .9375F, .84F};
         double sum = 0, luma = 0;
+        double ys[160];  // per-pixel Rec.709 luma for iteration-5 DI (TOLERANCE-FROZEN-P6-DI.json)
         unsigned lit = 0, off = 0;
         float maxc = 0.0F;
         for (unsigned p = 0; p < 160; ++p) {
@@ -204,19 +211,30 @@ int main(int argc, char** argv) {
           double px[3];
           for (unsigned k = 0; k < 3; ++k) px[k] = std::clamp(c[k] * sh * warm[k] * white[k], 0.0F, 1.0F) * 0.25;
           sum += (px[0] + px[1] + px[2]) / 3.0;
-          luma += 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2];
+          ys[p] = 0.2126 * px[0] + 0.7152 * px[1] + 0.0722 * px[2];
+          luma += ys[p];
         }
+        // CIE L* with Y_ref = 0.25 (full scale after the x0.25 output intensity).
+        const auto lstar = [](double y) {
+          const double t = std::min(1.0, y / 0.25);
+          return t > 0.008856 ? 116.0 * std::cbrt(t) - 16.0 : 903.3 * t;
+        };
+        double lsum = 0, lsum3 = 0, ymax = 0;
+        for (double y : ys) { lsum += lstar(y); lsum3 += lstar(3.0 * y); ymax = std::max(ymax, y); }
+        unsigned wide = 0;
+        for (double y : ys) wide += ymax > 0 && y >= 0.25 * ymax ? 1U : 0U;
         std::fprintf(csv, "%.3f,%u,%d,%d,%.6f,%.6f,%.5f,%d,%.2f,%.4f,%.5f,%.5f,%.4f,%.5f,%.2f,%u,%.8f,%.8f,%u,%u,%.6f,",
                      (tick - kOriginUs) / 1e6, b, o.input_fresh ? 1 : 0, a.silence ? 1 : 0, a.raw_rms, a.vu_level,
                      a.peak_scaled, a.tempo_valid ? 1 : 0, a.tempo_bpm, a.tempo_confidence, a.novelty,
                      o.palette_coordinate, o.decay_rate, o.deposit_strength, o.position, o.scroll_steps,
                      sum / 160.0, luma / 160.0, lit, off, maxc);
 #ifdef K1_INHOUSE_MAPPING_V9
-        std::fprintf(csv, "%.4f,%.4f,%.4f,%.6f,%.4f\n", o.level, o.tonality_gate, o.centroid_strength, o.intensity_mean,
+        std::fprintf(csv, "%.4f,%.4f,%.4f,%.6f,%.4f,", o.level, o.tonality_gate, o.centroid_strength, o.intensity_mean,
                      o.tempo_weight);
 #else
-        std::fprintf(csv, ",,,,\n");
+        std::fprintf(csv, ",,,,,");
 #endif
+        std::fprintf(csv, "%.4f,%.4f,%.4f\n", lsum / 160.0, lsum3 / 160.0, wide / 160.0);
       }
     }
   }

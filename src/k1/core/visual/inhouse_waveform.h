@@ -39,6 +39,9 @@ inline constexpr float kInhouseV9Gain18 = 0.591745F;  // mode 18 deposit gain
 enum class InhouseV9Palette : std::uint8_t { kAsIs = 0, kLiftedLowEnd = 1, kRestrictedRange = 2 };
 // TEST VARIANT under the Captain's testing ruling (14 Oct 2026); not a palette change.
 inline constexpr InhouseV9Palette kInhouseV9Palette = InhouseV9Palette::kRestrictedRange;
+// Level transfer ceiling (dBFS at l = 1; floor -33 dBFS) and emphasis exponent (peak = g l^gamma).
+inline constexpr float kInhouseV9LevelCeilingDb = -9.0F;
+inline constexpr float kInhouseV9Emphasis = 1.5F;
 #endif
 
 // One coherent producer observation; spectrum is the source 80-note bank after
@@ -135,6 +138,12 @@ class InhouseWaveformRenderer final {
     v9_variant_ = variant; v9_fault_ = fault; v9_gain_[0] = gain32; v9_gain_[1] = gain18;
     return true;
   }
+  // Iteration 5 candidates (P6-IT5-DESIGN-CANDIDATES-FROZEN.json): level ceiling and exponent.
+  [[nodiscard]] bool setV9HostLevel(float ceiling_db, float emphasis) noexcept {
+    if (!(ceiling_db > -30.0F && ceiling_db <= 0.0F) || !(emphasis >= 1.0F && emphasis <= 6.0F)) return false;
+    v9_ceiling_db_ = ceiling_db; v9_emphasis_ = emphasis;
+    return true;
+  }
   [[nodiscard]] bool setV9HostPalette(InhouseV9Palette palette) noexcept {
     if (static_cast<unsigned>(palette) > 2U) return false;
     v9_palette_ = palette;
@@ -183,6 +192,8 @@ class InhouseWaveformRenderer final {
   InhouseV9Fault v9_fault_ = InhouseV9Fault::kNone;
   float v9_gain_[2] = {kInhouseV9Gain32, kInhouseV9Gain18};
   InhouseV9Palette v9_palette_ = kInhouseV9Palette;
+  float v9_ceiling_db_ = kInhouseV9LevelCeilingDb;
+  float v9_emphasis_ = kInhouseV9Emphasis;
 #endif
   [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
