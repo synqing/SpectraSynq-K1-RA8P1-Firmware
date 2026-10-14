@@ -55,6 +55,7 @@ def main() -> int:
     ap.add_argument("--no-arm", action="store_true")
     ap.add_argument("--audio", default="MacBook Pro Microphone")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--gain", type=float, default=GAIN, help="afplay volume (0.25 is the capture default)")
     a = ap.parse_args()
 
     token = get("/api/session")["token"]
@@ -71,9 +72,9 @@ def main() -> int:
         raise SystemExit(f"REFUSED: camera request failed: {req.stdout.strip()} {req.stderr.strip()}")
     time.sleep(3.0)  # camera open
     log = {"label": a.label, "clip": str(a.clip), "drop_s": a.drop_s, "offset_s": a.offset,
-           "armed": not a.no_arm, "camera_seconds": seconds, "gain": GAIN}
+           "armed": not a.no_arm, "camera_seconds": seconds, "gain": a.gain}
     log["play_spawn"] = time.monotonic()
-    player = subprocess.Popen(["afplay", "-v", str(GAIN), str(a.clip)])
+    player = subprocess.Popen(["afplay", "-v", str(a.gain), str(a.clip)])
     arm_at = log["play_spawn"] + a.drop_s - LEAD_S - CONTROL_S + a.offset
     log["arm_target"] = arm_at
     if not a.no_arm:

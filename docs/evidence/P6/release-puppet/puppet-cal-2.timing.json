@@ -1,0 +1,54 @@
+{
+  "video": "/Volumes/Disk Storage/SpectraSynq-Scratch/titan-lagfree-20261014/camera/puppet-cal-2.mp4",
+  "clip": "_scratch/waveform-migration-001/runs/P6-RELEASE-PUPPET/boom-40-75-chirps.wav",
+  "drop_s": 17.766,
+  "sound": {
+    "start_s": 1.6066250000000002,
+    "spread_ms": null,
+    "chirps": [
+      {
+        "chirp_s": 0.5,
+        "room_s": 2.106625,
+        "start_s": 1.6066250000000002,
+        "score": 0.708253227161903
+      },
+      {
+        "chirp_s": 1.0,
+        "room_s": 2.6068125,
+        "start_s": 1.6068125000000002,
+        "score": 0.1169241514329656
+      },
+      {
+        "chirp_s": 1.5,
+        "room_s": 3.0870625,
+        "start_s": 1.5870625,
+        "score": 0.13129718176674618
+      },
+      {
+        "chirp_s": 37.5,
+        "room_s": 39.125,
+        "start_s": 1.625,
+        "score": 0.06332085918511361
+      }
+    ],
+    "used": 1,
+    "audio_minus_video_start_s": 0.0
+  },
+  "repeated_frames_total": 5,
+  "repeated_frames_near_drop": 0,
+  "valid_for_timing": true,
+  "t_drop_video_s": 19.372625,
+  "plate_x": [
+    33,
+    592
+  ],
+  "centre_x": [
+    256,
+    368
+  ],
+  "centre_pre": 88.75588989257812,
+  "centre_post_max": 224.26083374023438,
+  "contrast": 0.6042291985974432,
+  "t_release_video_s": 19.158596504728,
+  "light_minus_sound_ms": -214.02849527200019
+}
