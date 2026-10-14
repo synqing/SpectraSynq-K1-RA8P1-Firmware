@@ -23,6 +23,19 @@ using k1::core::visual::pushVisualWaveform;
 
 }  // namespace
 
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_INHOUSE_DTCM)
+InhouseAudio& inhouseAudioDtcm() noexcept {
+#ifdef K1_RA8P1_TARGET
+  // .dtcm is NOLOAD zero-fill in fsp.ld, which would drop constant-initialised
+  // member values; .dtcm_from_flash is copied from flash by the FSP startup.
+  static InhouseAudio state __attribute__((section(".dtcm_from_flash"), aligned(32)));
+#else
+  static InhouseAudio state;
+#endif
+  return state;
+}
+#endif
+
 #ifdef K1_EMOTISCOPE_PORT
 void LiveAudioRuntime::setInhouseActive(bool active) noexcept {
   inhouse_active_ = active;

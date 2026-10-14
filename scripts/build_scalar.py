@@ -160,6 +160,36 @@ def emotiscope_inputs():
         'modified_donor_sources': changes,
     }
 
+ANALYSIS_DTCM_OBJECTS = ['(anonymous namespace)::palettes', 'k1::titan::inhouseAudioDtcm()::state']
+
+
+def verify_analysis_dtcm(symbols: str, nm_sized: str) -> dict:
+    """Lane P4 step 7: __dtcm_from_flash must hold exactly the scene state and the in-house
+    analysis state (nm -S -C text), inside DTCM; anything else raises."""
+    table = {}
+    for line in symbols.splitlines():
+        parts = line.split()
+        if len(parts) >= 3:
+            try:
+                table[parts[-1]] = int(parts[0], 16)
+            except ValueError:
+                pass
+    base, limit = table.get('__dtcm_from_flash$$Base'), table.get('__dtcm_from_flash$$Limit')
+    if base is None or limit is None or not (0x20000000 <= base < limit <= 0x20020000):
+        raise RuntimeError('analysis DTCM region missing or outside DTCM')
+    placed = []
+    for line in nm_sized.splitlines():
+        parts = line.split(None, 3)
+        if len(parts) == 4 and parts[2] in 'bBdD':
+            addr, size = int(parts[0], 16), int(parts[1], 16)
+            if base <= addr < limit:
+                placed.append((parts[3], addr, size))
+    if sorted(n for n, _, _ in placed) != ANALYSIS_DTCM_OBJECTS:
+        raise RuntimeError('analysis DTCM region must hold exactly palettes and inhouseAudioDtcm state: ' + repr(placed))
+    return {'region': '__dtcm_from_flash', 'base': hex(base), 'limit': hex(limit),
+            'objects': [{'name': n, 'address': hex(a), 'bytes': z} for n, a, z in placed]}
+
+
 def render_live_schema_include(data: bytes, source: str) -> str:
     """Generate the existing wire schema symbols from exact profile JSON bytes."""
     digest = hashlib.sha256(data).hexdigest()
@@ -526,6 +556,8 @@ def main():
                         help='complete Emotiscope v1.1_build AP/VP: 12800 Hz/64 samples, native 128 pixels mapped to continuous 160')
     parser.add_argument('--inhouse-analysis24',action='store_true',
                         help='lane P4: in-house analysis on k1_poly24 24 kHz/180 (donor stays 12.8 kHz/64); needs --emotiscope-port --pdm-target --live-runtime')
+    parser.add_argument('--analysis-dtcm',action='store_true',
+                        help='lane P4 step 7: in-house analysis state and scene state (palettes) in DTCM; needs --inhouse-analysis24 --palette-runtime')
     parser.add_argument('--poly24-cmsis',action='store_true',
                         help='lane P4 step 8: k1_poly24 dot products via CMSIS-DSP arm_dot_prod_f32 (MVE); needs --inhouse-analysis24')
     parser.add_argument('--tempo-field',action='store_true',
@@ -727,7 +759,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {})),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {}),**({'analysis_dtcm':True} if args.analysis_dtcm else {})),sort_keys=True).encode()).hexdigest()
         receipt.update(deploy_admissible=args.asrc_tcm != 'data+code')
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
@@ -741,6 +773,7 @@ def main():
                        live_runtime=args.live_runtime,
                        live_emit=args.live_emit,
                        inhouse_analysis24=bool(args.inhouse_analysis24),
+                       analysis_dtcm=bool(args.analysis_dtcm),
                        poly24_cmsis=({'pack':str(CMSIS_DSP_PACK),'pack_sha256':CMSIS_DSP_PACK_SHA256,
                                       'sources':CMSIS_DSP_SOURCES} if args.poly24_cmsis else None),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
@@ -821,6 +854,10 @@ def main():
             if not (args.emotiscope_port and args.pdm_target and args.live_runtime):
                 raise RuntimeError('--inhouse-analysis24 needs --emotiscope-port --pdm-target --live-runtime')
             defines.append('-DK1_INHOUSE_ANALYSIS24=1')
+        if args.analysis_dtcm:
+            if not (args.inhouse_analysis24 and args.palette_runtime):
+                raise RuntimeError('--analysis-dtcm needs --inhouse-analysis24 --palette-runtime')
+            defines.extend(['-DK1_INHOUSE_DTCM=1', '-DK1_SCENE_DTCM=1'])
         if args.poly24_cmsis:
             if not args.inhouse_analysis24:
                 raise RuntimeError('--poly24-cmsis needs --inhouse-analysis24')
@@ -1202,7 +1239,13 @@ def main():
                 assert symbol in symbols, f'missing resident schedule symbol {symbol}'
         if args.tempo_placement:
             receipt['tempo_placement_evidence']=verify_tempo_elf_placement(
-                symbols, args.tempo_placement, scratch_only=args.emotiscope_port and not args.asrc_tcm)
+                symbols, args.tempo_placement, scratch_only=args.emotiscope_port and not args.asrc_tcm,
+                declared_regions=('__dtcm_from_flash',) if args.analysis_dtcm else ())
+        if args.analysis_dtcm:
+            # Lane P4 step 7: the flash-initialised DTCM region holds exactly the scene
+            # state (palettes) and the in-house analysis state, nothing else.
+            nm=command([TOOLCHAIN/'arm-none-eabi-nm','-S','-C',str(args.output/'rtthread.elf')])
+            receipt['analysis_dtcm_evidence']=verify_analysis_dtcm(symbols, nm)
         if args.asrc_tcm:
             placed={}
             for line in symbols.splitlines():

@@ -16,6 +16,12 @@
 
 namespace k1::titan {
 
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_INHOUSE_DTCM)
+// Lane P4 step 7: the in-house analysis state (window, GDFT and tempo state)
+// lives in DTCM as its own object; the runtime holds a reference to it.
+InhouseAudio& inhouseAudioDtcm() noexcept;
+#endif
+
 #ifdef K1_EMOTISCOPE_PORT
 inline constexpr std::uint32_t kLiveWarmupHops = 64U;
 #else
@@ -128,7 +134,11 @@ class LiveAudioRuntime final {
   core::audio::AudioPipeline pipeline_{};
 #else
   K1EmotiscopeStatus donor_status_{};
+#ifdef K1_INHOUSE_DTCM
+  InhouseAudio& inhouse_audio_ = inhouseAudioDtcm();
+#else
   InhouseAudio inhouse_audio_{};
+#endif
   bool inhouse_active_ = false;
 #ifdef K1_INHOUSE_ANALYSIS24
   // Lane P4: 24 kHz / 180 descriptors from k1_poly24, drained after each donor hop.

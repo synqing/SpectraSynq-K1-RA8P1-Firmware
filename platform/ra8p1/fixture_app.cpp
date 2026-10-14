@@ -67,7 +67,14 @@ fixture::Trajectory trajectory;
 fixture::Trace trace;
 k1_led2_phy_trace_t led2_trace_entries[K1_LED2_PHY_TRACE_CAPACITY]{};
 #ifdef K1_PALETTE_RUNTIME
+#if defined(K1_SCENE_DTCM) && defined(K1_RA8P1_TARGET)
+// Lane P4 step 7: scene state in DTCM (measured A/B; kept only if cycles drop).
+// .dtcm_from_flash, not .dtcm: the latter is NOLOAD zero-fill and would drop
+// constant-initialised members.
+k1::titan::PaletteRuntime palettes __attribute__((section(".dtcm_from_flash"), aligned(32)));
+#else
 k1::titan::PaletteRuntime palettes;
+#endif
 #ifdef K1_LIVE_RUNTIME
 k1::titan::LiveAudioRuntime live_runtime;
 k1::titan::LiveConfigBlob live_cfg{};

@@ -113,7 +113,9 @@ def _hot_array_addresses(symbols_text):
     return hits
 
 
-def verify_tempo_elf_placement(symbols_text, placement, scratch_only=False):
+def verify_tempo_elf_placement(symbols_text, placement, scratch_only=False, declared_regions=()):
+    """declared_regions: other DTCM placement regions (e.g. '__dtcm_from_flash') that the caller
+    has declared and verifies itself; every other non-empty __dtcm_* region still fails."""
     hits = _hot_array_addresses(symbols_text)
     evidence = {
         'placement': placement,
@@ -161,7 +163,8 @@ def verify_tempo_elf_placement(symbols_text, placement, scratch_only=False):
             if spans[0][0] != base or spans[0][0] + spans[0][1] != spans[1][0] or spans[1][0] + spans[1][1] != limit:
                 raise RuntimeError('donor DTCM scratch symbols do not exactly cover the zero region')
             for name, address in symbols.items():
-                if name.startswith('__dtcm_') and name.endswith('$$Base') and name != '__dtcm_zero$$Base':
+                if (name.startswith('__dtcm_') and name.endswith('$$Base') and name != '__dtcm_zero$$Base'
+                        and name[:-6] not in declared_regions):
                     if symbols.get(name[:-4] + 'Limit') != address:
                         raise RuntimeError('donor DTCM contains another placement: ' + name)
             evidence['zero_initialised_bytes'] = limit - base
