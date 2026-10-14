@@ -931,6 +931,84 @@ bool InhouseWaveformRenderer::probeV9Deposit(const InhouseWaveformControls& cont
 }
 #endif
 
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+bool InhouseWaveformRenderer::setV9HostFront(const InhouseV9Front& front) noexcept {
+  if (!(front.travel_s >= 0.100F && front.travel_s <= 0.180F)) return false;
+  if (!(front.hold_lead_s >= 0.0F && front.hold_lead_s <= 8.0F)) return false;
+  if (front.drop_count > front.drop_s.size()) return false;
+  for (unsigned i = 0; i < front.drop_count; ++i)
+    if (!std::isfinite(front.drop_s[i])) return false;
+  v9_front_ = front;
+  return true;
+}
+
+// Inward release front. The band maths is composed_motion::renderRibbon with
+// inward = true: path = 1 - x, smoothstep feather, three-tap trail (0.66/0.17/0.17).
+// Geometry is 160 px, 80 radial pixels per edge field. Travel is eased and kept
+// inside 100-180 ms, faster than the donor's 200 ms floor. Colour is path P:
+// offset_ keeps the deposited position and outputV9 samples wrap(offset + d).
+void InhouseWaveformRenderer::applyOracleFront(bool mode32, unsigned start) noexcept {
+  if (!v9_front_.enabled || v9_front_.drop_count == 0U || !std::isfinite(v9_clock_s_)) return;
+  const float t = v9_clock_s_;
+  bool hold = false;
+  float release_age = -1.0F;
+  for (unsigned n = 0; n < v9_front_.drop_count; ++n) {
+    const float td = v9_front_.drop_s[n];
+    if (v9_front_.hold_contraction && t >= td - v9_front_.hold_lead_s && t < td) hold = true;
+    const float age = t - td;
+    if (age >= 0.0F && age <= v9_front_.travel_s) release_age = age;
+  }
+  if (hold) {
+    // Drop the inner pixels. Leave the outer band lit so the riser is not blacked out.
+    const unsigned cut = mode32 ? 128U : 148U;
+    for (unsigned i = start; i < cut && i < 160U; ++i) {
+      intensity_[i] = 0;
+      colour_[i] = {};
+      offset_[i] = 0.0F;
+    }
+  }
+  if (!(release_age >= 0.0F)) return;
+  const float travel = v9_front_.travel_s;
+  const float u = clamp01(release_age / travel);
+  const float ease = 1.0F - (1.0F - u) * (1.0F - u) * (1.0F - u);
+  const float width = 0.10F;
+  const float feather = 0.5F * width;
+  const float trail_s = 0.016F;
+  const float centre = ease;
+  const auto envelope = [](float delta, float band, float feather_px) {
+    const float a = std::fabs(delta);
+    const float half = band * 0.5F;
+    if (a >= half) return 0.0F;
+    if (feather_px <= 0.0F) return 1.0F;
+    const float e = clamp01((half - a) / feather_px);
+    return e * e * (3.0F - 2.0F * e);
+  };
+  for (unsigned pix = 80U; pix < 160U; ++pix) {
+    const float x = static_cast<float>(pix - 80U) / 79.0F;
+    const float path = 1.0F - x;
+    float shape = 0.0F;
+    for (unsigned trail = 0; trail < 3U; ++trail) {
+      const float lag = trail_s * static_cast<float>(trail) * 0.5F;
+      if (release_age < lag) continue;
+      const float delta = path - (centre - lag / travel);
+      shape += envelope(delta, width, feather) * (trail == 0U ? 0.66F : 0.17F);
+    }
+    if (path > centre + width * 0.5F) {
+      intensity_[pix] = 0;
+      colour_[pix] = {};
+      offset_[pix] = 0.0F;
+      continue;
+    }
+    const float body = path <= centre ? 0.55F : 0.0F;
+    const auto level_q = q(std::max(body, shape));
+    if (level_q > intensity_[pix]) {
+      intensity_[pix] = level_q;
+      offset_[pix] = deposit_offset_;
+    }
+  }
+}
+#endif
+
 bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
     const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
     Pixel16* output) noexcept {
@@ -997,6 +1075,18 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
     if (controls.mirror) position = std::max(80.0F, position);
     if (release_ > 0.0F) position = std::floor(80.0F + (position - 80.0F) * (1.0F - release_));
   }
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  // R03: through the riser, keep the deposit on the contracted outer band.
+  if (v9_front_.enabled && v9_front_.hold_contraction) {
+    for (unsigned n = 0; n < v9_front_.drop_count; ++n) {
+      const float td = v9_front_.drop_s[n];
+      if (v9_clock_s_ >= td - v9_front_.hold_lead_s && v9_clock_s_ < td) {
+        position = mode32 ? (80.0F + 0.7F * 80.0F) : 159.0F;
+        break;
+      }
+    }
+  }
+#endif
   observation_.scroll_remainder += rate * dt;
   const unsigned steps = std::min(maximum_steps, static_cast<unsigned>(observation_.scroll_remainder));
   observation_.scroll_remainder -= static_cast<float>(steps);
@@ -1020,6 +1110,9 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   observation_.position = position;
   observation_.deposit_strength = 0.0F;
   if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour);
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  applyOracleFront(mode32, start);
+#endif
   outputV9(controls, colour, output);
   return true;
 }

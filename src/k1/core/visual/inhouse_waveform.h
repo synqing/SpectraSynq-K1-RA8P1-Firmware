@@ -77,6 +77,18 @@ struct InhouseV9Release final {
   float dip_db = 0.0F;           // > 0: broadband span over [t - 6 s, t - 0.5 s] must reach this
 };
 inline constexpr InhouseV9Release kInhouseV9ReleaseConfig{};
+// Experiment 1 (host only). Default off. The product image does not define
+// K1_INHOUSE_V9_HOST_VARIANTS, so this type is not part of that build.
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+struct InhouseV9Front final {
+  bool enabled = false;
+  bool hold_contraction = false;  // R03: keep the outer-band contraction until the drop
+  float travel_s = 0.12F;         // R01 travel, inside 0.100..0.180 s (donor floor is 0.200 s)
+  float hold_lead_s = 6.0F;       // riser hold, ending at the labelled drop
+  std::array<float, 8> drop_s{};  // probe clock, file time in seconds
+  unsigned drop_count = 0;
+};
+#endif
 #endif
 
 // One coherent producer observation; spectrum is the source 80-note bank after
@@ -206,6 +218,9 @@ class InhouseWaveformRenderer final {
     v9_palette_ = palette;
     return true;
   }
+  // R01 inward release, optional R03 hold. Oracle drop times only; default off.
+  [[nodiscard]] bool setV9HostFront(const InhouseV9Front& front) noexcept;
+  void setV9HostClock(float file_time_s) noexcept { v9_clock_s_ = file_time_s; }
   // C5b hue probe: one deposit of an explicit palette position through the v9 release,
   // deposit and output code (dt > 0 applies one release step first).
   [[nodiscard]] bool probeV9Deposit(const InhouseWaveformControls& controls, float palette_position,
@@ -269,6 +284,8 @@ class InhouseWaveformRenderer final {
   InhouseV9Accent v9_accent_ = kInhouseV9AccentConfig;
   bool v9_luma_hold_ = kInhouseV9LumaHold;
   InhouseV9Release v9_release_ = kInhouseV9ReleaseConfig;
+  InhouseV9Front v9_front_{};
+  float v9_clock_s_ = 0.0F;
 #endif
   [[nodiscard]] bool renderV9(const InhouseWaveformAudio& audio,
       const InhouseWaveformControls& controls, float dt, bool fresh, bool silent,
@@ -285,6 +302,9 @@ class InhouseWaveformRenderer final {
   [[nodiscard]] PaletteLinearRgb colourV9(std::uint16_t palette_id, float coordinate) const noexcept;
   void depositV9(bool mode32, unsigned start, float position, float level,
                  const FixedRgb& colour) noexcept;
+#if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  void applyOracleFront(bool mode32, unsigned start) noexcept;
+#endif
   void outputV9(const InhouseWaveformControls& controls, const FixedRgb& colour,
                 Pixel16* output) noexcept;
 #endif

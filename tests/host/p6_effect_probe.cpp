@@ -24,6 +24,8 @@
 //       optional 12th-18th (iteration 6): boost widen ratio_full epsilon fast_s slow_s luma_hold
 //       optional 19th-25th (extent release): enabled fast_s slow_s lo_db span_db release_s newpeak_db_s
 //       optional 26th-27th (kick trigger): trigger_sub(0|1) dip_db
+//       optional final token (Experiment 1, default off): r01@t1,t2 or r01+r03@t1,t2
+//       Drop times are probe file-time seconds. Absent token leaves the front off.
 #include "inhouse_audio.h"
 #include "core/visual/inhouse_waveform.h"
 #include "core/visual/product_palette.h"
@@ -77,8 +79,34 @@ std::vector<std::array<float, 4>> paletteCurve(std::uint16_t id) {
 
 int main(int argc, char** argv) {
 #if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
+  k1::core::visual::InhouseV9Front front{};
+  if (argc > 4) {
+    const std::string tail = argv[argc - 1];
+    if (tail.compare(0, 3, "r01") == 0) {
+      --argc;
+      front.enabled = true;
+      front.hold_contraction = tail.compare(0, 7, "r01+r03") == 0;
+      front.travel_s = 0.12F;
+      front.hold_lead_s = 6.0F;
+      const auto at = tail.find('@');
+      if (at != std::string::npos) {
+        const std::string list = tail.substr(at + 1);
+        unsigned n = 0;
+        std::size_t pos = 0;
+        while (pos < list.size() && n < front.drop_s.size()) {
+          char* end = nullptr;
+          const float value = std::strtof(list.c_str() + pos, &end);
+          if (end == list.c_str() + pos) return 2;
+          front.drop_s[n++] = value;
+          pos = static_cast<std::size_t>(end - list.c_str());
+          if (pos < list.size() && list[pos] == ',') ++pos;
+        }
+        front.drop_count = n;
+      }
+    }
+  }
   if (argc != 8 && argc != 9 && argc != 11 && argc != 18 && argc != 25 && argc != 27) {
-    std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range|mapped]\n");
+    std::fprintf(stderr, "usage: p6_effect_probe in.s16 out.csv frames.bin variant fault gain32 gain18 [asis|lifted|range|mapped] [r01@t | r01+r03@t]\n");
     return 2;
   }
 #else
@@ -157,6 +185,10 @@ int main(int argc, char** argv) {
     for (unsigned b = 0; b < 2; ++b)
       if (!renderer[b].setV9HostLevel(std::strtof(argv[9], nullptr), std::strtof(argv[10], nullptr))) return 2;
   }
+  if (front.enabled) {
+    for (unsigned b = 0; b < 2; ++b)
+      if (!renderer[b].setV9HostFront(front)) return 2;
+  }
 #endif
   InhouseWaveformControls controls[2];
   const float warmth[2] = {0.5905512F, 0.0F};
@@ -213,6 +245,9 @@ int main(int argc, char** argv) {
         a.vu_level = std::clamp(a.vu_level, 0.0F, 1.0F);
         a.vu_average = std::clamp(a.vu_average, 0.0F, 1.0F);
         a.observed_peak_scaled = std::clamp(a.observed_peak_scaled, 0.0F, 1.0F);
+#if defined(K1_INHOUSE_MAPPING_V9) && defined(K1_INHOUSE_V9_HOST_VARIANTS)
+        renderer[b].setV9HostClock(static_cast<float>(tick - kOriginUs) / 1.0e6F);
+#endif
         if (!renderer[b].render(a, controls[b], tick, frame[b], 160)) std::memset(frame[b], 0, sizeof frame[b]);
         std::fwrite(frame[b], sizeof(Pixel16), 160, bin);
         const auto& o = renderer[b].observation();
