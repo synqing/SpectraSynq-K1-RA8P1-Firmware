@@ -223,6 +223,7 @@ def main() -> int:
     ap.add_argument("--expected-build", required=True)
     ap.add_argument("--profile", required=True, help="expected boot profile JSON (v8)")
     ap.add_argument("--gain", type=float, default=0.25)
+    ap.add_argument("--noboot-fixture", choices=("boom", "sonic"), default="boom")
     a = ap.parse_args()
     out = Path(a.out); out.mkdir(parents=True, exist_ok=False)
     run = Run(out)
@@ -248,7 +249,10 @@ def main() -> int:
         if a.mode == "disconnect":
             fx = fixture("sonic-samba-6-30s"); seconds, play_s, score = 42, 24, (0, 24)
         else:
-            fx = fixture("boom"); seconds, play_s, score = 90, 75, (28, 75)
+            if a.noboot_fixture == "boom":
+                fx = fixture("boom"); seconds, play_s, score = 90, 75, (28, 75)
+            else:
+                fx = fixture("sonic-samba-6-30s"); seconds, play_s, score = 42, 24, (0, 24)
             bootout(run); broker_stopped = True
             reset = rfp_reset(run)
 
@@ -271,6 +275,7 @@ def main() -> int:
         finish_camera(run, camera, lines, cam_deadline - time.monotonic() + 10)
         if a.mode == "noboot":
             restore_stats = bootstrap(run, a.expected_build); restored = True
+            stats_mono = time.monotonic()  # frames below were read at (about) this instant
         after = {"broker": restore_stats, "boards": c.fresh_boards(0)}
         run.write("after.json", after)
         av = validate_recording(out / "original.mov", Path(fx["wav"]), player_start - started, *score)
@@ -289,8 +294,9 @@ def main() -> int:
             "musical_verdict": "UNASSESSED: agent cannot listen",
         }
         if a.mode == "noboot":
-            elapsed = time.monotonic() - reset["reset_end_mono"]
-            report["seconds_since_reset_at_readback"] = elapsed
+            # Use the instant the broker stats (frame counter) were read, not report time.
+            elapsed = stats_mono - reset["reset_end_mono"]
+            report["seconds_since_reset_at_frame_read"] = elapsed
             report["frames_per_second_since_reset"] = pal_a.get("frames", 0) / elapsed if elapsed > 0 else None
         run.write("report.json", report)
         run.event("completed", report=report)
