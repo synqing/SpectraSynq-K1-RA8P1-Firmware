@@ -17,6 +17,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
+import signal
 import subprocess
 import sys
 import time
@@ -24,6 +27,54 @@ from pathlib import Path
 
 DEVICE = 'EiP Camera'
 ROOT = Path('/Volumes/Disk Storage/SpectraSynq-Scratch/titan-lagfree-20261014/camera')
+# Grace beyond a recording's own -t before it counts as hung (open stall + finalise).
+OVERDUE_MARGIN_S = 60.0
+
+
+def _etime_seconds(etime: str) -> float:
+    """ps etime [[dd-]hh:]mm:ss -> seconds."""
+    days, _, rest = etime.strip().rpartition('-')
+    parts = [float(p) for p in rest.split(':')]
+    while len(parts) < 3:
+        parts.insert(0, 0.0)
+    return (float(days) if days else 0.0) * 86400 + parts[0] * 3600 + parts[1] * 60 + parts[2]
+
+
+def camera_holders() -> list[dict]:
+    """Every ffmpeg reading DEVICE, with its age and its own -t duration.
+
+    -ww: without it ps truncates long command lines and "-i EiP Camera" is cut off
+    (caught by the planted hung-recording test, 15 Oct)."""
+    out = subprocess.run(['ps', '-axww', '-o', 'pid=,etime=,command='], capture_output=True, text=True).stdout
+    holders = []
+    for line in out.splitlines():
+        m = re.match(r'\s*(\d+)\s+(\S+)\s+(.*)$', line)
+        if not m or 'ffmpeg' not in m.group(3) or f'-i {DEVICE}' not in m.group(3):
+            continue
+        t = re.search(r'\s-t\s+([0-9.]+)', m.group(3))
+        holders.append({'pid': int(m.group(1)), 'age_s': _etime_seconds(m.group(2)),
+                        'duration_s': float(t.group(1)) if t else None, 'command': m.group(3)[:200]})
+    return holders
+
+
+def reap_overdue(margin: float = OVERDUE_MARGIN_S) -> list[dict]:
+    """Kill camera ffmpeg processes past their own -t plus margin (or with no -t at all).
+
+    13-15 Oct 2026: a server tab closed mid-recording orphaned its ffmpeg; the camera
+    then stalled, so the 90 s recording never ended and held the iPhone for 13 hours,
+    making every later open hang. The in-process deadline died with its parent.
+    """
+    reaped = []
+    for h in camera_holders():
+        limit = (h['duration_s'] or 0.0) + margin
+        if h['duration_s'] is None or h['age_s'] > limit:
+            try:
+                os.kill(h['pid'], signal.SIGKILL)
+                h['reaped'] = True
+            except ProcessLookupError:
+                h['reaped'] = 'already gone'
+            reaped.append(h)
+    return reaped
 
 
 def record(out: Path, seconds: float, open_timeout: float, audio: str | None = None) -> dict:
@@ -38,8 +89,18 @@ def record(out: Path, seconds: float, open_timeout: float, audio: str | None = N
            *(['-c:a', 'aac', '-b:a', '160k'] if audio else []),
            # Fragmented MP4: a recording cut short (server tab closed) is still readable.
            '-movflags', '+frag_keyframe+empty_moov', str(out)]
+    global _CHILD
+    reaped = reap_overdue()
+    busy = camera_holders()
+    if busy:
+        return {'ok': False, 'error': 'camera held by another live recording', 'holders': busy, 'reaped': reaped}
+    # Hard wall-clock deadline that survives this process dying: perl's alarm is
+    # inherited across exec, so SIGALRM ends ffmpeg even if the server is killed.
+    hard = int(seconds + open_timeout + 30)
+    cmd = ['/usr/bin/perl', '-e', 'alarm shift; exec @ARGV or die', str(hard), *cmd]
     start = time.monotonic()
     proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+    _CHILD = proc
     # The file appears once frames flow. If it never appears, the camera open has stalled.
     while proc.poll() is None:
         if not out.exists() and time.monotonic() - start > open_timeout:
@@ -52,6 +113,7 @@ def record(out: Path, seconds: float, open_timeout: float, audio: str | None = N
             proc.wait()
             return {'ok': False, 'error': 'recording overran its deadline', 'cmd': cmd}
         time.sleep(0.5)
+    _CHILD = None
     err = proc.stderr.read().decode(errors='replace')[-800:] if proc.stderr else ''
     ok = proc.returncode == 0 and out.exists() and out.stat().st_size > 0
     streams = []
@@ -75,6 +137,25 @@ def sheet(video: Path, every: float, out: Path) -> dict:
 
 
 QUEUE = ROOT / 'queue'
+_CHILD: subprocess.Popen | None = None
+
+
+def _stop_child(signum, _frame):
+    """Closing the tab (SIGHUP), Ctrl-C or SIGTERM never leaves a recording orphaned."""
+    if _CHILD is not None and _CHILD.poll() is None:
+        _CHILD.kill()
+    raise SystemExit(128 + signum)
+
+
+def preflight() -> dict:
+    """Agent check BEFORE asking the Captain anything about the camera."""
+    reaped = reap_overdue()
+    hb = QUEUE / 'heartbeat'
+    age = time.time() - float(hb.read_text() or 0) if hb.exists() else None
+    return {'ok': age is not None and age <= 10 and not camera_holders(),
+            'server_heartbeat_age_s': None if age is None else round(age, 1),
+            'server_running': age is not None and age <= 10,
+            'reaped_overdue_ffmpeg': reaped, 'live_holders': camera_holders()}
 
 
 def serve(open_timeout: float) -> int:
@@ -84,9 +165,20 @@ def serve(open_timeout: float) -> int:
     notDetermined there and the open hangs), so they queue requests here instead.
     """
     QUEUE.mkdir(parents=True, exist_ok=True)
-    print(f'camera server: watching {QUEUE} (Ctrl-C to stop)', flush=True)
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _stop_child)
+    for h in reap_overdue():
+        print(f'camera server: killed hung recording pid {h["pid"]} '
+              f'(age {h["age_s"]:.0f} s, -t {h["duration_s"]})', flush=True)
+    print(f'camera server: RUNNING - watching {QUEUE}\n'
+          'Leave this tab open. It is idle until the agent requests a recording; '
+          'it prints "alive" every 15 s. Ctrl-C stops it.', flush=True)
+    last_alive = time.monotonic()
     while True:
         (QUEUE / 'heartbeat').write_text(str(time.time()))
+        if time.monotonic() - last_alive >= 15:
+            print(f'camera server: alive {time.strftime("%H:%M:%S")} - waiting for requests', flush=True)
+            last_alive = time.monotonic()
         for req in sorted(QUEUE.glob('*.request.json')):
             spec = json.loads(req.read_text())
             label = spec['label']
@@ -124,6 +216,7 @@ def main() -> int:
     rq.add_argument('--audio', default=None, help="audio device to record with the video, e.g. 'MacBook Pro Microphone'")
     p = sub.add_parser('probe')
     p.add_argument('--open-timeout', type=float, default=20.0)
+    sub.add_parser('preflight', help='agent: reap hung recordings, report server state (run before asking the Captain)')
     r = sub.add_parser('record')
     r.add_argument('--seconds', type=float, required=True)
     r.add_argument('--label', required=True)
@@ -134,7 +227,10 @@ def main() -> int:
     a = ap.parse_args()
     if a.cmd == 'serve':
         return serve(a.open_timeout)
-    if a.cmd == 'request':
+    if a.cmd == 'preflight':
+        res = preflight()
+    elif a.cmd == 'request':
+        reap_overdue()
         res = request(a.label, a.seconds, not a.no_wait, a.audio)
     elif a.cmd == 'probe':
         res = record(ROOT / 'probe.mp4', 2.0, a.open_timeout)
