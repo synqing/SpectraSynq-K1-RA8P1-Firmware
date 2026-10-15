@@ -1,0 +1,12 @@
+{
+  "uid": "545433931bd25436593630352d068363",
+  "build": "fe4bf14a8a8e674f2962ad13e9b42b332da95208c2c4864b4ca9c92b6f4cfa9d",
+  "schema_sha256": "e99c1ec147288a7beaed728fc91e42530efc91c26f223164e03d07745b68c2da",
+  "hex_sha256": "c2e927d986ccac7f58f16d88e10cfb7837e45c2547e0c88a3eebf6b05ab039f3",
+  "elf_sha256": "8f39aa5faee2db565780b24c3135ed9da482d64c20f1e416a659f8a0f36d98e8",
+  "ops": [
+    "emotiscope_get",
+    "emotiscope_patch"
+  ],
+  "scope": "Titan product image host-009: host-007 (path P colour fix, scored gains, 100/255 preset, release code off) plus random start-up palettes (Captain 15 Oct 2026): one warm/cool pair from 47 at each power-on; lane commit 898b868 (217/217 receipt sources match). Replaces the host-008 release test image."
+}
