@@ -264,6 +264,27 @@ bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept
   }
 #endif
   auto input=inhouse_audio_[board];
+#if defined(K1_BOOT_PALETTE_RANDOM)
+  // Random start-up palettes (core/visual/boot_palette_random.h). Mix the
+  // microphone's low bits and the loop timestamp for 50 frames, then pick one
+  // warm/cool pair once. A palette changed by a host before then is kept.
+  if(!boot_palette_.done){
+    if(boot_palette_.frames==0U)boot_palette_start_[board]=palette;
+    for(const float v:input.spectrum)core::visual::bootPaletteMixFloat(boot_palette_,v);
+    core::visual::bootPaletteMixFloat(boot_palette_,input.raw_rms);
+    core::visual::bootPaletteMixFloat(boot_palette_,input.raw_peak_pcm);
+    core::visual::bootPaletteMix(boot_palette_,static_cast<std::uint32_t>(now_us));
+    if(board==1U && ++boot_palette_.frames>=core::visual::kBootPaletteFrames){
+      boot_palette_.done=true;
+      if(k1_emotiscope_palette()==boot_palette_start_[0] &&
+         k1_secondary_emotiscope_palette()==boot_palette_start_[1]){
+        const auto pick=core::visual::bootPalettePick(boot_palette_.hash);
+        (void)k1_emotiscope_set_palette(pick.lower);
+        (void)k1_secondary_emotiscope_set_palette(pick.upper);
+      }
+    }
+  }
+#endif
   if(input.epoch!=inhouse_observed_audio_[board].epoch)inhouse_admission_[board]={};
   // Intentional Titan acoustic boundary: reuse the existing measured-room Bloom
   // admission on this prepared donor publication. The source RMS silence remains

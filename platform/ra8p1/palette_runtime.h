@@ -11,6 +11,9 @@
 #if defined(K1_V9_RELEASE_PUPPET)
 #include "core/visual/v9_release_puppet.h"
 #endif
+#if defined(K1_BOOT_PALETTE_RANDOM)
+#include "core/visual/boot_palette_random.h"
+#endif
 #endif
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
@@ -227,6 +230,10 @@ class PaletteRuntime {
   std::uint64_t inhouse_render_us_[2]{};
 #if defined(K1_V9_RELEASE_PUPPET)
   core::visual::V9PuppetState puppet_{};  // TEST IMAGE ONLY
+#endif
+#if defined(K1_BOOT_PALETTE_RANDOM)
+  core::visual::BootPaletteSeed boot_palette_{};
+  std::uint32_t boot_palette_start_[2]{};
 #endif
   bool renderInhouse(unsigned board,std::uint64_t now_us) noexcept;
 #endif
