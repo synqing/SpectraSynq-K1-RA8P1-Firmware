@@ -823,7 +823,7 @@ def main():
                                       'sources':CMSIS_DSP_SOURCES} if args.poly24_cmsis else None),
                        **({'boot_palette_random':'random warm/cool palette pair at each power-on (47 pairs, boot_palette_pairs.h)'} if args.boot_palette_random else {}),
                        **({'v9_release_puppet':'TEST IMAGE ONLY: host-timed R01+R03 release (board 0 speed 0.501 arms)'} if args.v9_release_puppet else {}),
-                       **({'lgfs_bench':'LGFS optical test cards, opcode 28; raw 16-bit codes at the wire while a card is selected; cap 6160/65536 of both-edge white'} if args.lgfs_bench else {}),
+                       **({'lgfs_bench':'LGFS optical test cards v2, opcode 28 (incl. moving cards and freeze) + frame log opcode 29; raw 16-bit codes at the wire while a card is selected; cap 6160/65536 of both-edge white'} if args.lgfs_bench else {}),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)

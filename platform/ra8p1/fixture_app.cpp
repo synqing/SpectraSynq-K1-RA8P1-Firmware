@@ -688,6 +688,9 @@ void palette_step(bool emit) {
       if (status == K1_WS281X_SUBMIT_ACCEPTED) {
         std::memcpy(palette_wire_snapshot,palette_wire_pending,sizeof(palette_wire_snapshot));
         ++palette_wire_sequence;
+#ifdef K1_LGFS_BENCH
+        k1::titan::lgfs::lgfs_log(0U, wire_a0, wire_a1, generation, static_cast<std::uint64_t>(primary_frame_us));
+#endif
         palette_pair_pending = false;
 #ifdef K1_LIVE_RUNTIME
         if (live_cfg.emit_on != 0U) {
@@ -717,6 +720,9 @@ void palette_step(bool emit) {
         const std::uint32_t generation=++palette_pair_generation;
         const int top_status=k1_ws281x_gpt_dma_hw_top_submit(top_a0,sizeof(top_a0),top_a1,sizeof(top_a1),3U,generation);
         if(top_status==K1_WS281X_SUBMIT_ACCEPTED){
+#ifdef K1_LGFS_BENCH
+          k1::titan::lgfs::lgfs_log(1U, top_a0, top_a1, generation, static_cast<std::uint64_t>(palettes.lastBoardFrameUs(1U)));
+#endif
           std::memcpy(palette_top_wire_snapshot,palette_wire_pending,64U);
           auto top_word=[](unsigned index,std::uint32_t value){for(unsigned byte=0;byte<4;++byte)palette_top_wire_snapshot[index*4U+byte]=value>>(8U*byte);};
           top_word(1,++palette_top_wire_sequence);top_word(2,1U);
@@ -1765,6 +1771,14 @@ void execute() {
                                                 );
     if (n < 0 || std::size_t(n) >= sizeof(trace.data)) error(8);
     else respond(0, 0, trace.data, std::size_t(n));
+    fill=0; wanted=32; return;
+  }
+  // LGFS frame log (v2): payload u32 version 1, u32 after_seq. Read-only.
+  if (command == K1_LGFS_LOG_OPCODE) {
+    if (size != 8U || get32(rx+32) != 1U) { error(3); return; }
+    static std::uint8_t lgfs_log_out[sizeof(tx) - 32U];
+    const std::size_t n = k1::titan::lgfs::lgfs_log_read(get32(rx+36), lgfs_log_out, sizeof(lgfs_log_out));
+    respond(0, 0, reinterpret_cast<const char*>(lgfs_log_out), n);
     fill=0; wanted=32; return;
   }
 #endif

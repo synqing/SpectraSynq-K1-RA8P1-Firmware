@@ -45,6 +45,19 @@
  *   gradient,<edge>[,<max>][,<ch>]          code = max*i/159
  *   lowcodes[,<edge>]                       5 blocks of 32 LEDs at codes 1,2,4,8,16
  *   tick[,<level>]                          top LED 0 / LED 159 alternate every frame
+ *  v2 (Captain 16 Oct 2026, render-accuracy battery):
+ *   split,<edge>,<pair>[,<level>]           LEDs 0..79 first colour, 80..159 second (pair as mix)
+ *   hue,<edge>[,<level>]                    hue wheel along the index (red at 0, round to red)
+ *   clap[,<frames 1..50>][,<level>]         SYNC: both edges white for the first <frames> frames, then black
+ *   sweep,<edge>,<step 1..400>[,<level>][,<ch>]   one LED at (frame/step) % 160
+ *   comet,<edge>,<step 1..400>[,<level>]    sweep head with a 24-LED tail halving every 3 LEDs
+ *   flash,<edge>,<period 2..1000>[,<level>] whole edge on for frame % period == 0
+ *   strobe,<edge>,<half 1..100>[,<level>]   whole edge on <half> frames, off <half> frames
+ *   fade,<edge>,<period 2..2000>[,<level>][,<ch>]  triangle 0 -> level -> 0 over <period> frames
+ *   cycle,<edge>,<period 6..6000>[,<level>] whole edge, one hue, round the wheel in <period> frames
+ *   freeze                                  hold the last real frame on the wire (firmware only;
+ *                                           the host renders it as black, the frame log has it)
+ *   Moving cards count frames from the moment they are selected (frame 0 = first frame).
  *   <edge>  = top|t|0, bottom|b|1, both|2 (both only where the card allows it)
  *   <ch>    = w (default) | r | g | b
  *   <level> = 0..65535 decimal, or max (= 65535)
@@ -62,7 +75,7 @@
 extern "C" {
 #endif
 
-#define LGFS_VERSION 1
+#define LGFS_VERSION 2
 #define LGFS_EDGES 2
 #define LGFS_LEDS 160
 #define LGFS_FULL 65535u
@@ -78,7 +91,9 @@ typedef struct { uint16_t r, g, b; } LgfsPixel;
 typedef enum {
   LGFS_OFF = 0, LGFS_BLANK, LGFS_INDEX, LGFS_CORNERS, LGFS_WEDGE, LGFS_IMPULSE,
   LGFS_PAIR, LGFS_COMB, LGFS_UNIFORM, LGFS_MIX, LGFS_HALF, LGFS_GRADIENT,
-  LGFS_LOWCODES, LGFS_TICK, LGFS_CARD_COUNT
+  LGFS_LOWCODES, LGFS_TICK,
+  LGFS_SPLIT, LGFS_HUE, LGFS_CLAP, LGFS_SWEEP, LGFS_COMET, LGFS_FLASH, LGFS_STROBE,
+  LGFS_FADE, LGFS_CYCLE, LGFS_FREEZE, LGFS_CARD_COUNT
 } LgfsCard;
 
 enum { LGFS_EDGE_TOP = 0, LGFS_EDGE_BOTTOM = 1, LGFS_EDGE_BOTH = 2 };
@@ -91,13 +106,14 @@ typedef struct {
   uint8_t edge;     /* LGFS_EDGE_* */
   uint8_t channel;  /* LGFS_CH_* */
   uint8_t pair;     /* LGFS_MIX_* (mix only) */
-  uint16_t pos;     /* impulse position; index bit; pair sep; comb period */
+  uint16_t pos;     /* impulse position; index bit; pair sep; comb period; v2: frames/step/period/half */
   uint16_t level;   /* 16-bit code */
 } LgfsSelection;
 
 static const char* const LGFS_CARD_NAMES[LGFS_CARD_COUNT] = {
   "off", "blank", "index", "corners", "wedge", "impulse", "pair", "comb",
-  "uniform", "mix", "half", "gradient", "lowcodes", "tick"
+  "uniform", "mix", "half", "gradient", "lowcodes", "tick",
+  "split", "hue", "clap", "sweep", "comet", "flash", "strobe", "fade", "cycle", "freeze"
 };
 static const char* const LGFS_MIX_NAMES[LGFS_MIX_COUNT] = { "rb", "rg", "gb", "rw", "bw" };
 
@@ -156,9 +172,25 @@ static inline LgfsPixel lgfs__px(uint8_t ch, uint16_t level) {
   return p;
 }
 
+/* Hue wheel: h in 0..1535 (6 segments of 256), brightest channel = level. */
+static inline LgfsPixel lgfs__hue(uint32_t h, uint16_t level) {
+  LgfsPixel p = { 0, 0, 0 };
+  const uint32_t seg = (h % 1536u) / 256u, f = h % 256u;
+  const uint16_t up = (uint16_t)(((uint32_t)level * f) / 255u), dn = (uint16_t)(level - up);
+  switch (seg) {
+    case 0: p.r = level; p.g = up; break;
+    case 1: p.r = dn; p.g = level; break;
+    case 2: p.g = level; p.b = up; break;
+    case 3: p.g = dn; p.b = level; break;
+    case 4: p.b = level; p.r = up; break;
+    default: p.b = dn; p.r = level; break;
+  }
+  return p;
+}
+
 /* One pixel of a selection: edge 0 (top) or 1 (bottom), index 0..159.
  * Pure function of (selection, frame, edge, index): no arrays, no state.
- * frame only matters for TICK. */
+ * frame matters for TICK and the v2 moving cards. */
 static inline LgfsPixel lgfs_pixel(const LgfsSelection* s, uint32_t frame, int edge, int i) {
   static const LgfsPixel zero = { 0, 0, 0 };
   int on_edge;
@@ -199,7 +231,35 @@ static inline LgfsPixel lgfs_pixel(const LgfsSelection* s, uint32_t frame, int e
       return on_edge ? lgfs__px(LGFS_CH_W, (uint16_t)(1u << (i / 32))) : zero;
     case LGFS_TICK:
       return (edge == 0 && i == ((frame & 1u) ? (LGFS_LEDS - 1) : 0)) ? lgfs__px(LGFS_CH_W, s->level) : zero;
-    case LGFS_OFF: case LGFS_BLANK: default:
+    case LGFS_SPLIT: {
+      static const uint8_t pairs[LGFS_MIX_COUNT][2] = {
+        { LGFS_CH_R, LGFS_CH_B }, { LGFS_CH_R, LGFS_CH_G }, { LGFS_CH_G, LGFS_CH_B },
+        { LGFS_CH_R, LGFS_CH_W }, { LGFS_CH_B, LGFS_CH_W } };
+      return on_edge ? lgfs__px(pairs[s->pair][i < LGFS_LEDS / 2 ? 0 : 1], s->level) : zero;
+    }
+    case LGFS_HUE:
+      return on_edge ? lgfs__hue(((uint32_t)i * 1536u) / LGFS_LEDS, s->level) : zero;
+    case LGFS_CLAP:
+      return frame < s->pos ? lgfs__px(LGFS_CH_W, s->level) : zero;
+    case LGFS_SWEEP:
+      return (on_edge && i == (int)((frame / s->pos) % LGFS_LEDS)) ? lgfs__px(s->channel, s->level) : zero;
+    case LGFS_COMET: {
+      const int head = (int)((frame / s->pos) % LGFS_LEDS);
+      const int d = (head - i + LGFS_LEDS) % LGFS_LEDS;   /* LEDs behind the head */
+      return (on_edge && d < 24) ? lgfs__px(LGFS_CH_W, (uint16_t)(s->level >> (d / 3))) : zero;
+    }
+    case LGFS_FLASH:
+      return (on_edge && frame % s->pos == 0u) ? lgfs__px(LGFS_CH_W, s->level) : zero;
+    case LGFS_STROBE:
+      return (on_edge && ((frame / s->pos) & 1u) == 0u) ? lgfs__px(LGFS_CH_W, s->level) : zero;
+    case LGFS_FADE: {
+      const uint32_t ph = frame % s->pos, half = s->pos / 2u;
+      const uint32_t up = ph <= half ? ph : (uint32_t)s->pos - ph;
+      return on_edge ? lgfs__px(s->channel, (uint16_t)(((uint32_t)s->level * up) / (half ? half : 1u))) : zero;
+    }
+    case LGFS_CYCLE:
+      return on_edge ? lgfs__hue(((frame % s->pos) * 1536u) / s->pos, s->level) : zero;
+    case LGFS_OFF: case LGFS_BLANK: case LGFS_FREEZE: default:
       return zero;
   }
 }
@@ -225,15 +285,23 @@ static inline uint32_t lgfs_power_q16(const LgfsPixel top[LGFS_LEDS], const Lgfs
   return (uint32_t)((sum << 16) / LGFS__FULL_SUM);
 }
 
-/* Same figure straight from a selection, without arrays (frame 0; TICK is one LED either way). */
+/* Same figure straight from a selection, without arrays, at the card's brightest frame
+ * (frame 0 for still cards; the peak of FADE; a two-channel hue for CYCLE). */
 static inline uint32_t lgfs_selection_power_q16(const LgfsSelection* s) {
-  uint64_t sum = 0;
-  for (int e = 0; e < 2; ++e)
-    for (int i = 0; i < LGFS_LEDS; ++i) {
-      const LgfsPixel p = lgfs_pixel(s, 0, e, i);
-      sum += (uint64_t)p.r + p.g + p.b;
-    }
-  return (uint32_t)((sum << 16) / LGFS__FULL_SUM);
+  uint32_t frames[3] = { 0u, 0u, 0u }, worst = 0u;
+  if (s->card == LGFS_FADE) frames[1] = s->pos / 2u;
+  if (s->card == LGFS_CYCLE) { frames[1] = s->pos / 6u; frames[2] = s->pos / 2u; }
+  for (int f = 0; f < 3; ++f) {
+    uint64_t sum = 0;
+    for (int e = 0; e < 2; ++e)
+      for (int i = 0; i < LGFS_LEDS; ++i) {
+        const LgfsPixel p = lgfs_pixel(s, frames[f], e, i);
+        sum += (uint64_t)p.r + p.g + p.b;
+      }
+    const uint32_t q = (uint32_t)((sum << 16) / LGFS__FULL_SUM);
+    if (q > worst) worst = q;
+  }
+  return worst;
 }
 
 /* Parse text into a selection. Returns 0 on success, -1 on error (err filled).
@@ -326,6 +394,37 @@ static inline int lgfs_parse(const char* text, LgfsSelection* out, char* err, si
       s.level = 16; break;
     case LGFS_TICK:
       LGFS__MAXTOK(2); s.edge = LGFS_EDGE_TOP; LGFS__OPT_LEVEL(1, 16384); break;
+    case LGFS_SPLIT: {
+      int found = 0;
+      LGFS__NEED(2); LGFS__MAXTOK(4);
+      if (!lgfs__edge(tok[1], 1, &s.edge)) { lgfs__set_err(err, errlen, "bad edge"); return -1; }
+      for (int p = 0; p < LGFS_MIX_COUNT; ++p) if (lgfs__ieq(tok[2], LGFS_MIX_NAMES[p])) { s.pair = (uint8_t)p; found = 1; }
+      if (!found) { lgfs__set_err(err, errlen, "pair rb|rg|gb|rw|bw"); return -1; }
+      LGFS__OPT_LEVEL(3, 6144); break;
+    }
+    case LGFS_HUE:
+      LGFS__NEED(1); LGFS__MAXTOK(3);
+      if (!lgfs__edge(tok[1], 1, &s.edge)) { lgfs__set_err(err, errlen, "bad edge"); return -1; }
+      LGFS__OPT_LEVEL(2, 6144); break;
+    case LGFS_CLAP:
+      LGFS__MAXTOK(3); s.edge = LGFS_EDGE_BOTH; s.pos = 3;
+      if (ntok > 1 && (!lgfs__uint(tok[1], 50, &s.pos) || s.pos == 0)) { lgfs__set_err(err, errlen, "frames 1..50"); return -1; }
+      LGFS__OPT_LEVEL(2, 6144); break;
+    case LGFS_SWEEP: case LGFS_COMET:
+      LGFS__NEED(2); LGFS__MAXTOK(s.card == LGFS_SWEEP ? 5 : 4);
+      if (!lgfs__edge(tok[1], 1, &s.edge)) { lgfs__set_err(err, errlen, "bad edge"); return -1; }
+      if (!lgfs__uint(tok[2], 400, &s.pos) || s.pos == 0) { lgfs__set_err(err, errlen, "step 1..400"); return -1; }
+      LGFS__OPT_LEVEL(3, 16384); LGFS__OPT_CH(4); break;
+    case LGFS_FLASH: case LGFS_STROBE: case LGFS_FADE: case LGFS_CYCLE: {
+      const uint16_t lo = s.card == LGFS_STROBE ? 1 : (s.card == LGFS_CYCLE ? 6 : 2);
+      const uint16_t hi = s.card == LGFS_STROBE ? 100 : (s.card == LGFS_FLASH ? 1000 : (s.card == LGFS_FADE ? 2000 : 6000));
+      LGFS__NEED(2); LGFS__MAXTOK(s.card == LGFS_FADE ? 5 : 4);
+      if (!lgfs__edge(tok[1], 1, &s.edge)) { lgfs__set_err(err, errlen, "bad edge"); return -1; }
+      if (!lgfs__uint(tok[2], hi, &s.pos) || s.pos < lo) { lgfs__set_err(err, errlen, "bad period"); return -1; }
+      LGFS__OPT_LEVEL(3, 6144); LGFS__OPT_CH(4); break;
+    }
+    case LGFS_FREEZE:
+      LGFS__MAXTOK(1); s.edge = LGFS_EDGE_BOTH; break;
     default:
       lgfs__set_err(err, errlen, "unknown card"); return -1;
   }
@@ -365,6 +464,16 @@ static inline int lgfs_format(const LgfsSelection* s, char* buf, size_t n) {
       LGFS__PUT(","); LGFS__PUTC(chs[s->channel]); break;
     case LGFS_MIX: LGFS__PUT(","); LGFS__PUT(LGFS_MIX_NAMES[s->pair]); LGFS__PUT(","); LGFS__PUTN(s->level); break;
     case LGFS_LOWCODES: LGFS__PUT(","); LGFS__PUT(edges[s->edge]); break;
+    case LGFS_SPLIT: LGFS__PUT(","); LGFS__PUT(edges[s->edge]); LGFS__PUT(","); LGFS__PUT(LGFS_MIX_NAMES[s->pair]);
+      LGFS__PUT(","); LGFS__PUTN(s->level); break;
+    case LGFS_HUE: LGFS__PUT(","); LGFS__PUT(edges[s->edge]); LGFS__PUT(","); LGFS__PUTN(s->level); break;
+    case LGFS_CLAP: LGFS__PUT(","); LGFS__PUTN(s->pos); LGFS__PUT(","); LGFS__PUTN(s->level); break;
+    case LGFS_SWEEP: case LGFS_FADE:
+      LGFS__PUT(","); LGFS__PUT(edges[s->edge]); LGFS__PUT(","); LGFS__PUTN(s->pos);
+      LGFS__PUT(","); LGFS__PUTN(s->level); LGFS__PUT(","); LGFS__PUTC(chs[s->channel]); break;
+    case LGFS_COMET: case LGFS_FLASH: case LGFS_STROBE: case LGFS_CYCLE:
+      LGFS__PUT(","); LGFS__PUT(edges[s->edge]); LGFS__PUT(","); LGFS__PUTN(s->pos);
+      LGFS__PUT(","); LGFS__PUTN(s->level); break;
     default: break;
   }
 #undef LGFS__PUTC
