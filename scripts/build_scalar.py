@@ -100,6 +100,7 @@ PRODUCT_OUTPUT_CHAIN_FILES = [
     'core/visual/product_runtime_policy.cpp',
 ]
 PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h', 'palette_clock.h', 'hd_pixel16.h']
+LGFS_BENCH_FILES = ['lgfs_cards.h', 'lgfs_bench.h']  # Captain 16 Oct 2026: LGFS optical test cards (opcode 28)
 PALETTE_MORPH_FILES = ['palette_transition.h', 'centre_palette_engine.h']
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_target.h',
@@ -593,6 +594,8 @@ def main():
                         help='lane P4 step 7: in-house analysis state and scene state (palettes) in DTCM; needs --inhouse-analysis24 --palette-runtime')
     parser.add_argument('--boot-palette-random',action='store_true',
                         help='Captain 15 Oct 2026: random warm/cool palette pair at each power-on (core/visual/boot_palette_random.h)')
+    parser.add_argument('--lgfs-bench',action='store_true',
+                        help='Captain 16 Oct 2026: LGFS optical test cards, opcode 28 (lgfs_bench.h); idle until a card is selected')
     parser.add_argument('--v9-release-puppet',action='store_true',
                         help='TEST IMAGE ONLY (P6): host-timed R01+R03 release; board 0 speed 0.501 arms both edges, the drop lands 6 s later. Never a product image')
     parser.add_argument('--poly24-cmsis',action='store_true',
@@ -690,6 +693,7 @@ def main():
             material += [ROOT/TEMPO_FIELD_MANIFEST, ROOT/'scripts/verify_tempo_adaptation.py']
         if args.palette_runtime:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_PLATFORM_FILES]
+            if args.lgfs_bench: material += [ROOT/'platform/ra8p1'/name for name in LGFS_BENCH_FILES]
             material += [ROOT/'src/k1'/name for name in PRODUCT_OUTPUT_CHAIN_FILES]
         if args.palette_morph:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_MORPH_FILES]
@@ -800,7 +804,7 @@ def main():
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {}),**({'analysis_dtcm':True} if args.analysis_dtcm else {}),**({'v9_release_puppet':True} if args.v9_release_puppet else {}),**({'boot_palette_random':True} if args.boot_palette_random else {})),sort_keys=True).encode()).hexdigest()
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,dual_edge_donor=bool(args.dual_edge_donor),emotiscope_port=bool(args.emotiscope_port),titan_top_output=bool(args.titan_top_output),emotiscope_cxxflags=EMOTISCOPE_CXXFLAGS if args.emotiscope_port else '',tempo_field=bool(args.tempo_field),tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime and not args.emotiscope_port),live_runtime=args.live_runtime,live_emit=args.live_emit,p601_loopback=bool(args.p601_loopback),**({'inhouse_analysis24':True} if args.inhouse_analysis24 else {}),**({'poly24_cmsis':CMSIS_DSP_PACK_SHA256} if args.poly24_cmsis else {}),**({'analysis_dtcm':True} if args.analysis_dtcm else {}),**({'v9_release_puppet':True} if args.v9_release_puppet else {}),**({'boot_palette_random':True} if args.boot_palette_random else {}),**({'lgfs_bench':True} if args.lgfs_bench else {})),sort_keys=True).encode()).hexdigest()
         receipt.update(deploy_admissible=args.asrc_tcm != 'data+code')
         receipt.update(build_id=identity,source_pin=EMOTISCOPE_DONOR_COMMIT if args.emotiscope_port else PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,profile=args.profile,asrc_tcm=args.asrc_tcm,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
@@ -819,6 +823,7 @@ def main():
                                       'sources':CMSIS_DSP_SOURCES} if args.poly24_cmsis else None),
                        **({'boot_palette_random':'random warm/cool palette pair at each power-on (47 pairs, boot_palette_pairs.h)'} if args.boot_palette_random else {}),
                        **({'v9_release_puppet':'TEST IMAGE ONLY: host-timed R01+R03 release (board 0 speed 0.501 arms)'} if args.v9_release_puppet else {}),
+                       **({'lgfs_bench':'LGFS optical test cards, opcode 28; raw 16-bit codes at the wire while a card is selected; cap 6160/65536 of both-edge white'} if args.lgfs_bench else {}),
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -910,6 +915,10 @@ def main():
         if args.titan_top_output: defines.append('-DK1_TITAN_TOP_OUTPUT=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
+        if args.lgfs_bench:
+            if not (args.palette_runtime and args.palette_ws2816_gpt_pair):
+                raise RuntimeError('--lgfs-bench needs --palette-runtime --palette-ws2816-gpt-pair')
+            defines.append('-DK1_LGFS_BENCH=1')
         if args.boot_palette_random:
             if not (args.emotiscope_port and args.titan_top_output and args.palette_runtime):
                 raise RuntimeError('--boot-palette-random needs --emotiscope-port --titan-top-output --palette-runtime')
@@ -1083,6 +1092,8 @@ def main():
                                          "src += ws281x_diagnostic + Glob('pcm1808_target.c')"))
         if args.palette_runtime:
             for name in PALETTE_PLATFORM_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+            if args.lgfs_bench:
+                for name in LGFS_BENCH_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.dual_edge_donor:
             for name in ('k1_dual_edge_donor.cpp','k1_dual_edge_donor.h'):
                 shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)

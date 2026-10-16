@@ -48,6 +48,9 @@
 #endif
 #include "palette_clock.h"
 #include "hd_pixel16.h"
+#ifdef K1_LGFS_BENCH
+#include "lgfs_bench.h"
+#endif
 #include "core/visual/audio_focus.h"
 #endif
 #ifdef K1_PCM1808_TARGET
@@ -666,8 +669,15 @@ void palette_step(bool emit) {
       (void)palettes.stageWideFrame(config.output_channel,wide,160U); }
     auto* wire_a0=palette_wire_pending+64U+native_bytes;
     auto* wire_a1=wire_a0+lane_bytes;
+#ifdef K1_LGFS_BENCH
+    // LGFS card (Captain 16 Oct 2026): raw 16-bit codes replace the scene at the wire.
+    const bool lgfs_on=k1::titan::lgfs::lgfs_begin_frame();
+    const auto size0=lgfs_on?k1::titan::lgfs::lgfs_pack_lane(wire_a0,lane_bytes,0U,0U):palettes.packBenchGrb48Lane(wire_a0,lane_bytes,0U);
+    const auto size1=lgfs_on?k1::titan::lgfs::lgfs_pack_lane(wire_a1,lane_bytes,0U,1U):palettes.packBenchGrb48Lane(wire_a1,lane_bytes,1U);
+#else
     const auto size0=palettes.packBenchGrb48Lane(wire_a0,lane_bytes,0U);
     const auto size1=palettes.packBenchGrb48Lane(wire_a1,lane_bytes,1U);
+#endif
     if(size0==lane_bytes && size1==lane_bytes && !fixture_hold) {
       const std::uint32_t generation = ++palette_pair_generation;
       snapshot_word(12, generation);
@@ -696,8 +706,14 @@ void palette_step(bool emit) {
     // Secondary submission is independent of primary frame validity/submit.
     if(palettes.secondaryOutputEnabled()&&secondary_initialised&&!secondary_black_pending&&!fixture_hold){
       static std::uint8_t top_a0[K1_WS281X_PAIR_LANE_BYTES],top_a1[K1_WS281X_PAIR_LANE_BYTES];
+#ifdef K1_LGFS_BENCH
+      const auto top_size0=lgfs_on?k1::titan::lgfs::lgfs_pack_lane(top_a0,sizeof(top_a0),1U,0U):palettes.packBoardGrb48Lane(top_a0,sizeof(top_a0),1U,0U);
+      const auto top_size1=lgfs_on?k1::titan::lgfs::lgfs_pack_lane(top_a1,sizeof(top_a1),1U,1U):palettes.packBoardGrb48Lane(top_a1,sizeof(top_a1),1U,1U);
+      if(top_size0==sizeof(top_a0)&&top_size1==sizeof(top_a1)){
+#else
       if(palettes.packBoardGrb48Lane(top_a0,sizeof(top_a0),1U,0U)==sizeof(top_a0)&&
           palettes.packBoardGrb48Lane(top_a1,sizeof(top_a1),1U,1U)==sizeof(top_a1)){
+#endif
         const std::uint32_t generation=++palette_pair_generation;
         const int top_status=k1_ws281x_gpt_dma_hw_top_submit(top_a0,sizeof(top_a0),top_a1,sizeof(top_a1),3U,generation);
         if(top_status==K1_WS281X_SUBMIT_ACCEPTED){
@@ -1733,6 +1749,25 @@ void execute() {
 #endif
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+#ifdef K1_LGFS_BENCH
+  // LGFS optical test cards (Captain 16 Oct 2026). Payload: u32 version 1, then a
+  // NUL-terminated ASCII selection. Only publishes; the emit path applies it.
+  if (command == K1_LGFS_OPCODE) {
+    if (size < 6U || size > 4U + LGFS_TEXT_MAX || get32(rx+32) != 1U || rx[32U+size-1U] != 0U) { error(3); return; }
+    char lgfs_text[LGFS_TEXT_MAX]{};
+    std::memcpy(lgfs_text, rx+36U, size-4U);
+    const int n = k1::titan::lgfs::lgfs_command(lgfs_text, trace.data, sizeof(trace.data), palettes.emitEnabled(),
+#ifdef K1_TITAN_TOP_OUTPUT
+                                                palettes.secondaryOutputEnabled()
+#else
+                                                false
+#endif
+                                                );
+    if (n < 0 || std::size_t(n) >= sizeof(trace.data)) error(8);
+    else respond(0, 0, trace.data, std::size_t(n));
+    fill=0; wanted=32; return;
+  }
+#endif
 #if defined(K1_EMOTISCOPE_PORT) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
   // Pair-owner builds replace this reject with the donor GET/PATCH queue.
   if (command == k1::titan::kLiveConfigOpcode) { error(3); return; }
