@@ -115,6 +115,9 @@ struct InhouseWaveformAudio final {
   bool peak_summary_valid = false;
   float vu_level = 0.0F;
   float vu_average = 0.0F;
+  // 1 when the microphone loud-guard is idle. Above 1 by the factor that guard
+  // turned the ×16 gain down. 0 means this observation did not carry it.
+  float guard_headroom = 0.0F;
   float spectral_energy = 0.0F;
   float novelty = 0.0F;
   std::array<std::array<std::int16_t, 96>, 4> pcm_history{};

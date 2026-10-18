@@ -57,6 +57,9 @@ class InhouseAudio final {
   [[nodiscard]] bool configure(const InhouseAudioConfig& config) noexcept;
   [[nodiscard]] bool setMood(unsigned board, float mood) noexcept;
   void setTempoDemand(unsigned board, bool enabled) noexcept;
+  // Gain the PDM loud-guard applied to the hop about to be analysed, Q8.
+  // 0 leaves guard_headroom at 1 (host tests, and a guard that did not run).
+  void setGuardGain(std::uint32_t gain_q8) noexcept { guard_gain_q8_ = gain_q8; }
   [[nodiscard]] float mood(unsigned board) const noexcept {
     return board < conditioning_.size() ? conditioning_[board].mood : 0.0F;
   }
@@ -134,6 +137,7 @@ class InhouseAudio final {
   std::uint32_t input_samples_ = 64U;
   float follower_ = 350.0F;
   float peak_scaled_ = 0.0F;
+  std::uint32_t guard_gain_q8_ = 0;
   float previous_rms_ = 0.0F;
   float previous_vu_ = 0.0F;
   bool rms_silent_ = false;

@@ -38,13 +38,33 @@ struct BootPaletteChoice final {
   std::uint32_t upper;  // board 1
 };
 
+// Opcode numbers the boot pick must never return (rainbow / full-wheel palettes).
+inline constexpr std::uint8_t kBootPaletteRainbowBanned[] = {15, 16, 18, 26, 35, 36, 43};
+
+inline bool bootPaletteRainbowBanned(std::uint8_t id) noexcept {
+  for (const std::uint8_t banned : kBootPaletteRainbowBanned) {
+    if (id == banned) return true;
+  }
+  return false;
+}
+
 // Final avalanche so neighbouring hashes land on unrelated pairs.
+// A pair that contains a banned palette is skipped. The current pair table has
+// none, so a clean pair keeps the same index as before this refusal.
 inline BootPaletteChoice bootPalettePick(std::uint32_t hash) noexcept {
   std::uint32_t x = hash;
   x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
-  const auto& pair = kBootPalettePairs[x % kBootPalettePairs.size()];
-  const bool warm_upper = ((x / kBootPalettePairs.size()) & 1U) != 0U;
-  return warm_upper ? BootPaletteChoice{pair.cool, pair.warm} : BootPaletteChoice{pair.warm, pair.cool};
+  const unsigned n = static_cast<unsigned>(kBootPalettePairs.size());
+  const unsigned index = x % n;
+  for (unsigned step = 0; step < n; ++step) {
+    const auto& pair = kBootPalettePairs[(index + step) % n];
+    if (bootPaletteRainbowBanned(pair.warm) || bootPaletteRainbowBanned(pair.cool)) continue;
+    const bool warm_upper = ((x / n) & 1U) != 0U;
+    return warm_upper ? BootPaletteChoice{pair.cool, pair.warm}
+                       : BootPaletteChoice{pair.warm, pair.cool};
+  }
+  const auto& pair = kBootPalettePairs[0];
+  return BootPaletteChoice{pair.warm, pair.cool};
 }
 
 }  // namespace k1::core::visual

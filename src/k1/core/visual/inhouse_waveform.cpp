@@ -823,7 +823,11 @@ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float posit
 #else
   constexpr InhouseV9Accent accent_config = kInhouseV9AccentConfig;
 #endif
-  float width = 0.5F + 3.5F * level;
+  // At and below the old loud stop, width is unchanged. Past it, the spare
+  // loudness (level - 1, scaled so the shoulder's far end is 1) adds width.
+  const float shaped = std::min(level, 1.0F);
+  const float over = std::max(0.0F, (level - 1.0F) / 0.85F);
+  float width = 0.5F + 3.5F * shaped + 16.0F * over;
   if (accent_ > 0.0F) width += accent_config.widen_px * accent_;
   float amplitude = gain;
   if (variant == InhouseV9Variant::kConstantEnergy) amplitude = gain * 2.0F / (width + 1.0F);
@@ -1105,16 +1109,25 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   const bool mode32 = controls.mode == 32U;
   const float motion = std::isfinite(controls.motion_scale)
       ? std::max(0.0F, std::min(4.0F, controls.motion_scale)) : 1.0F;
-  // Level: fixed dB transfer of the pre-AGC RMS (-33 dBFS -> 0, ceiling -> 1). It sets
-  // deposit amplitude and width only; it never changes the release.
-  const float vu = fresh ? clamp01(audio.vu_level) : 0.0F;
+  // Level: the same decibel line as before (-33 dBFS -> 0, -9 dBFS -> 1) while
+  // the microphone loud-guard is idle. guard_headroom puts back the gain that
+  // guard removed, and past -9 dBFS a soft shoulder keeps rising instead of
+  // stopping. It still only sets deposit amplitude, width and, on mode 32, place.
+  const float vu = fresh && std::isfinite(audio.vu_level) ? std::max(0.0F, audio.vu_level) : 0.0F;
+  const float head = fresh && audio.guard_headroom > 1.0F && std::isfinite(audio.guard_headroom)
+      ? audio.guard_headroom : 1.0F;
+  const float true_vu = vu * head;
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
   const float ceiling_db = v9_ceiling_db_;
 #else
   constexpr float ceiling_db = kInhouseV9LevelCeilingDb;
 #endif
-  const float level = silent || vu <= 0.0F ? 0.0F
-      : clamp01((20.0F * ::log10f(vu) + 33.0F) / (ceiling_db + 33.0F));
+  float level = 0.0F;
+  if (!silent && true_vu > 0.0F) {
+    const float db = 20.0F * ::log10f(true_vu);
+    if (db <= ceiling_db) level = clamp01((db + 33.0F) / (ceiling_db + 33.0F));
+    else level = 1.0F + 0.85F * (1.0F - ::expf(-(db - ceiling_db) / 12.0F));
+  }
   observation_.level = level;
   observation_.tonality_gate = f(tonality_gate_);
   observation_.centroid_strength = centroid_strength_;
@@ -1141,7 +1154,11 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
     for (unsigned i = 0; i < 80U; ++i) { intensity_[i] = 0; colour_[i] = {}; offset_[i] = 0.0F; }
     observation_.peak_stage1 = ema(observation_.peak_stage1, peak, dt, 0.016F);
     observation_.peak_stage2 = ema(observation_.peak_stage2, observation_.peak_stage1, dt, 0.023F);
-    position = std::min(159.0F, 80.0F + observation_.peak_stage2 * 0.7F * 80.0F);
+    // Under the old stop this is the existing 0.70 of the half-strip. The spare
+    // 0.30 is the loud-guard overshoot, so a clipped chorus still travels.
+    const float over = std::max(0.0F, (level - 1.0F) / 0.85F);
+    const float travel = std::min(1.0F, observation_.peak_stage2 * 0.7F + 0.30F * over);
+    position = std::min(159.0F, 80.0F + travel * 80.0F);
     if (release_ > 0.0F) position = 80.0F + (position - 80.0F) * (1.0F - release_);
     observation_.tempo_weight = 0.0F;
   } else {

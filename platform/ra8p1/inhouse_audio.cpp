@@ -1,4 +1,5 @@
 #include "inhouse_audio.h"
+#include "k1_pdm_sensitivity.h"
 
 #include <algorithm>
 #include <cmath>
@@ -242,6 +243,16 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
   publication_.quiet_entry_rms = config_.silence_rms_enter;
   publication_.vu_level = f(divq(std::max<std::int32_t>(0, q(rms) - q(config_.vu_floor)),
       q(1.0F - config_.vu_floor)));
+  // The hop RMS above is after the loud-guard. Fold the unused ×16 gain back
+  // in so a louder room is still a bigger number. Idle and unknown stay at 1.
+  {
+    float headroom = 1.0F;
+    if (guard_gain_q8_ > 0U && guard_gain_q8_ < K1_PDM_SENSITIVITY_Q8) {
+      headroom = static_cast<float>(K1_PDM_SENSITIVITY_Q8) /
+          static_cast<float>(guard_gain_q8_);
+    }
+    publication_.guard_headroom = headroom;
+  }
   publication_.vu_average = f((q(publication_.vu_level) + q(previous_vu_)) / 2);
   previous_vu_ = publication_.vu_level;
   const float drive = std::max(0.0F, publication_.raw_peak_pcm - config_.drive_floor_pcm);

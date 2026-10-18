@@ -239,6 +239,61 @@ def render_live_schema_include(data: bytes, source: str) -> str:
 def command(args, **kwargs):
     return subprocess.check_output([str(a) for a in args], text=True, **kwargs)
 
+def stage_usb_enumeration_repair(stage: Path) -> dict:
+    """Repair the disposable USBFS module 0 copy; preserve the pinned BSP.
+
+    Charging detection cannot observe BCCTRL on module 0 but blocks service.
+    UNKNOWN interrupt classifications have a no-op consumer and must not use
+    ring capacity. This does not protect against eight pending real events.
+    """
+    stage = stage.absolute()
+    if stage.is_symlink() or stage.resolve().is_relative_to(BSP.resolve()):
+        raise RuntimeError('USB repair requires a disposable stage outside the BSP')
+    edits = (
+        ('configuration.xml',
+         '746ba3a2f01ff96d23008dd3197f06cf049ac9671f521820522a2b6f603c9ff8',
+         '<property id="config.driver.usb_basic.bc_function" value="config.driver.usb_basic.bc_function.enable"/>',
+         '<property id="config.driver.usb_basic.bc_function" value="config.driver.usb_basic.bc_function.disable"/>'),
+        ('ra_cfg/fsp_cfg/r_usb_basic_cfg.h',
+         '6ee749d8f9b3ad295dfc7c6e1b6310e0eeb0d82d65b4ed48bb9a159678139bd7',
+         '#define USB_CFG_BC (USB_CFG_ENABLE)',
+         '#define USB_CFG_BC (USB_CFG_DISABLE)'),
+        ('ra/fsp/src/r_usb_basic/src/driver/r_usb_pinthandler_usbip0.c',
+         '3d9e0a7fd9c84909f887bdedfe67363e056be5e33adab07b31b0c5be4c124548',
+         '                               g_usb_pstd_usb_int.buf[g_usb_pstd_usb_int.wp].p_cfg->module_number);\n\n    /* Write count up */',
+         '                               g_usb_pstd_usb_int.buf[g_usb_pstd_usb_int.wp].p_cfg->module_number);\n\n'
+         '    /* K1: UNKNOWN has no consumer work; preserve capacity for real events. */\n'
+         '    if (USB_INT_UNKNOWN == g_usb_pstd_usb_int.buf[g_usb_pstd_usb_int.wp].type)\n'
+         '    {\n'
+         '        return;\n'
+         '    }\n\n'
+         '    /* Write count up */'),
+    )
+    prepared = []
+    for relative, expected, old, new in edits:
+        path = stage / relative
+        if (not path.is_file() or path.resolve() != path.absolute()
+                or path.stat().st_nlink != 1):
+            raise RuntimeError(f'USB repair requires a regular independent copy: {relative}')
+        before = path.read_bytes()
+        if hashlib.sha256(before).hexdigest() != expected:
+            raise RuntimeError(f'USB repair source hash mismatch: {relative}')
+        if before.count(old.encode()) != 1:
+            raise RuntimeError(f'USB repair anchor mismatch: {relative}')
+        after = before.replace(old.encode(), new.encode())
+        prepared.append((path, before, after))
+    # Validate every input before writing any file; an unexpected source fails closed.
+    for path, before, after in prepared:
+        path.write_bytes(after)
+    return {'repair': 'usbfs0-bc-disabled-unknown-filter-v1',
+            'scope': 'disposable stage only; bare-metal producer',
+            'generic_queue_overflow_protection': False,
+            'files': {str(path.relative_to(stage)): {
+                'before_sha256': hashlib.sha256(before).hexdigest(),
+                'after_sha256': hashlib.sha256(after).hexdigest(),
+            } for path, before, after in prepared}}
+
+
 def stage_dmac_control_initialisation(stage: Path) -> dict:
     """Patch the disposable FSP copy, never the pinned BSP.
 
@@ -832,6 +887,7 @@ def main():
             # inputs into this disposable stage; never generate into the oracle.
             if target.is_dir(): shutil.copytree(target,stage/name)
             else: shutil.copy2(target,stage/name)
+        receipt['usb_enumeration_repair'] = stage_usb_enumeration_repair(stage)
         if args.palette_gpt_dma or args.palette_ws2816_gpt_pair:
             receipt['dmac_control_initialisation'] = stage_dmac_control_initialisation(stage)
         rtconfig=stage/'rtconfig.py'
