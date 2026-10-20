@@ -1,0 +1,1 @@
+Assertion failed: (r.consume(malformed)==LiveHopStatus::Fault), function main, file test_emotiscope_live_bridge.cpp, line 65.

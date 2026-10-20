@@ -1,0 +1,158 @@
+{
+  "source_commit": "0c93d2b0a6802540f751e6e24097cefcfeb0093a",
+  "build_id": "13dd46e901e575c93cde12835f0874a32b16ee7af532bc6dc480d02a950f3c04",
+  "hex_sha256": "0aec5b9d6ede1585b515b54ea78eac578d43aac20de177f61ccef39c44a49224",
+  "captured_utc": "2026-10-11T04:23:54.067245+00:00",
+  "committed_patch_sha256": "1efddf11b9f4a472f763ffe55ec46bb6b204c2878c754cf952457e1f97fb115a",
+  "committed_patch_bytes": 42869,
+  "grok_consumption": "not observed for committed-feature.diff",
+  "requested_session_uuid": "8fa00e53-6a9b-491b-a501-17ef366ba0f8",
+  "native_uuid_confirmation": "terminal end event",
+  "model_requested": "grok-4.7",
+  "reasoning_requested": "high",
+  "heavy_500k": "unobserved",
+  "original_reviewed_diff_bytes": 1,
+  "original_diff_preserved": true,
+  "terminal_exit": 1,
+  "review_status": "INCOMPLETE",
+  "final_verdict_observed": false,
+  "stream_age_at_terminal_check_seconds": 288.6,
+  "native_session_uuid": "8fa00e53-6a9b-491b-a501-17ef366ba0f8",
+  "request_id": "876aef27-29e8-487b-ba61-6a0b577b1c2d",
+  "stop_reason": "cancelled",
+  "num_turns": 6,
+  "model_usage": {
+    "grok-4.7-build": {
+      "inputTokens": 176076,
+      "outputTokens": 16060,
+      "cacheReadInputTokens": 502784,
+      "cacheCreationInputTokens": 0,
+      "modelCalls": 6,
+      "costUSD": 0.23796736
+    }
+  },
+  "actual_usage": {
+    "input_tokens": 176076,
+    "cache_read_input_tokens": 502784,
+    "cache_creation_input_tokens": 0,
+    "output_tokens": 16060,
+    "reasoning_tokens": 14896,
+    "total_tokens": 694920
+  },
+  "actual_cost_usd": 0.23796736,
+  "max_turns_reached": true,
+  "actionable_finding_emitted": false,
+  "retry_performed": false,
+  "completed_read_receipts": [
+    {
+      "tool_call_id": "call-dfc60dfe-afb7-4fca-8c9c-736554e99e79-0",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM/Kx-Titan/docs/product-charter.lock.json"
+      }
+    },
+    {
+      "tool_call_id": "call-dfc60dfe-afb7-4fca-8c9c-736554e99e79-1",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM/Kx-Titan/docs/product-charter.md",
+        "limit": 200
+      }
+    },
+    {
+      "tool_call_id": "call-5099526b-6b5c-498f-8b00-823f06ea8eaf-4",
+      "status": "failed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/reviewed.diff",
+        "limit": 200
+      }
+    },
+    {
+      "tool_call_id": "call-5099526b-6b5c-498f-8b00-823f06ea8eaf-5",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/emotiscope_control.h",
+        "offset": 1,
+        "limit": 500
+      }
+    },
+    {
+      "tool_call_id": "call-b2bf57f4-4310-4ab5-9ac3-a50251d903be-7",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/palette_runtime.h",
+        "offset": 1,
+        "limit": 180
+      }
+    },
+    {
+      "tool_call_id": "call-b2bf57f4-4310-4ab5-9ac3-a50251d903be-8",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/palette_runtime.cpp",
+        "offset": 450,
+        "limit": 200
+      }
+    },
+    {
+      "tool_call_id": "call-df0e8e03-2d74-417a-b85a-26e91fbd6f5b-10",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/fixture_app.cpp",
+        "offset": 1240,
+        "limit": 200
+      }
+    },
+    {
+      "tool_call_id": "call-df0e8e03-2d74-417a-b85a-26e91fbd6f5b-11",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tests/host/test_emotiscope_controls.cpp",
+        "offset": 470,
+        "limit": 150
+      }
+    },
+    {
+      "tool_call_id": "call-387cd8c7-bc30-4ed9-b5d9-a3718460be15-12",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/fixture_app.cpp",
+        "offset": 470,
+        "limit": 160
+      }
+    },
+    {
+      "tool_call_id": "call-387cd8c7-bc30-4ed9-b5d9-a3718460be15-13",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tools/serial-studio/emotiscope_control.py",
+        "offset": 1,
+        "limit": 350
+      }
+    },
+    {
+      "tool_call_id": "call-387cd8c7-bc30-4ed9-b5d9-a3718460be15-14",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/contracts/titan-emotiscope-v1.json",
+        "offset": 150,
+        "limit": 120
+      }
+    },
+    {
+      "tool_call_id": "call-f22c3e05-5d55-459d-b0ab-30d8ea5c774f-17",
+      "status": "completed",
+      "input": {
+        "target_file": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tests/host/test_palette_runtime.cpp",
+        "offset": 1,
+        "limit": 180
+      }
+    }
+  ],
+  "original_reviewed_diff_status": "FAILED_EMPTY_ARTIFACT",
+  "committed_range": "119ba2c498054fb0206e453cf38f6968222431c9..1e69d2f503494ca8b1baac7b782ea38aa228a778",
+  "committed_range_sha256": "dc3ce85ed8f880134046ba473d8e9fb2760286e852f903345024d318ac61b2a5",
+  "committed_range_bytes": 42975,
+  "committed_range_captured_utc": "2026-10-11T04:24:49.647068+00:00",
+  "committed_range_grok_consumption": "not observed"
+}

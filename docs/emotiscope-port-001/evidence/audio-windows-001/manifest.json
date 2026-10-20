@@ -56,5 +56,96 @@
     "rate": 12800,
     "normalisation": "none; byte-exact s16le slice of approved retained PCM",
     "cue_domain": "retained75s source-file time; not independently verified commercial-release time"
+  },
+  {
+    "track": "boom",
+    "source": "/Users/spectrasynq/Downloads/Tie\u0308sto-&-Sevenn-MrBlack-BOOM.mp3",
+    "source_sha256": "3d60c58eccef198bb8062bef68df4d882c1b49c8f246623c4ba88d337cad8e4d",
+    "wav": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/audio-boom-001/boom-0-75s-pcm16.wav",
+    "wav_sha256": "09c9a02f439cbeb66f006cf5a973ae7988b5ef2e9ecdcf470c140d6918e63652",
+    "start_s": 0,
+    "duration_s": 75,
+    "rate": 44100,
+    "channels": 2,
+    "sample_format": "pcm_s16le",
+    "frames": 3307500,
+    "normalisation": "one constant attenuation from complete 0..75s float sample peak; no section normalisation",
+    "gain_linear": 0.5965932240915387,
+    "gain_db": -4.486433670379755,
+    "sample_headroom_db": 1.0,
+    "cue_domain": "first decoded sample of pinned MP3; 0..75 s; not MP3 container timestamps",
+    "suite_role": "development",
+    "lineage_id": "boom:3d60c58eccef198bb8062bef68df4d882c1b49c8f246623c4ba88d337cad8e4d",
+    "lineage_policy": "All BOOM derivatives are one development song lineage, never independent holdouts",
+    "scored_window_s": [
+      28,
+      75
+    ],
+    "descriptors": [
+      {
+        "window_s": [
+          31,
+          42
+        ],
+        "description": "build with increasing event density",
+        "status": "tentative descriptive region; no exact onset truth"
+      },
+      {
+        "window_s": [
+          46,
+          50
+        ],
+        "description": "pre-cut build",
+        "status": "tentative descriptive region; no exact onset truth"
+      },
+      {
+        "window_s": [
+          50,
+          55
+        ],
+        "description": "cut and reduced-level interval",
+        "status": "descriptive region, not exact silence"
+      },
+      {
+        "window_s": [
+          55,
+          55.5
+        ],
+        "description": "re-entry transition",
+        "status": "tentative subdivisions; triplet interpretation unconfirmed"
+      },
+      {
+        "window_s": [
+          55.5,
+          75
+        ],
+        "description": "post-entry rhythmic pattern",
+        "status": "tentative subdivisions; no hardcoded BPM truth"
+      }
+    ],
+    "derivation_metadata": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/audio-windows-001/boom-0-75s-derivation.json",
+    "derivation_metadata_sha256": "404b38f2d33f46357ac64d3d420ba432cb0a6730c4d9c16206b1ab4e0ecf5c0a"
+  },
+  {
+    "id": "dopex-0-75s-heldout",
+    "track": "dopex",
+    "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/dopex.wav",
+    "source_sha256": "60929d87b030c92b803e0d734ed297bcf2ad29ac444db801e06c8c51538d3404",
+    "wav": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/dopex.wav",
+    "wav_sha256": "60929d87b030c92b803e0d734ed297bcf2ad29ac444db801e06c8c51538d3404",
+    "start_s": 0,
+    "duration_s": 75.0,
+    "rate": 24000,
+    "channels": 1,
+    "sample_format": "pcm_s16le",
+    "frames": 1800000,
+    "normalisation": "unchanged retained approved fixture; no new normalisation or cue selection",
+    "suite_role": "frozen_holdout",
+    "lineage_id": "dopex:60929d87b030c92b803e0d734ed297bcf2ad29ac444db801e06c8c51538d3404",
+    "lineage_policy": "whole Dopex source lineage held out from tuning; first exposure after candidate freeze",
+    "scored_window_s": [
+      28,
+      75
+    ]
   }
 ]
