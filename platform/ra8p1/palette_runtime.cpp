@@ -303,6 +303,14 @@ bool PaletteRuntime::renderInhouse(unsigned board,std::uint64_t now_us) noexcept
   const float peak_limit=(config.current_mode==7 || config.current_mode==8 || config.current_mode==11)?32767.0f:1.0f;
   input.peak_scaled=std::clamp(input.peak_scaled*response,0.0f,peak_limit);
   input.vu_level=std::clamp(input.vu_level*response,0.0f,1.0f);
+  if(input.unguarded_vu_valid){
+    // Preserve the existing response control exactly on quiet support; retain
+    // recovered headroom on guarded support instead of saturating it at unity.
+    const float scaled=input.unguarded_vu_guarded?input.unguarded_vu*response:input.vu_level;
+    if(std::isfinite(response) && response>=0.0f && response<=2.0f &&
+       std::isfinite(scaled) && scaled>=0.0f)input.unguarded_vu=scaled;
+    else {input.unguarded_vu=0.0f;input.unguarded_vu_valid=false;}
+  }
   input.vu_average=std::clamp(input.vu_average*response,0.0f,1.0f);
   input.observed_peak_scaled=std::clamp(input.observed_peak_scaled*response,0.0f,1.0f);
   if(!inhouse_renderer_[board].render(input,controls,now_us,wide_[board],kPixelsPerChannel))return false;

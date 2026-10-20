@@ -60,6 +60,7 @@ class InhouseAudio final {
   // Gain the PDM loud-guard applied to the hop about to be analysed, Q8.
   // 0 leaves guard_headroom at 1 (host tests, and a guard that did not run).
   void setGuardGain(std::uint32_t gain_q8) noexcept { guard_gain_q8_ = gain_q8; }
+  [[nodiscard]] static bool pairedLevelValid(const k1_audio_hop_t& hop) noexcept;
   [[nodiscard]] float mood(unsigned board) const noexcept {
     return board < conditioning_.size() ? conditioning_[board].mood : 0.0F;
   }
@@ -138,6 +139,7 @@ class InhouseAudio final {
   float follower_ = 350.0F;
   float peak_scaled_ = 0.0F;
   std::uint32_t guard_gain_q8_ = 0;
+  k1_audio_paired_level_t paired_level_{};
   float previous_rms_ = 0.0F;
   float previous_vu_ = 0.0F;
   bool rms_silent_ = false;

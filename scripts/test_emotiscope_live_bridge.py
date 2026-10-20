@@ -23,6 +23,7 @@ def main():
     resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     runtime = platform / "k1_live_runtime.cpp"
     test = root / "tests/host/test_emotiscope_live_bridge.cpp"
+    seam = root / "tests/host/emotiscope_live_bridge_pdm_seam.cpp"
     source = runtime.read_text()
     observed = [runtime, platform/"k1_live_runtime.h", test, Path(__file__),
                 platform/"emotiscope_port.cpp", platform/"emotiscope_port.h",
@@ -35,7 +36,11 @@ def main():
                 platform/"k1_live_schema.inc", platform/"emotiscope_edge_response.h",
                 root/"src/k1/core/visual/product_palette.cpp",
                 root/"src/k1/core/visual/product_palette_data.cpp"]
-    observed += [platform/"pdm_target.h"]
+    observed += [platform/"pdm_target.h", seam,
+                 root/"src/k1/core/audio/tempo_tracker.cpp",
+                 root/"src/k1/core/audio/tempo_tracker.h",
+                 root/"src/k1/core/audio/tempo_acf.cpp",
+                 root/"src/k1/core/audio/tempo_acf.h"]
     observed += [p for p in (platform/"emotiscope_donor").rglob("*") if p.is_file()]
     observed += [p for p in (platform/"emotiscope_shims").rglob("*") if p.is_file()]
     observed = sorted(set(observed))
@@ -75,7 +80,9 @@ def main():
             str(root/"src/k1/core/visual/product_palette.cpp"),
             str(root/"src/k1/core/visual/product_palette_data.cpp"),
             str(platform/"k1_live_clock.c"), str(platform/"k1_live_protocol.cpp"),
-            str(test), "-o", str(binary),
+            str(root/"src/k1/core/audio/tempo_tracker.cpp"),
+            str(root/"src/k1/core/audio/tempo_acf.cpp"),
+            str(seam), str(test), "-o", str(binary),
         ]
         if name == "capture_snapshot":
             command.insert(1, "-DK1_PDM_TARGET")

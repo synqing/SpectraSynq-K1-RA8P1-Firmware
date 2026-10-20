@@ -92,6 +92,9 @@ static k1_asrc24_t capture_asrc;
 #endif
 static int16_t capture_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
 #ifdef K1_INHOUSE_ANALYSIS24
+static int16_t capture_raw_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
+#endif
+#ifdef K1_INHOUSE_ANALYSIS24
 /* Lane P4: the same accepted blocks also feed k1_poly24 (24 kHz / 180) for the
    in-house analysis. Its own epoch and sequence; a full ring flushes only this
    path (no redesign, no trig) and never resets the donor stream. Fed only while
@@ -607,6 +610,9 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
         }
         if (lane == K1_PDM_TARGET_PROGRAMME_LANE) {
             capture_pcm[index] = view.sample;
+#ifdef K1_INHOUSE_ANALYSIS24
+            capture_raw_pcm[index] = view.sample;
+#endif
         }
     }
     metrics->processed_slots++;
@@ -672,8 +678,9 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
 #ifdef K1_INHOUSE_ANALYSIS24
                 if (capture_a24_wanted) {
                     const uint32_t a24_t0 = DWT->CYCCNT;
-                    if (k1_poly24_push(&capture_poly24, capture_pcm,
-                                       K1_PDM_TARGET_SLOT_ELEMENTS) != k1_poly24_ok) {
+                    if (k1_poly24_push_paired(&capture_poly24, capture_pcm, capture_raw_pcm,
+                                       K1_PDM_TARGET_SLOT_ELEMENTS,
+                                       gain_q8 < K1_PDM_SENSITIVITY_Q8) != k1_poly24_ok) {
                         /* Consumer fell behind: restart this path at the NEXT
                            block. The donor stream is untouched. */
                         capture_a24_drops++;
@@ -1048,6 +1055,7 @@ uint32_t k1_pdm_target_take_analysis24_cycles(void) {
 k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out) {
     uint64_t ready_us;
     uint64_t content_q32;
+    k1_poly24_paired_hop_t paired;
     const k1_capture_block_meta_t *anchor;
     if (out == 0) return K1_AUDIO_READ_FAULT;
     if (!capture_running || capture_stale_active || !capture_a24_wanted)
@@ -1056,17 +1064,25 @@ k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out) {
         return K1_AUDIO_READ_FAULT;
     {
         const uint32_t a24_t0 = DWT->CYCCNT;
-        const int rc = k1_poly24_pull180(&capture_poly24, out->pcm);
+        const int rc = k1_poly24_pull_paired(&capture_poly24, &paired);
         capture_a24_cycles_sum += DWT->CYCCNT - a24_t0;
         if (rc == k1_poly24_err_not_ready) return K1_AUDIO_READ_NOT_READY;
         if (rc != k1_poly24_ok) return K1_AUDIO_READ_FAULT;
     }
+    memcpy(out->pcm, paired.pcm, sizeof(paired.pcm));
     ready_us = k1_pdm_target_now_us();
     out->contract_version = K1_PDM_TARGET_AUDIO_CONTRACT_VERSION;
     out->samples = K1_POLY24_OUT_FRAMES;
     out->analysis_rate_hz = K1_POLY24_OUT_HZ;
     out->stream_epoch = capture_a24_epoch;
     out->hop_sequence = capture_a24_sequence + 1u;
+    /* Bound to this atomic pull and this path's authoritative identity. */
+    out->paired_level.version = 2u;
+    out->paired_level.guarded_support = paired.guarded_support;
+    out->paired_level.stream_epoch = out->stream_epoch;
+    out->paired_level.hop_sequence = out->hop_sequence;
+    out->paired_level.pre_guard_rms = paired.pre_guard_rms;
+    out->paired_level.pre_guard_peak = paired.pre_guard_peak;
     out->analysis_begin = capture_a24_sequence * K1_POLY24_OUT_FRAMES;
     out->analysis_end_exclusive = out->analysis_begin + K1_POLY24_OUT_FRAMES;
     out->discontinuity_reason = 0u;

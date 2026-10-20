@@ -1112,11 +1112,14 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   // Level: the same decibel line as before (-33 dBFS -> 0, -9 dBFS -> 1) while
   // the microphone loud-guard is idle. guard_headroom puts back the gain that
   // guard removed, and past -9 dBFS a soft shoulder keeps rising instead of
-  // stopping. It still only sets deposit amplitude, width and, on mode 32, place.
+  // stopping. Tempo uses this level for amplitude/width. Hybrid retains its
+  // admission threshold but derives brightness from June's chroma/fallback law.
   const float vu = fresh && std::isfinite(audio.vu_level) ? std::max(0.0F, audio.vu_level) : 0.0F;
   const float head = fresh && audio.guard_headroom > 1.0F && std::isfinite(audio.guard_headroom)
       ? audio.guard_headroom : 1.0F;
-  const float true_vu = vu * head;
+  const float true_vu = fresh && audio.unguarded_vu_valid &&
+      std::isfinite(audio.unguarded_vu) && audio.unguarded_vu >= 0.0F
+      ? audio.unguarded_vu : vu * head;
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
   const float ceiling_db = v9_ceiling_db_;
 #else
@@ -1139,27 +1142,39 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   const auto colour_f = colourV9(controls.palette_id, colour_position_);
   const FixedRgb colour{q(colour_f.red), q(colour_f.green), q(colour_f.blue)};
   observation_.smoothed_colour = colour_f;
-  fadeV9(mode32, silent, dt);
+  if (!mode32) fadeV9(false, silent, dt);
 
   // Transport. Mode 32: v8's outward scroll from the centre. Mode 18: tempo motion
   // weighted by tempo confidence (never above 0.7), with an onset-driven energy layer
   // carrying the rest, so no motion depends solely on the single tempo winner.
   const unsigned start = mode32 || controls.mirror ? 80U : 0U;
-  float rate = 405.0F * motion;
+  // Recovered June Hybrid globals.h:476; retain the existing speed control.
+  float rate = 120.0F * motion;
   unsigned maximum_steps = 8U;
   float position = 80.0F;
+  float hybrid_seed = 0.0F;
   const float peak = fresh ? std::max(clamp01(audio.peak_scaled),
       audio.peak_summary_valid ? clamp01(audio.observed_peak_scaled) : 0.0F) : 0.0F;
   if (mode32) {
     for (unsigned i = 0; i < 80U; ++i) { intensity_[i] = 0; colour_[i] = {}; offset_[i] = 0.0F; }
-    observation_.peak_stage1 = ema(observation_.peak_stage1, peak, dt, 0.016F);
+    // June Hybrid's .08 smoothing at 120 Hz, expressed in elapsed time.
+    const float peak_mix = 1.0F - ::powf(0.92F, dt * 120.0F);
+    observation_.peak_stage1 += (peak - observation_.peak_stage1) * peak_mix;
     observation_.peak_stage2 = ema(observation_.peak_stage2, observation_.peak_stage1, dt, 0.023F);
-    // Under the old stop this is the existing 0.70 of the half-strip. The spare
-    // 0.30 is the loud-guard overshoot, so a clipped chorus still travels.
-    const float over = std::max(0.0F, (level - 1.0F) / 0.85F);
-    const float travel = std::min(1.0F, observation_.peak_stage2 * 0.7F + 0.30F * over);
-    position = std::min(159.0F, 80.0F + travel * 80.0F);
-    if (release_ > 0.0F) position = 80.0F + (position - 80.0F) * (1.0F - release_);
+    hybrid_seed = std::max(peak, std::max(observation_.peak_stage1,
+        fresh ? clamp01(audio.vu_average) : 0.0F));
+    // June Hybrid 109-127: relative energy controls persistence. Confirmed
+    // quiet retains the existing extra drain and never admits a new deposit.
+    const float target_fade = silent ? 0.985F :
+        std::max(0.985F, std::min(0.999F, 1.0F - 0.04F * (1.0F - hybrid_seed)));
+    observation_.decay_rate = -120.0F * ::logf(target_fade) + (silent ? 10.0F : 0.0F);
+    const auto hybrid_fade = q(::expf(-observation_.decay_rate * dt));
+    for (auto& value : intensity_) value = mul(value, hybrid_fade);
+    // June Hybrid (2b4e366, light_mode_waveform_hybrid.cpp) seeds 79/80,
+    // then transports that history outwards. Moving the seed towards 159 as
+    // level rises removes the travel precisely when the music becomes loud.
+    // Relative seed controls amplitude/width; preserve the full transport distance.
+    position = 80.0F;
     observation_.tempo_weight = 0.0F;
   } else {
     const bool tempo_fresh = fresh && audio.tempo_valid &&
@@ -1231,7 +1246,71 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
   }
   observation_.position = position;
   observation_.deposit_strength = 0.0F;
-  if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour);
+  if (!silent && level > 0.0F) {
+    if (mode32) {
+      // June Hybrid 49-107 and lightshow_modes.h:258-400 separate brightness
+      // from palette position. Preserve this palette's colour path, but retain
+      // the source main-chroma / fallback amplitudes, including the helper's
+      // contrast-weighted energy floor. The old triangular-kernel gain and
+      // absolute level^1.5 calibration do not belong to this source rule.
+      const float contrast = std::isfinite(controls.square_iter)
+          ? std::max(0.0F, std::min(8.0F, controls.square_iter)) : 1.0F;
+      const unsigned squares = static_cast<unsigned>(contrast);
+      const float fraction = contrast - static_cast<float>(squares);
+      float chroma_sum = 0.0F, chroma_max = 0.0F, main_brightness = 0.0F;
+      for (float value : observation_.chroma) {
+        const float bin = clamp01(value);
+        chroma_sum += bin;
+        chroma_max = std::max(chroma_max, bin);
+        float bright = bin;
+        for (unsigned s = 0; s < squares; ++s) bright *= bright;
+        if (fraction > 0.01F) bright = bright * (1.0F - fraction) + bright * bright * fraction;
+        main_brightness += std::min(1.0F, bright * 1.5F) / 12.0F;
+      }
+      const float chroma_mean = chroma_sum / 12.0F;
+      const float palette_energy = clamp01(chroma_max * 0.62F +
+          std::max(0.0F, chroma_max - chroma_mean) * 0.30F + chroma_mean * 0.08F);
+      main_brightness = std::max(main_brightness, palette_energy);
+      const float fallback_brightness = std::max(hybrid_seed, palette_energy);
+      const float blend = clamp01(chroma_mean * 2.0F);
+      const float amplitude = (main_brightness * blend + fallback_brightness * (1.0F - blend)) *
+          (0.30F + 0.70F * hybrid_seed);
+      // June Hybrid 138-197: four PCM frames shape the centre-born material.
+      const bool history_valid = audio.pcm_history_valid &&
+          std::isfinite(audio.raw_peak_pcm) && audio.raw_peak_pcm >= 1.0F;
+      const unsigned radius = history_valid ? 3U + static_cast<unsigned>(hybrid_seed * 7.0F)
+                                            : 1U + static_cast<unsigned>(hybrid_seed * 3.0F);
+      const unsigned samples = static_cast<unsigned>(audio.pcm_history[0].size());
+      for (unsigned r = 0; r <= radius; ++r) {
+        float shape = 1.0F;
+        if (history_valid) {
+          const int centre = static_cast<int>(r * (samples - 1U) / radius);
+          std::uint32_t sum = 0;
+          for (const auto& row : audio.pcm_history) {
+            for (int tap = -2; tap <= 2; ++tap) {
+              const auto sample = static_cast<std::int32_t>(row[static_cast<unsigned>(
+                  std::max(0, std::min(static_cast<int>(samples - 1U), centre + tap)))]);
+              sum += static_cast<std::uint32_t>(sample < 0 ? -sample : sample);
+            }
+          }
+          shape = ::sqrtf(clamp01((static_cast<float>(sum) / 20.0F) / audio.raw_peak_pcm));
+        }
+        const float taper = 1.0F - static_cast<float>(r) / static_cast<float>(radius + 1U);
+        const float width_scale = history_valid ? 0.25F + 0.75F * taper : taper;
+        const auto value = q(amplitude * width_scale * shape);
+        const unsigned index = 80U + r;
+        // Replacement includes zeros: quieter material must not inherit an
+        // older strong seed. Travelling material beyond this seed is retained.
+        intensity_[index] = value;
+        colour_[index] = colour;
+        offset_[index] = deposit_offset_;
+        observation_.deposit_strength += f(value);
+        if (value > 0) ++observation_.injection_count;
+      }
+    } else {
+      depositV9(false, start, position, level, colour);
+    }
+  }
 #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
   // A dark stop at the centre is invisible to the extent line, which reads
   // display luma. When the inner eight pixels fall under that line, bring the

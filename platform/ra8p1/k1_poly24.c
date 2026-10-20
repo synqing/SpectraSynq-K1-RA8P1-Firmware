@@ -109,6 +109,7 @@ void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz)
     memset(st, 0, sizeof(*st));
     st->source_hz = (source_hz < K1_POLY24_MIN_IN_HZ || source_hz > K1_POLY24_MAX_IN_HZ)
         ? 40000u : source_hz;
+    st->level_epoch = 1u;
     st->pos_q32 = (uint64_t)(K1_POLY24_TAPS / 2u - 1u) << 32;
     /* The ring is already zero: count the alignment pre-roll as filled. */
     st->filled = K1_POLY24_ALIGN_ZEROS;
@@ -121,6 +122,10 @@ void k1_poly24_flush(k1_poly24_t *st)
         return;
     }
     memset(st->ring, 0, sizeof(st->ring));
+    memset(st->raw_ring, 0, sizeof(st->raw_ring));
+    memset(st->guarded_bits, 0, sizeof(st->guarded_bits));
+    st->level_epoch += 1u;
+    st->level_sequence = 0u;
     st->read_pos = 0u;
     st->filled = K1_POLY24_ALIGN_ZEROS;
     st->pos_q32 = (uint64_t)(K1_POLY24_TAPS / 2u - 1u) << 32;
@@ -172,9 +177,10 @@ int k1_poly24_set_rate(k1_poly24_t *st, uint32_t source_hz)
     return k1_poly24_ok;
 }
 
-int k1_poly24_push(k1_poly24_t *st, const int16_t *src, uint32_t count)
+int k1_poly24_push_paired(k1_poly24_t *st, const int16_t *src,
+                          const int16_t *raw, uint32_t count, uint32_t guarded_slot)
 {
-    if (st == 0 || (count > 0u && src == 0)) {
+    if (st == 0 || (count > 0u && (src == 0 || raw == 0))) {
         return k1_poly24_err_arg;
     }
     if (count > K1_POLY24_RING - st->filled) {
@@ -182,10 +188,20 @@ int k1_poly24_push(k1_poly24_t *st, const int16_t *src, uint32_t count)
         return k1_poly24_err_full;
     }
     for (uint32_t i = 0u; i < count; ++i) {
-        st->ring[(st->read_pos + st->filled) % K1_POLY24_RING] = src[i];
+        const uint32_t at = (st->read_pos + st->filled) % K1_POLY24_RING;
+        st->ring[at] = src[i];
+        st->raw_ring[at] = raw[i];
+        const uint32_t mask = 1u << (at % 32u);
+        st->guarded_bits[at / 32u] = (st->guarded_bits[at / 32u] & ~mask) |
+            (guarded_slot ? mask : 0u);
         st->filled += 1u;
     }
     return k1_poly24_ok;
+}
+
+int k1_poly24_push(k1_poly24_t *st, const int16_t *src, uint32_t count)
+{
+    return k1_poly24_push_paired(st, src, src, count, 0u);
 }
 
 static int16_t k1_poly24_sat(float v)
@@ -200,7 +216,8 @@ static int16_t k1_poly24_sat(float v)
     return (int16_t)r;
 }
 
-int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
+static int k1_poly24_pull_internal(k1_poly24_t *st,
+    int16_t out[K1_POLY24_OUT_FRAMES], k1_poly24_paired_hop_t *hop)
 {
     if (st == 0 || out == 0) {
         return k1_poly24_err_arg;
@@ -210,13 +227,22 @@ int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
         return k1_poly24_err_not_ready;
     }
     float window[K1_POLY24_TAPS];
+    float raw_window[K1_POLY24_TAPS];
+    float raw_square_sum = 0.0f;
+    float raw_peak = 0.0f;
+    uint32_t guarded_support = 0u;
     uint64_t pos = st->pos_q32;
     for (uint32_t o = 0u; o < K1_POLY24_OUT_FRAMES; ++o) {
         const uint32_t n = (uint32_t)(pos >> 32);
         const uint32_t frac = (uint32_t)pos;  /* mu in Q32 */
         const uint32_t first = st->read_pos + n - (K1_POLY24_TAPS / 2u - 1u);
         for (uint32_t j = 0u; j < K1_POLY24_TAPS; ++j) {
-            window[j] = (float)st->ring[(first + j) % K1_POLY24_RING];
+            const uint32_t at = (first + j) % K1_POLY24_RING;
+            window[j] = (float)st->ring[at];
+            if (hop != 0) {
+                raw_window[j] = (float)st->raw_ring[at];
+                guarded_support |= (st->guarded_bits[at / 32u] >> (at % 32u)) & 1u;
+            }
         }
         /* Phase index and interpolation weight from the top bits of mu. */
         const uint32_t phase = frac >> (32u - 7u);  /* 128 phases */
@@ -237,6 +263,25 @@ int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
         }
 #endif
         out[o] = k1_poly24_sat(s0 + t * (s1 - s0));
+        if (hop != 0) {
+            /* The raw branch uses this exact output's phase and coefficient rows.
+               Preserve the guarded branch's arithmetic and sample quantisation. */
+            float r0 = 0.0f;
+            float r1 = 0.0f;
+#ifdef K1_POLY24_CMSIS
+            arm_dot_prod_f32(raw_window, a, K1_POLY24_TAPS, &r0);
+            arm_dot_prod_f32(raw_window, b, K1_POLY24_TAPS, &r1);
+#else
+            for (uint32_t j = 0u; j < K1_POLY24_TAPS; ++j) {
+                r0 += raw_window[j] * a[j];
+                r1 += raw_window[j] * b[j];
+            }
+#endif
+            const float raw_normalised = (r0 + t * (r1 - r0)) * (1.0f / 32768.0f);
+            raw_square_sum += raw_normalised * raw_normalised;
+            const float magnitude = fabsf(raw_normalised);
+            if (magnitude > raw_peak) raw_peak = magnitude;
+        }
         pos += st->step_q32;
     }
     /* Keep K/2-1 samples of history before the next output's centre. */
@@ -246,5 +291,24 @@ int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
     st->consumed += drop;
     st->pos_q32 = pos - ((uint64_t)drop << 32);
     st->produced += K1_POLY24_OUT_FRAMES;
+    if (hop != 0) {
+        hop->epoch = st->level_epoch;
+        hop->sequence = ++st->level_sequence;
+        hop->newest_source_q32 = k1_poly24_last_output_source_q32(st);
+        hop->pre_guard_rms = sqrtf(raw_square_sum / (float)K1_POLY24_OUT_FRAMES);
+        hop->pre_guard_peak = raw_peak;
+        hop->guarded_support = guarded_support;
+    }
     return k1_poly24_ok;
+}
+
+int k1_poly24_pull180(k1_poly24_t *st, int16_t out[K1_POLY24_OUT_FRAMES])
+{
+    return k1_poly24_pull_internal(st, out, 0);
+}
+
+int k1_poly24_pull_paired(k1_poly24_t *st, k1_poly24_paired_hop_t *hop)
+{
+    if (hop == 0) return k1_poly24_err_arg;
+    return k1_poly24_pull_internal(st, hop->pcm, hop);
 }

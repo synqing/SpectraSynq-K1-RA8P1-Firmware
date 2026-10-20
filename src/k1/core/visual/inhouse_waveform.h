@@ -118,6 +118,11 @@ struct InhouseWaveformAudio final {
   // 1 when the microphone loud-guard is idle. Above 1 by the factor that guard
   // turned the ×16 gain down. 0 means this observation did not carry it.
   float guard_headroom = 0.0F;
+  // Exact nominal-sensitivity VU from the same resampled hop; valid only with
+  // this publication. Legacy descriptors continue using vu_level*headroom.
+  float unguarded_vu = 0.0F;
+  bool unguarded_vu_valid = false;
+  bool unguarded_vu_guarded = false;
   float spectral_energy = 0.0F;
   float novelty = 0.0F;
   std::array<std::array<std::int16_t, 96>, 4> pcm_history{};

@@ -46,7 +46,13 @@ def harness(source):
 typedef int fsp_err_t;
 #define FSP_SUCCESS 0
 '''
-    seams = '''static uint64_t host_time_us = 1000000u;
+    # Telemetry added to the production bodies lives outside the extracted
+    # ownership state. Supply only its storage and the read-only cycle register;
+    # this harness does not claim peripheral timing or measured CPU cost.
+    seams = '''static k1_pdm_hop_cost_t capture_hop_cost;
+static struct { uint32_t CYCCNT; } host_dwt;
+#define DWT (&host_dwt)
+static uint64_t host_time_us = 1000000u;
 static uint64_t host_cycle_offset;
 static uint32_t host_cycle_step;
 static uint64_t k1_pdm_target_now_us(void) { return host_time_us; }

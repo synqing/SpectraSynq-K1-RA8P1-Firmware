@@ -255,7 +255,8 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
       const bool stamp = hop24_.capture_estimate_valid != 0U && mapped_ok != 0 &&
           mapped <= private_.features.publish_time_us;
 #if defined(K1_PDM_TARGET)
-      inhouse_audio_.setGuardGain(k1_pdm_target_last_hop_gain_q8());
+      inhouse_audio_.setGuardGain(InhouseAudio::pairedLevelValid(hop24_)
+          ? 0U : k1_pdm_target_last_hop_gain_q8());
 #endif
       (void)inhouse_audio_.consume(hop24_, stamp ? mapped : 0U, stamp);
     }

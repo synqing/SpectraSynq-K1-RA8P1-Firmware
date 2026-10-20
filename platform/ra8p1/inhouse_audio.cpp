@@ -145,6 +145,7 @@ void InhouseAudio::reset() noexcept {
   pcm_history_ = {};
   pcm_history_index_ = pcm_history_count_ = 0;
   previous_vu_ = 0.0F;
+  paired_level_ = {};
   peaks_ = {};
   publication_ = {};
   // Publication generations never repeat across a gap within one capture epoch.
@@ -157,6 +158,21 @@ void InhouseAudio::reset() noexcept {
   follower_ = config_.follower_floor_pcm;
   peak_scaled_ = previous_rms_ = 0.0F;
   rms_silent_ = silence_ = unstamped_ = false;
+}
+
+bool InhouseAudio::pairedLevelValid(const k1_audio_hop_t& hop) noexcept {
+  const auto& level = hop.paired_level;
+  const float nominal = static_cast<float>(K1_PDM_SENSITIVITY_Q8) / 256.0F;
+  return hop.contract_version == 2U && hop.stream_epoch != 0U && hop.hop_sequence != 0U &&
+      hop.samples == kInhouseAnalysis24Hop && hop.analysis_rate_hz == kInhouseAnalysis24Rate &&
+      (level.version == 1U || level.version == 2U) && level.guarded_support <= 1U &&
+      level.stream_epoch == hop.stream_epoch && level.hop_sequence == hop.hop_sequence &&
+      std::isfinite(level.pre_guard_rms) && level.pre_guard_rms >= 0.0F &&
+      std::isfinite(level.pre_guard_rms * nominal / 0.01F) &&
+      (level.version == 1U ||
+       (std::isfinite(level.pre_guard_peak) && level.pre_guard_peak >= 0.0F &&
+        level.pre_guard_peak + 1.0e-6F >= level.pre_guard_rms &&
+        std::isfinite(level.pre_guard_peak * nominal * 32768.0F)));
 }
 
 bool InhouseAudio::consume(const k1_audio_hop_t& hop, std::uint64_t capture_us,
@@ -181,6 +197,7 @@ bool InhouseAudio::consume(const k1_audio_hop_t& hop, std::uint64_t capture_us,
     epoch_ = hop.stream_epoch;
     expected_begin_ = hop.analysis_begin;
   }
+  paired_level_ = pairedLevelValid(hop) ? hop.paired_level : k1_audio_paired_level_t{};
   bool completed = false;
   for (std::size_t i = 0; i < hop.samples; ++i) {
     pending_[pending_count_++] = hop.pcm[i];
@@ -253,9 +270,32 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
     }
     publication_.guard_headroom = headroom;
   }
+  if (paired_level_.version >= 1U) {
+    const float nominal = static_cast<float>(K1_PDM_SENSITIVITY_Q8) / 256.0F;
+    // Keep the exact old Q16 arithmetic for wholly unguarded support. The raw
+    // parallel FIR is needed only where sensitivity was reduced in that support.
+    publication_.unguarded_vu = paired_level_.guarded_support
+        ? std::max(0.0F, paired_level_.pre_guard_rms * nominal - config_.vu_floor) /
+            (1.0F - config_.vu_floor)
+        : publication_.vu_level;
+    publication_.unguarded_vu_valid = true;
+    publication_.unguarded_vu_guarded = paired_level_.guarded_support != 0U;
+    publication_.guard_headroom = 1.0F;
+  }
   publication_.vu_average = f((q(publication_.vu_level) + q(previous_vu_)) / 2);
   previous_vu_ = publication_.vu_level;
-  const float drive = std::max(0.0F, publication_.raw_peak_pcm - config_.drive_floor_pcm);
+  float musical_peak_pcm = publication_.raw_peak_pcm;
+#if defined(K1_INHOUSE_MAPPING_V9)
+  // The per-block PCM guard deliberately flattens loud peaks. Its protected
+  // samples remain the analysis input, but cannot describe the musical envelope.
+  // Version 2 carries the peak from the same raw FIR support as the paired RMS.
+  // Apply the nominal sensitivity once; retain guarded raw_peak_pcm diagnostics.
+  if (paired_level_.version == 2U && paired_level_.guarded_support != 0U) {
+    musical_peak_pcm = paired_level_.pre_guard_peak *
+        (static_cast<float>(K1_PDM_SENSITIVITY_Q8) / 256.0F) * 32768.0F;
+  }
+#endif
+  const float drive = std::max(0.0F, musical_peak_pcm - config_.drive_floor_pcm);
   // Source's first dt-clock call uses 10 ms; later calls use sample chronology.
   const float dt = admitted_samples_ == hop_ ? 0.010F : kDt;
   follower_ += (drive - follower_) * alpha(drive > follower_ ? 0.25F : 0.005F, dt);
@@ -389,6 +429,7 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
                           std::uint64_t stale_us, core::visual::InhouseWaveformAudio& out,
                           unsigned board) const noexcept {
   out = publication_;
+  out.unguarded_vu_valid = false;
   if (board >= conditioning_.size()) { out.valid = false; return false; }
   out.spectrum = conditioning_[board].spectrum;
   out.spectral_energy = conditioning_[board].spectral_energy;
@@ -437,6 +478,7 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
   }
   cursor = {epoch_, generation_};
   out.tempo_valid = out.tempo_valid && out.valid;
+  out.unguarded_vu_valid = publication_.unguarded_vu_valid && out.valid;
   return out.valid;
 }
 

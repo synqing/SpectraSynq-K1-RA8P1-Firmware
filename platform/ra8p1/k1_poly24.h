@@ -40,6 +40,11 @@ typedef struct {
   /* Position of the next output relative to ring[read_pos], Q32 source samples. */
   uint64_t pos_q32;
   int16_t ring[K1_POLY24_RING];
+  /* Diagnostic candidate: raw samples and guard provenance share ring indices. */
+  int16_t raw_ring[K1_POLY24_RING];
+  uint32_t guarded_bits[K1_POLY24_RING / 32u];
+  uint32_t level_epoch;
+  uint64_t level_sequence;
   uint32_t read_pos;
   uint32_t filled;
   uint32_t produced;
@@ -49,6 +54,21 @@ typedef struct {
   uint64_t consumed;
   float table[K1_POLY24_PHASES + 1u][K1_POLY24_TAPS];
 } k1_poly24_t;
+
+/* One atomically produced descriptor: level and PCM have the same identity. */
+typedef struct {
+  int16_t pcm[K1_POLY24_OUT_FRAMES];
+  uint32_t epoch;
+  uint64_t sequence;
+  uint64_t newest_source_q32;
+  /* Raw resampled RMS, normalised to int16 full scale, before nominal gain. */
+  float pre_guard_rms;
+  float pre_guard_peak;
+  uint32_t guarded_support;
+} k1_poly24_paired_hop_t;
+int k1_poly24_push_paired(k1_poly24_t *st, const int16_t *guarded,
+                          const int16_t *raw, uint32_t count, uint32_t guarded_slot);
+int k1_poly24_pull_paired(k1_poly24_t *st, k1_poly24_paired_hop_t *hop);
 
 void k1_poly24_reset(k1_poly24_t *st, uint32_t source_hz);
 int k1_poly24_set_rate(k1_poly24_t *st, uint32_t source_hz);
