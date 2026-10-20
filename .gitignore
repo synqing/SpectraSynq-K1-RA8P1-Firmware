@@ -51,3 +51,6 @@ docs/emotiscope-port-001/evidence/live-bridge-host-*/missing_sample_contract
 docs/emotiscope-port-001/evidence/live-bridge-host-*/normal
 docs/emotiscope-port-001/evidence/live-bridge-host-*/wrong_media_rate
 docs/emotiscope-port-001/evidence/live-bridge-host-*/*-build.log
+
+# Linked git worktrees are checkouts, not repository content.
+.worktrees/

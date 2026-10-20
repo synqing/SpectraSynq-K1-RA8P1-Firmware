@@ -1,0 +1,393 @@
+1. What this lane is
+
+The assignment was SMC-TITAN-CONTROL-001: give you immediate physical control of the running Titan visual pipeline from the owned M-VAVE SMC-Mixer, through macOS CoreMIDI, with the Mac carrying parameters and Titan keeping audio, rendering and LEDs.
+
+It is a new host-side sub-lane in SMC-Mixer. It is not the historical ESP32 controller, not Blender, not K1.Sliders, and not a restart of the solved BLE/USB-MIDI connection work.
+
+A meaningful result, per the brief, is: move a physical control, see an acknowledged change in the intended live visual parameter, without resetting the effect or the audio pipeline, then save/reproduce the setting. That physical result has not happened yet. What exists is the host protocol path plus a Titan PATCH codec, proven offline.
+
+───
+
+2. Isolation and identities
+
+Existing dirty trees were left alone.
+
+┌────────────────┬─────────────────────────────────────────────────┬─────────────────────────────────────────────────────────────────┬─────────────────────────────┬──────────────────────────────┐
+│ Repo           │ Live tree (untouched for this lane)             │ Isolated worktree                                               │ Branch                      │ Base commit                  │
+├────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────┼─────────────────────────────┼──────────────────────────────┤
+│ SMC-Mixer      │ main at 4935fff                                 │ SMC-Mixer/.worktrees/titan-control-001                          │ feat/smc-titan-control-001  │ 4935fff                      │
+├────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────────────────────────┼─────────────────────────────┼──────────────────────────────┤
+│ Titan firmware │ wip/k1-ra8p1-002-mac-hold-2026-09-25 at 8427fcc │ SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001 │ feat/titan-live-control-001 │ 8427fcc (the inspected hold) │
+└────────────────┴─────────────────────────────────────────────────┴─────────────────────────────────────────────────────────────────┴─────────────────────────────┴──────────────────────────────┘
+
+The dispatch proposed sibling paths under Software/.worktrees/. SpectraSynq worktree home forbids inventing sibling project folders. After checking collisions, worktrees were created inside each repo’s .worktrees/. Main-tree dirty files (ESP32 experiments, Titan planning files, evidence already on disk) were not moved or merged.
+
+Nothing was committed or pushed.
+
+───
+
+3. Capture evidence (this is real)
+
+Archived run: docs/evidence/SMC-TITAN-CONTROL-001/20260925-232658/
+Copied into the host worktree so tests are self-contained.
+
+┌─────────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Fact                                │ Status                                                                                                     │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ messages.jsonl SHA-256              │ 5b071a9a42408fd83f6f059f899d195131b536da4e8c1014ec000231efc508eb — verified against SHA256SUMS.json        │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Mode                                │ Read-only gesture capture; no MIDI out; no Titan access                                                    │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Ports                               │ SINCO SMC-Mixer-Private, SINCO SMC-Mixer-Master, SMC-Mixer Bluetooth                                       │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Counts                              │ 3,257 messages per port, 9,771 total                                                                       │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Types per port                      │ 2,514 pitchwheel, 645 CC, 98 NoteOn                                                                        │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Three ordered byte sequences        │ Identical                                                                                                  │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Production ingress                  │ Master only — the three copies must not be merged                                                          │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Faders                              │ Pitchwheel channels 0–7, raw14 = pitch + 8192, 0…16256 step 128, LSB always 0, 128 distinct positions each │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Normalise                           │ raw14 / 16256; 0 maps to 0.0, 16256 maps to 1.0                                                            │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Last settled values in this capture │ ch0–2,4–7 = 0; ch3 = 896 → 0.055118                                                                        │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Granularity                         │ Seven-bit observed. Not a 14-bit ADC claim                                                                 │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Encoder CC16–19                     │ Value 1 common; value 65 only on CC17                                                                      │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ CC20–23                             │ Mixed 1 / 0 / 127 — unbound                                                                                │
+├─────────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Notes 46, 47, 91–99                 │ Codes received; no labelled button map                                                                     │
+└─────────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+The capture authorises none of: programming, reset, emission-arm change, factory reset, pairing delete, LED probe.
+
+───
+
+4. The load-bearing Titan defect this lane is built around
+
+On inspected 8427fcc, the existing whole-config setter (opcode 25 BEGIN/APPEND/COMMIT or SET_CONFIG) does this in live_apply_config():
+
+• calls PaletteRuntime::configure(), which resets runtime state (timing, dwell, live-audio wait, visual path)
+• forces live_cfg.emit_on = 1
+• forces palette flags with emit bit on ((cfg.flags | 4) & ~2)
+
+So driving that setter at fader rate would reset the scene and fight emission authority. The new path is a PATCH subcommand that copies visual scalars onto the live channels and leaves emission, modes, palettes and AP/VP timing alone.
+
+───
+
+5. Titan firmware / protocol (worktree feat/titan-live-control-001)
+
+5.1 Contract
+
+docs/contracts/titan-live-v1.json now includes:
+
+• config_subcommands.PATCH = 8
+• patch object: max 8 entries, 12-byte header, 8-byte entries, kind_f32 = 1
+• explicit flags: does not call palette configure; does not change emission authority
+
+k1_live_schema.inc regenerated from that JSON. Current schema SHA-256:
+
+05198c7a0ad56c06a9ed29b13c8845a8a10da90d3dbff0f68098d2aa5d70f817
+
+5.2 Wire format (opcode 25, subcommand 8)
+
+u32 expected_revision
+u32 request_id
+u16 count
+u16 logical_channel   # 0 = visual_a, 1 = visual_b
+then count × { u16 field_id, u16 kind, f32 value }
+
+All-or-nothing: unknown field, duplicate field, NaN, out-of-range, wrong kind, or stale revision rejects the whole patch. On success, revision increments by 1. emit_on, flags, mode_*, palette_* are copied through unchanged.
+
+┌────┬─────────────────────────────────┬────────────┬──────────────────┐
+│ ID │ Field                           │ Range      │ Role             │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 1  │ vp_waveform_fallback_brightness │ 0–1        │ light            │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 2  │ sensitivity                     │ 0–1        │ sensitivity      │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 3  │ mood                            │ 0–1        │ mood             │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 4  │ chroma                          │ 0–1        │ chroma           │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 5  │ saturation                      │ 0–1        │ saturation       │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 6  │ hue_position                    │ 0–1        │ hue (first path) │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 7  │ vp_waveform_shift_rate          │ 0–240      │ motion           │
+├────┼─────────────────────────────────┼────────────┼──────────────────┤
+│ 8  │ vp_waveform_idle_fade           │ 0.90–0.999 │ persistence      │
+└────┴─────────────────────────────────┴────────────┴──────────────────┘
+
+5.3 Files touched
+
+• platform/ra8p1/k1_live_protocol.h / .cpp — encode/decode/apply
+• platform/ra8p1/fixture_app.cpp — live_handle_config PATCH arm: refresh from runtime, apply, live_copy_visual to both channels, setControlMeta with current emit, restore emit/flags, return encoded config as readback. Does not call palettes.configure().
+• tools/serial-studio/live_protocol.py — matching Python codec
+• tools/serial-studio/titan_control_server.py — restricted JSON IPC (hello / get_config / patch / snapshot). Refuses SET_CONFIG / BEGIN_SET / COMMIT_SET. Hardware writes require TITAN_LIVE_CONTROL_ADMITTED=1 plus accepted-candidate.json or accepted-checkpoint.json. Reconnect clears the pending queue and rotates the session token.
+• scripts/gen_live_schema.py — regenerates the embedded schema
+• tests: tests/host/test_live_protocol.cpp, scripts/test_live_protocol.py, tools/serial-studio/tests/test_titan_control_server.py
+
+5.4 What Titan still does not have
+
+• PATCH is not compiled into a flashed ARM image. Host C++ codec tests compile k1_live_protocol.cpp; they do not compile or flash fixture_app.cpp on target.
+• titan_broker.py is not started with the control plane by default. The restricted server is a module. Wiring it as the persistent CDC owner’s control socket is remaining work.
+• Unix-domain socket with user-only permissions was specified in the brief; the current ControlServer class is TCP (127.0.0.1, ephemeral port in tests).
+• PATCH readback does not yet return an application hop/frame cursor as a first-class field (revision is returned; hop is still GET_CONFIG/snapshot territory).
+• Mode/palette remain whole-config / discrete campaign ops. They are not fader-rate PATCH fields, which is correct, but the discrete “change mode without reset” path is not built.
+
+───
+
+6. Host adapter (worktree feat/smc-titan-control-001)
+
+Root: host/titan_control/
+
+The package does not import serial, mido, or Titan source via sys.path. Tests/help/replay open no MIDI and no CDC.
+
+6.1 Modules
+
+┌──────────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Module                           │ Job                                                                                                      │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ midi_decode.py                   │ Pitchwheel raw14 = pitch + 8192, grid check, LSB must be 0, bytes vs mido pitch must agree, raw14/16256  │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ capture.py                       │ Replay the archived jsonl; verify SHA-256; Master only; skip Private/Bluetooth                           │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ profile.py / observed_profile.py │ Versioned profile + capture hash stamp                                                                   │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ ingress.py                       │ Exact port name, refuse merge, refuse D3/D2 as the selected endpoint                                     │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ mapping.py                       │ Pitchwheel → named Titan field with per-field range transform and optional intensity ceiling             │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ takeover.py                      │ Soft pickup: silent until requested value meets or crosses acknowledged                                  │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ coalesce.py                      │ Latest absolute value per target (intended 25 Hz; tests flush explicitly)                                │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ values.py                        │ Distinct columns: raw14, physical 0–1, requested (in parameter units), acknowledged                      │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ broker_client.py                 │ Restricted IPC client + InProcessBroker test double. set_config raises WholeConfigForbidden              │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ session.py                       │ Session token, request ids, queue clear on reconnect                                                     │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ relative.py                      │ Sign-magnitude 1 / 65 accumulator with bounds (encoders remain unbound in the profile)                   │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ learn.py                         │ Receive-only labelled log; does not bind controls                                                        │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ adapter.py                       │ Orchestrates ingest → takeover → coalesce → PATCH                                                        │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ cli.py                           │ help-offline, replay, status                                                                             │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ ui.py                            │ Minimal HTML: eight rows, pickup, requested vs acknowledged, session, revision                           │
+├──────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ pyproject.toml                   │ Package metadata; optional extra pins mido==1.3.3, python-rtmidi==1.5.8. No global install was performed │
+└──────────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+6.2 First path, then eight
+
+First genuine path (offline): physical fader 6 = MIDI pitchwheel channel 5 → visual_a.hue_position 0…1.
+
+Why that one: hue_position is consumed in the product renderer (chromaticColour / palette sampling). It is not emission and not a safety intensity. The brief forbade starting on a safety-related intensity just because it is easy.
+
+Eight-fader map (after that path was green):
+
+┌────────────────┬─────────┬─────────────────────────────────┬────────────────────────────────────────────┬────────────────────────────┐
+│ Physical fader │ MIDI ch │ Titan field                     │ Transform                                  │ Last value in this capture │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              1 │       0 │ vp_waveform_fallback_brightness │ 0–1, host ceiling 1.0                      │ 0                          │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              2 │       1 │ sensitivity                     │ 0–1                                        │ 0                          │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              3 │       2 │ mood                            │ 0–1                                        │ 0                          │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              4 │       3 │ chroma                          │ 0–1                                        │ 896 → 0.055118             │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              5 │       4 │ saturation                      │ 0–1                                        │ 0                          │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              6 │       5 │ hue_position                    │ 0–1                                        │ 0                          │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              7 │       6 │ vp_waveform_shift_rate          │ physical × 240                             │ 0 → 0                      │
+├────────────────┼─────────┼─────────────────────────────────┼────────────────────────────────────────────┼────────────────────────────┤
+│              8 │       7 │ vp_waveform_idle_fade           │ 0.90 + physical × 0.099 (shorter → longer) │ 0 → 0.90                   │
+└────────────────┴─────────┴─────────────────────────────────┴────────────────────────────────────────────┴────────────────────────────┘
+
+Unbound: CC 16–32, notes 46, 47, 91–99. CC 0/127 is treated as ambiguous, not as a button map. Encoder 1/65 is implemented as a helper and not bound.
+
+Intensity ceiling is host-provisional 1.0. Titan’s actual safety/output ceiling is NOT_VERIFIED. Light-level writes on hardware still sit behind the same admission gate as every other write.
+
+6.3 Host tests (20, all passing)
+
+Runner:
+
+python3 …/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/run_tests.py
+
+Also recorded by workflow_verify (exit 0). There is no PLAN_TASKS.json for this ticket, so that is command evidence, not a registered behavioural PASS.
+
+Coverage:
+
+• Capture hashes, 3,257 Master messages, identical three-port sequences, 128-point grids, 0→0.0 and 16256→1.0
+• Fader 6 → hue with distinct raw / requested / acknowledged
+• All eight faders → eight scalars in their real units
+• Wrong port, merged inputs, D3 name, nonzero LSB
+• Unbound CC 0/127 and notes
+• Encoder 1/65 exists and is not silently bound
+• Whole-config setter refused
+• Stale session, stale revision
+• All-or-nothing validation (one bad field keeps hue at 0)
+• Zero unsolicited writes
+• Soft takeover hold until cross
+• Moving one fader does not write the others
+• Relative ticks, reversals, clamp at 0 and 1
+• Importing the package does not load serial or mido; AST scan of the package agrees
+
+Titan-side: LIVE_PROTOCOL_HOST_PASS plus TITAN_CONTROL_SERVER_PASS, including “no admission → ADMISSION_HOLD and zero hardware writes”.
+
+───
+
+7. Challenges and blockers discovered
+
+1. The full brief was not in the repo.
+The dispatch pointed at SMC-TITAN-CONTROL-001.md. The file was in ~/Downloads/. First implementation used a plausible eight-fader map (hue on fader 1, bloom/incandescent as extras). After the brief was found, that map was torn out and replaced with the specified roles, and first path moved to fader 6 / hue. Cost: a second protocol/profile pass in the same session.
+
+2. Whole-config is unsafe at fader rate.
+Confirmed in fixture_app.cpp on 8427fcc. PATCH exists because SET_CONFIG is the wrong tool.
+
+3. Takeover unit mismatch.
+Soft pickup compared physical 0–1 to acknowledged parameter units. Hue worked (both 0–1). Motion (shift_rate default 120) never engaged, because physical never reaches 120. Symptom: eight-control test got 7 of 8 applied. Fix: pickup compares requested vs acknowledged in parameter space.
+
+4. Worktree placement conflict.
+Dispatch proposed Software/.worktrees/…. Global rule: worktrees live inside the existing repo. Resolved by in-repo .worktrees/. Correct, but the dispatch path is now a documented deviation.
+
+5. workflow_bind / registry.
+No PLAN_TASKS.json. Verify receipts exist; there is no frozen case-verifier PASS for this ticket.
+
+6. Hardware admission is a hard stop, not a missing test.
+The brief and dispatch forbid CDC, programming, emission, LED probe without Captain admission and an identified candidate. Offline work proceeded. Live PATCH on silicon is NOT_TESTED, not failed.
+
+7. fixture_app.cpp PATCH handler is uncompiled on target.
+The codec is host-tested. The command-handler glue is source-reviewed only. An ARM live-runtime build from this branch has not been run.
+
+8. Broker ownership vs campaign opcodes.
+Observe broker today admits INFO/metrics/palette_status, campaign=False. Opcode 25 needs campaign mode. A naive “allow 25” would also allow SET_CONFIG. Restriction has to be subcommand inspection (PATCH only), which is why RestrictedControlPlane exists and why it is not yet the default broker loop.
+
+9. Capture last-settled values are mostly zero.
+Replay of fader 6 hue lands at 0.0 because that gesture ended at the bottom. That is a real settled value, easy to misread as “the write did nothing”.
+
+10. TypeSafe was invoked and not used on the product path.
+Fader mapping is capture-deterministic. Putting Jev on “is this CC an encoder?” would guess bindings the brief ordered left unbound.
+
+───
+
+8. Lessons
+
+• Find the named brief before designing the map. Dispatch plus capture analysis is not a substitute for the full role table.
+• The map is not the territory. Capture JSON, mido pitch, and wire bytes agreed here; LSB-nonzero is an explicit error because the admitted profile never saw it.
+• Pickup must live in the units you write. Physical 0–1 vs shift_rate 0–240 is a silent seven-of-eight bug.
+• configure() is not a parameter setter. It is a scene reset. Partial visual copy is the fader-rate primitive.
+• Identical MIDI on three ports is a duplication hazard, not three independent streams. Production is one name: Master.
+• A green in-process ACK is the protocol. Plate motion is a later, admitted, identity-bound measurement.
+• Sibling worktree paths in a dispatch are proposals. In-repo .worktrees/ is the live rule.
+
+───
+
+9. Current state of development
+
+┌───────────────────────────────────────────────────┬────────────────────────────────────────────────────────────────────────┐
+│ Layer                                             │ State                                                                  │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Physical MIDI capture                             │ VERIFIED, hashed, replayable                                           │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Host decode / profile / first path / eight faders │ Implemented, 20 tests green                                            │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Restricted IPC + admission hold                   │ Implemented offline                                                    │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Titan PATCH codec (C++/Python)                    │ Implemented, host protocol tests green                                 │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Fixture PATCH arm                                 │ Written, not target-built                                              │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Broker as CDC owner serving PATCH                 │ Module exists, not default-on                                          │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Live CoreMIDI daemon                              │ Not running; mido is an optional extra, unused by tests                │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Snapshot save/recall of a look                    │ Not implemented                                                        │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Labelled encoder/button map                       │ Intentionally unbound; learning log is receive-only                    │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ ARM image / flash / GET_CONFIG on silicon         │ NOT_TESTED / not authorised                                            │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Optical / plate behaviour                         │ NOT_TESTED                                                             │
+├───────────────────────────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+│ Git                                               │ Uncommitted on both feature branches; mains clean of this lane’s edits │
+└───────────────────────────────────────────────────┴────────────────────────────────────────────────────────────────────────┘
+
+Epistemic snapshot:
+
+• VERIFIED this session: capture hashes and grids; host mapping/replay; PATCH encode/decode/apply on host; SET_CONFIG forces emit + configure() on 8427fcc.
+• ASSERTED until target build: fixture_app PATCH arm behaves as written on silicon.
+• ASSUMED / provisional: host intensity ceiling 1.0; shift_rate 0–240 and idle_fade 0.90–0.999 as useful motion/persistence ranges (they match live defaults, not a labelled product spec).
+• NOT_TESTED: anything that opens Titan.
+
+───
+
+10. Gaps versus the full brief (honest leftover)
+
+These are specified and still thin or missing:
+
+1. Persistent Titan CDC owner with control IPC actually running (unix socket, mode 0700, one writer).
+2. Live MIDI ingress using pinned Mido/rtmidi, receive-only, exact Master port, reconnect without merging ports.
+3. 25 Hz coalesce as a real timer, not only a profile key plus explicit flush().
+4. Snapshot save/load of the accepted look after the first slice.
+5. UI served as a real process (serve-ui is HTML code; CLI does not launch it yet).
+6. PATCH response hop/frame reference.
+7. Discrete mode/palette ops that do not go through fader-rate PATCH and do not call the resetting whole-config path unless you explicitly accept a cut.
+8. src/smc_titan_control/ layout; current package is host/titan_control/smc_titan_control/.
+9. Commits on the two feature branches.
+10. Target image built from feat/titan-live-control-001 with live-runtime + schema pin.
+
+───
+
+11. What I believe should be done next
+
+Order matters. Do not flash to “try the faders”.
+
+Already in source: host adapter, capture tests, PATCH codec, restricted IPC, fixture handler, admission hold.
+
+Remaining, numbered:
+
+1. You admit a live candidate (identity/build) and that this branch may open CDC. Without that, hardware stays held.
+2. Build the live-runtime image from feat/titan-live-control-001 (schema must match 05198c7a…). Confirm k1_live_schema.inc pin in the build receipt.
+3. Programme that image through the existing RA8P1 E2 Lite path (not this session; not serial ROM). Programming success is bytes-on-target, not “PATCH works”.
+4. Run one CDC owner — Titan broker with RestrictedControlPlane, campaign transport, PATCH and GET_CONFIG only, no SET_CONFIG. Unix socket, user-only permissions.
+5. Host live replay against that broker (still can start from the capture file, then from Master). Prove GET_CONFIG visual_a.hue_position tracks fader 6, emit_on unchanged, no configure() side effects (no blackout, no mode cut, no audio restart).
+6. Then enable the other seven faders on the same candidate. Intensity stays clamped to the admitted ceiling.
+7. Then snapshot save/recall, labelled learning for encoders/buttons, UI process.
+
+Shipped means: on the admitted candidate, GET_CONFIG/hue_position follows fader 6, emission unchanged, scene not reset. A simulated ACK does not count.
+
+Until step 1, the useful continuation is still offline: wire the broker loop, unix socket, live ingress behind a flag, snapshot file format, and an ARM compile of the fixture PATCH arm without flashing.
+
+───
+
+12. Commands (as they stand)
+
+# Host tests
+python3 /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/run_tests.py
+
+# Replay first path into the in-process double (no hardware)
+cd /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control
+python3 -m smc_titan_control replay --first-path-only --json
+
+# Titan protocol
+python3 /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/scripts/test_live_protocol.py
+python3 /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tools/serial-studio/tests/test_titan_control_server.py
+
+Brief and gates in the host worktree:
+
+• docs/execution/SMC-TITAN-CONTROL-001.md
+• docs/execution/SMC-TITAN-CONTROL-001-DISPATCH.md
+• docs/execution/SMC-TITAN-CONTROL-001-GATES.md
+
+That is the state: a real offline fader-to-parameter path, a Titan PATCH that exists to avoid the resetting whole-config setter, and a hard stop at the admission gate before anyone claims the plate moved.
