@@ -1,0 +1,116 @@
+{
+  "image": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "980eb3a9962e570437d7e1b6d7bae733b3a742284e4d45765742675409c90abe",
+    "schema_sha256": "a77dbf9298dbfb4385623dcb66d4c41037a60c6b65dc734bb7a521449f9d0e09",
+    "protocol": 1,
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40"
+  },
+  "expected_profile": {
+    "wire_profile": 3,
+    "configured_backend": "ws2816_gpt_pair",
+    "din_a": "P601",
+    "din_b": "P604",
+    "emit_enabled": true,
+    "brightness": 24,
+    "mode_a": 32,
+    "mode_b": 32
+  },
+  "expected_revision": 0,
+  "revision_provenance": {
+    "method": "CFG_GET on the identified target immediately before hold",
+    "recorded": null,
+    "note": "PIN12-P604-20260923 palette samples do not contain config.revision. The runner writes mapping-saved-config.json.revision at admission and denies a mismatched packet expected_revision before any hold write."
+  },
+  "fixture_injection": {
+    "supported": true
+  },
+  "output_permission": "AUTHORISED_THIS_PAIR_PACKET",
+  "wiring": {
+    "din_b_on_p604": true,
+    "din_b_on_p603": false,
+    "break_80_81_verified": true
+  },
+  "current_limit": {
+    "milliamps": 80,
+    "meter": false,
+    "class": "host-test",
+    "live_admission": "rejected",
+    "note": "80 mA is a host-test envelope. Live physical admission requires meter=true bench measurement bound to this WS2816 assembly. Changing this provenance text does not admit the packet."
+  },
+  "mapping_lifecycle": {
+    "hold": "AUTHORISED_MAPPING_HOLD",
+    "restore": true,
+    "completion_timeout_s": 2.0,
+    "fixture_dwell_s": 1.0,
+    "blackout_budget_s": 12.0,
+    "restore_reserve_s": 3.0,
+    "restore_observe_s": 1.0,
+    "fault_stops_restore_writes": true,
+    "unresolved_hold_after_fault": "emit may remain off; restoration is not attempted; 12s is a normal-path budget only"
+  },
+  "mapping": {
+    "fixtures": [
+      {
+        "name": "endpoints-79-80",
+        "lane0": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/fixtures/centre-out-lane0.bin",
+        "lane1": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/fixtures/centre-out-lane1.bin",
+        "generation": 0,
+        "endpoint_pixels": [
+          79,
+          80
+        ],
+        "travel_direction": "unobserved",
+        "expect": {
+          "kind": "endpoint_map",
+          "pixels": [
+            79,
+            80
+          ],
+          "observation": "fixture bytes light those endpoints; travel direction requires a timed sequence on the board"
+        }
+      },
+      {
+        "name": "endpoints-0-159",
+        "lane0": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/fixtures/edge-in-lane0.bin",
+        "lane1": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/fixtures/edge-in-lane1.bin",
+        "generation": 0,
+        "endpoint_pixels": [
+          0,
+          159
+        ],
+        "travel_direction": "unobserved",
+        "expect": {
+          "kind": "endpoint_map",
+          "pixels": [
+            0,
+            159
+          ],
+          "observation": "fixture bytes light those endpoints; travel direction requires a timed sequence on the board"
+        }
+      }
+    ]
+  },
+  "stages": {
+    "emit_off_observe": {
+      "host_runnable": true,
+      "max_duration_s": 30,
+      "samples": 2,
+      "interval_s": 0
+    },
+    "physical_mapping": {
+      "max_duration_s": 30,
+      "interval_s": 0.05
+    }
+  },
+  "blackout": {
+    "authorised": false,
+    "normal_path_budget_s": 12.0,
+    "restore_reserve_s": 3.0,
+    "restore_target": "saved running configuration including emit_on, then LED emit-on + advancing emitted/pair_completions",
+    "on_fault": "no further fixture or restore writes; hold may already have cleared emit; unresolved emit-off is outside the 12s guarantee",
+    "sequenced_is_not_physical_mapping": true,
+    "generations": "allocated from drained live last_generation+1; packet generation 0 is a placeholder"
+  }
+}

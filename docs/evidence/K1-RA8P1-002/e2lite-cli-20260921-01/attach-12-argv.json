@@ -1,0 +1,9 @@
+{
+  "utc": "2026-09-21T18:01:53.331921+00:00",
+  "cwd": "/Users/spectrasynq/Applications/Renesas/E2_Debug_Runtime_10.6.0",
+  "launcher": "Terminal.app do script attach-12-launch.sh",
+  "reason": "attach-11 ShowGUI created no CGWindow; relaunch in Aqua so the hot-plug dialog is visible",
+  "note": "delayed hot-plug; J6 off until dialog; 10 kHz; ShowGUI=1; no download",
+  "titan_5v_policy": "USB-C board power is a constant; never query",
+  "serial_expected": "E2L: 5AS079228B"
+}

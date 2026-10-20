@@ -317,7 +317,7 @@ def main():
                     output.write(json.dumps(row,separators=(',',':'))+'\n')
             receipt['raw_stage_trace']={
                 'path':raw_path.name,'sha256':sha(raw_path),'records':len(raw_records),
-                'schema':'K1T1.v1 little-endian; JSONL is the lossless decoded form',
+                'schema':'K1T1.v2 little-endian; JSONL is the lossless decoded form',
                 'summary':raw_summary,
             }
             injected=[row for row in raw_records if row['injected_delay_cycles']]

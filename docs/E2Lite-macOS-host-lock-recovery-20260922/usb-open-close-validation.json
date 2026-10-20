@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-09-21T16:49:38.149256+00:00",
+  "operation": "REVIEWED_RENESAS_USB_INTERFACE_OPEN_CLOSE_ONLY",
+  "runs": [
+    {
+      "cycle": 1,
+      "before_semaphore_exists": false,
+      "COM_Open": 1,
+      "while_open_semaphore_exists": true,
+      "COM_Close": 1,
+      "after_close_semaphore_exists": false
+    },
+    {
+      "cycle": 2,
+      "before_semaphore_exists": false,
+      "COM_Open": 1,
+      "while_open_semaphore_exists": true,
+      "COM_Close": 1,
+      "after_close_semaphore_exists": false
+    },
+    {
+      "cycle": 3,
+      "before_semaphore_exists": false,
+      "COM_Open": 1,
+      "while_open_semaphore_exists": true,
+      "COM_Close": 1,
+      "after_close_semaphore_exists": false
+    }
+  ],
+  "target_command_functions_called": [],
+  "usb_reset_called": false,
+  "gdb_target_attach_attempted": false,
+  "result": "RENESAS_EXCLUSIVE_USB_OPEN_CLOSE_3_OF_3_PASS"
+}

@@ -1,0 +1,134 @@
+{
+  "task_count": 56,
+  "unchanged_definition_fields": [
+    "id",
+    "packet_task",
+    "source_text",
+    "depends_on",
+    "dependencies"
+  ],
+  "all_56_definitions_identical": true,
+  "all_absolute_briefs_exist": true,
+  "source_registry_sha256": "4f5e140389ddda14add4417f0d6c8d41a9d9e726b3dab42ed7f09c06f0acb2fd",
+  "imported_registry_sha256": "f1ef7203f720caaa31dec2f9d319c75db3c9a98cbcd16d7f35ff4b826522d9a8",
+  "existing_titan_obligation_references": [],
+  "no_existing_registry_overwritten": true,
+  "existing_project_obligation_documents": [
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/ROADMAP.md",
+      "sha256": "a3c3a82279d96a718808a4edc3c58c31c07c7e4c3a912f35920e06cf856a8732"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/STATE.md",
+      "sha256": "128481d93a9980859ed077c6dec0f26b4ae5bf30f978f2b18ab2cdba6361482b"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/REQUIREMENTS.md",
+      "sha256": "4ae87d9f46047afaf39011c9b7aa9417daf7900bc151cc591ff4f6b87fa82948"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/REFERENCE-MANIFEST.md",
+      "sha256": "ac3973548a4b967bf2d53fcde427e295601d2b552c67ae4d0fd2c008090dd545"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/AGENTS.md",
+      "sha256": "e48d929a4a58775ddf53c8d0691fa22e5a434daa28ff843a05d8cf1692409f5a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/TITAN-MIC-LED2-SESSION-CANON.md",
+      "sha256": "24c7bd8c13385b4c1439dbd4c21a26fe425a86a7ef6c8e397a3e00d5826287c8"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/CURRENT-LIMIT-OPEN.json",
+      "sha256": "de0631ccfbc4145ed32968901afeef1dcec12e38b8b6cf96af833dbd32dc1d01"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/05-wp4-led-fault/05-02-PLAN.md",
+      "sha256": "0e6b5d3332a1fd1485257afb7d28460c0c4843f9b59efa152a2972795a90c832"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/05-wp4-led-fault/05-03-PLAN.md",
+      "sha256": "f5275bfcd709be5bc65f24c1764445fb17bcb0bfb90fd8dfb6e183af20fe7750"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/05-wp4-led-fault/05-01-PLAN.md",
+      "sha256": "60a9b5dd831ad9fce0d6446a3c1eadd14809167d9fd6dec203e6a0b3635fe5b2"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/09-docs-handoff/09-01-PLAN.md",
+      "sha256": "afdbf8fefbfe160d1f1dc0acbb7c6b212138610c0817051da1d8c4ebdecc1b76"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/03-wp2-host-hygiene/03-01-PLAN.md",
+      "sha256": "f0350873971d0af91b9b813b084a218222844ed9218621892055916d5695074a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/03-wp2-host-hygiene/03-02-PLAN.md",
+      "sha256": "f2cac851d79c46bd2f6591d05ba5e05cfc4d4b96fcda1a8b28a0e6e8f3eab041"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/03-wp2-host-hygiene/03-03-PLAN.md",
+      "sha256": "933bfc689a6e01cfb9300f72e15006ab23dbd8623f4e2a87e565ef51f664de78"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/10-live-k1-runtime/10-02-PLAN.md",
+      "sha256": "5adc153ccfab8ffb3c04b2d2e3796ed5a230e9f282d3ee11002003c0736c41d0"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/10-live-k1-runtime/10-01-PLAN.md",
+      "sha256": "b18f34e330ef42eeaa1f10dda295b27d055d754e4d75add304a54b0b59d1462d"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/02-wp1-capture-gate/02-01-PLAN.md",
+      "sha256": "54993e49361a752e8f570fe0d010778acd3be64f7f685961699147aab2e3a7dc"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/02-wp1-capture-gate/02-02-PLAN.md",
+      "sha256": "30621223b61eb4de74a9a3bd3ff121ea0779cc1da9b622c76bc9bce6c99d3344"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/08-latency-ruling/08-02-PLAN.md",
+      "sha256": "45d0f746c1b701fabc245d0197722ae4f9e621a00442937d9873d34cc04e032e"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/08-latency-ruling/08-01-PLAN.md",
+      "sha256": "053dce3af30571bd2759b55e255473ad1fd56b102d7dd7621969614e5d40949a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/06-wp5-live-admission/06-01-PLAN.md",
+      "sha256": "bf904e8238fb005b05a8ef5b349c11771b84ee89fbe11c20d48edadec6c6fcfe"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/06-wp5-live-admission/06-03-PLAN.md",
+      "sha256": "305538236b12a832a1685ec4460fdefb6cebfe5c627bb123f7e911e57beb9126"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/06-wp5-live-admission/06-02-PLAN.md",
+      "sha256": "b8bca88baf1235ee4dfb06bb5d4534db10d85c12630f3d0ad48127da2fc67ef9"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/01-wp0-live-checkpoint/01-02-PLAN.md",
+      "sha256": "f15384b5bdacbb012885ed38fc1fffaa5777df86a2a9215d3407969d88ce4789"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/01-wp0-live-checkpoint/01-01-PLAN.md",
+      "sha256": "070221c7c277969dc53baa6c7768950a5978a929daa574c74fe1fa8b7442c693"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/07-wp6-product-output/07-01-PLAN.md",
+      "sha256": "e746d07718d31032ab776b51a48725b49d4f2b270d26e19c28ffbba226d5743f"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/07-wp6-product-output/07-02-PLAN.md",
+      "sha256": "6ea40f83161bf4496f27c232409c6e2b3d59e21c575cc03316f96a1a8b08a7d8"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/04-wp3-uncapped-timing/04-02-PLAN.md",
+      "sha256": "63c0650c3071528a381048cd131ce35dd46791e97f683b81f5cf977d5827ef5e"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.planning/phases/04-wp3-uncapped-timing/04-01-PLAN.md",
+      "sha256": "426860dfbdcc69d6f95a0a5c18d6be408c443ecce4efe8306fdb488183445e1a"
+    }
+  ]
+}

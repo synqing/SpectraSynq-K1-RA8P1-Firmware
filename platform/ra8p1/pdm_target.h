@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdint.h>
+#include "k1_asrc_24k.h"
+#include "k1/core/audio/k1_audio_hop.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -86,8 +87,20 @@ uint32_t k1_pdm_target_gain_clip_pos(void);
 uint32_t k1_pdm_target_gain_clip_neg(void);
 uint32_t k1_pdm_target_measured_hz(void);
 uint32_t k1_pdm_target_rate_locked(void);
+k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out);
 int k1_pdm_target_pull_ap_hop(int16_t out180[180]);
+uint32_t k1_pdm_target_asrc_consumed(void);
+uint32_t k1_pdm_target_asrc_discarded(void);
+uint32_t k1_pdm_target_push_rejected(void);
+uint64_t k1_pdm_target_stream_epoch(void);
+uint32_t k1_pdm_target_pair_epoch_drops(void);
 uint32_t k1_pdm_target_spare_slots(void);
+int k1_pdm_target_begin_stale_test(uint64_t now_us);
+void k1_pdm_target_poll_stale(uint64_t now_us);
+int k1_pdm_target_stale_active(void);
+uint32_t k1_pdm_target_stale_discards(void);
+uint64_t k1_pdm_target_injection_start_us(void);
+uint64_t k1_pdm_target_injection_end_us(void);
 
 #ifdef __cplusplus
 }

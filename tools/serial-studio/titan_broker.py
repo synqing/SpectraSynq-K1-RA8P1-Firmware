@@ -25,6 +25,7 @@ from titan_snapshot import (  # noqa: E402
     STALE_MS,
     bind_identity,
     encode,
+    identity_identified,
     identity_ok,
     snapshot,
 )
@@ -45,23 +46,50 @@ MAX_LINE = 4096
 PUBLISH_HZ = 5.0
 POLL_HZ = 1.0
 REC_MAX = 20000
+REC_MAX_BYTES = 32 * 1024 * 1024
 PID_PATH = HERE / ".locks" / "titan-broker.pid"
 OWNER = "ss03-broker"
 
 
-def find_titan() -> dict:
+def load_checkpoint(evidence: Path) -> dict | None:
+    path = evidence / "accepted-checkpoint.json"
+    if path.is_file():
+        data = json.loads(path.read_text())
+        if isinstance(data, dict) and data.get("build"):
+            return data
+    build = os.environ.get("TITAN_ACCEPTED_BUILD", "").strip()
+    if not build:
+        return None
+    checkpoint = {"build": build, "uid": EXPECTED_UID}
+    source = os.environ.get("TITAN_ACCEPTED_SOURCE", "").strip()
+    contract = os.environ.get("TITAN_ACCEPTED_CONTRACT", "").strip()
+    if source:
+        checkpoint["source"] = source
+    if contract:
+        checkpoint["contract"] = contract
+    return checkpoint
+
+
+def find_titan(*, inventory_lsof: bool = True) -> dict:
     matches = [p for p in list_ports.comports() if (p.vid, p.pid) == cdc_lock.VIDPID]
     if len(matches) != 1:
         raise RuntimeError(f"expected one Titan 045b:5310, found {len(matches)}")
     port = matches[0]
-    return {
+    usb = {
         "device": port.device,
         "location": port.location,
         "serial": port.serial_number,
         "product": port.product,
         "aliases": cdc_lock.alias_paths(port.device),
-        "lsof": cdc_lock.lsof_owners(port.device),
     }
+    if inventory_lsof:
+        usb["lsof"] = cdc_lock.lsof_owners(port.device)
+    else:
+        # macOS lsof on this CDC node can sit in uninterruptible wait. A timeout
+        # is not a live holder. Cooperative flock remains the owner gate.
+        usb["lsof"] = []
+        usb["lsof_skipped"] = "timed_lsof_hangs_on_this_cdc_node; flock is owner gate"
+    return usb
 
 
 class Recorder:
@@ -72,6 +100,7 @@ class Recorder:
         self.dropped = 0
         self.high = 0
         self.failed = False
+        self._io_lock = threading.Lock()
         path.parent.mkdir(parents=True, exist_ok=True)
         self._fp = path.open("a", encoding="utf-8")
         self._stop = False
@@ -87,6 +116,39 @@ class Recorder:
         except queue.Full:
             self.dropped += 1
             self.failed = True
+            # M2: gap marker when observation queue cannot accept the sample.
+            self._write_gap_unlocked({"kind": "gap", "gap_reason": "queue_full", "dropped": self.dropped, "t": item["t"]})
+
+    def _write_gap_unlocked(self, row: dict) -> None:
+        with self._io_lock:
+            try:
+                self._rotate_if_needed_locked()
+                self._fp.write(json.dumps(row) + "\n")
+                self._fp.flush()
+            except OSError:
+                self.failed = True
+
+    def _rotate_if_needed_locked(self) -> None:
+        try:
+            size = self._fp.tell()
+        except OSError:
+            return
+        if size < REC_MAX_BYTES:
+            return
+        self._fp.close()
+        stamp = time.strftime("%Y%m%dT%H%M%S")
+        rotated = self.path.with_name(self.path.name + "." + stamp)
+        self.path.replace(rotated)
+        self._fp = self.path.open("a", encoding="utf-8")
+        # M2: rotation itself is a continuity gap in the active file.
+        try:
+            self._fp.write(
+                json.dumps({"kind": "gap", "gap_reason": "rotation", "rotated_to": rotated.name, "t": time.monotonic()})
+                + "\n"
+            )
+            self._fp.flush()
+        except OSError:
+            self.failed = True
 
     def _drain(self) -> None:
         while not self._stop:
@@ -94,16 +156,23 @@ class Recorder:
                 item = self.q.get(timeout=0.2)
             except queue.Empty:
                 continue
-            self._fp.write(json.dumps(item) + "\n")
-            self._fp.flush()
+            with self._io_lock:
+                try:
+                    self._rotate_if_needed_locked()
+                    self._fp.write(json.dumps(item) + "\n")
+                    self._fp.flush()
+                except OSError:
+                    self.failed = True
+                    self.dropped += 1
 
     def close(self) -> None:
         self._stop = True
         self._thr.join(timeout=2)
-        try:
-            self._fp.close()
-        except OSError:
-            pass
+        with self._io_lock:
+            try:
+                self._fp.close()
+            except OSError:
+                pass
 
 
 class Client:
@@ -300,9 +369,10 @@ class Broker:
         self.transport = Transport(backend, allowed={1}, log=self.log_tx)
         info = self.transport.info(timeout=2.0)
         raw_path = self.evidence / f"info-epoch-{self.epoch + 1}.json"
-        raw_path.write_text(json.dumps({"usb": usb, "info": info["info"], "header_sequence": info["sequence"]}, indent=2) + "\n")
-        bound = bind_identity(info["info"])
-        if not bound["ok"]:
+        checkpoint = load_checkpoint(self.evidence)
+        raw_path.write_text(json.dumps({"usb": usb, "info": info["info"], "header_sequence": info["sequence"], "checkpoint": checkpoint}, indent=2) + "\n")
+        bound = bind_identity(info["info"], checkpoint=checkpoint)
+        if not bound["identified"]:
             self.release_hardware()
             raise RuntimeError(f"identity rejected: {bound['reason']}")
         self.epoch += 1
@@ -328,10 +398,23 @@ class Broker:
                 self.poll_ops.append(op)
         self.transport.allow(admitted)
         (self.evidence / "bind.json").write_text(
-            json.dumps({"epoch": self.epoch, "bound": bound, "admitted": sorted(admitted), "poll_ops": self.poll_ops}, indent=2)
+            json.dumps({
+                "epoch": self.epoch,
+                "bound": bound,
+                "checkpoint": checkpoint,
+                "admitted": sorted(admitted),
+                "poll_ops": self.poll_ops,
+            }, indent=2)
             + "\n"
         )
-        self.recorder.put({"kind": "bind", "epoch": self.epoch, "uid": bound["uid"], "build": bound["build"]})
+        self.recorder.put({
+            "kind": "bind",
+            "epoch": self.epoch,
+            "uid": bound["uid"],
+            "build": bound["build"],
+            "accepted": bound["accepted"],
+            "reason": bound["reason"],
+        })
         return bound
 
     def release_hardware(self) -> None:
@@ -368,7 +451,7 @@ class Broker:
     def poll_once(self) -> None:
         if self.replay_only or self.transport is None or self.quiesced():
             return
-        ops = [op for op in (6, 17) if op in self.transport.allowed]
+        ops = [op for op in (1, 6, 17) if op in self.transport.allowed]
         if not ops:
             return
         op = ops[self.poll_i % len(ops)]
@@ -386,7 +469,26 @@ class Broker:
             return
         body = json.loads(got["body"])
         self.sample_mono = time.monotonic()
-        if op == 6:
+        if op == 1:
+            checkpoint = load_checkpoint(self.evidence)
+            rebound = bind_identity(body, checkpoint=checkpoint)
+            previous = self.bound or {}
+            changed = (
+                rebound.get("build") != previous.get("build")
+                or rebound.get("accepted") != previous.get("accepted")
+                or rebound.get("identified") != previous.get("identified")
+            )
+            self.bound = rebound
+            if changed:
+                self.epoch += 1
+                self.last_metrics = None
+                self.last_palette = None
+                self.recorder.put({
+                    "kind": "identity_change",
+                    "epoch": self.epoch,
+                    "bound": rebound,
+                })
+        elif op == 6:
             self.last_metrics = body
         elif op == 17:
             self.last_palette = body
@@ -537,7 +639,7 @@ def cmd_stop(_args) -> int:
 def cmd_info_once(args) -> int:
     evidence = Path(args.evidence)
     evidence.mkdir(parents=True, exist_ok=True)
-    usb = find_titan()
+    usb = find_titan(inventory_lsof=False)
     if usb["lsof"]:
         raise SystemExit(f"CDC owned: {usb['lsof']}")
     handle = cdc_lock.acquire(usb["device"], "ss03-info-once")
@@ -546,11 +648,22 @@ def cmd_info_once(args) -> int:
         port = open_serial(usb["device"], handle)
         transport = Transport(port, allowed={1})
         info = transport.info(timeout=2.0)
-        ok, reason = identity_ok(info["info"])
-        payload = {"usb": usb, "ok": ok, "reason": reason, "info": info["info"]}
+        checkpoint = load_checkpoint(evidence)
+        identified, identified_reason = identity_identified(info["info"])
+        ok, reason = identity_ok(info["info"], checkpoint=checkpoint)
+        payload = {
+            "usb": usb,
+            "identified": identified,
+            "identified_reason": identified_reason,
+            "ok": ok,
+            "accepted": ok,
+            "reason": reason,
+            "checkpoint": checkpoint,
+            "info": info["info"],
+        }
         (evidence / "handoff-info.json").write_text(json.dumps(payload, indent=2) + "\n")
         print(json.dumps(payload))
-        return 0 if ok else 1
+        return 0 if identified else 1
     finally:
         close_serial(port, handle)
         cdc_lock.release(handle)

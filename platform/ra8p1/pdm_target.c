@@ -10,6 +10,8 @@
 
 #include "hal_data.h"
 #include "k1_asrc_24k.h"
+#include "k1_cycle_clock.h"
+#include "k1/core/audio/k1_audio_hop.h"
 #include "k1_pdm_sensitivity.h"
 #include "k1_pdm_fifo16.h"
 #include "pdm_capture.h"
@@ -64,14 +66,40 @@ static k1_pdm_lane_metrics_t capture_metrics[K1_PDM_TARGET_LANE_COUNT] = {
     {0u, 0u, 0u, 0u, 0u, 2166136261u, INT32_MAX, INT32_MIN, 0u, 0u, 0u, 0u, 0u, 0u},
     {0u, 0u, 0u, 0u, 0u, 2166136261u, INT32_MAX, INT32_MIN, 0u, 0u, 0u, 0u, 0u, 0u},
 };
+#define K1_CAPTURE_META_CAP 5u
+typedef struct {
+    uint64_t source_begin;
+    uint64_t source_end_exclusive;
+    uint64_t sequence;
+    uint32_t raw_epoch;
+    uint64_t receipt_us;
+    uint64_t receipt_cycles;
+} k1_capture_block_meta_t;
+
 static k1_asrc24_t capture_asrc;
 static int16_t capture_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
-static int16_t capture_ap_hop[K1_ASRC24_OUT_FRAMES];
-static volatile uint32_t capture_ap_hop_ready;
+static k1_capture_block_meta_t capture_meta[K1_CAPTURE_META_CAP];
+static uint32_t capture_meta_head;
+static uint32_t capture_meta_count;
+static uint64_t capture_source_write_index;
+static uint64_t capture_source_base;
+static uint64_t capture_stream_epoch;
+static uint8_t capture_stale_active;
+static uint64_t capture_stale_until_us;
+static uint32_t capture_stale_discards;
+static uint64_t capture_injection_start_us;
+static uint64_t capture_injection_end_us;
+static uint64_t capture_hop_sequence;
+static uint32_t capture_rate_segment;
+static uint32_t capture_discontinuity_pending;
+static uint32_t capture_discontinuity_reason;
+static uint32_t capture_pair_epoch_drops;
+static uint32_t capture_rate_samples;
+static uint64_t capture_rate_t0_us;
 static uint32_t capture_asrc_starved;
 static uint32_t capture_ap_hops;
 static uint32_t capture_asrc_push_drop;
-static uint32_t capture_last_hop_us;
+static uint64_t capture_last_hop_us;
 static uint32_t capture_last_hop_dt_us;
 static uint32_t capture_last_hop_peak;
 static uint32_t capture_last_hop_gain_q8;
@@ -174,12 +202,75 @@ static uint32_t capture_last_cycle;
 static uint64_t capture_cycle_high;
 static uint32_t capture_rearm_denied;
 
+static uint64_t k1_pdm_target_now_cycles(void) {
+    const uint32_t primask = __get_PRIMASK();
+    uint64_t cycles;
+    __disable_irq();
+    cycles = k1_cycle_extend(DWT->CYCCNT, &capture_last_cycle, &capture_cycle_high);
+    if (primask == 0u) {
+        __enable_irq();
+    }
+    return cycles;
+}
+
 static uint64_t k1_pdm_target_now_us(void) {
-    const uint32_t now = DWT->CYCCNT;
-    if (now < capture_last_cycle) capture_cycle_high += (1ull << 32);
-    capture_last_cycle = now;
-    return ((capture_cycle_high | (uint64_t) now) * 1000000ull) /
+    return (k1_pdm_target_now_cycles() * 1000000ull) /
            (uint64_t) SystemCoreClock;
+}
+
+static void k1_pdm_target_reset_logical_stream(uint32_t reason) {
+    const uint32_t discarded = capture_asrc.filled;
+    const uint32_t prior_discarded = capture_asrc.discarded_samples;
+    const uint32_t prior_rejected = capture_asrc.push_rejected;
+    const uint32_t prior_consumed = capture_asrc.consumed_samples;
+    const uint32_t hz = (capture_asrc.source_hz < K1_ASRC24_MIN_IN_HZ ||
+                         capture_asrc.source_hz > K1_ASRC24_MAX_IN_HZ)
+                            ? K1_PDM_TARGET_SAMPLE_RATE_HZ
+                            : capture_asrc.source_hz;
+    capture_stream_epoch += 1u;
+    capture_hop_sequence = 0u;
+    capture_source_write_index = 0u;
+    capture_source_base = 0u;
+    capture_meta_head = 0u;
+    capture_meta_count = 0u;
+    capture_rate_samples = 0u;
+    capture_rate_t0_us = 0u;
+    capture_rate_locked = 0u;
+    capture_measured_hz = 0u;
+    capture_discontinuity_pending = reason != 0u ? 1u : 0u;
+    capture_discontinuity_reason = reason;
+    k1_asrc24_reset(&capture_asrc, (uint32_t)capture_stream_epoch, hz);
+    capture_asrc.discarded_samples = prior_discarded + discarded;
+    capture_asrc.push_rejected = prior_rejected;
+    capture_asrc.consumed_samples = prior_consumed;
+}
+
+static const k1_capture_block_meta_t *k1_pdm_target_meta_for(uint64_t abs_index) {
+    uint32_t i;
+    if (capture_meta_count == 0u) return 0;
+    for (i = 0; i < capture_meta_count; ++i) {
+        const uint32_t idx =
+            (capture_meta_head + K1_CAPTURE_META_CAP - capture_meta_count + i) %
+            K1_CAPTURE_META_CAP;
+        const k1_capture_block_meta_t *meta = &capture_meta[idx];
+        if (abs_index >= meta->source_begin &&
+            abs_index < meta->source_end_exclusive) {
+            return meta;
+        }
+    }
+    return 0;
+}
+
+static void k1_pdm_target_retire_meta(void) {
+    while (capture_meta_count > 0u) {
+        const uint32_t idx =
+            (capture_meta_head + K1_CAPTURE_META_CAP - capture_meta_count) %
+            K1_CAPTURE_META_CAP;
+        if (capture_meta[idx].source_end_exclusive > capture_source_base) {
+            break;
+        }
+        capture_meta_count -= 1u;
+    }
 }
 
 static void k1_pdm_target_invalidate_slot(uint32_t lane, uint32_t slot) {
@@ -368,7 +459,7 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
     }
     metrics->processed_slots++;
     metrics->processed_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
-    if (lane == K1_PDM_TARGET_PROGRAMME_LANE) {
+        if (lane == K1_PDM_TARGET_PROGRAMME_LANE) {
         uint32_t peak = 1u;
         uint32_t gain_q8;
         uint32_t i;
@@ -391,28 +482,29 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
             }
             capture_pcm[i] = k1_pdm_scale_sample(capture_pcm[i], gain_q8);
         }
-        if (k1_asrc24_push(&capture_asrc, capture_pcm,
-                           K1_PDM_TARGET_SLOT_ELEMENTS) != k1_asrc24_ok) {
+        if (capture_stale_active) {
+            capture_stale_discards += K1_PDM_TARGET_SLOT_ELEMENTS;
+            capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
+        } else if (capture_meta_count >= K1_CAPTURE_META_CAP) {
             capture_asrc_push_drop++;
-        } else if (capture_asrc.filled >= 320u) {
-            if (k1_asrc24_pull180(&capture_asrc, capture_ap_hop) == k1_asrc24_ok) {
-                const uint32_t hop_us = (uint32_t)capture_last_end_us;
-                uint32_t hop_peak = 0u;
-                uint32_t s;
-                for (s = 0u; s < 180u; ++s) {
-                    const int32_t v = capture_ap_hop[s];
-                    const uint32_t mag = v < 0 ? (uint32_t)(-v) : (uint32_t)v;
-                    if (mag > hop_peak) hop_peak = mag;
-                }
-                capture_last_hop_peak = hop_peak;
-                capture_ap_hop_ready = 1u;
-                capture_ap_hops++;
-                if (capture_last_hop_us != 0u) {
-                    capture_last_hop_dt_us = hop_us - capture_last_hop_us;
-                }
-                capture_last_hop_us = hop_us;
-            } else {
-                capture_asrc_starved = capture_asrc.starved;
+        } else if (k1_asrc24_push(&capture_asrc, capture_pcm,
+                                  K1_PDM_TARGET_SLOT_ELEMENTS) != k1_asrc24_ok) {
+            capture_asrc_push_drop++;
+        } else {
+            k1_capture_block_meta_t *meta = &capture_meta[capture_meta_head];
+            meta->source_begin = capture_source_write_index;
+            meta->source_end_exclusive =
+                capture_source_write_index + K1_PDM_TARGET_SLOT_ELEMENTS;
+            meta->sequence = owner->sequence;
+            meta->raw_epoch = owner->epoch;
+            meta->receipt_us = owner->capture_end_us;
+            meta->receipt_cycles = k1_pdm_target_now_cycles();
+            capture_source_write_index += K1_PDM_TARGET_SLOT_ELEMENTS;
+            capture_meta_head = (capture_meta_head + 1u) % K1_CAPTURE_META_CAP;
+            capture_meta_count += 1u;
+            capture_rate_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
+            if (capture_rate_t0_us == 0u) {
+                capture_rate_t0_us = owner->capture_end_us;
             }
         }
     }
@@ -423,6 +515,13 @@ static void k1_pdm_target_process_pair(void) {
     const k1_pdm_owner_t *measurement = &capture_owner[K1_PDM_TARGET_MEASUREMENT_LANE];
     uint64_t skew;
     if (!programme->valid || !measurement->valid) return;
+
+    if (programme->epoch != measurement->epoch) {
+        k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
+        k1_pdm_target_release(K1_PDM_TARGET_MEASUREMENT_LANE);
+        capture_pair_epoch_drops++;
+        return;
+    }
 
     if (programme->sequence != measurement->sequence) {
         if (programme->sequence < measurement->sequence) {
@@ -451,16 +550,15 @@ static void k1_pdm_target_process_pair(void) {
         capture_last_end_us = programme->capture_end_us >= measurement->capture_end_us
                             ? programme->capture_end_us
                             : measurement->capture_end_us;
-        if (capture_rate_locked == 0u && capture_first_start_us != 0u) {
-            const uint64_t dt_us = capture_last_end_us - capture_first_start_us;
-            const uint32_t samples =
-                capture_metrics[K1_PDM_TARGET_PROGRAMME_LANE].processed_samples;
-            if (dt_us >= 2000000ull && samples > 0u) {
+        if (capture_rate_locked == 0u && capture_rate_t0_us != 0u) {
+            const uint64_t dt_us = capture_last_end_us - capture_rate_t0_us;
+            if (dt_us >= 2000000ull && capture_rate_samples > 0u) {
                 const uint32_t hz =
-                    (uint32_t)((samples * 1000000ull) / dt_us);
+                    (uint32_t)((capture_rate_samples * 1000000ull) / dt_us);
                 if (k1_asrc24_set_rate(&capture_asrc, hz) == k1_asrc24_ok) {
                     capture_measured_hz = hz;
                     capture_rate_locked = 1u;
+                    capture_rate_segment += 1u;
                 }
             }
         }
@@ -543,7 +641,6 @@ int k1_pdm_target_initialise(void) {
     }
     capture_discard_next_pair = 1u;
     capture_restart_requested = 0;
-    capture_ap_hop_ready = 0u;
     capture_asrc_starved = 0u;
     capture_ap_hops = 0u;
     capture_asrc_push_drop = 0u;
@@ -551,17 +648,47 @@ int k1_pdm_target_initialise(void) {
     capture_last_hop_gain_q8 = 0u;
     capture_gain_clip_pos = 0u;
     capture_gain_clip_neg = 0u;
-    capture_rate_locked = 0u;
-    capture_measured_hz = 0u;
-    k1_asrc24_reset(&capture_asrc, 1u, K1_PDM_TARGET_SAMPLE_RATE_HZ);
+    capture_stream_epoch = 0u;
+    capture_rate_segment = 0u;
+    k1_pdm_target_reset_logical_stream(0u);
     capture_running = 1;
     capture_initialised = 1;
     return 0;
 }
 
+void k1_pdm_target_poll_stale(uint64_t now_us) {
+    if (!capture_stale_active) {
+        return;
+    }
+    if (now_us < capture_stale_until_us) {
+        return;
+    }
+    capture_stale_active = 0;
+    capture_injection_end_us = now_us;
+    k1_pdm_target_reset_logical_stream(120u);
+}
+
+int k1_pdm_target_begin_stale_test(uint64_t now_us) {
+    if (capture_stale_active) {
+        return -1;
+    }
+    capture_stale_active = 1;
+    capture_stale_until_us = now_us + 120000ull;
+    capture_injection_start_us = now_us;
+    capture_injection_end_us = 0u;
+    capture_stale_discards = 0u;
+    return 0;
+}
+
+int k1_pdm_target_stale_active(void) { return capture_stale_active ? 1 : 0; }
+uint32_t k1_pdm_target_stale_discards(void) { return capture_stale_discards; }
+uint64_t k1_pdm_target_injection_start_us(void) { return capture_injection_start_us; }
+uint64_t k1_pdm_target_injection_end_us(void) { return capture_injection_end_us; }
+
 void k1_pdm_target_poll(void) {
     uint32_t lane;
     if (!capture_initialised) return;
+    k1_pdm_target_poll_stale(k1_pdm_target_now_us());
 
     if (capture_restart_requested) {
         fsp_err_t error;
@@ -583,10 +710,7 @@ void k1_pdm_target_poll(void) {
         }
         capture_discard_next_pair = 1u;
         capture_restart_requested = 0;
-        capture_ap_hop_ready = 0u;
-        capture_rate_locked = 0u;
-        capture_measured_hz = 0u;
-        k1_asrc24_reset(&capture_asrc, capture_asrc.epoch + 1u, K1_PDM_TARGET_SAMPLE_RATE_HZ);
+        k1_pdm_target_reset_logical_stream(1u);
         capture_running = 1;
         return;
     }
@@ -676,11 +800,153 @@ uint32_t k1_pdm_target_gain_clip_pos(void) { return capture_gain_clip_pos; }
 uint32_t k1_pdm_target_gain_clip_neg(void) { return capture_gain_clip_neg; }
 uint32_t k1_pdm_target_measured_hz(void) { return capture_measured_hz; }
 uint32_t k1_pdm_target_rate_locked(void) { return capture_rate_locked; }
+uint32_t k1_pdm_target_asrc_consumed(void) { return capture_asrc.consumed_samples; }
+uint32_t k1_pdm_target_asrc_discarded(void) { return capture_asrc.discarded_samples; }
+uint32_t k1_pdm_target_push_rejected(void) { return capture_asrc.push_rejected; }
+uint64_t k1_pdm_target_stream_epoch(void) { return capture_stream_epoch; }
+uint32_t k1_pdm_target_pair_epoch_drops(void) { return capture_pair_epoch_drops; }
+
+k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
+    uint32_t required;
+    uint32_t inc;
+    uint64_t s;
+    uint64_t f;
+    uint64_t consume_count;
+    uint64_t first_index;
+    uint64_t last_index;
+    uint64_t next_index;
+    uint64_t support_last;
+    const k1_capture_block_meta_t *first_meta;
+    const k1_capture_block_meta_t *last_meta;
+    const k1_capture_block_meta_t *support_meta;
+    uint32_t hop_peak = 0u;
+    uint32_t i;
+    uint64_t ready_us;
+    uint64_t q_index;
+    uint64_t q_frac;
+    uint64_t r;
+    uint64_t delta_q16;
+    uint64_t delta_us;
+    int rc;
+    if (out == 0) {
+        return K1_AUDIO_READ_FAULT;
+    }
+    k1_pdm_target_poll_stale(k1_pdm_target_now_us());
+    if (capture_discontinuity_pending) {
+        memset(out, 0, sizeof(*out));
+        out->discontinuity_reason = capture_discontinuity_reason;
+        capture_discontinuity_pending = 0u;
+        return K1_AUDIO_READ_DISCONTINUITY;
+    }
+    if (capture_stale_active) {
+        return K1_AUDIO_READ_NOT_READY;
+    }
+    if (!capture_running) {
+        return K1_AUDIO_READ_NOT_READY;
+    }
+    required = k1_asrc24_required_for_pull180(&capture_asrc);
+    if (capture_asrc.filled < required) {
+        return K1_AUDIO_READ_NOT_READY;
+    }
+    inc = k1_asrc24_phase_increment_q16(capture_asrc.source_hz);
+    s = capture_asrc.src_index;
+    f = capture_asrc.frac_q16;
+    consume_count = s + ((f + 180ull * (uint64_t)inc) / 65536ull);
+    first_index = capture_source_base + s;
+    last_index = capture_source_base + s + ((f + 179ull * (uint64_t)inc) / 65536ull);
+    next_index = capture_source_base + consume_count;
+    support_last = last_index + 1ull;
+    first_meta = k1_pdm_target_meta_for(first_index);
+    last_meta = k1_pdm_target_meta_for(last_index);
+    support_meta = k1_pdm_target_meta_for(support_last);
+    if (first_meta == 0 || last_meta == 0 || support_meta == 0) {
+        return K1_AUDIO_READ_FAULT;
+    }
+    if (k1_audio_hop_init_interval(out, capture_stream_epoch,
+                                   capture_hop_sequence + 1u) != 0) {
+        return K1_AUDIO_READ_FAULT;
+    }
+    rc = k1_asrc24_pull180(&capture_asrc, out->pcm);
+    if (rc == k1_asrc24_err_not_ready) {
+        return K1_AUDIO_READ_NOT_READY;
+    }
+    if (rc != k1_asrc24_ok) {
+        return K1_AUDIO_READ_FAULT;
+    }
+    capture_source_base += consume_count;
+    capture_hop_sequence += 1u;
+    k1_pdm_target_retire_meta();
+    ready_us = k1_pdm_target_now_us();
+    out->raw_capture_epoch = last_meta->raw_epoch;
+    out->source_identity = K1_PDM_TARGET_PROGRAMME_LANE;
+    out->programme_lane = K1_PDM_TARGET_PROGRAMME_LANE;
+    out->source_first_index = first_index;
+    out->source_first_frac_q16 = (uint16_t)f;
+    out->source_last_index = last_index;
+    out->source_last_frac_q16 = (uint16_t)((f + 179ull * (uint64_t)inc) % 65536ull);
+    out->source_next_index = next_index;
+    out->source_next_frac_q16 = (uint16_t)((f + 180ull * (uint64_t)inc) % 65536ull);
+    out->source_support_last_index = support_last;
+    out->supporting_block_source_end_exclusive = support_meta->source_end_exclusive;
+    out->source_block_first_sequence = first_meta->sequence;
+    out->source_block_last_sequence = last_meta->sequence;
+    out->source_rate_hz = capture_asrc.source_hz;
+    out->rate_segment = capture_rate_segment;
+    out->phase_increment_q16 = inc;
+    out->supporting_dma_receipt_cycles = support_meta->receipt_cycles;
+    out->supporting_dma_receipt_us = support_meta->receipt_us;
+    out->descriptor_ready_us = ready_us;
+    out->timestamp_provenance = K1_AUDIO_TS_DMA_ISR_BACKPROJECTION;
+    out->physical_timestamp_valid = 0;
+    out->uncertainty_known = 0;
+    out->rate_state = capture_rate_locked ? K1_AUDIO_RATE_LOCKED
+                                          : K1_AUDIO_RATE_CALIBRATING;
+    q_index = last_index;
+    q_frac = out->source_last_frac_q16;
+    r = support_meta->source_end_exclusive - 1ull;
+    out->capture_estimate_valid = 0;
+    out->newest_sample_capture_estimate_us = 0;
+    if (r >= q_index) {
+        delta_q16 = (r - q_index) * 65536ull - q_frac;
+        if (capture_asrc.source_hz != 0u &&
+            delta_q16 <= (UINT64_MAX / 1000000ull)) {
+            delta_us = (delta_q16 * 1000000ull) /
+                       (65536ull * (uint64_t)capture_asrc.source_hz);
+            if (support_meta->receipt_us >= delta_us) {
+                out->newest_sample_capture_estimate_us =
+                    support_meta->receipt_us - delta_us;
+                if (out->newest_sample_capture_estimate_us <= ready_us) {
+                    out->capture_estimate_valid = 1;
+                }
+            }
+        }
+    }
+    for (i = 0; i < 180u; ++i) {
+        const int32_t v = out->pcm[i];
+        const uint32_t mag = v < 0 ? (uint32_t)(-v) : (uint32_t)v;
+        if (mag > hop_peak) hop_peak = mag;
+    }
+    capture_last_hop_peak = hop_peak;
+    if (capture_last_hop_us != 0u && ready_us >= capture_last_hop_us) {
+        const uint64_t hop_dt = ready_us - capture_last_hop_us;
+        capture_last_hop_dt_us = hop_dt > 0xffffffffull ? 0xffffffffu : (uint32_t) hop_dt;
+    }
+    capture_last_hop_us = ready_us;
+    capture_ap_hops += 1u;
+    return K1_AUDIO_READ_OK;
+}
+
 int k1_pdm_target_pull_ap_hop(int16_t out180[180]) {
-    if (out180 == 0 || !capture_ap_hop_ready) return -1;
-    memcpy(out180, capture_ap_hop, sizeof(capture_ap_hop));
-    capture_ap_hop_ready = 0u;
+    k1_audio_hop_t hop;
+    if (out180 == 0) return -1;
+#ifdef K1_LIVE_RUNTIME
+    (void)hop;
+    return -1;
+#else
+    if (k1_pdm_target_try_read_ap_hop(&hop) != K1_AUDIO_READ_OK) return -1;
+    memcpy(out180, hop.pcm, 180u * sizeof(int16_t));
     return 0;
+#endif
 }
 
 uint32_t k1_pdm_target_spare_slots(void) {

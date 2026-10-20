@@ -1,0 +1,9 @@
+{
+  "status": "OPEN",
+  "blocker": "live mapping admission requires meter=true bench milliamps for this WS2816 assembly",
+  "packet_milliamps": 80,
+  "class": "host-test",
+  "meter": false,
+  "preflight": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/preflight-live/PREFLIGHT.json",
+  "identity_build": "980eb3a9962e570437d7e1b6d7bae733b3a742284e4d45765742675409c90abe"
+}

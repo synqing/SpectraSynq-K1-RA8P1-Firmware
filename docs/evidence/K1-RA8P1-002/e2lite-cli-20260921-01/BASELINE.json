@@ -1,0 +1,39 @@
+{
+  "utc": "2026-09-21T15:05:00Z",
+  "repo": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+  "branch": "lane/k1-ra8p1-002",
+  "head": "431140853dd8b58af53240ef84d5fb1a08bd8b45",
+  "backend": {
+    "e2_server_gdb": "/tmp/renesas-host-check-e4rag280/e2-server-gdb",
+    "version": "10.6.0.v20260707-035422",
+    "sha256": "fad714a742e5a113ff3c9da83653c5a3fd8ae45e6e8bb850dc5fc589b4ebaf32",
+    "official_jar": "com.renesas.ide.supportfiles.ra.gdbserver.macosx.aarch64_10.6.0.v20260707-035422.jar"
+  },
+  "probe_usb": {
+    "product": "E2 Lite",
+    "serial_expected": "5AS079228B",
+    "idVendor": 1115,
+    "idProduct": 33440
+  },
+  "ide": {
+    "pid": 40339,
+    "workspace": "/Users/spectrasynq/Workspace_Management/Tools/Renesas/e2studio-workspace",
+    "gdb_server_running": false,
+    "launch_files": [
+      "New_configuration.launch (C/C++ Application, not hardware)",
+      "New_configuration (1).launch (GDB simulator, not hardware)"
+    ],
+    "prior_hardware_launch": "New_configuration (2).launch observed earlier then gone; targetDevice R7FA0E105, pwr true, hotplug false, loadImage true, IfSpeed auto"
+  },
+  "titan_cdc_045b": false,
+  "policy": {
+    "download": false,
+    "erase": false,
+    "probe_power": "OFF",
+    "interface": "SWD",
+    "device": "R7KA8P1KF",
+    "core": "CPU0",
+    "hotplug": true,
+    "auth_level": 0
+  }
+}

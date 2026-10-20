@@ -1,0 +1,97 @@
+=== gdb_server.tar.xz listing ===
+jar members ['META-INF/', 'META-INF/MANIFEST.MF', 'gdb_server.tar.xz', 'plugin.xml'] count 4
+ member gdb_server.tar.xz 3194884
+  tar files 34
+    english.xml
+    japanese.xml
+    ARM/A57regset
+    ARM/A76regset
+    ARM/CM0plusregset
+    ARM/CM23regset
+    ARM/CM3regset
+    ARM/CM4regset
+    ARM/CR52regset
+    ARM/CR8regset
+    ARM/R52regset
+    ARM/RZT1regset
+    ARM/RZregset
+    ARM/RZregset_nofp
+    ARM/RZregset_nofp_neon
+    ARM/armv8a-regset
+    ARM/armv8m-fpu-mve-pacbti-regset
+    ARM/armv8m-fpu-mve-regset
+    ARM/armv8m-fpu-pacbti-regset
+    ARM/armv8m-fpu-regset
+    ARM/armv8m-fpu-tz-mve-pacbti-regset
+    ARM/armv8m-fpu-tz-mve-regset
+    ARM/armv8m-fpu-tz-pacbti-regset
+    ARM/armv8m-fpu-tz-regset
+    ARM/armv8m-regset
+    ARM/armv8m-tz-mve-pacbti-regset
+    ARM/armv8m-tz-mve-regset
+    ARM/armv8m-tz-pacbti-regset
+    ARM/armv8m-tz-regset
+  first80:
+    RtosPlugins/libFreeRtosDll.dylib
+    RtosPlugins/libThreadXDll.dylib
+    e2-server-gdb
+    libusb-1.0.0.dylib
+    libusb-1.0.dylib
+    english.xml
+    japanese.xml
+    ARM/A57regset
+    ARM/A76regset
+    ARM/CM0plusregset
+    ARM/CM23regset
+    ARM/CM3regset
+    ARM/CM4regset
+    ARM/CR52regset
+    ARM/CR8regset
+    ARM/R52regset
+    ARM/RZT1regset
+    ARM/RZregset
+    ARM/RZregset_nofp
+    ARM/RZregset_nofp_neon
+    ARM/armv8a-regset
+    ARM/armv8m-fpu-mve-pacbti-regset
+    ARM/armv8m-fpu-mve-regset
+    ARM/armv8m-fpu-pacbti-regset
+    ARM/armv8m-fpu-regset
+    ARM/armv8m-fpu-tz-mve-pacbti-regset
+    ARM/armv8m-fpu-tz-mve-regset
+    ARM/armv8m-fpu-tz-pacbti-regset
+    ARM/armv8m-fpu-tz-regset
+    ARM/armv8m-regset
+    ARM/armv8m-tz-mve-pacbti-regset
+    ARM/armv8m-tz-mve-regset
+    ARM/armv8m-tz-pacbti-regset
+    ARM/armv8m-tz-regset
+=== scan key jars for RA8 bytes ===
+JAR com.renesas.ide.supportfiles.ra.debug_2.0.200.v20260612-1041.jar size 166063
+JAR com.renesas.ide.supportfiles.ra.rpdm.macosx.aarch64_10.6.0.v20260707-035422.jar size 848364
+JAR com.renesas.ide.supportfiles.ra.gdbserver.macosx.aarch64_10.6.0.v20260707-035422.jar size 3196501
+JAR com.renesas.ide.supportfiles.ra.debug.gdb.macosx.aarch64_2.0.200.v20260707-1008.jar size 2795661
+=== plugin names containing ra8 / r7ka / device ===
+com.arm.cmsis.pack.common_2.10.0.202405151557.jar
+com.arm.cmsis.pack.data_2.10.0.202405151557.jar
+com.arm.cmsis.pack_2.10.0.202405151557.jar
+com.renesas.cdt.ddsc.devicefamilycontext_1.8.0.v20260701-1000.jar
+com.renesas.cdt.ddsc.packs.ui_1.12.0.v20251120-1209.jar
+com.renesas.cdt.ddsc.packs_1.16.200.v20260703-0917.jar
+com.renesas.cdt.ddsc.packscore_1.4.100.v20260703-1032.jar
+com.renesas.cdt.ddsc.packsinfo_1.10.18.v20251120-1209.jar
+com.renesas.cdt.debug.svdreader.api_1.4.3.v20250512-0643.jar
+com.renesas.cdt.debug.svdreader_1.3.7.v20250512-0643.jar
+com.renesas.cdt.devicesupport.api_1.6.2.v20241011-1237.jar
+com.renesas.cdt.devicesupport_1.0.3.v20260203-1040.jar
+com.renesas.e2studio.device.arm.common.build.cmake_10.4.1.v20251120-1514.jar
+com.renesas.e2studio.device.arm.common.build.gcc_8.1.1.v20251120-1514.jar
+com.renesas.e2studio.device.arm.common.build.llvm_9.2.1.v20251120-1514.jar
+com.renesas.e2studio.device.arm.common.debug_8.1.1.v20251120-1514.jar
+com.renesas.e2studio.device.ra_6.0.100.v20191213-1357.jar
+org.eclipse.embedcdt.managedbuild.packs.ui_2.1.1.202502060831.jar
+org.eclipse.embedcdt.packs.core_3.1.3.202502060831.jar
+org.eclipse.embedcdt.packs.ui_2.0.3.202502060831.jar
+org.eclipse.tm4e.language_pack_0.17.2.202511281144.jar
+org.glassfish.hk2.external.aopalliance-repackaged_3.1.1.jar
+org.osgi.service.device_1.1.1.202109301733.jar

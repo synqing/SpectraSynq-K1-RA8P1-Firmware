@@ -56,7 +56,7 @@
       "dma": "DMAC2 IRQ 74",
       "elc": ["ELC GPT A = GPT6 compare-A", "ELC GPT B = GPT0 overflow"],
       "duty_buffer": "SRAM, not DTCM",
-      "silicon": "HOST tests pass; last target attempt zero DMA completions",
+      "silicon": "HOST tests pass; GPT engine checkpoint and three measured terminal one-word underruns exist. Combined runtime does not inherit those receipts. DMA map below is the default PDM-first layout, not every candidate.",
       "exclusive": "GPIO bit-bang and GPT must not share P601 concurrently"
     },
     {

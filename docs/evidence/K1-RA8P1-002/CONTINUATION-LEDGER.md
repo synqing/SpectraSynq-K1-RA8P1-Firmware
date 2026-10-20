@@ -1,8 +1,17 @@
 ---
-abstract: "K1-RA8P1-002 continuation dispositions, reconciled 2026-09-16 against retained build/application receipts. Historical entries preserved. Not a flash grant or new live identity query."
+abstract: "K1-RA8P1-002 continuation dispositions. Historical entries preserved. 2026-09-20 correction added; not a flash grant or new live identity query."
 ---
 
 # Continuation ledger — 2026-09-13
+
+## Dated correction — 2026-09-20
+
+The 16 September "that image is now resident" sentence referred to colour-integrity
+`a3f37e8a…`. STATUS 19 September already recorded profiler `32dd1f5f…` WRITE_VERIFIED
+over it. Programme receipt `live-audio-gpt-prog-20260920-03` later recorded
+WRITE_VERIFIED of HEX `3aa09139…`. Opcode-1 INFO on 2026-09-20 identified that
+same build `c7f6034a…` on the expected UID. That bind is identified-not-accepted.
+It is not a P601 waveform, optical KEEP, or latency proof.
 
 ## Current reconciliation — 2026-09-16
 

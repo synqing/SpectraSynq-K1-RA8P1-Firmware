@@ -1,0 +1,12 @@
+{
+  "utc": "2026-09-21T18:16:10Z",
+  "attach": 13,
+  "pid": 24718,
+  "result": "FAIL",
+  "error": "0x00030815 DAP cannot be found",
+  "log": "attach-13-reset-begin.log",
+  "settings": "HotPlug=0 ResetCon=1 ResetBegin=1 10kHz probe power off AuthLevel=0 no download",
+  "classification": "Reset-based attach with J6 fitted also failed DAP. Host lock is not the cause. Unchanged clock sweep stays closed. Next discriminator is physical: VTref pin1=+3V3, 20-to-10 adapter not 14-pin, pin9 detect.",
+  "interrupts_live_application": true,
+  "flash_operations": "none"
+}

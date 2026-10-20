@@ -1,0 +1,21 @@
+{
+  "label": "ON-SILICON",
+  "start": "2026-09-20T15:35:34.422175+00:00",
+  "pass": true,
+  "build_id": "e3dd5891947e6a175eaedea2cf562f8e64160b51522e2d379f38bdef5da60dd9",
+  "image_sha256": "3213838f3c9a1b7a356acb4e2318d2509413a28d945ef0a8ea9a3b343032e1ff",
+  "image_start": "0x2000000",
+  "image_end": "0x2040f2f",
+  "restore": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/p3-2026-09-09/build-staged-v2/rtthread.hex",
+  "programmer_sha256": "8e6f5ccf78ab6cff2af359c12be0320529d8cfaf1dae126074860448f50acf59",
+  "uid": "545433931bd25436593630352d068363",
+  "usb": {
+    "device": "/dev/cu.usbmodem1401",
+    "description": "RA USB Boot",
+    "vid": 1115,
+    "pid": 609,
+    "serial_number": null,
+    "location": "0-1.4"
+  },
+  "end": "2026-09-20T15:35:48.510092+00:00"
+}

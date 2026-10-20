@@ -1,0 +1,1 @@
+K1_WS281X_GPT_DMA_PAIR=PASS true16=PASS split=PASS size_reject=PASS profile1_reject=PASS busy_pending=PASS gen_match=PASS dma_ne_stop=PASS last_bits=PASS lane_fault=PASS p603=PWM p004=NOT_PWM

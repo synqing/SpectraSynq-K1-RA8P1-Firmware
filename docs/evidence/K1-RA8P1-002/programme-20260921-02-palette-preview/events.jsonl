@@ -1,0 +1,4 @@
+{"at": "2026-09-20T20:00:59.139749+00:00", "build_id": "90e1b84f5665008fa262d22bd9882deb5f11981542b7b48fb30edba61f8578bd", "event": "WAITING_FOR_IDENTIFIED_ROM", "hex_sha256": "cbcadb41de10cb7f884edb38118d8ad58967f2edfe7c5afcd1eda5e62828dd37", "monotonic_ns": 1079033601046166}
+{"at": "2026-09-20T20:01:26.931240+00:00", "event": "ROM_SEEN", "monotonic_ns": 1079061392860541, "port": "/dev/cu.usbmodem1401"}
+{"at": "2026-09-20T20:01:26.974866+00:00", "event": "ROM_IDENTIFIED_WRITING", "monotonic_ns": 1079061436481458, "uid": "545433931bd25436593630352d068363"}
+{"at": "2026-09-20T20:01:29.973675+00:00", "event": "WRITE_VERIFIED", "hex_sha256": "cbcadb41de10cb7f884edb38118d8ad58967f2edfe7c5afcd1eda5e62828dd37", "monotonic_ns": 1079064435324208, "uid": "545433931bd25436593630352d068363"}

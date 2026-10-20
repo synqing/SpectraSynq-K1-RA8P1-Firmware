@@ -1,0 +1,1 @@
+K1_WS281X_GPT_DMA=PASS n8=PASS n16=PASS max80=PASS ws2812_128=PASS ws2812_129=REJECT ws2816_81=REJECT first_pulse=PASS shifted=DETECT missing_stop=DETECT extra_event=DETECT p004=UNAVAILABLE busy=PASS dma_ne_wave_ne_reset=PASS

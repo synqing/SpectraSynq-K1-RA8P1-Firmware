@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-09-21T16:48:21.015055+00:00",
+  "serial": "E2L: 5AS079228B",
+  "semaphore": "/CommuniDLL_SemE2L: 5AS079228B",
+  "library_sha256": "23fc04e562f716b83366d09c8c885758648c66654082523544daec924e9d963f",
+  "guard_first": {
+    "matching_debugger_processes": [],
+    "libCommuni_open_file_consumers": [],
+    "lsof_returncode": 1
+  },
+  "guard_second": {
+    "matching_debugger_processes": [],
+    "libCommuni_open_file_consumers": [],
+    "lsof_returncode": 1
+  },
+  "before_exists": true,
+  "sem_unlink_return": 0,
+  "sem_unlink_errno": 0,
+  "after_exists": false,
+  "target_operations": [],
+  "usb_resets": 0,
+  "target_firmware_writes": 0,
+  "result": "EXACT_STALE_HOST_SEMAPHORE_REMOVED"
+}

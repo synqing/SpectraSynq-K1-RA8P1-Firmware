@@ -1,0 +1,38 @@
+=== english.xml ===
+size 46934
+=== e2-server-gdb binary ===
+msg b',fffd8\x00.\\RX\\rxv1-regset\x00.\\RX\\rxv2v3-regset\x00.\\RX\\rxv3-dpfpu-regset\x00.\\RX\\rxv3-secext-regset\x00.\\RX\\rxv3-dpfpu-secext-regset\x00No matching device found : Device = <%s>, CPU = <%s>\n\x001.1\x001.0\x00version=\x0000000000\x00xml\x00xmi\x00ARM\x00SeggerInformation\x00arm-none-eabi-gdb\x00ScriptFile=%s\x00JLinkScript\x00SetCPUConnectIDCODE = %s\x00EnableFlashBPs\x00Disabl'
+E2LITE nearby windows 0
+=== walk plugins for gdbserver jars ===
+files 30
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.ide.supportfiles.ra.dpm.macosx.aarch64_2.0.101.v20260311-2342.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.gdb.ui_7.2.300.202512020204.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.dsf.gdb_7.3.100.202605221044.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.ide.supportfiles.ra.rpdm.macosx.aarch64_10.6.0.v20260707-035422.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.debug.gdbjtag_7.1.300.202505062016.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.debug.gdbjtag.ui_9.1.300.202512020204.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.embedcdt.debug.gdbjtag.openocd.ui_5.0.1.202502060831.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.ide.supportfiles.ra.debug_2.0.200.v20260612-1041.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.embedcdt.debug.gdbjtag.core_5.2.1.202502060831.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.gdb_7.2.400.202512020204.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.gdb.documentation.help_1.1.1.v20240620-0710.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.debug.gdbjtag.core_10.8.500.202512020204.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.cdt.dsf.gdb_4.15.0.v20251117-1132.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.embedcdt.debug.gdbjtag.openocd.core_5.0.0.202502060831.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.ide.supportfiles.ra.gdbserver.macosx.aarch64_10.6.0.v20260707-035422.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.cdt.dsf.gdb.ui_2.9.0.202605221044.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.ide.supportfiles.ra.debug.branding_1.0.100.v20191211-1434.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.ide.supportfiles.ra.debug.gdb.macosx.aarch64_2.0.200.v20260707-1008.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/org.eclipse.embedcdt.debug.gdbjtag.ui_5.1.2.202502060831.jar
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.projgen.model_2.13.100.v20260611-1009/com/renesas/projgen/model/IDeviceInfoService.class
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/eclipse/plugins/com.renesas.projgen.model_2.13.100.v20260611-1009/com/renesas/projgen/model/IDeviceInfo.class
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/man/man1/arm-none-eabi-gdbserver.1
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/Debuginfod.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/gdbserver-man.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/MiniDebugInfo.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/set-debuginfod-enabled.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/Running-gdbserver.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/Other-Command_002dLine-Arguments-for-gdbserver.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/Debuginfod-Settings.html
+  /Applications/Renesas e2 studio with RA FSP v6.6.0/toolchains/arm-gnu-toolchain-13.2.Rel1-darwin-arm64-arm-none-eabi/share/doc/gdb/Monitor-Commands-for-gdbserver.html
+=== scan jars/xml for RA8 names ===

@@ -14,7 +14,11 @@ from verify_imports import ROOT, verify, REFERENCE, PIN
 from stage_profile import instrument_stage_sources
 from palette_renderer_overlay import apply_palette_overlay
 from tempo_acf_slice_overlay import apply_tempo_acf_slice_overlay
-from tempo_dtcm_overlay import apply_tempo_dtcm_overlay
+from tempo_dtcm_overlay import (
+    apply_tempo_placement,
+    verify_tempo_elf_placement,
+    verify_tempo_placement_receipt,
+)
 
 BSP = ROOT.parent / 'sdk-bsp-ra8p1-titan-mini'
 BSP_PIN = '6dd0a705d00ffbd6397c9a8c0199cbaa8eec41b7'
@@ -37,24 +41,47 @@ PLATFORM_FILES = [
     'ws281x_diag.h', 'ws281x_diag.c',
     'ws281x_waveform.h', 'ws281x_waveform.c',
     'ws281x_gpt_dma.h', 'ws281x_gpt_dma.c',
+    'ws281x_gpt_dma_pair.h', 'ws281x_gpt_dma_pair.c',
     'ws281x_gpt_dma_hw.h', 'ws281x_gpt_dma_hw.c',
+    'ws281x_gpt_dma_hw_pair.h', 'ws281x_gpt_dma_hw_pair.c',
+    'pair_fixture_admit.h', 'pair_fixture_admit.c',
     'k1_status_led.h', 'k1_status_led.c',
     'titan_status_gpio.h', 'titan_status_gpio.c',
     'titan_led2_phy.h', 'titan_led2_phy.c',
     'k1_pdm_fifo16.h', 'titan_onboard_mic.h',
     'k1_asrc_24k.h', 'k1_asrc_24k.c',
+    'k1_cycle_clock.h',
     'k1_pdm_sensitivity.h',
+    'k1_live_clock.h', 'k1_live_clock.c',
 ]
 RA8P1_LOCAL_K1_FILES = [
     'core/visual/ws2816_pack.h',
     'core/audio/tempo_acf_slice.h',
     'core/audio/tempo_acf_slice.cpp',
+    'core/audio/k1_audio_hop.h',
+    'core/audio/k1_audio_hop.c',
 ]
-PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h', 'palette_clock.h']
+LIVE_RUNTIME_FILES = [
+    'k1_live_runtime.cpp',
+    'k1_live_runtime.h',
+    'k1_live_protocol.cpp',
+    'k1_live_protocol.h',
+    'k1_live_schema.inc',
+]
+# Local DualMCU ports. Not byte-identical; do not add to import-slices.
+# Staged only with --palette-runtime so frozen timing images stay uncontaminated.
+PRODUCT_OUTPUT_CHAIN_FILES = [
+    'core/visual/frame_blend.h',
+    'core/visual/frame_blend.cpp',
+    'core/visual/product_runtime_policy.h',
+    'core/visual/product_runtime_policy.cpp',
+]
+PALETTE_PLATFORM_FILES = ['palette_runtime.cpp', 'palette_runtime.h', 'palette_clock.h', 'hd_pixel16.h']
 PALETTE_MORPH_FILES = ['palette_transition.h', 'centre_palette_engine.h']
 P4_PLATFORM_FILES = ['p4_runtime.cpp', 'p4_runtime.h']
 PDM_TARGET_FILES = ['pdm_capture.c', 'pdm_capture.h', 'pdm_target.c', 'pdm_target.h',
-                    'k1_asrc_24k.c', 'k1_asrc_24k.h', 'k1_pdm_sensitivity.h']
+                    'k1_asrc_24k.c', 'k1_asrc_24k.h', 'k1_cycle_clock.h',
+                    'k1_pdm_sensitivity.h']
 PDM_SOURCE_CONTRACT = ROOT / 'docs/titan-onboard-lmd2718-source-contract.json'
 PCM1808_TARGET_FILES = [
     'pcm1808_core.cpp', 'pcm1808_core.h', 'pcm1808_target.c', 'pcm1808_target.h',
@@ -250,6 +277,62 @@ def stage_led_gpt_vectors(stage: Path) -> None:
     assert text.count(event_anchor) == 1
     source.write_text(text.replace(isr_anchor, isr_insert).replace(event_anchor, event_insert))
 
+def stage_led_pair_vectors(stage: Path) -> None:
+    """Add DMAC3 completion for GPT7 lane A1. PDM fall keeps DMAC2."""
+    header = stage / 'ra_gen/vector_data.h'
+    text = header.read_text()
+    if 'VECTOR_NUMBER_DMAC3_INT' in text:
+        return
+    if 'VECTOR_NUMBER_DMAC2_INT' not in text:
+        raise RuntimeError('DMAC3 staging requires DMAC2 already present for PDM fall')
+    irq = '77'
+    old_count, new_count = '77', '78'
+    header_anchor = (
+        '        #define DMAC2_INT_IRQn          ((IRQn_Type) 76) '
+        '/* DMAC2 INT (DMAC2 transfer end) */\n'
+    )
+    isr_anchor = (
+        '            [76] = dmac_int_isr, /* DMAC2 INT (DMAC2 transfer end) */\n'
+        '        };'
+    )
+    event_anchor = (
+        '            [76] = BSP_PRV_VECT_ENUM(EVENT_DMAC2_INT,FIXED), '
+        '/* DMAC2 INT (DMAC2 transfer end) */\n'
+        '        };'
+    )
+    isr_insert = (
+        '            [76] = dmac_int_isr, /* DMAC2 INT (DMAC2 transfer end) */\n'
+        '            [77] = dmac_int_isr, /* DMAC3 INT (DMAC3 transfer end) */\n'
+        '        };'
+    )
+    event_insert = (
+        '            [76] = BSP_PRV_VECT_ENUM(EVENT_DMAC2_INT,FIXED), '
+        '/* DMAC2 INT (DMAC2 transfer end) */\n'
+        '            [77] = BSP_PRV_VECT_ENUM(EVENT_DMAC3_INT,FIXED), '
+        '/* DMAC3 INT (DMAC3 transfer end) */\n'
+        '        };'
+    )
+    additions = (
+        f'        #define VECTOR_NUMBER_DMAC3_INT ((IRQn_Type) {irq}) '
+        '/* DMAC3 INT (DMAC3 transfer end) */\n'
+        f'        #define DMAC3_INT_IRQn          ((IRQn_Type) {irq}) '
+        '/* DMAC3 INT (DMAC3 transfer end) */\n'
+    )
+    assert text.count(f'#define VECTOR_DATA_IRQ_COUNT    ({old_count})') == 1
+    text = text.replace(f'#define VECTOR_DATA_IRQ_COUNT    ({old_count})',
+                        f'#define VECTOR_DATA_IRQ_COUNT    ({new_count})')
+    text = text.replace(f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({old_count})',
+                        f'#define BSP_ICU_VECTOR_NUM_ENTRIES ({new_count})')
+    assert text.count(header_anchor) == 1
+    text = text.replace(header_anchor, header_anchor + additions)
+    header.write_text(text)
+
+    source = stage / 'ra_gen/vector_data.c'
+    text = source.read_text()
+    assert text.count(isr_anchor) == 1
+    assert text.count(event_anchor) == 1
+    source.write_text(text.replace(isr_anchor, isr_insert).replace(event_anchor, event_insert))
+
 def stage_pcm1808_vectors(stage: Path) -> None:
     """Fail closed: U18 has no complete, framed PCM1808 receive route."""
     del stage
@@ -262,7 +345,10 @@ def stage_pcm1808_vectors(stage: Path) -> None:
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--debug', action='store_true')
+    parser.add_argument('--debug', action='store_true',
+                        help='separately identified -O0 image; RT-Thread debug build already adds DWARF')
+    parser.add_argument('--debug-info', action='store_true',
+                        help='keep the selected optimisation and add DWARF; not the -O0 --debug build')
     parser.add_argument('--optimisation',choices=OPTIMISATIONS,default='o2')
     parser.add_argument('--dcache',choices=('disabled','enabled'),default='disabled',
                         help='retain the proven disabled default or build an identified BSP-enabled experiment')
@@ -280,23 +366,50 @@ def main():
     parser.add_argument('--dmac-lane-map', choices=('pdm-first', 'led-first'), default='pdm-first',
                         help='build-identified DMAC channel ownership; led-first isolates fixed-priority starvation')
     parser.add_argument('--palette-runtime',action='store_true',help='enable all K1 palettes and the native VP palette controls')
-    parser.add_argument('--palette-autostart',action='store_true',help='boot into catalogue cycling; with --palette-morph, the four-effect centre showcase')
+    parser.add_argument('--palette-autostart',action='store_true',help='boot live WaveformK1 mode 32 with active+emit (flags 5); not a catalogue carousel')
     parser.add_argument('--palette-morph',action='store_true',help='enable explicit VP palette-transition derivative')
     parser.add_argument('--palette-ws2816',action='store_true',help='native 160-pixel palette output on P601/P004 with profile 4 and a 60 Hz schedule')
+    parser.add_argument('--palette-ws2816-gpt-pair',action='store_true',
+                        help='concurrent GPT6/P601 + GPT7/P603 WS2816 pair; exclusive of single-lane GPT and GPIO WS2816')
     parser.add_argument('--tempo-acf-slice',action='store_true',
                         help='split tempo ACF lag rows across hops; DualMCU files stay unmodified on disk')
+    parser.add_argument('--tempo-placement',choices=('empty-tcm','dtcm'),default=None,
+                        help='resident hot-array placement; empty-tcm is the original timing brief, dtcm is the named historical overlay')
+    parser.add_argument('--live-runtime',action='store_true',
+                        help='named live K1 AP/VP owner; first candidate defaults emit off')
+    parser.add_argument('--live-emit',action='store_true',
+                        help='opt in to physical emit on a --live-runtime image')
+    parser.add_argument('--live-defaults',type=Path,
+                        help='optional hashed live-default JSON; omitted uses firmware canonical defaults')
     args=parser.parse_args()
+    if args.debug and args.debug_info:
+        parser.error('--debug-info keeps the selected optimisation; --debug is the separate -O0 build')
+    gpt_output = bool(args.palette_gpt_dma) or bool(args.palette_ws2816_gpt_pair)
+    if args.palette_gpt_dma and args.palette_ws2816_gpt_pair:
+        parser.error('--palette-gpt-dma and --palette-ws2816-gpt-pair are mutually exclusive')
     if args.palette_gpt_dma and (not args.palette_runtime or args.palette_ws2816 or args.resident_controls):
         parser.error('--palette-gpt-dma requires --palette-runtime and forbids WS2816/resident-controls')
-    if args.dmac_priority != 'fixed' and not (args.palette_gpt_dma and args.pdm_target):
+    if args.palette_ws2816_gpt_pair and (not args.palette_runtime or args.palette_ws2816 or args.resident_controls):
+        parser.error('--palette-ws2816-gpt-pair requires --palette-runtime and forbids GPIO WS2816/resident-controls')
+    if args.dmac_priority != 'fixed' and not (gpt_output and args.pdm_target):
         parser.error('--dmac-priority round-robin requires GPT plus live PDM')
-    if args.dmac_lane_map != 'pdm-first' and not (args.palette_gpt_dma and args.pdm_target):
+    if args.dmac_lane_map != 'pdm-first' and not (gpt_output and args.pdm_target):
         parser.error('--dmac-lane-map led-first requires GPT plus live PDM')
     if args.palette_morph and not args.palette_runtime: parser.error('--palette-morph requires --palette-runtime')
     if args.palette_autostart and not args.palette_runtime: parser.error('--palette-autostart requires --palette-runtime')
     if args.palette_ws2816 and not args.palette_runtime: parser.error('--palette-ws2816 requires --palette-runtime')
     if args.palette_ws2816 and (args.pdm_target or args.resident_controls):
         parser.error('--palette-ws2816 is a standalone LED bench image')
+    if bool(args.resident_controls) != bool(args.tempo_placement):
+        parser.error('--tempo-placement empty-tcm|dtcm is required with --resident-controls and forbidden without it')
+    if args.live_runtime and not (
+            args.pdm_target and args.palette_runtime and args.palette_morph and
+            gpt_output and args.palette_autostart):
+        parser.error('--live-runtime requires --pdm-target --palette-runtime --palette-morph --palette-gpt-dma or --palette-ws2816-gpt-pair --palette-autostart')
+    if args.live_emit and not args.live_runtime:
+        parser.error('--live-emit requires --live-runtime')
+    if args.live_defaults and not args.live_runtime:
+        parser.error('--live-defaults requires --live-runtime')
     if args.pcm1808_target:
         stage_pcm1808_vectors(Path('.'))
     args.output.mkdir(parents=True, exist_ok=False)
@@ -315,6 +428,7 @@ def main():
         material=[ROOT/'src/k1'/p for p in names]+[ROOT/'src/k1'/p for p in RA8P1_LOCAL_K1_FILES]+[ROOT/'platform/ra8p1'/p for p in PLATFORM_FILES]+list((ROOT/'tests/target').glob('*.h'))+[Path(__file__)]
         if args.palette_runtime:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_PLATFORM_FILES]
+            material += [ROOT/'src/k1'/name for name in PRODUCT_OUTPUT_CHAIN_FILES]
         if args.palette_morph:
             material += [ROOT/'platform/ra8p1'/name for name in PALETTE_MORPH_FILES]
             material.append(ROOT/'scripts/palette_renderer_overlay.py')
@@ -351,6 +465,20 @@ def main():
             material += [ROOT/'platform/ra8p1'/name for name in PCM1808_TARGET_FILES]
             material += [ROOT/'platform/ra8p1/pcm1808'/name for name in PCM1808_DONOR_HEADERS]
             material.append(PCM1808_SOURCE_CONTRACT)
+        if args.live_runtime:
+            material += [ROOT/'platform/ra8p1'/name for name in LIVE_RUNTIME_FILES]
+            material += [ROOT/'src/k1'/name for name in (
+                'core/audio/k1_audio_hop.h', 'core/audio/k1_audio_hop.c')]
+            material.append(ROOT/'docs/contracts/titan-live-v1.json')
+            schema = (ROOT/'docs/contracts/titan-live-v1.json').read_bytes()
+            digest = hashlib.sha256(schema).hexdigest()
+            inc = (ROOT/'platform/ra8p1/k1_live_schema.inc').read_text()
+            if digest not in inc:
+                raise RuntimeError('k1_live_schema.inc does not match titan-live-v1.json')
+            if args.live_defaults:
+                if not args.live_defaults.is_file():
+                    raise RuntimeError('live defaults missing')
+                material.append(args.live_defaults)
         receipt['sources']={}
         for path in sorted(material):
             if not path.is_file(): continue
@@ -361,16 +489,21 @@ def main():
                 elif args.npu_model and path.parent==args.npu_model: key='external/npu/'+path.name
                 elif path==args.p4_fixture: key='external/p4_fixture.h'
                 elif args.p4_source and path.parent==args.p4_source: key='external/p4/'+path.name
+                elif args.live_defaults and path==args.live_defaults: key='external/live_defaults.json'
                 else: raise
             receipt['sources'][key]=hashlib.sha256(path.read_bytes()).hexdigest()
         optimisation='-O0' if args.debug else OPTIMISATIONS[args.optimisation]
-        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map),sort_keys=True).encode()).hexdigest()
-        receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,
+        identity=hashlib.sha256(json.dumps(dict(sources=receipt['sources'],bsp=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,dmac_priority=args.dmac_priority,dmac_lane_map=args.dmac_lane_map,tempo_placement=args.tempo_placement,product_output_chain=bool(args.palette_runtime),live_runtime=args.live_runtime,live_emit=args.live_emit),sort_keys=True).encode()).hexdigest()
+        receipt.update(build_id=identity,source_pin=PIN,bsp_pin=BSP_PIN,flags=SCALAR+' '+SAFETY+' '+optimisation,debug=args.debug,debug_info=bool(args.debug_info),
                        resident=bool(args.resident_controls),npu=bool(args.npu_model),p4=bool(args.p4_source),stage_profile=args.stage_profile,
                        pdm_target=args.pdm_target,pcm1808_target=args.pcm1808_target,dcache=args.dcache,
-                       palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_gpt_dma=args.palette_gpt_dma,
+                       palette_runtime=args.palette_runtime,palette_autostart=args.palette_autostart,palette_morph=args.palette_morph,palette_ws2816=args.palette_ws2816,palette_ws2816_gpt_pair=args.palette_ws2816_gpt_pair,palette_gpt_dma=args.palette_gpt_dma,
                        dmac_priority=args.dmac_priority,
                        dmac_lane_map=args.dmac_lane_map,
+                       tempo_placement=args.tempo_placement,
+                       product_output_chain=bool(args.palette_runtime),
+                       live_runtime=args.live_runtime,
+                       live_emit=args.live_emit,
                        compiler=command([TOOLCHAIN/'arm-none-eabi-g++','--version']).splitlines()[0])
         stage=args.output/'stage'
         shutil.copytree(BSP/'project/Titan_Mini_usb_pcdc',stage)
@@ -379,7 +512,7 @@ def main():
             # inputs into this disposable stage; never generate into the oracle.
             if target.is_dir(): shutil.copytree(target,stage/name)
             else: shutil.copy2(target,stage/name)
-        if args.palette_gpt_dma:
+        if args.palette_gpt_dma or args.palette_ws2816_gpt_pair:
             receipt['dmac_control_initialisation'] = stage_dmac_control_initialisation(stage)
         rtconfig=stage/'rtconfig.py'
         text=rtconfig.read_text()
@@ -391,8 +524,12 @@ def main():
             if optimisation!='-O2':
                 assert text.count("CFLAGS += ' -O2'")==1
                 text=text.replace("CFLAGS += ' -O2'",f"CFLAGS += ' {optimisation}'")
+            if args.debug_info:
+                opt_flag=f"CFLAGS += ' {optimisation}'"
+                assert text.count(opt_flag)==1
+                text=text.replace(opt_flag, f"CFLAGS += ' {optimisation} -gdwarf-2 -g'", 1)
         defines=['-DK1_RA8P1_TARGET=1']
-        if args.palette_gpt_dma:
+        if args.palette_gpt_dma or args.palette_ws2816_gpt_pair:
             defines.append('-DDMAC_CFG_PRIORITY_MODE=' +
                            ('1' if args.dmac_priority == 'round-robin' else '0'))
         if args.dmac_lane_map == 'led-first':
@@ -404,7 +541,13 @@ def main():
                 '-DK1_PDM_TARGET_FALL_DMA_CHANNEL=2u',
                 '-DK1_PDM_TARGET_FALL_DMA_IRQ=DMAC2_INT_IRQn',
             ])
+            if args.palette_ws2816_gpt_pair:
+                defines.extend([
+                    '-DK1_WS281X_GPT_DMA_CHANNEL_A1=3u',
+                    '-DK1_WS281X_GPT_DMA_IRQ_A1=DMAC3_INT_IRQn',
+                ])
         if args.palette_gpt_dma: defines.append('-DK1_PALETTE_GPT_DMA=1')
+        if args.palette_ws2816_gpt_pair: defines.append('-DK1_PALETTE_WS2816_GPT_PAIR=1')
         if args.palette_runtime: defines.append('-DK1_PALETTE_RUNTIME=1')
         if args.palette_morph: defines.append('-DK1_PALETTE_MORPH=1')
         if args.palette_autostart: defines.append('-DK1_PALETTE_AUTOSTART=1')
@@ -413,6 +556,8 @@ def main():
         if args.p4_source: defines.append('-DK1_P4_LOAD=1')
         if args.pdm_target: defines.append('-DK1_PDM_TARGET=1')
         if args.pcm1808_target: defines.append('-DK1_PCM1808_TARGET=1')
+        if args.live_runtime: defines.append('-DK1_LIVE_RUNTIME=1')
+        if args.live_emit: defines.append('-DK1_LIVE_EMIT=1')
         if defines:
             assert text.count('-Dgcc')==1
             text=text.replace('-Dgcc',' '.join(defines)+' -Dgcc')
@@ -434,6 +579,8 @@ def main():
         if args.pcm1808_target:
             stage_pcm1808_vectors(stage)
         stage_led_gpt_vectors(stage)
+        if args.palette_ws2816_gpt_pair:
+            stage_led_pair_vectors(stage)
         for name in PLATFORM_FILES:
             shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.pdm_target:
@@ -454,6 +601,8 @@ def main():
             for name in PALETTE_PLATFORM_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         if args.palette_morph:
             for name in PALETTE_MORPH_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
+        if args.live_runtime:
+            for name in LIVE_RUNTIME_FILES: shutil.copy2(ROOT/'platform/ra8p1'/name,stage/'src'/name)
         for header in (ROOT/'tests/target').glob('*.h'): shutil.copy2(header,stage/'src'/header.name)
         if args.resident_controls:
             shutil.copy2(args.resident_controls,stage/'src/resident_controls.h')
@@ -509,6 +658,16 @@ def main():
         for name in RA8P1_LOCAL_K1_FILES:
             target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
             shutil.copy2(ROOT/'src/k1'/name,target)
+        if args.palette_runtime:
+            for name in PRODUCT_OUTPUT_CHAIN_FILES:
+                target=stage/'src/k1'/name; target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/name,target)
+            receipt['product_output_chain_sources']={
+                'status':'local-derivative',
+                'dualmcu_pin':PIN,
+                'byte_identical':False,
+                'files':PRODUCT_OUTPUT_CHAIN_FILES,
+            }
         if args.palette_morph:
             receipt['palette_derivative_sources']=apply_palette_overlay(stage/'src/k1')
         if args.tempo_acf_slice:
@@ -517,7 +676,11 @@ def main():
         if args.stage_profile:
             receipt['instrumented_sources']=instrument_stage_sources(stage/'src/k1')
         if args.resident_controls:
-            receipt['tempo_dtcm_sources']=apply_tempo_dtcm_overlay(stage/'src/k1')
+            placement=apply_tempo_placement(stage/'src/k1', args.tempo_placement)
+            receipt['tempo_placement_sources']=placement
+            if args.tempo_placement=='dtcm':
+                receipt['tempo_dtcm_sources']=placement['overlay']
+            verify_tempo_placement_receipt(receipt)
         macros=command([TOOLCHAIN/'arm-none-eabi-g++',*SCALAR.split(),'-dM','-E','-x','c++','/dev/null'])
         (args.output/'compiler-macros.txt').write_text(macros)
         assert '__ARM_FEATURE_MVE ' not in macros, 'compiler enables MVE'
@@ -537,20 +700,37 @@ def main():
         assert_scalar_generated_code(dump,attrs)
         for symbol in ['AudioPipeline::process','renderProductChannel','k1_fixture_consume','k1_fixture_initialise']:
             assert symbol in dump, f'missing executed K1 symbol {symbol}'
-        if not args.palette_gpt_dma:
+        if not args.palette_gpt_dma and not args.palette_ws2816_gpt_pair:
             assert 'k1_ws281x_diag_emit' in dump, 'GPIO diagnostic emitter was dropped'
         if args.palette_runtime:
-            pack_symbol = 'PaletteRuntime::packBenchGrb48Lane' if args.palette_ws2816 else 'PaletteRuntime::packBenchGrb('
+            pack_symbol = 'PaletteRuntime::packBenchGrb48Lane' if (args.palette_ws2816 or args.palette_ws2816_gpt_pair) else 'PaletteRuntime::packBenchGrb('
             for symbol in ['PaletteRuntime::configure','PaletteRuntime::step','PaletteRuntime::catalogueJson',pack_symbol]:
                 assert symbol in dump, f'missing native palette runtime symbol {symbol}'
         if args.resident_controls:
             for symbol in ['k1_fixture_schedule_step','k1_resident_pcm','k1_resident_crc','k1_resident_length']:
                 assert symbol in symbols, f'missing resident schedule symbol {symbol}'
+            receipt['tempo_placement_evidence']=verify_tempo_elf_placement(symbols, args.tempo_placement)
         if args.npu_model:
             for symbol in ['RM_ETHOSU_Open','sub_0001_invoke','k1_npu_invoke']:
                 assert symbol in dump, f'missing NPU execution symbol {symbol}'
         else:
             assert 'RM_ETHOSU_Open' not in dump, 'NPU linked into scalar-only image'
+        if args.palette_ws2816_gpt_pair:
+            for symbol in ['k1_ws281x_gpt_dma_hw_pair_submit', 'k1_ws281x_gpt_dma_pair_lanes_complete',
+                           'dmac_int_isr', 'gpt_counter_overflow_isr']:
+                assert symbol in dump, f'missing GPT pair execution symbol {symbol}'
+            assert 'k1_ws281x_gpt_dma_hw_submit' not in dump, 'single-lane GPT submit linked into pair image'
+            receipt['gpt_checkpoint']='PRE_SILICON_ONLY'
+            receipt['pair_allocation']={
+                'lane_a0':{'pin':'P601','gpt_pwm':6,'stop_gpt':0,
+                           'dma':0 if args.dmac_lane_map=='led-first' else 2,
+                           'elc':['GPT_A','GPT_B']},
+                'lane_a1':{'pin':'P603','gpt_pwm':7,'stop_gpt':1,'dma':3,
+                           'elc':['GPT_C','GPT_D']},
+                'profile':3,
+                'gtstr_mask':'GPT6|GPT7',
+                'source_precision':'rgb8_to_grb48',
+            }
         if args.palette_gpt_dma:
             for symbol in ['k1_ws281x_gpt_dma_hw_submit', 'k1_ws281x_gpt_dma_hw_snapshot', 'dmac_int_isr', 'gpt_counter_overflow_isr']:
                 assert symbol in dump, f'missing GPT execution symbol {symbol}'
@@ -607,6 +787,19 @@ def main():
                 'led_dma_channel':0 if args.dmac_lane_map == 'led-first' else 2,
                 'product_12k8_admitted':False,
             }
+        if args.live_runtime:
+            for symbol in ['LiveAudioRuntime::consume','LiveAudioRuntime::serviceOneHop',
+                           'k1_pdm_target_try_read_ap_hop','k1_asrc24_required_for_pull180',
+                           'LiveAudioRuntime::encodeSnapshot','LiveAudioRuntime::encodeEvents',
+                           'LiveAudioRuntime::encodeTiming','k1::titan::liveEncodeSnapshot']:
+                assert symbol in dump, f'missing live-runtime symbol {symbol}'
+            assert 'capture_ap_hop_ready' not in symbols, 'pending-hop mailbox still linked'
+            receipt['live_runtime']={
+                'owner':'LiveAudioRuntime',
+                'mailbox':'removed',
+                'emit_default':'off' if not args.live_emit else 'on',
+                'phase_8_recording':'scheduled_after_dev_ready',
+            }
         if args.pcm1808_target:
             for symbol in ['R_SSI_Open','R_SSI_Read','ssi_rxi_isr','ssi_int_isr',
                            'R_DTC_Open','k1_pcm1808_target_initialise',
@@ -634,6 +827,8 @@ def main():
             }
         assert '__init_array_start' in (args.output/'rtthread.map').read_text(), 'constructor table missing'
         receipt['size']=command([TOOLCHAIN/'arm-none-eabi-size',args.output/'rtthread.elf'])
+        if args.resident_controls:
+            receipt['tempo_placement_evidence']['size']=receipt['size']
         receipt['artifacts']={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in args.output.iterdir() if p.is_file()}
         receipt['pass']=True
         print(json.dumps(dict(build_id=identity,size=receipt['size'],**{'pass':True}),indent=2))

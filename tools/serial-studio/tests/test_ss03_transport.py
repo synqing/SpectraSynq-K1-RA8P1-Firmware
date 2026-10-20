@@ -90,6 +90,25 @@ def test_forbidden_opcode_does_not_write():
             assert len(t.writes) == before
 
 
+def test_campaign_payload_ops_require_lease():
+    fake = FakeSerial()
+    t = Transport(fake, allowed={1, 24, 25, 26}, campaign=False)
+    for op in (15, 24, 25, 26):
+        try:
+            Transport(fake, allowed={1, op}, campaign=False).allow({1, op})
+            raise AssertionError(f"op {op} must require campaign")
+        except ObserveDenied:
+            pass
+    t = Transport(fake, allowed={1}, campaign=True)
+    t.allow({1, 23, 24, 25, 26})
+    before = len(t.writes)
+    try:
+        t.transact(24, b"")
+    except FramingError:
+        pass
+    assert len(t.writes) > before
+
+
 def test_partial_reads_succeed():
     fake = FakeSerial(chunk=1)
     feed_info(fake, 1)
@@ -113,6 +132,7 @@ if __name__ == "__main__":
     test_timeout_and_wrong_transaction()
     test_bad_crc_quarantines()
     test_forbidden_opcode_does_not_write()
+    test_campaign_payload_ops_require_lease()
     test_partial_reads_succeed()
     test_coalesced_two_responses()
     print("ss03_transport_ok")

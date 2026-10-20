@@ -1,0 +1,4 @@
+﻿
+[Interface]
+uart     2 wire UART
+swd      SWD

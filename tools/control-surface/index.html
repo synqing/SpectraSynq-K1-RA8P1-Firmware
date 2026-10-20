@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titan K1-RA8P1 Control Surface — Mock-up v1</title>
+<style>
+:root{--bg:#0a0c10;--panel:#12161c;--panel2:#171c24;--line:#262d38;--txt:#d7dde6;--dim:#7b8696;--faint:#525c6b;
+--accent:#36e0c8;--accent2:#b86bff;--warn:#ffb454;--good:#5ce08a;--mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;--sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:13px}
+.topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:16px;padding:10px 18px;background:linear-gradient(180deg,#0e1116,#0a0c10);border-bottom:1px solid var(--line)}
+.logo{width:30px;height:30px;border-radius:7px;background:conic-gradient(from 210deg,#b86bff,#36e0c8,#ffb454,#b86bff);box-shadow:0 0 14px rgba(54,224,200,.35)}
+.brand h1{font-size:14px;margin:0}.brand .sub{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.status{display:flex;align-items:center;gap:8px;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:var(--panel);font-family:var(--mono);font-size:11px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 8px var(--good)}
+.topright{margin-left:auto;text-align:right;font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.5}
+.topright b{color:var(--txt)}
+.tabs{display:flex;gap:2px;padding:0 18px;background:#0c0f14;border-bottom:1px solid var(--line);position:sticky;top:51px;z-index:15}
+.tab{padding:11px 16px;cursor:pointer;color:var(--dim);border-bottom:2px solid transparent;font-size:12px;font-weight:500;letter-spacing:.4px;text-transform:uppercase}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .badge{margin-left:6px;padding:1px 6px;border-radius:8px;background:var(--panel2);font-size:9px;color:var(--faint);font-family:var(--mono)}
+.tab.active .badge{background:rgba(54,224,200,.12);color:var(--accent)}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 18px 90px}
+.pane{display:none}.pane.active{display:block}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1.1fr 1fr 1fr}
+@media(max-width:980px){.g2,.g3{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card h2{margin:0;padding:12px 16px;font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;background:var(--panel2);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.card h2 .tag{margin-left:auto;font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:5px;background:#0c0f14;color:var(--faint)}
+.tag.proto{color:var(--warn);border:1px solid rgba(255,180,84,.3)}
+.tag.live{color:var(--good)}
+.body{padding:15px 16px}
+.row{display:flex;align-items:center;gap:12px;margin:10px 0}
+.row label{flex:0 0 150px;font-size:12px;color:var(--dim)}
+.row .val{flex:0 0 56px;text-align:right;font-family:var(--mono);font-size:11px;color:var(--accent);min-width:56px}
+.grow{flex:1}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;background:#222833;border-radius:3px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;border:2px solid #0a0c10}
+input[type=range].v2::-webkit-slider-thumb{background:var(--accent2)}
+input[type=range]:disabled{opacity:.45}
+input[type=range]:disabled::-webkit-slider-thumb{background:var(--faint)}
+select{width:100%;padding:7px 9px;background:#0c0f14;border:1px solid var(--line);border-radius:6px;color:var(--txt);font-family:var(--mono);font-size:11px}
+.toggles{display:flex;flex-wrap:wrap;gap:8px}
+.tg{display:flex;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--line);border-radius:7px;background:#0c0f14;cursor:pointer;font-size:11px;user-select:none}
+.tg .sw{width:30px;height:16px;border-radius:9px;background:#2a323e;position:relative;transition:.15s}
+.tg .sw::after{content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#525c6b;transition:.15s}
+.tg.on .sw{background:rgba(54,224,200,.3)}.tg.on .sw::after{transform:translateX(14px);background:var(--accent)}
+.tg.proto{opacity:.65;border-style:dashed}.tg.proto .sw{background:#3a3022}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{background:#0c0f14;border:0;color:var(--dim);padding:7px 14px;font-size:11px;cursor:pointer;font-family:var(--mono)}
+.seg button.active{background:var(--accent);color:#06140f;font-weight:600}
+.spec{display:grid;grid-template-columns:repeat(20,1fr);gap:4px 3px;margin-top:10px;align-items:end}
+.spec .bin{display:flex;flex-direction:column;align-items:center;gap:2px}
+.spec .bin input{width:14px;height:72px;writing-mode:bt-lr;-webkit-appearance:slider-vertical;}
+.spec .bin span{font-family:var(--mono);font-size:8px;color:var(--faint)}
+.gains{display:grid;grid-template-columns:1fr 1fr;gap:8px 22px}
+.gains .row label{flex:0 0 110px}.gains .row .val{flex:0 0 48px;min-width:48px}
+.actionbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:linear-gradient(0deg,#0a0c10,#0e1116);border-top:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:14px}
+.actionbar .grow{flex:1}
+.btn{padding:10px 22px;border-radius:8px;border:0;cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.4px}
+.btn.primary{background:linear-gradient(180deg,#36e0c8,#28b89e);color:#06140f;box-shadow:0 4px 16px rgba(54,224,200,.3)}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--dim)}
+.lastapply{font-family:var(--mono);font-size:11px;color:var(--dim)}.lastapply b{color:var(--good)}
+.protonote{margin:12px 0 0;padding:10px 13px;border:1px dashed rgba(255,180,84,.35);border-radius:8px;background:rgba(255,180,84,.05);font-size:11px;color:var(--warn)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin:4px 0 14px;font-size:11px;color:var(--dim)}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:6px}
+.k1{background:var(--accent)}.k2{background:var(--accent2)}.k3{background:var(--warn)}
+.hint{font-size:11px;color:var(--faint);margin:6px 0 0}
+.chbadge{padding:2px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:600}
+.chA{background:rgba(54,224,200,.15);color:var(--accent)}.chB{background:rgba(184,107,255,.15);color:var(--accent2)}
+.palgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:7px;margin-top:6px}
+.sw{position:relative;height:34px;border-radius:5px;cursor:pointer;overflow:hidden;border:2px solid transparent;transition:.12s}
+.sw:hover{transform:translateY(-2px);border-color:var(--dim)}
+.sw.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(54,224,200,.4),0 4px 12px rgba(0,0,0,.5)}
+.sw.selB{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(184,107,255,.4),0 4px 12px rgba(0,0,0,.5)}
+.sw .g{display:flex;height:100%;width:100%}
+.sw .g i{flex:1;display:block}
+.sw .nm{position:absolute;left:0;right:0;bottom:0;font-size:8px;font-family:var(--mono);color:#fff;background:rgba(0,0,0,.6);padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:.12s}
+.sw:hover .nm{opacity:1}
+.sw .idx{position:absolute;top:1px;left:3px;font-size:8px;font-family:var(--mono);color:rgba(255,255,255,.7);text-shadow:0 1px 2px #000}
+.palhdr{display:flex;align-items:center;gap:10px;margin:4px 0 8px}
+.palhdr .selname{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.palhdr .selnameB{color:var(--accent2)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"></div>
+  <div class="brand">
+    <h1>Titan K1-RA8P1 Control Surface</h1>
+    <div class="sub">one-shot config · opcode 25 / LiveConfigBlob · v1 896 B · v2 1152 B visual</div>
+  </div>
+  <div class="status" id="connStatus"><span class="dot off"></span> <span id="connTxt">not connected</span></div>
+  <div class="topright" id="topright">
+    <b>—</b> · no INFO yet<br>
+    mode — · palette — · emit —
+  </div>
+</div>
+<!--TABS-->
+<div class="tabs" id="tabs">
+  <div class="tab active" data-p="global">Global <span class="badge">10</span></div>
+  <div class="tab" data-p="fa">Focus A <span class="badge">105</span></div>
+  <div class="tab" data-p="fb">Focus B <span class="badge">105</span></div>
+  <div class="tab" data-p="va">Visual A <span class="badge">45</span></div>
+  <div class="tab" data-p="vb">Visual B <span class="badge">45</span></div>
+</div>
+<div class="wrap">
+<div class="legend">
+  <span class="k"><i class="k1"></i>palette / mode / brightness / flags</span>
+  <span class="k"><i class="k2"></i>105-gain audio focus including 80 spectrum bins</span>
+  <span class="k"><i class="k3"></i>ChannelVisualControls — live after v2 image; greyed on the installed v1 blob</span>
+</div>
+<!--PANES-->
+<div class="pane active" id="p-global">
+  <div class="grid g3">
+    <div class="card">
+      <h2>Palette &amp; Mode <span class="tag live">wire</span></h2>
+      <div class="body">
+        <div class="row"><label>Palette A</label><div class="grow"><select id="palA"></select></div></div>
+        <div class="row"><label>Palette B</label><div class="grow"><select id="palB"></select></div></div>
+        <div class="row"><label>Mode A</label><div class="grow"><select id="modeA"></select></div></div>
+        <div class="row"><label>Mode B</label><div class="grow"><select id="modeB"></select></div></div>
+        <div class="row"><label>Output channel</label><div class="grow">
+          <div class="seg" id="och"><button class="active" data-v="0">A</button><button data-v="1">B</button></div>
+        </div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Output &amp; Motion <span class="tag live">wire</span></h2>
+      <div class="body">
+        <div class="row"><label>Brightness</label><div class="grow"><input id="brightness" type="range" min="0" max="255" value="24" oninput="this.parentNode.nextElementSibling.textContent=this.value"></div><div class="val">24</div></div>
+        <div class="row"><label>Transition (ms)</label><div class="grow"><input id="travMs" type="range" min="0" max="4000" value="0" oninput="this.parentNode.nextElementSibling.textContent=this.value"></div><div class="val">0</div></div>
+        <div class="row"><label>Travel (ms)</label><div class="grow"><input id="trMs" type="range" min="500" max="30000" step="100" value="4000" oninput="this.parentNode.nextElementSibling.textContent=this.value"></div><div class="val">4000</div></div>
+        <div class="row"><label>Config version</label><div class="grow">
+          <div class="seg" id="cver"><button data-v="1">v1</button><button class="active" data-v="2">v2</button><button data-v="3">v3</button></div>
+        </div></div>
+        <div class="row"><label>Emit</label><div class="grow"><div class="toggles"><div class="tg on" id="emit"><span>Emit ON</span><span class="sw"></span></div></div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Flags (bitmask) <span class="tag live">wire</span></h2>
+      <div class="body">
+        <div class="toggles" id="flags">
+          <div class="tg on" data-b="1"><span>Active (1)</span><span class="sw"></span></div>
+          <div class="tg" data-b="2"><span>Auto-cycle (2)</span><span class="sw"></span></div>
+          <div class="tg on" data-b="4"><span>Emit (4)</span><span class="sw"></span></div>
+          <div class="tg" data-b="8"><span>Inward travel (8)</span><span class="sw"></span></div>
+          <div class="tg" data-b="16"><span>Morph blend (16)</span><span class="sw"></span></div>
+        </div>
+        <p class="hint">live_apply_config forces emit (4) on, clears auto-cycle (2). Bit 8 inverts centre→edge to edge→centre. Bit 16 enables v3 morph blend between A/B.</p>
+      </div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h2>Live INFO readback <span class="tag live">opcode 1</span></h2>
+      <div class="body" id="infoPanel" style="font-family:var(--mono);font-size:11px;color:var(--dim);line-height:1.7">
+        not loaded — press “Revert to live” to fetch from device
+      </div>
+    </div>
+    <div class="card">
+      <h2>Apply <span class="tag live">one-shot</span></h2>
+      <div class="body">
+        <p class="hint" style="color:var(--dim)">Pick values, then Apply. Palette swatches apply immediately. Spectrum bins are 80 of the 105 focus floats already on the v1 wire. Visual A/B ride the v2 blob (1152 B) and stay greyed until GET_CONFIG reports visual_capable.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<!--PANEFA-->
+<div class="pane" id="p-fa">
+  <div class="card">
+    <h2>Audio Focus — Channel <span class="chbadge chA">A</span> <span class="tag live">focus_a[105] · wire</span></h2>
+    <div class="body">
+      <p class="hint" style="margin-top:0;color:var(--dim)">Per-channel weighting over one shared AP snapshot. Each gain scales one audio feature before it drives the renderer. 13 named gains + 80 spectrum bins + 12 chroma bins = 105 floats.</p>
+      <div class="gains" id="gainsA"></div>
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin:18px 0 4px">Spectrum bin gain (80 bins)</h3>
+      <div class="spec" id="specA"></div>
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin:24px 0 4px">Chroma bin gain (12 bins)</h3>
+      <div class="gains" id="chromaA" style="grid-template-columns:repeat(4,1fr)"></div>
+    </div>
+  </div>
+</div>
+<!--PANEFB-->
+<div class="pane" id="p-fb">
+  <div class="card">
+    <h2>Audio Focus — Channel <span class="chbadge chB">B</span> <span class="tag live">focus_b[105] · wire</span></h2>
+    <div class="body">
+      <p class="hint" style="margin-top:0;color:var(--dim)">Same 105-gain structure as Channel A, applied to the second palette/mode lane. Independent weighting lets A and B react to different features of the same audio.</p>
+      <div class="gains" id="gainsB"></div>
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin:18px 0 4px">Spectrum bin gain (80 bins)</h3>
+      <div class="spec" id="specB"></div>
+      <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);margin:24px 0 4px">Chroma bin gain (12 bins)</h3>
+      <div class="gains" id="chromaB" style="grid-template-columns:repeat(4,1fr)"></div>
+    </div>
+  </div>
+</div>
+<!--PANEVA-->
+<div class="pane" id="p-va">
+  <div class="card">
+    <h2>Palette — Channel <span class="chbadge chA">A</span> <span class="tag live">palette_a · wire</span></h2>
+    <div class="body">
+      <div class="palhdr"><span style="color:var(--dim);font-size:12px">Selected:</span><span class="selname" id="palAname">33 · K1_Iris_Apricot</span><span style="margin-left:auto;font-size:11px;color:var(--faint)">click a swatch to select · 44 palettes</span></div>
+      <div class="palgrid" id="palgridA"></div>
+    </div>
+  </div>
+  <div class="protonote" style="margin-top:16px"><b>ChannelVisualControls — v2 wire (1152 B).</b> These fields already exist on the renderer. GET_CONFIG on a v1 image (896 B) reports visual_capable=false and the sliders stay greyed. They become live after a Rearm of the v2 blob; applied values then round-trip through GET_CONFIG.</div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card">
+      <h2>Colour / Hue <span class="tag proto">proto</span></h2>
+      <div class="body" id="visA_color"></div>
+    </div>
+    <div class="card">
+      <h2>Form / Motion <span class="tag proto">proto</span></h2>
+      <div class="body" id="visA_form"></div>
+    </div>
+    <div class="card">
+      <h2>Lamp Character <span class="tag proto">proto</span></h2>
+      <div class="body" id="visA_lamp"></div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h2>Bloom Post <span class="tag proto">proto</span></h2>
+      <div class="body" id="visA_bloom"></div>
+    </div>
+    <div class="card">
+      <h2>Waveform (mode 32) Tuning <span class="tag proto">proto</span></h2>
+      <div class="body" id="visA_wave"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>VP Fix Flags &amp; Misc <span class="tag proto">proto</span></h2>
+    <div class="body" id="visA_fix"></div>
+  </div>
+</div>
+<!--PANEVB-->
+<div class="pane" id="p-vb">
+  <div class="card">
+    <h2>Palette — Channel <span class="chbadge chB">B</span> <span class="tag live">palette_b · wire</span></h2>
+    <div class="body">
+      <div class="palhdr"><span style="color:var(--dim);font-size:12px">Selected:</span><span class="selname selnameB" id="palBname">34 · K1_Tropical_Ultraviolet</span><span style="margin-left:auto;font-size:11px;color:var(--faint)">click a swatch to select · 44 palettes</span></div>
+      <div class="palgrid" id="palgridB"></div>
+    </div>
+  </div>
+  <div class="protonote" style="margin-top:16px"><b>ChannelVisualControls — v2 wire (1152 B).</b> Channel B carries the same set as A, applied to the second palette/mode lane. Greyed on the installed v1 image until GET_CONFIG reports visual_capable.</div>
+  <div class="grid g3" style="margin-top:14px">
+    <div class="card">
+      <h2>Colour / Hue <span class="tag proto">proto</span></h2>
+      <div class="body" id="visB_color"></div>
+    </div>
+    <div class="card">
+      <h2>Form / Motion <span class="tag proto">proto</span></h2>
+      <div class="body" id="visB_form"></div>
+    </div>
+    <div class="card">
+      <h2>Lamp Character <span class="tag proto">proto</span></h2>
+      <div class="body" id="visB_lamp"></div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h2>Bloom Post <span class="tag proto">proto</span></h2>
+      <div class="body" id="visB_bloom"></div>
+    </div>
+    <div class="card">
+      <h2>Waveform (mode 32) Tuning <span class="tag proto">proto</span></h2>
+      <div class="body" id="visB_wave"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h2>VP Fix Flags &amp; Misc <span class="tag proto">proto</span></h2>
+    <div class="body" id="visB_fix"></div>
+  </div>
+</div>
+</div>
+<div class="actionbar">
+  <div class="lastapply" id="lastApply">not loaded — press “Revert to live” to fetch from device</div>
+  <div class="grow"></div>
+  <button class="btn ghost" id="revert">Revert to live</button>
+  <input id="presetName" placeholder="preset name" style="width:140px;padding:8px 10px;background:#0c0f14;border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:11px">
+  <button class="btn ghost" id="presetSave">Save preset</button>
+  <select id="presetList" style="width:140px;padding:8px 10px;background:#0c0f14;border:1px solid var(--line);border-radius:8px;color:var(--txt);font-family:var(--mono);font-size:11px"></select>
+  <button class="btn ghost" id="presetLoad">Restore preset</button>
+  <button class="btn primary" id="apply">Apply config → opcode 25</button>
+</div>
+<!--SCRIPT-->
+<script src="palette_data.js"></script>
+<script>
+const PALETTES=["Sunset_Real","es_rivendell_15","es_ocean_breeze_036","rgi_15","retro2_16","Analogous_1","es_pinksplash_08","Coral_reef","es_ocean_breeze_068","es_pinksplash_07","es_vintage_01","departure","es_landscape_64","es_landscape_33","rainbowsherbet","gr65_hult","gr64_hult","GMT_drywet","ib_jul01","es_vintage_57","ib15","Fuschia_7","es_emerald_dragon_08","lava","fire","Colorfull","Magenta_Evening","Pink_Purple","es_autumn_19","BlacK_Blue_Magenta_White","BlacK_Magenta_Red","BlacK_Red_Magenta_Yellow","Blue_Cyan_Yellow","K1_Iris_Apricot","K1_Tropical_Ultraviolet","K1_Chameleon_Flare","K1_Coral_Sunset","K1_Night_Sea_Amber","K1_Crimson_Gold","K1_Ultraviolet_Ascend","K1_Naberius_Gold","K1_Vepar_Pink","K1_Flourish_Sweep","K1_Ultraviolet_Bright"];
+const MODES=[["0","preview"],["3","3"],["7","7"],["8","8"],["9","9"],["11","11"],["12","12"],["13","13"],["14","14"],["15","15"],["16","16"],["18","18"],["19","19"],["20","20"],["21","21"],["22","22"],["23","23"],["24","24"],["25","25"],["26","26"],["27","27"],["28","28"],["29","29"],["32","32 · WaveformK1"],["64","64 · diag-bounce"],["100","100 · RIBBONS"],["101","101 · AURORA_LAYERS"],["102","102 · EMBER_TRAILS"],["103","103 · PULSE_WAVES"]];
+const NAMED=["level_gain","novelty_gain","low_gain","mid_gain","high_gain","tonal_gain","onset_gain","bass_onset_gain","beat_gain","transient_gain","kick_gain","snare_gain","hihat_gain"];
+const CHROMA=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+
+function fillSelect(id,items,sel){const e=document.getElementById(id);items.forEach((it,i)=>{const o=document.createElement("option");o.value=it[0];o.textContent=it[1]||(it[0]+" · "+it);if((it[0]??i)==sel)o.selected=true;e.appendChild(o);});}
+fillSelect("palA",PALETTES.map((n,i)=>[i,n]),33);
+fillSelect("palB",PALETTES.map((n,i)=>[i,n]),34);
+fillSelect("modeA",MODES,32);
+fillSelect("modeB",MODES,0);
+
+function sliderRow(label,val,min,max,step,cl,dis,key){return `<div class="row"><label>${label}</label><div class="grow"><input type="range" ${dis?'disabled':''} class="${cl||''}" data-k="${key||label}" min="${min}" max="${max}" step="${step||1}" value="${val}" oninput="this.parentNode.nextElementSibling.textContent=this.value"></div><div class="val">${val}</div></div>`;}
+function toggleRow(label,on,proto,key){return `<div class="tg ${on?'on':''} ${proto?'proto':''}" data-k="${key||label}"><span>${label}</span><span class="sw"></span></div>`;}
+
+function buildGains(id,cl){const c=document.getElementById(id);let h="";NAMED.forEach((n,i)=>{h+=sliderRow(n,1.0,0,4,0.01,cl);});c.innerHTML=h;}
+buildGains("gainsA","");buildGains("gainsB","v2");
+
+function buildSpec(id){const c=document.getElementById(id);let h="";for(let i=0;i<80;i++){h+=`<div class="bin"><input type="range" min="0" max="4" step="0.01" value="1" data-bin="${i}" title="bin ${i}"><span>${i}</span></div>`;}c.innerHTML=h;}
+buildSpec("specA");buildSpec("specB");
+
+function buildChroma(id,cl){const c=document.getElementById(id);let h="";CHROMA.forEach((n,i)=>{h+=`<div class="row"><label>${n} (${i})</label><div class="grow"><input type="range" class="${cl}" min="0" max="4" step="0.01" value="1" oninput="this.parentNode.nextElementSibling.textContent=this.value"></div><div class="val">1.00</div></div>`;});c.innerHTML=h;}
+buildChroma("chromaA","");buildChroma("chromaB","v2");
+
+// Tier 3 visual controls (proto)
+function buildVis(id,fields){const c=document.getElementById(id);let h="";fields.forEach(f=>{if(f.t==="tg"){h+=`<div style="margin:8px 0">${toggleRow(f.l,f.on,true,f.k||f.l)}</div>`;}else{h+=sliderRow(f.l,f.v,f.min,f.max,f.step,"v2",true,f.k||f.l);}});c.innerHTML=h;}
+
+const COLOR=[{l:"chroma",k:"chroma",v:0,min:0,max:1,step:.01},{l:"mood",k:"mood",v:0,min:0,max:1,step:.01},{l:"saturation",k:"saturation",v:1,min:0,max:2,step:.01},{l:"hue_position",k:"hue_position",v:0,min:0,max:1,step:.001},{l:"chroma_value",k:"chroma_value",v:0,min:0,max:1,step:.01},{l:"hue_shifting_mix",k:"hue_shifting_mix",v:0,min:0,max:1,step:.01},{l:"prism_count",k:"prism_count",v:0,min:0,max:8,step:.1},{l:"auto_colour_shift",k:"auto_colour_shift",t:"tg",on:false},{l:"chromatic_mode",k:"chromatic_mode",t:"tg",on:true}];
+const FORM=[{l:"square_iterations",k:"square_iterations",v:0,min:0,max:16,step:.1},{l:"sensitivity",k:"sensitivity",v:1,min:0,max:4,step:.01},{l:"mirror_enabled",k:"mirror_enabled",t:"tg",on:true},{l:"reverse_order",k:"reverse_order",t:"tg",on:false},{l:"temporal_dithering",k:"temporal_dithering",t:"tg",on:false},{l:"base_coat",k:"base_coat",t:"tg",on:false},{l:"base_coat_intensity",k:"base_coat_intensity",v:0,min:0,max:1,step:.01}];
+const LAMP=[{l:"incandescent_filter",k:"incandescent_filter",v:0,min:0,max:1,step:.01},{l:"bulb_opacity",k:"bulb_opacity",v:0,min:0,max:1,step:.01},{l:"incandescent_mode",k:"incandescent_mode",t:"tg",on:false}];
+const BLOOM=[{l:"vp_bloom_alpha",k:"vp_bloom_alpha",v:.99,min:0,max:1,step:.001},{l:"vp_bloom_shift_scale",k:"vp_bloom_shift_scale",v:1,min:0,max:4,step:.01},{l:"vp_bloom_force_saturation",k:"vp_bloom_force_saturation",t:"tg",on:true},{l:"vp_fix_bloom_decay",k:"vp_fix_bloom_decay",t:"tg",on:false}];
+const WAVE=[{l:"vp_waveform_shift_rate",k:"vp_waveform_shift_rate",v:120,min:0,max:480,step:1},{l:"vp_waveform_idle_fade",k:"vp_waveform_idle_fade",v:.985,min:0,max:1,step:.001},{l:"vp_waveform_raw_margin",k:"vp_waveform_raw_margin",v:1.10,min:0,max:4,step:.01},{l:"vp_waveform_peak_floor",k:"vp_waveform_peak_floor",v:.08,min:0,max:1,step:.01},{l:"vp_waveform_active_fade",k:"vp_waveform_active_fade",v:.04,min:0,max:1,step:.01},{l:"vp_waveform_chroma_blend_gain",k:"vp_waveform_chroma_blend_gain",v:2.0,min:0,max:8,step:.01},{l:"vp_waveform_fallback_brightness",k:"vp_waveform_fallback_brightness",v:1.0,min:0,max:2,step:.01},{l:"vp_waveform_vu_floor",k:"vp_waveform_vu_floor",v:.02,min:0,max:1,step:.01}];
+const FIX=[{l:"vp_fix_agc_soft_knee",k:"vp_fix_agc_soft_knee",t:"tg",on:false},{l:"vp_fix_chroma_gate",k:"vp_fix_chroma_gate",t:"tg",on:false},{l:"vp_fix_prism_off",k:"vp_fix_prism_off",t:"tg",on:false},{l:"vp_fix_hsv_source_sat",k:"vp_fix_hsv_source_sat",t:"tg",on:false},{l:"vp_fix_secondary_clean",k:"vp_fix_secondary_clean",t:"tg",on:false},{l:"enabled",k:"enabled",t:"tg",on:true},{l:"sweet_spot_min_level",k:"sweet_spot_min_level",v:350,min:0,max:4095,step:1},{l:"samples_per_chunk",k:"samples_per_chunk",v:180,min:0,max:4095,step:1}];
+
+["A","B"].forEach(ch=>{
+  buildVis("vis"+ch+"_color",COLOR);buildVis("vis"+ch+"_form",FORM);buildVis("vis"+ch+"_lamp",LAMP);
+  buildVis("vis"+ch+"_bloom",BLOOM);buildVis("vis"+ch+"_wave",WAVE);buildVis("vis"+ch+"_fix",FIX);
+});
+
+// tabs
+document.getElementById("tabs").addEventListener("click",e=>{const t=e.target.closest(".tab");if(!t)return;document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".pane").forEach(x=>x.classList.remove("active"));t.classList.add("active");document.getElementById("p-"+t.dataset.p).classList.add("active");});
+
+// palette swatch grids
+function buildPalGrid(gridId,nameId,selIdx,selClass,selectId){const g=document.getElementById(gridId);const nm=document.getElementById(nameId);let h="";PALETTE_COLORS.forEach((cols,i)=>{const grad=cols.map(c=>`<i style="background:rgb(${c[0]},${c[1]},${c[2]})"></i>`).join("");h+=`<div class="sw ${i===selIdx?selClass:''}" data-i="${i}" data-nm="${PALETTE_NAMES[i]}"><div class="g">${grad}</div><span class="idx">${i}</span><span class="nm">${i} · ${PALETTE_NAMES[i]}</span></div>`;});g.innerHTML=h;g.addEventListener("click",e=>{const s=e.target.closest(".sw");if(!s)return;g.querySelectorAll(".sw").forEach(x=>x.classList.remove(selClass));s.classList.add(selClass);nm.textContent=s.dataset.i+" · "+s.dataset.nm;$(selectId).value=s.dataset.i;apply();});}
+buildPalGrid("palgridA","palAname",33,"sel","palA");
+buildPalGrid("palgridB","palBname",34,"selB","palB");
+
+// toggles + segments
+document.addEventListener("click",e=>{const tg=e.target.closest(".tg");if(tg){tg.classList.toggle("on");return;}const sb=e.target.closest(".seg button");if(sb){const seg=sb.parentElement;seg.querySelectorAll("button").forEach(b=>b.classList.remove("active"));sb.classList.add("active");}});
+
+// ---- live wiring ----
+const $=id=>document.getElementById(id);
+function setConn(on,txt){const d=$("connStatus").querySelector(".dot");d.classList.toggle("off",!on);$("connTxt").textContent=txt;}
+
+function selectSwatch(gridId,cls,idx){const g=$(gridId);g.querySelectorAll(".sw").forEach(x=>x.classList.remove(cls));const t=g.querySelector(`.sw[data-i="${idx}"]`);if(t)t.classList.add(cls);}
+
+function readFlags(){let f=0;document.querySelectorAll("#flags .tg").forEach(t=>{if(t.classList.contains("on"))f|=parseInt(t.dataset.b);});return f;}
+function setFlags(f){document.querySelectorAll("#flags .tg").forEach(t=>{t.classList.toggle("on",!!(f&parseInt(t.dataset.b)));});}
+
+function segVal(id){const a=$(id).querySelector("button.active");return a?parseInt(a.dataset.v):0;}
+function setSeg(id,v){$(id).querySelectorAll("button").forEach(b=>b.classList.toggle("active",parseInt(b.dataset.v)===v));}
+
+function gatherConfig(){const c={};c.palette_a=parseInt($("palA").value);c.palette_b=parseInt($("palB").value);
+c.mode_a=parseInt($("modeA").value);c.mode_b=parseInt($("modeB").value);c.brightness=parseInt($("brightness")?.value||24);
+c.output_channel=segVal("och");c.transition_ms=parseInt($("travMs")?.value||0);c.travel_ms=parseInt($("trMs")?.value||4000);
+c.flags=readFlags();c.emit_on=$("emit").classList.contains("on")?1:0;
+c.focus_a=readFocus("gainsA","specA","chromaA");c.focus_b=readFocus("gainsB","specB","chromaB");
+c.visual_a=readVisual("A");c.visual_b=readVisual("B");
+return c;}
+
+function readFocus(gainsId,specId,chromaId){const out=new Array(105).fill(1.0);
+const g=$(gainsId).querySelectorAll("input[type=range]");g.forEach((s,i)=>{out[i]=parseFloat(s.value);});
+const spec=$(specId).querySelectorAll("input[type=range]");spec.forEach((s,i)=>{out[13+i]=parseFloat(s.value);});
+const c=$(chromaId).querySelectorAll("input[type=range]");c.forEach((s,i)=>{out[93+i]=parseFloat(s.value);});
+return out;}
+
+const VIS_FLAGS={enabled:1,mirror_enabled:2,auto_colour_shift:4,reverse_order:8,incandescent_mode:16,temporal_dithering:32,base_coat:64,chromatic_mode:256,vp_fix_agc_soft_knee:512,vp_fix_chroma_gate:1024,vp_fix_prism_off:2048,vp_fix_bloom_decay:4096,vp_fix_hsv_source_sat:8192,vp_fix_secondary_clean:16384,vp_bloom_force_saturation:32768};
+
+function visRoot(ch){return ["vis"+ch+"_color","vis"+ch+"_form","vis"+ch+"_lamp","vis"+ch+"_bloom","vis"+ch+"_wave","vis"+ch+"_fix"].map($);}
+
+function readVisual(ch){const vis={};let flags=0;
+visRoot(ch).forEach(root=>{
+  root.querySelectorAll("input[type=range]").forEach(s=>{vis[s.dataset.k]=parseFloat(s.value);});
+  root.querySelectorAll(".tg[data-k]").forEach(t=>{
+    const on=t.classList.contains("on"); const bit=VIS_FLAGS[t.dataset.k];
+    if(bit && on) flags|=bit;
+  });
+});
+vis.flags=flags; vis.sweet_spot_min_level=parseInt(vis.sweet_spot_min_level||350);
+vis.samples_per_chunk=parseInt(vis.samples_per_chunk||180);
+return vis;}
+
+function fillFocus(gainsId,specId,chromaId,arr){if(!arr)return;
+const g=$(gainsId).querySelectorAll("input[type=range]");g.forEach((s,i)=>{if(arr[i]==null)return;s.value=arr[i];s.parentNode.nextElementSibling.textContent=arr[i];});
+const spec=$(specId).querySelectorAll("input[type=range]");spec.forEach((s,i)=>{if(arr[13+i]==null)return;s.value=arr[13+i];});
+const c=$(chromaId).querySelectorAll("input[type=range]");c.forEach((s,i)=>{if(arr[93+i]==null)return;s.value=arr[93+i];s.parentNode.nextElementSibling.textContent=arr[93+i];});
+}
+
+function fillVisual(ch,vis){if(!vis)return;
+visRoot(ch).forEach(root=>{
+  root.querySelectorAll("input[type=range]").forEach(s=>{
+    if(vis[s.dataset.k]==null)return;s.value=vis[s.dataset.k];
+    if(s.parentNode.nextElementSibling)s.parentNode.nextElementSibling.textContent=vis[s.dataset.k];
+  });
+  root.querySelectorAll(".tg[data-k]").forEach(t=>{
+    const bit=VIS_FLAGS[t.dataset.k];
+    if(bit) t.classList.toggle("on",!!(vis.flags&bit));
+  });
+});}
+
+function setVisualCapable(on){
+  document.querySelectorAll("#p-va input,#p-vb input").forEach(el=>{el.disabled=!on;});
+  document.querySelectorAll("#p-va .tg,#p-vb .tg").forEach(el=>{el.classList.toggle("proto",!on);});
+  document.querySelectorAll("#p-va .protonote,#p-vb .protonote").forEach(n=>{n.style.display=on?"none":"";});
+}
+
+function fillFromConfig(cfg){
+$("palA").value=cfg.palette_a;$("palB").value=cfg.palette_b;$("modeA").value=cfg.mode_a;$("modeB").value=cfg.mode_b;
+selectSwatch("palgridA","sel",cfg.palette_a);selectSwatch("palgridB","selB",cfg.palette_b);
+$("palAname").textContent=cfg.palette_a+" · "+(PALETTE_NAMES[cfg.palette_a]||"?");
+$("palBname").textContent=cfg.palette_b+" · "+(PALETTE_NAMES[cfg.palette_b]||"?");
+const setSlider=(id,v)=>{const el=$(id);if(el){el.value=v;el.parentNode.nextElementSibling.textContent=v;}};
+setSlider("brightness",cfg.brightness);setSlider("travMs",cfg.transition_ms);setSlider("trMs",cfg.travel_ms);
+setSeg("och",cfg.output_channel);setFlags(cfg.flags);
+$("emit").classList.toggle("on",!!cfg.emit_on);
+fillFocus("gainsA","specA","chromaA",cfg.focus_a);
+fillFocus("gainsB","specB","chromaB",cfg.focus_b);
+fillVisual("A",cfg.visual_a);fillVisual("B",cfg.visual_b);
+setVisualCapable(!!cfg.visual_capable);
+}
+
+function fillInfo(info,ps){
+const b=info.build||"?";const uid=(info.uid||"").slice(0,8);
+$("topright").innerHTML=`<b>${b}</b> · ${info.runtime_kind||"live"}<br>mode ${ps.mode_id||ps.mode_a||"-"} · palette ${ps.palette_id||ps.palette_a||"-"} · emit ${ps.emit_enabled!=null?(ps.emit_enabled?"ON":"off"):(ps.emit_on!=null?(ps.emit_on?"ON":"off"):"-")}`;
+const backend=ps.configured_backend||"-";
+const pair=ps.pair_backend?` · pair ${ps.pair_backend} gen ${ps.submitted_generation||0}/${ps.completed_generation||0} faults ${ps.pair_fault||0}`:"";
+$("infoPanel").innerHTML=`schema_sha256: ${(info.schema_sha256||"").slice(0,16)}…<br>opcodes: snapshot:23 events:24 config:25 timing:26<br>capabilities: ${(info.capabilities&&Object.keys(info.capabilities).join("·"))||"?"}<br>measured_hz: <b style="color:var(--accent)">${ps.measured_hz||"-"}</b> &nbsp; deadline_us: ${ps.deadline_us||"-"}<br>visual_path: <b style="color:var(--accent)">${ps.visual_path||"-"}</b> &nbsp; musical: ${ps.musical}<br>backend: <b>${backend}</b> profile ${ps.wire_profile||"-"} din ${ps.din_a||"-"}/${ps.din_b||"-"}${pair}<br>emit_errors: ${ps.emit_errors||0} &nbsp; skipped_releases: <b style="color:${(ps.skipped_releases>0)?'var(--warn)':'var(--good)'}">${ps.skipped_releases||0}</b>`;
+}
+
+async function refresh(){setConn(false,"connecting…");$("lastApply").textContent="fetching from device…";
+try{const r=await fetch("/api/state");const j=await r.json();
+if(!j.ok){setConn(false,"error");$("lastApply").textContent="error: "+j.error;return;}
+fillFromConfig(j.config);fillInfo(j.info,j.palette_status);
+setConn(true,"CDC connected · rev "+j.config.revision);
+$("lastApply").innerHTML=`live: <b>rev ${j.config.revision}</b> · palette ${j.config.palette_a} · mode ${j.config.mode_a} · brightness ${j.config.brightness}`;
+}catch(e){setConn(false,"error");$("lastApply").textContent="fetch failed: "+e;}}
+
+async function apply(){const cfg=gatherConfig();$("lastApply").textContent="applying…";setConn(false,"applying…");
+try{const r=await fetch("/api/config",{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});
+const j=await r.json();
+if(!j.ok){$("lastApply").textContent="apply FAILED: "+j.error;setConn(false,"error");return;}
+fillFromConfig(j.config);setConn(true,"CDC connected · rev "+j.config.revision);
+const now=new Date().toLocaleTimeString();
+const rb=j.readback||{};
+const delta=rb.ok?"readback matched":("readback mismatch "+JSON.stringify(rb.mismatch||{}));
+$("lastApply").innerHTML=`applied <b>${now}</b> · rev ${j.config.revision} · palette ${j.config.palette_a} · mode ${j.config.mode_a} · brightness ${j.config.brightness} · ${delta}`;
+}catch(e){$("lastApply").textContent="apply failed: "+e;setConn(false,"error");}}
+
+$("revert").addEventListener("click",refresh);
+$("apply").addEventListener("click",apply);
+
+async function refreshPresets(){
+  try{const r=await fetch("/api/presets");const j=await r.json();
+    const sel=$("presetList");sel.innerHTML="";
+    (j.presets||[]).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;sel.appendChild(o);});
+  }catch(e){}}
+$("presetSave").addEventListener("click",async()=>{
+  const name=$("presetName").value||("p"+Date.now());
+  const r=await fetch("/api/presets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,config:gatherConfig()})});
+  const j=await r.json();$("lastApply").textContent=j.ok?"saved "+j.name:"save failed "+j.error;refreshPresets();
+});
+$("presetLoad").addEventListener("click",async()=>{
+  const name=$("presetList").value;if(!name)return;
+  const r=await fetch("/api/presets/"+name,{method:"POST"});const j=await r.json();
+  if(!j.ok){$("lastApply").textContent="restore failed "+j.error;return;}
+  fillFromConfig(j.config);$("lastApply").textContent="restored "+name+" · rev "+j.config.revision;
+});
+refreshPresets();
+refresh();
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{
+  "label": "ON-SILICON",
+  "start": "2026-09-20T20:00:23.536882+00:00",
+  "pass": false,
+  "build_id": "90e1b84f5665008fa262d22bd9882deb5f11981542b7b48fb30edba61f8578bd",
+  "image_sha256": "cbcadb41de10cb7f884edb38118d8ad58967f2edfe7c5afcd1eda5e62828dd37",
+  "image_start": "0x2000000",
+  "image_end": "0x2040f77",
+  "restore": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/p3-2026-09-09/build-staged-v2/rtthread.hex",
+  "programmer_sha256": "8e6f5ccf78ab6cff2af359c12be0320529d8cfaf1dae126074860448f50acf59",
+  "uid": "545433931bd25436593630352d068363",
+  "usb": {
+    "device": "/dev/cu.usbmodem1401",
+    "description": "RA USB Boot",
+    "vid": 1115,
+    "pid": 609,
+    "serial_number": null,
+    "location": "0-1.4"
+  },
+  "error": "read failed: [Errno 6] Device not configured",
+  "end": "2026-09-20T20:00:25.983408+00:00"
+}

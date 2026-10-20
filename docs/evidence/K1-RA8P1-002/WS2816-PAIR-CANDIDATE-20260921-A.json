@@ -1,0 +1,53 @@
+{
+  "candidate": "WS2816-PAIR-CANDIDATE-20260921-A",
+  "date": "2026-09-21",
+  "status": "candidate_ready",
+  "flashed": false,
+  "p603_physical_move": "unconfirmed",
+  "source_git_base": "431140853dd8b58af53240ef84d5fb1a08bd8b45",
+  "working_tree": "dirty_bound_in_build_receipt_sources",
+  "arm_build": "docs/evidence/K1-RA8P1-002/ws2816-pair-candidate-20260921-a",
+  "build_id": "fa54c7818a3fdf87344514854141dc06f7d000f5727e91b23a5fcc4245fe46b6",
+  "hex_sha256": "f4d40e9f7ad2733ec2ba1a70122c795801ab29f9b43a4981148b9602c3b756e7",
+  "elf_sha256": "459da26e8c67ee47baeaf6ecb69a230eb5170b7a31ff9064254bd2522ff4216e",
+  "map_sha256": "f6aa37978b447b4497821a3b1e1b4208aaff32a062535f89ea478c96676be0d2",
+  "uid": "545433931bd25436593630352d068363",
+  "palette_ws2816_gpt_pair": true,
+  "palette_gpt_dma": false,
+  "palette_ws2816": false,
+  "live_emit": false,
+  "boot": {
+    "mode": 32,
+    "palette_a": 33,
+    "palette_b": 43,
+    "flags": 1,
+    "emit_on": false,
+    "brightness": 24,
+    "backend": "ws2816_gpt_pair",
+    "profile": 3,
+    "source_precision": "rgb8_to_grb48"
+  },
+  "memory": {
+    "duty_a0": "0x2205bcc0",
+    "duty_a1": "0x220580c0",
+    "owned_a0": "0x22057ee0",
+    "owned_a1": "0x22057d00",
+    "pending_a0": "0x22057b20",
+    "pending_a1": "0x22057940",
+    "duty_bytes_active_pair": 30720,
+    "double_buffered_duty": false
+  },
+  "recovery_image": {
+    "build_id": "90e1b84f5665008fa262d22bd9882deb5f11981542b7b48fb30edba61f8578bd",
+    "hex_sha256": "cbcadb41de10cb7f884edb38118d8ad58967f2edfe7c5afcd1eda5e62828dd37",
+    "elf_sha256": "646ea527901c50b9f673c1ef42b075a3584d8741f2f0342e6960e863920961d3",
+    "programme": "programme-20260921-02-palette-preview",
+    "note": "24-bit WS2812 show. Do not restore onto a WS2816 stick and call the show recovered."
+  },
+  "dry_run_programme": {
+    "output": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programme-ws2816-pair-dry-20260921-01",
+    "pass": true,
+    "execute": false
+  },
+  "rearm_programme_output_must_not_exist": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/programme-ws2816-pair-20260921-01"
+}

@@ -1,0 +1,29 @@
+{
+  "utc": "2026-09-21T17:50:20Z",
+  "cwd": "/Users/spectrasynq/Applications/Renesas/E2_Debug_Runtime_10.6.0",
+  "purpose": "one delayed hot-plug after HOST_LOCK_CLEAR and E2 Lite USB reappear; J6 off at launch",
+  "cmd": [
+    "./e2-server-gdb",
+    "-g", "E2LITE",
+    "-t", "R7KA8P1KF",
+    "-p", "61234",
+    "-w", "0",
+    "-uInteface=", "SWD",
+    "-uIfSpeed=", "1000",
+    "-uSyncMode=", "async",
+    "-uCore=", "CPU0|enabled|1|61234",
+    "-uCore=", "CPU1|disabled|0|61235",
+    "-uHotPlug=", "1",
+    "-uAuthLevel=", "0",
+    "-uEnableSciBoot=", "0",
+    "-uResetCon=", "0",
+    "-uResetBeginConnection=", "0",
+    "-uNoReset=", "1",
+    "-uDisconnectionMode=", "0",
+    "-uConnectionTimeout=", "120",
+    "-ueraseRomOnDownload=", "0",
+    "-n", "0"
+  ],
+  "show_gui": "default (not forced 0); vendor hot-plug OK prompt required",
+  "titan_5v_policy": "USB-C board power is a constant; never query"
+}

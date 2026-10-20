@@ -1,0 +1,17 @@
+﻿Load: "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/ws2816-pair-ratelock-20260922/rtthread.hex" (Size=772592, CRC=23D60128)
+
+Connecting the tool (E2 emulator Lite)
+Tool: E2 emulator Lite (5AS079228B)
+Interface: SWD
+Tool Firmware Version: V3.05.00.000
+
+Emulator power supply: OFF
+Connecting the target device
+Speed: 100,000 Hz
+Connected to R7KA8P1KFLCAC
+
+Writing data to the target device
+  [Code MRAM 1]        02000000 - 020430DF
+
+[Error] E3000105: The device is not responding. (BFW: 3053)
+Disconnecting the tool

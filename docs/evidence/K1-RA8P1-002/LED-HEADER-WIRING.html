@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Titan Mini U18 — wire the LEDs</title>
+<style>
+  :root {
+    --ink: #1a1a1a;
+    --muted: #5c6570;
+    --paper: #f4f1ea;
+    --card: #fffdf8;
+    --line: #c9c2b4;
+    --keep: #1f7a4d;
+    --keep-bg: #e5f6ec;
+    --move: #0b6b4a;
+    --leave: #a33b32;
+    --leave-bg: #fdeceb;
+    --v5: #b86e00;
+    --v5-bg: #fff3d6;
+    --gnd: #243042;
+    --v33: #6d5a92;
+    --other: #e7e2d8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font: 16px/1.4 "Avenir Next", "Segoe UI", sans-serif;
+  }
+  main { max-width: 1180px; margin: 0 auto; padding: 28px 22px 64px; }
+  h1 { font-size: 34px; line-height: 1.1; margin: 0 0 6px; }
+  h2 { font-size: 22px; margin: 0 0 10px; }
+  .sub { color: var(--muted); margin: 0 0 18px; }
+  .banner {
+    background: #1a1a1a; color: #fff; border-radius: 12px;
+    padding: 16px 18px; margin: 0 0 18px; font-size: 20px;
+  }
+  .banner strong { color: #ffd36a; }
+  .grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px; break-inside: avoid;
+  }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0 0 16px; }
+  .step { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+  .step b { display: block; font-size: 28px; line-height: 1; margin-bottom: 6px; }
+  .key { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+  .key span { border-radius: 999px; padding: 4px 10px; font-size: 13px; border: 1px solid var(--line); }
+  .k-keep { background: var(--keep-bg); color: var(--keep); }
+  .k-leave { background: var(--leave-bg); color: var(--leave); }
+  .k-5 { background: var(--v5-bg); color: var(--v5); }
+  .k-g { background: #e8edf3; color: var(--gnd); }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .note { color: var(--muted); font-size: 13px; }
+  footer { margin-top: 16px; color: var(--muted); font-size: 13px; }
+  @media print {
+    body { background: white; }
+    .card, .step, .banner { break-inside: avoid; }
+  }
+  @media (max-width: 900px) {
+    .grid, .steps { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Wire the LED stick to header U18</h1>
+  <p class="sub">Titan Mini, hardware V1.0. Header part PH-00650. Sheet INTERFACE in Titan_Mini_schematic_v1.0.pdf, 26 March 2026. Pin order matches that sheet. This picture is not a millimetre drawing of the board.</p>
+  <div class="banner">Power off first. Move the second data wire to pin 12. Leave pin 16 and pin 33 empty. Break the link between LED 80 and LED 81.</div>
+
+  <section class="steps">
+    <div class="step"><b>1</b> Leave the first data wire on <strong>pin 7</strong>. That half is LEDs 1 to 80.</div>
+    <div class="step"><b>2</b> Put the second data wire on <strong>pin 12</strong>. That half is LEDs 81 to 160. Pin 33 stays empty.</div>
+    <div class="step"><b>3</b> Open the link between <strong>LED 80 and LED 81</strong>. Each half has its own data input.</div>
+  </section>
+
+  <div class="grid">
+    <section class="card">
+      <h2>Header face, counting from pin 1</h2>
+      <p class="note">Pin 1 is the +3.3 V pin at the marked end. Odd pins are the left column. Even pins are the right column. Find the pin-1 mark on the connector before counting. 5 V for the stick is pin 2 or pin 4. Ground for the stick is pin 6.</p>
+      <svg viewBox="0 0 760 820" width="100%" role="img" aria-label="U18 forty pin header with LED pins marked">
+        <rect x="248" y="18" width="150" height="760" rx="10" fill="#f7f4ee" stroke="#c9c2b4"/>
+        <text x="323" y="14" text-anchor="middle" font-size="13" fill="#5c6570">U18</text>
+        <!-- pins drawn by groups below; y = 36 + row*36 -->
+      </svg>
+      <div id="header"></div>
+      <div class="key">
+        <span class="k-keep">Pin 7 stays — lane A, P601</span>
+        <span class="k-leave">Pin 16 left open — old P004 wire</span>
+        <span class="k-keep">Pin 12 takes that wire — lane B, P604</span>
+        <span class="k-leave">Pin 33 stays empty — P603 is not used</span>
+        <span class="k-5">Pins 2 and 4 — 5 V</span>
+        <span class="k-g">Pin 6 — ground</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>The 160-LED stick</h2>
+      <p class="note">One stick, two separate halves of 80. The level shifter already on the stick stays in both data paths. The two header pins are the shifter inputs.</p>
+      <svg viewBox="0 0 640 460" width="100%" role="img" aria-label="Two LED halves with the centre link broken">
+        <text x="20" y="28" font-size="15" fill="#1f7a4d">Pin 7 data enters LED 1 and runs toward the centre</text>
+        <g id="laneA"></g>
+        <text x="20" y="168" font-size="15" fill="#a33b32">Break this data link. LED 80 does not feed LED 81.</text>
+        <line x1="300" y1="188" x2="340" y2="188" stroke="#a33b32" stroke-width="3" stroke-dasharray="4 3"/>
+        <path d="M328 176 L344 188 L328 200" fill="none" stroke="#a33b32" stroke-width="2"/>
+        <text x="20" y="248" font-size="15" fill="#0b6b4a">Pin 12 data enters LED 81 and runs to the far end</text>
+        <g id="laneB"></g>
+        <text x="20" y="390" font-size="15" fill="#243042">Light for the show starts at LED 80 and LED 81, then travels outward to both ends.</text>
+        <text x="20" y="414" font-size="14" fill="#5c6570">That travel is not the data direction. Data still enters at LED 1 and at LED 81.</text>
+        <text x="20" y="444" font-size="14" fill="#5c6570">5 V from pin 2 or 4, and ground from pin 6, are shared by the whole stick.</text>
+      </svg>
+      <table>
+        <tr><th>Wire</th><th>Header</th><th>Stick</th></tr>
+        <tr><td>Data A</td><td>Pin 7, P601. Leave it.</td><td>Shifter input for LEDs 1–80</td></tr>
+        <tr><td>Data B</td><td>Pin 12, P604. Move it here.</td><td>Shifter input for LEDs 81–160</td></tr>
+        <tr><td>5 V</td><td>Pin 2 or pin 4, VSYS_5V</td><td>Stick supply. Pin 1 is 3.3 V and is the wrong supply.</td></tr>
+        <tr><td>Ground</td><td>Pin 6</td><td>Same ground as the stick</td></tr>
+      </table>
+    </section>
+  </div>
+
+  <section class="card" style="margin-top:16px">
+    <h2>Leave these alone</h2>
+    <table>
+      <tr><td>Pin 16 and pin 33</td><td>Both empty. The second wire is only on pin 12.</td></tr>
+      <tr><td>Pins 3, 5, 8, 10 and 11</td><td>Not this wire. Pins 3 and 5 are the USB data pair. Pins 8 and 10 have no GTIOC timer output. Pin 11 has no timer output.</td></tr>
+      <tr><td>Pin 1</td><td>3.3 V. It does not power the LEDs.</td></tr>
+      <tr><td>LED 80 to LED 81</td><td>Data link open. The two inputs are two halves, not a spare copy of one signal.</td></tr>
+      <tr><td>Level shifter</td><td>74HCT2G34GW stays on both data lines, with its own supply and the common ground.</td></tr>
+      <tr><td>E2 Lite</td><td>Debugger only. It is not a wire to this header.</td></tr>
+    </table>
+    <p class="note">Firmware names the same LEDs from zero: pixels 0–79 are LEDs 1–80, pixels 80–159 are LEDs 81–160. The centre pair is LED 80 and LED 81. Do this with the supply off. The program on the board now sends the second half out of pin 12. Pin 33 stays empty.</p>
+  </section>
+
+  <footer>
+    Authority: Titan Mini schematic v1.0, sheet INTERFACE, U18 / PH-00650. RA8P1 datasheet pin table: P604 is GTIOC8B; P814 is also GTIOC8B but it is USB D+; P815 is GTIOC8A and USB D−; P706 and P707 have no GTIOC output; P000 has no timer output. Drawn 23 September 2026.
+  </footer>
+</main>
+<script>
+const pins = {
+  1: ["+3.3 V", "v33"],
+  2: ["5 V", "v5"],
+  3: ["P814", "other"],
+  4: ["5 V", "v5"],
+  5: ["P815", "other"],
+  6: ["GND", "gnd"],
+  7: ["P601  keep", "keep"],
+  8: ["P707", "other"],
+  9: ["GND", "gnd"],
+  10: ["P706", "other"],
+  11: ["P000", "other"],
+  12: ["P604  use", "keep"],
+  13: ["P001", "other"],
+  14: ["GND", "gnd"],
+  15: ["P002", "other"],
+  16: ["P004  open", "leave"],
+  17: ["—", "other"],
+  18: ["P005", "other"],
+  19: ["P708", "other"],
+  20: ["GND", "gnd"],
+  21: ["P709", "other"],
+  22: ["P006", "other"],
+  23: ["P102", "other"],
+  24: ["P105", "other"],
+  25: ["GND", "gnd"],
+  26: ["P106", "other"],
+  27: ["P409", "other"],
+  28: ["P410", "other"],
+  29: ["P008", "other"],
+  30: ["GND", "gnd"],
+  31: ["P009", "other"],
+  32: ["P605", "other"],
+  33: ["P603  empty", "leave"],
+  34: ["GND", "gnd"],
+  35: ["P602", "other"],
+  36: ["P714", "other"],
+  37: ["P014", "other"],
+  38: ["P715", "other"],
+  39: ["GND", "gnd"],
+  40: ["P015", "other"]
+};
+const fill = { keep:"#1f7a4d", leave:"#a33b32", v5:"#b86e00", gnd:"#243042", v33:"#6d5a92", other:"#d9d3c7" };
+const ink = { keep:"#fff", leave:"#fff", v5:"#fff", gnd:"#fff", v33:"#fff", other:"#1a1a1a" };
+const host = document.querySelector("svg");
+const ns = "http://www.w3.org/2000/svg";
+function el(name, attrs, text) {
+  const n = document.createElementNS(ns, name);
+  for (const [k,v] of Object.entries(attrs)) n.setAttribute(k, v);
+  if (text != null) n.textContent = text;
+  return n;
+}
+for (let row = 0; row < 20; row++) {
+  const y = 48 + row * 36;
+  const left = row * 2 + 1;
+  const right = row * 2 + 2;
+  for (const [num, x, anchor, lx] of [[left, 292, "end", 270], [right, 354, "start", 376]]) {
+    const kind = pins[num][1];
+    host.appendChild(el("circle", {cx:x, cy:y, r:13, fill:fill[kind], stroke:"#1a1a1a", "stroke-width": kind==="leave"||kind==="keep" ? 2 : 0.6}));
+    host.appendChild(el("text", {x:x, y:y+4, "text-anchor":"middle", "font-size":"11", fill:ink[kind], "font-weight":"700"}, String(num)));
+    host.appendChild(el("text", {x:lx, y:y+4, "text-anchor":anchor, "font-size":"12", fill:"#1a1a1a"}, pins[num][0]));
+  }
+}
+function leds(groupId, start, y, colour) {
+  const g = document.getElementById(groupId);
+  for (let i = 0; i < 80; i++) {
+    const x = 16 + (i % 40) * 15;
+    const yy = y + Math.floor(i / 40) * 18;
+    g.appendChild(el("rect", {x:x, y:yy, width:12, height:12, rx:2, fill:colour}));
+  }
+  g.appendChild(el("text", {x:16, y:y+52, "font-size":"13", fill:"#1a1a1a"}, "LED " + start));
+  g.appendChild(el("text", {x:560, y:y+52, "font-size":"13", fill:"#1a1a1a"}, "LED " + (start + 79)));
+}
+leds("laneA", 1, 40, "#1f7a4d");
+leds("laneB", 81, 260, "#0b6b4a");
+</script>
+</body>
+</html>

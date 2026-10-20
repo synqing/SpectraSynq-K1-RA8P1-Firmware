@@ -4,7 +4,7 @@
 
 int k1_ws281x_gpt_pin_can_pwm(uint32_t pin)
 {
-    return pin == K1_WS281X_GPT_PIN_P601;
+    return pin == K1_WS281X_GPT_PIN_P601 || pin == K1_WS281X_GPT_PIN_P603;
 }
 
 void k1_ws281x_gpt_dma_reset(k1_ws281x_gpt_dma_t *tx)

@@ -1,0 +1,49 @@
+{
+  "task": "M6",
+  "title": "Persistence record schema and ownership requirements",
+  "SWARM_BASE_ID": "cb33aab6c8fe327d782f8ad31c3966d00e8a7c1cd71e140dd03381e28eb8729a",
+  "live_nvm_operation": "NOT_AUTHORIZED",
+  "reason": "Persistent-region ownership on Titan is not known; host/mock storage only until ownership is published.",
+  "record_schema": {
+    "schema_version": 1,
+    "persistence_scope": "host_mock",
+    "live_nvm": "NOT_AUTHORIZED",
+    "required_fields": [
+      "schema_version",
+      "persistence_scope",
+      "config"
+    ],
+    "config_fields": [
+      "version",
+      "revision",
+      "palette_a",
+      "palette_b",
+      "mode_a",
+      "mode_b",
+      "emit_on",
+      "brightness",
+      "flags",
+      "transition_ms",
+      "travel_ms",
+      "output_channel"
+    ],
+    "optional_retained_unknown_fields": true,
+    "atomic_write": "tempfile then replace",
+    "corruption_policy": "reject load",
+    "partial_record_policy": "reject load",
+    "version_mismatch_policy": "reject load",
+    "interrupted_write_policy": "previous complete file remains authoritative"
+  },
+  "ownership_requirements": {
+    "host_mock_store": "M",
+    "target_nvm_driver": "UNASSIGNED_UNTIL_REGION_KNOWN",
+    "shared_protocol_glue": "I",
+    "hardware_write_execution": "H"
+  },
+  "forbidden_until_authorized": [
+    "Titan NVM erase",
+    "Titan NVM program",
+    "inferring region from vendor defaults",
+    "treating host save/load as target persistence"
+  ]
+}

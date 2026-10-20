@@ -3,6 +3,7 @@
 #include <cstdint>
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
+#include "core/visual/ws2816_pack.h"
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
 #include "centre_palette_engine.h"
@@ -14,6 +15,15 @@ inline constexpr std::uint32_t kPaletteConfigureOpcode = 16U;
 inline constexpr std::uint32_t kPaletteStatusOpcode = 17U;
 inline constexpr std::uint32_t kPaletteFrameOpcode = 18U;
 inline constexpr std::uint32_t kPaletteWireSnapshotOpcode = 19U; // WS2816 only; last submission, not photons.
+#if defined(K1_PALETTE_GPT_DMA) && defined(K1_PALETTE_WS2816)
+#error "K1_PALETTE_GPT_DMA and K1_PALETTE_WS2816 are mutually exclusive"
+#endif
+#if defined(K1_PALETTE_WS2816_GPT_PAIR) && defined(K1_PALETTE_GPT_DMA)
+#error "K1_PALETTE_WS2816_GPT_PAIR and K1_PALETTE_GPT_DMA are mutually exclusive"
+#endif
+#if defined(K1_PALETTE_WS2816_GPT_PAIR) && defined(K1_PALETTE_WS2816)
+#error "K1_PALETTE_WS2816_GPT_PAIR and K1_PALETTE_WS2816 are mutually exclusive"
+#endif
 #ifdef K1_PALETTE_WS2816
 // Two sequential 80-pixel GRB48 transfers need more than an 8.333 ms slot.
 inline constexpr std::uint32_t kPalettePeriodUs = 16667U;
@@ -44,6 +54,24 @@ inline void applyK1PresencePolicy(k1::contract::AudioFeaturesV1& features,
 }
 inline constexpr std::uint32_t kDiagnosticBounceMode = 64U;
 inline constexpr std::uint32_t kLiveAudioBootMode = 32U; /* WAVEFORM_HYBRID_K1 */
+// Compile-time backend only. DMA/emit counters are observed activity, not wire
+// admission. last_emit_cycles is emitter DWT, not AP hop_max_us.
+inline const char* configuredPaletteBackend() noexcept {
+#if defined(K1_PALETTE_WS2816_GPT_PAIR)
+  return "ws2816_gpt_pair";
+#elif defined(K1_PALETTE_GPT_DMA)
+  return "gpt_dma";
+#elif defined(K1_PALETTE_WS2816)
+  return "ws2816_gpio";
+#elif defined(K1_PALETTE_RUNTIME)
+  return "gpio_diagnostic";
+#else
+  return "unknown";
+#endif
+}
+inline const char* runtimePaletteOutputBackend(bool emit_enabled) noexcept {
+  return emit_enabled ? configuredPaletteBackend() : "disabled";
+}
 inline constexpr std::uint32_t kDiagnosticBounceFrameUs = 33333U;
 inline constexpr std::uint32_t kDiagnosticBounceSteps = 127U;
 // Flags: active, automatic catalogue cycle, physical bench output.
@@ -63,6 +91,7 @@ class PaletteRuntime {
   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
+  void resetAudioState() noexcept;
   void stop() noexcept { config_.flags = 0U; }
   bool active() const noexcept { return (config_.flags & 1U) != 0U; }
   bool emitEnabled() const noexcept { return (config_.flags & 4U) != 0U; }
@@ -75,11 +104,20 @@ class PaletteRuntime {
   }
   std::size_t packBenchGrb(std::uint8_t* destination, std::size_t capacity,
                          unsigned pixels = 128U) const noexcept;
+  // Stage a 160-pixel TRUE16 channel for packBenchGrb48Lane. RGB8×257 is not
+  // TRUE16 and must not be used to synthesise these values.
+  bool stageWideFrame(unsigned channel_index, const core::visual::Pixel16* pixels,
+                      std::size_t count) noexcept;
+  // Pack one DIN lane (80 pixels) from the staged Pixel16 channel. Preserves
+  // low bytes (0x12AB / 0x12AC / 0x1200). Returns 0 if wide frame is unset.
   std::size_t packBenchGrb48Lane(std::uint8_t* destination, std::size_t capacity,
                                unsigned lane) const noexcept;
   std::size_t catalogueJson(char* out, std::size_t capacity) const noexcept;
   std::size_t statusJson(char* out, std::size_t capacity) const noexcept;
   void recordEmit(int result, std::uint32_t cycles) noexcept;
+  const char* visualPath() const noexcept { return visual_path_ ? visual_path_ : "none"; }
+  std::uint64_t skippedReleases() const noexcept { return skipped_; }
+  std::uint64_t frames() const noexcept { return frames_; }
  private:
   core::visual::ChannelRenderState a_{core::visual::PixelChannelId::kChannelA};
   core::visual::ChannelRenderState b_{core::visual::PixelChannelId::kChannelB};
@@ -88,8 +126,9 @@ class PaletteRuntime {
   core::visual::PaletteTransition transitions_[2]{};
 #endif
   std::uint64_t next_us_ = 0U, last_us_ = 0U, cycle_start_us_ = 0U,
-      last_live_us_ = 0U;
+      last_live_us_ = 0U, last_publication_us_ = 0U;
   bool last_live_valid_ = false;
+  std::uint32_t last_presence_sequence_ = 0U;
   std::uint64_t frames_ = 0U, skipped_ = 0U, emitted_ = 0U, emit_errors_ = 0U;
   std::uint32_t last_emit_cycles_ = 0U, maximum_emit_cycles_ = 0U;
   bool waiting_for_audio_ = false;
@@ -107,5 +146,7 @@ class PaletteRuntime {
   std::uint64_t effect_frames_ = 0U;
   std::uint64_t dwell_frames_ = 0U;
   std::uint64_t dwell_reinits_ = 0U;
+  core::visual::Pixel16 wide_[2][core::visual::kPixelsPerChannel]{};
+  bool wide_valid_[2]{};
 };
 } // namespace k1::titan

@@ -1,0 +1,11 @@
+{
+  "utc": "2026-09-21T17:50:00Z",
+  "attach": 10,
+  "pid": 54333,
+  "result": "FAIL",
+  "error": "Hot Plug error. Target not connected to emulator. 0xffffffff",
+  "not": "0x0003080A host lock; 0x00030815 DAP",
+  "log": "attach-10-hotplug-delayed.log",
+  "classification": "Vendor hot-plug prompt appeared. Session ended with ribbon still off (Cancel, OK without cable, or dialog dismissed). force_kill_gdb left abandoned host lock; cleared before retry.",
+  "host_lock_after": "abandoned then HOST_LOCK_CLEAR via e2lite_lock_guard.py --clear-stale"
+}

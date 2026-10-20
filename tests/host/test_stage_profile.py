@@ -120,5 +120,34 @@ class StageProfileTests(unittest.TestCase):
             self.assertIn('K1_STAGE_BEGIN(acf_prepare, k1_stage_acf_prepare)',text)
             self.assertIn('section(".dtcm")',text)
 
+    def test_empty_tcm_keeps_probes_without_dtcm(self):
+        from tempo_dtcm_overlay import apply_tempo_placement, verify_tempo_placement_receipt
+        names=[
+            'core/audio/audio_pipeline.cpp',
+            'core/audio/tempo_tracker.cpp',
+            'core/audio/tempo_acf.cpp',
+            'core/audio/clock_affine.cpp',
+        ]
+        with tempfile.TemporaryDirectory() as temporary:
+            staged=Path(temporary)/'k1'
+            for name in names:
+                target=staged/name
+                target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(ROOT/'src/k1'/name,target)
+            instrument_stage_sources(staged)
+            record=apply_tempo_placement(staged,'empty-tcm')
+            self.assertEqual(record['placement'],'empty-tcm')
+            self.assertNotIn('section(".dtcm")',(staged/'core/audio/tempo_acf.cpp').read_text())
+            self.assertIn('K1_STAGE_BEGIN(acf_prepare, k1_stage_acf_prepare)',
+                          (staged/'core/audio/tempo_acf.cpp').read_text())
+            verify_tempo_placement_receipt({'tempo_placement':'empty-tcm'})
+            with self.assertRaisesRegex(RuntimeError,'DTCM overlay'):
+                verify_tempo_placement_receipt({
+                    'tempo_placement':'empty-tcm',
+                    'tempo_dtcm_sources':{'core/audio/tempo_acf.cpp':{}},
+                })
+            with self.assertRaisesRegex(RuntimeError,'missing'):
+                verify_tempo_placement_receipt({'tempo_placement':'dtcm'})
+
 
 if __name__=='__main__': unittest.main()

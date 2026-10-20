@@ -1,0 +1,56 @@
+{
+  "contract_id": "host-deadline-release-latency-r1",
+  "scope": "host_scorer_prep_only",
+  "status": "PREPARED",
+  "board_required": false,
+  "authority": [
+    "docs/evidence/K1-RA8P1-002/combined-runtime-contract.json",
+    "docs/decisions/2026-09-10-audio-to-light-ceiling.md",
+    "swarm incoming/P P1/P3/P4/P5"
+  ],
+  "deadline": {
+    "ap_hop_us": 7500,
+    "release_guard_us": 100,
+    "note": "Retain original hop/release deadlines; do not invent a universal frame deadline."
+  },
+  "release": {
+    "meaning": "AP publication / schedule release under the 7.5 ms hop contract",
+    "host_scorer": "scripts/run_scalar_schedule.py G4 raw-timing gate (prepare only; H executes)",
+    "negative": "tools/serial-studio/host_scorers/score_hop136_timing_mutation.py"
+  },
+  "latency": {
+    "k1l": {
+      "n_complete_min": 1000,
+      "input": "real music through microphone",
+      "observer": "off",
+      "p50_traced_us_max": 12000,
+      "p99": "informational unless captain-k1l-p99-stamp.txt exists",
+      "method": "newest_sample_estimate_us -> emit_complete_us of first frame carrying that AP generation",
+      "host_status": "CONTRACT_ONLY — join instrumentation ABSENT; P5 not run on chip"
+    },
+    "join_points": [
+      "newest_sample_estimate_us",
+      "ap_publish_us",
+      "vp_use_us",
+      "emit_submit_us",
+      "emit_complete_us"
+    ],
+    "forbidden_event_time": [
+      "USB-read / host_now_us / usb_read_us"
+    ]
+  },
+  "active_host_scorers": [
+    {
+      "id": "score_live_k1",
+      "source": "scripts/score_live_k1.py"
+    },
+    {
+      "id": "score_p601_capture",
+      "source": "scripts/score_p601_capture.py"
+    },
+    {
+      "id": "score_hop136_timing_mutation",
+      "source": "tools/serial-studio/host_scorers/score_hop136_timing_mutation.py"
+    }
+  ]
+}

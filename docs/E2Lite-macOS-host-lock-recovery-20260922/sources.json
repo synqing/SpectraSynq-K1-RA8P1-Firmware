@@ -1,0 +1,50 @@
+[
+  {
+    "id": "S1",
+    "title": "Apple sem_open(2)",
+    "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/sem_open.2.html",
+    "relevance": "Named semaphore namespace and absence of visible filesystem entries."
+  },
+  {
+    "id": "S2",
+    "title": "Apple sem_unlink(2)",
+    "url": "https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/sem_unlink.2.html",
+    "relevance": "Removal semantics; do not remove an active owner's name."
+  },
+  {
+    "id": "S3",
+    "title": "Renesas current tool operating environments",
+    "url": "https://www.renesas.com/en/software-tool/system-requirements",
+    "relevance": "e2 studio supports Apple Silicon and macOS 26 Tahoe."
+  },
+  {
+    "id": "S4",
+    "title": "Renesas FSP 6.6.0 release",
+    "url": "https://github.com/renesas/fsp/releases/tag/v6.6.0",
+    "relevance": "Official macOS installer and E2/E2 Lite component version 2.8.1."
+  },
+  {
+    "id": "S5",
+    "title": "E2 Lite hardware manual Rev3.20, July21 2026, R20UT3240EJ0320",
+    "url": "https://www.renesas.com/en/document/mat/e2-emulator-lite-rte0t0002lkce00000r-manual?r=488806",
+    "relevance": "Section2.4/Figure2.5: separate common-ground connection for hotplug using20-pin path."
+  },
+  {
+    "id": "S6",
+    "title": "E2/E2 Lite RA connection manual Rev3.60, April20 2026, R20UT4686EJ0360",
+    "url": "https://www.renesas.com/en/document/mat/e2-emulator-e2-emulator-lite-additional-document-users-manual-notes-connection-ra-devices",
+    "relevance": "Figure2.3 SWD wiring; section3.3.20 hotplug and RA8 authentication None."
+  },
+  {
+    "id": "S7",
+    "title": "RTE0T00020KCAC1000J cable manual Rev1.10, March4 2026",
+    "url": "https://www.renesas.com/en/document/mat/rte0t00020kcac1000j-users-manual-user-system-interface-cable-emulator20-10-pins",
+    "relevance": "The documented20-to10-pin cable supports E2 Lite."
+  },
+  {
+    "id": "S8",
+    "title": "Renesas Community: E2 lite connection (RA4M2)",
+    "url": "https://community.renesas.com/mcu/ra/f/forum/19094/e2-lite-connection",
+    "relevance": "First-hand exact-error report; pin9 ground and disabling automatic boundary programming were distinct fixes in that case, not proof of this Mac's root cause."
+  }
+]

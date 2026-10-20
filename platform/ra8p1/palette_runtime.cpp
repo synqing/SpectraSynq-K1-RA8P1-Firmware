@@ -3,6 +3,10 @@
 #include "core/visual/product_output_treatment.h"
 #include "core/visual/product_palette.h"
 #include "core/visual/ws2816_pack.h"
+#include "hd_pixel16.h"
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+#include "ws281x_gpt_dma_hw_pair.h"
+#endif
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -138,9 +142,15 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
       config.brightness > 255U || config.output_channel > 1U)
     return false;
   const bool cut = config.mode_a != config_.mode_a || config.mode_b != config_.mode_b;
+  const bool palette_cut =
+      config.palette_a != config_.palette_a || config.palette_b != config_.palette_b;
   if (cut) {
     a_ = ChannelRenderState{PixelChannelId::kChannelA};
     b_ = ChannelRenderState{PixelChannelId::kChannelB};
+  } else if (palette_cut) {
+    // WaveformK1 colour EMA otherwise keeps the previous palette on the plate.
+    a_.effectState().waveform_k1_dot = {};
+    b_.effectState().waveform_k1_dot = {};
   }
   config_ = config;
   auto& ca = a_.controls(); auto& cb = b_.controls();
@@ -161,6 +171,8 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   next_us_ = now_us; last_us_ = now_us; cycle_start_us_ = now_us;
   last_live_us_ = 0U;
   last_live_valid_ = false;
+  last_publication_us_ = 0U;
+  last_presence_sequence_ = 0U;
   waiting_for_audio_ = false;
   dwell_armed_[0] = dwell_armed_[1] = false;
   visual_path_ = "none";
@@ -168,7 +180,19 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
   last_live_age_us_ = 0U;
   last_peak_milli_ = last_vu_milli_ = last_chroma_milli_ = last_wave_milli_ = 0U;
   effect_frames_ = dwell_frames_ = dwell_reinits_ = 0U;
+  wide_valid_[0] = wide_valid_[1] = false;
   return true;
+}
+void PaletteRuntime::resetAudioState() noexcept {
+  last_live_us_ = 0U;
+  last_live_valid_ = false;
+  last_publication_us_ = 0U;
+  last_presence_sequence_ = 0U;
+  waiting_for_audio_ = true;
+  dwell_armed_[0] = dwell_armed_[1] = false;
+  visual_path_ = "none";
+  last_musical_ = last_in_dwell_ = last_dwell_reinit_ = false;
+  last_live_age_us_ = 0U;
 }
 bool PaletteRuntime::step(std::uint64_t now_us,
                           const VisualAudioFrameView* audio) noexcept {
@@ -217,9 +241,17 @@ bool PaletteRuntime::step(std::uint64_t now_us,
 #endif
     else if (audio) {
       contract::AudioFeaturesV1 governed_audio = audio->audio;
-      applyK1PresencePolicy(governed_audio, now_us, last_live_us_,
-                            last_live_valid_);
-      const bool musical = k1MusicalPresence(governed_audio);
+      const bool generation_tracked = governed_audio.sequence != 0U;
+      const bool new_publication =
+          !generation_tracked || governed_audio.sequence != last_presence_sequence_;
+      if (new_publication) {
+        last_presence_sequence_ = governed_audio.sequence;
+        last_publication_us_ = audio->source_publication_us;
+        applyK1PresencePolicy(governed_audio, now_us, last_live_us_,
+                              last_live_valid_);
+      }
+      const bool musical = k1MusicalPresence(governed_audio) &&
+                           (!generation_tracked || new_publication);
       const bool in_dwell =
           last_live_valid_ && now_us - last_live_us_ < kTitanSilenceDwellUs;
       // DualMCU keeps the product renderer running for SILENCE_DWELL_MS after
@@ -241,9 +273,19 @@ bool PaletteRuntime::step(std::uint64_t now_us,
         last_wave_milli_ = milli(audio->waveform.peak_scaled);
       }
       if (!keep_live) {
+#ifdef K1_LIVE_RUNTIME
+        if (!last_live_valid_) {
+          preview(*channel, now_us, config_.flags & 8U);
+          if (channel_index == 0U) visual_path_ = "preview";
+        } else {
+#endif
         // Age authored history in Q8.8 with elapsed time. Do not clamp to 1.
         // Mirror and output treatment stay display-only.
         // Not-musical DualMCU after dwell expiry redrew the plate (run-29).
+        // Do NOT switch to preview on black here: that erased the true-black
+        // and dwell-reinit isolation contract (V-MODE32-WAKE-ISOLATION).
+        // LIVE boot without prior live audio still uses the !last_live_valid_
+        // preview branch above.
         const bool reinit = !dwell_armed_[channel_index];
         ageAuthoredHistory(channel->frame(), channel->previousFrame(),
                            dwell_q8_[channel_index], dwell_armed_[channel_index],
@@ -254,6 +296,9 @@ bool PaletteRuntime::step(std::uint64_t now_us,
           ++dwell_frames_;
           if (reinit) ++dwell_reinits_;
         }
+#ifdef K1_LIVE_RUNTIME
+        }
+#endif
       } else {
         dwell_armed_[channel_index] = false;
         const VisualAudioFrameView governed{governed_audio, audio->tempo,
@@ -271,9 +316,15 @@ bool PaletteRuntime::step(std::uint64_t now_us,
         }
       }
     } else {
+#ifdef K1_LIVE_RUNTIME
+      preview(*channel, now_us, config_.flags & 8U);
+      waiting_for_audio_ = false;
+      if (channel_index == 0U) visual_path_ = "preview";
+#else
       channel->clearFrame();
       waiting_for_audio_ = true;
       if (channel_index == 0U) visual_path_ = "no_audio";
+#endif
     }
     applyProductOutputTreatment(channel->frame(), channel->controls(),
                                 channel->outputTreatmentState());
@@ -316,20 +367,30 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
   std::memcpy(out + used, "]}", 3U);
   return used + 2U;
 }
+bool PaletteRuntime::stageWideFrame(unsigned channel_index,
+                                    const Pixel16* pixels,
+                                    std::size_t count) noexcept {
+  if (channel_index > 1U || pixels == nullptr || count != kPixelsPerChannel) {
+    return false;
+  }
+  std::memcpy(wide_[channel_index], pixels, sizeof(wide_[channel_index]));
+  wide_valid_[channel_index] = true;
+  return true;
+}
 std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
                                              std::size_t capacity,
                                              unsigned lane) const noexcept {
   if (!out || capacity < kPackedBytesPerLane || lane > 1U) return 0U;
-  const auto source = channel(config_.output_channel).frame();
+  const unsigned channel_index = config_.output_channel;
+  if (channel_index > 1U || !wide_valid_[channel_index]) return 0U;
+  // Pack authored Pixel16 channels. RGB8×257 is not TRUE16 and is not used
+  // here. Brightness scales 16-bit values in place; low bytes survive.
+  const auto* source = wide_[channel_index];
   for (unsigned i = 0; i < kPixelsPerHalf; ++i) {
     const auto pixel = source[lane * kPixelsPerHalf + i];
-    // The existing renderer is Pixel8. Expand its output once into the 16-bit
-    // wire domain; this does not claim additional renderer colour precision.
-    const auto scale = [this](std::uint8_t value) {
-      return static_cast<std::uint16_t>(
-          (std::uint32_t(value) * 257U * config_.brightness) / 255U);
-    };
-    packPixel(Pixel16{scale(pixel.red), scale(pixel.green), scale(pixel.blue)},
+    packPixel(Pixel16{scale16(pixel.red, config_.brightness),
+                      scale16(pixel.green, config_.brightness),
+                      scale16(pixel.blue, config_.brightness)},
               out + i * kPackedBytesPerPixel);
   }
   return kPackedBytesPerLane;
@@ -338,14 +399,20 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
   if (!out || capacity == 0U) return 0U;
   const int n = std::snprintf(out, capacity,
       "{\"version\":1,\"palette_count\":%u,\"active\":%s,\"automatic_cycle\":%s,"
-      "\"emit_enabled\":%s,\"output_backend\":\"gpio_diagnostic\","
+      "\"emit_enabled\":%s,\"configured_backend\":\"%s\",\"output_backend\":\"%s\","
+      "\"physical_admission\":\"unproven\","
       "\"waiting_for_audio\":%s,\"palette_a\":%u,\"palette_b\":%u,"
       "\"name_a\":\"%s\",\"name_b\":\"%s\",\"mode_a\":%lu,\"mode_b\":%lu,"
       "\"brightness\":%lu,\"output_channel\":%lu,\"period_us\":%lu,"
       "\"frames\":%llu,\"skipped_releases\":%llu,\"emitted\":%llu,\"emit_errors\":%llu,"
       "\"last_emit_cycles\":%lu,\"maximum_emit_cycles\":%lu,"
       "\"frame_a_crc\":%lu,\"frame_b_crc\":%lu,\"native_pixels_per_channel\":160,"
-#ifdef K1_PALETTE_WS2816
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+      "\"bench_pixels\":160,\"wire_profile\":3,\"wire_bits_per_pixel\":48,"
+      "\"din_a\":\"P601\",\"din_b\":\"P604\",\"pixels_per_din\":80,"
+      "\"physical_lanes\":2,\"source_precision\":\"pixel16_channel\","
+      "\"true16\":\"pack_ready\","
+#elif defined(K1_PALETTE_WS2816)
       "\"bench_pixels\":160,\"wire_profile\":4,\"wire_bits_per_pixel\":48,"
       "\"din_a\":\"P601\",\"din_b\":\"P004\",\"pixels_per_din\":80,"
 #else
@@ -363,6 +430,7 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "}",
       unsigned(kProductPaletteCount), active() ? "true" : "false",
       (config_.flags & 2U) ? "true" : "false", emitEnabled() ? "true" : "false",
+      configuredPaletteBackend(), runtimePaletteOutputBackend(emitEnabled()),
       waiting_for_audio_ ? "true" : "false", unsigned(a_.controls().palette_id),
       unsigned(b_.controls().palette_id), productPalette(a_.controls().palette_id).name,
       productPalette(b_.controls().palette_id).name,
@@ -391,7 +459,15 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       "\"live_age_us\":%llu,\"peak_milli\":%lu,\"vu_milli\":%lu,"
       "\"chroma_milli\":%lu,\"wave_milli\":%lu,\"dwell_armed\":%s,"
       "\"dwell_reinit\":%s,\"effect_frames\":%llu,\"dwell_frames\":%llu,"
-      "\"dwell_reinits\":%llu}",
+      "\"dwell_reinits\":%llu"
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+      ",\"pair_backend\":\"%s\",\"submitted_generation\":%lu,"
+      "\"completed_generation\":%lu,\"pair_completions\":%lu,"
+      "\"pending_replacements\":%lu,\"lane_a0_dma\":%lu,\"lane_a1_dma\":%lu,"
+      "\"lane_a0_stop\":%lu,\"lane_a1_stop\":%lu,\"lane_a0_fault\":%lu,"
+      "\"lane_a1_fault\":%lu,\"pair_fault\":%lu"
+#endif
+      "}",
       visual_path_ ? visual_path_ : "none",
       last_musical_ ? "true" : "false", last_in_dwell_ ? "true" : "false",
       (unsigned long long)last_live_age_us_,
@@ -400,7 +476,22 @@ std::size_t PaletteRuntime::statusJson(char* out, std::size_t capacity) const no
       dwell_armed_[0] ? "true" : "false",
       last_dwell_reinit_ ? "true" : "false",
       (unsigned long long)effect_frames_, (unsigned long long)dwell_frames_,
-      (unsigned long long)dwell_reinits_);
+      (unsigned long long)dwell_reinits_
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+      , k1_ws281x_gpt_dma_hw_pair_backend(),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_submitted_generation(),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_completed_generation(),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_completions(),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_replacements(),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_dma_complete(0),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_dma_complete(1),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_hw_stopped(0),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_hw_stopped(1),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_fault(0),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_lane_fault(1),
+      (unsigned long)k1_ws281x_gpt_dma_hw_pair_last_fault()
+#endif
+      );
   if (extra <= 0 || std::size_t(n - 1 + extra) >= capacity) return 0U;
   return std::size_t(n - 1 + extra);
 }

@@ -1,0 +1,13 @@
+{
+  "label": "ON-SILICON",
+  "start": "2026-09-20T15:30:10.530440+00:00",
+  "pass": false,
+  "build_id": "e3dd5891947e6a175eaedea2cf562f8e64160b51522e2d379f38bdef5da60dd9",
+  "image_sha256": "3213838f3c9a1b7a356acb4e2318d2509413a28d945ef0a8ea9a3b343032e1ff",
+  "image_start": "0x2000000",
+  "image_end": "0x2040f2f",
+  "restore": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/p3-2026-09-09/build-staged-v2/rtthread.hex",
+  "programmer_sha256": "8e6f5ccf78ab6cff2af359c12be0320529d8cfaf1dae126074860448f50acf59",
+  "error": "expected exactly one Renesas RA8P1 ROM boot device, found 0; observed=[{\"description\": \"n/a\", \"device\": \"/dev/cu.debug-console\", \"pid\": null, \"vid\": null}, {\"description\": \"n/a\", \"device\": \"/dev/cu.Bluetooth-Incoming-Port\", \"pid\": null, \"vid\": null}, {\"description\": \"USB JTAG/serial debug unit\", \"device\": \"/dev/cu.usbmodem12201\", \"pid\": 4097, \"vid\": 12346}, {\"description\": \"USB Serial\", \"device\": \"/dev/cu.usbmodem207318301\", \"pid\": 1155, \"vid\": 5824}, {\"description\": \"CDC USB Demonstration\", \"device\": \"/dev/cu.usbmodem00000000000011\", \"pid\": 21264, \"vid\": 1115}]",
+  "end": "2026-09-20T15:33:10.575615+00:00"
+}

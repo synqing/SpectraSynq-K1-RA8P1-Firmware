@@ -1,0 +1,26 @@
+Execute GROK-HARDWARE-SESSION.md as an operator-present bench session.
+
+Captain has the SMC-Mixer ready. Begin H1: exact USB Master input, receive-only,
+no Titan connection, with capture running before the fader cue. Keep physical,
+locally requested, target-accepted and renderer-consumed values distinct.
+
+Do not produce another general readiness essay. Reuse unchanged valid evidence.
+Only the concrete candidate/scorer/compatibility defects in the retained C4
+correction can block the relevant board stage. Do not install historical failed
+candidates, choose the newest directory blindly, or substitute a fake target.
+
+When the named combination is technically ready, present one exact installation
+and emit-off scope; use an existing matching permission or obtain the one needed
+approval. Program and collect through the established router and sole CDC broker.
+
+Run direct protocol probes, then cue Captain through the real fader pickup,
+movement, neighbour-isolation and mixer-reconnect sequence. Afterward present the
+separate bounded light scope and have Captain evaluate the plate.
+
+No per-gesture permission requests. No eight-control expansion, presets, UI
+redesign, old 2.41 work, DualMCU changes, automatic emit-on recovery or blanket
+re-audit. If genuinely blocked, state the exact failing boundary and stop asking
+Captain to move controls while software is being repaired.
+
+Report whether the physical instrument is controllable, with actual evidence and
+leave-state. Do not report a host model, command echo or dump as visible success.

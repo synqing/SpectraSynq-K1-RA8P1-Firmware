@@ -110,6 +110,19 @@ int main() {
   constexpr unsigned calls=1, wire_size=384;
 #endif
   poll(0); poll(period_ms); assert(emits==calls && last_wire.size()==wire_size);
+  {
+    const auto live=request(17);
+    const std::string live_body(reinterpret_cast<const char*>(live.data()+32),live.size()-32);
+#ifdef K1_PALETTE_WS2816
+    assert(live_body.find("\"configured_backend\":\"ws2816_gpio\"")!=std::string::npos);
+    assert(live_body.find("\"output_backend\":\"ws2816_gpio\"")!=std::string::npos);
+#else
+    assert(live_body.find("\"configured_backend\":\"gpio_diagnostic\"")!=std::string::npos);
+    assert(live_body.find("\"output_backend\":\"gpio_diagnostic\"")!=std::string::npos);
+#endif
+    assert(live_body.find("\"physical_admission\":\"unproven\"")!=std::string::npos);
+    assert(live_body.find("wire_verified")==std::string::npos);
+  }
 #ifdef K1_PALETTE_WS2816
   const auto capture=request(19);
   assert(get(capture.data()+4)==0 && capture.size()==32+1504);
@@ -134,6 +147,13 @@ int main() {
   const auto stopped=request(17);
   const std::string body(reinterpret_cast<const char*>(stopped.data()+32),stopped.size()-32);
   assert(body.find("\"active\":false")!=std::string::npos);
+  assert(body.find("\"output_backend\":\"disabled\"")!=std::string::npos);
+#ifdef K1_PALETTE_WS2816
+  assert(body.find("\"configured_backend\":\"ws2816_gpio\"")!=std::string::npos);
+#else
+  assert(body.find("\"configured_backend\":\"gpio_diagnostic\"")!=std::string::npos);
+#endif
+  assert(body.find("\"physical_admission\":\"unproven\"")!=std::string::npos);
 #ifdef K1_PALETTE_WS2816
   assert(body.find("\"wire_profile\":4")!=std::string::npos);
   assert(body.find("\"bench_pixels\":160")!=std::string::npos);

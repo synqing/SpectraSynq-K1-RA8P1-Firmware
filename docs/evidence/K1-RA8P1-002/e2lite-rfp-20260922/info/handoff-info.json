@@ -1,0 +1,53 @@
+{
+  "usb": {
+    "device": "/dev/cu.usbmodem00000000000011",
+    "location": "0-1.4",
+    "serial": "0000000000001",
+    "product": "CDC USB Demonstration",
+    "aliases": [
+      "/dev/cu.usbmodem00000000000011",
+      "/dev/tty.usbmodem00000000000011"
+    ],
+    "lsof": [],
+    "lsof_skipped": "timed_lsof_hangs_on_this_cdc_node; flock is owner gate"
+  },
+  "identified": true,
+  "identified_reason": "identified",
+  "ok": false,
+  "accepted": false,
+  "reason": "no accepted checkpoint bound",
+  "checkpoint": null,
+  "info": {
+    "protocol": 1,
+    "uid": "545433931bd25436593630352d068363",
+    "build": "3a7ebd7c0d75f5d415fee6257e54bb6410d1c2d2c07a30fca2cc59ccdcc9ed2f",
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40",
+    "clock_hz": 1000000000,
+    "cpu1_actcsr": 0,
+    "u55_opened": false,
+    "cpp_initialised": true,
+    "rejected": 0,
+    "sequence": 0,
+    "trajectory_bytes": 37360,
+    "trace_bytes": 16396,
+    "status_led": true,
+    "runtime_kind": "live",
+    "schema_sha256": "a77dbf9298dbfb4385623dcb66d4c41037a60c6b65dc734bb7a521449f9d0e09",
+    "opcodes": {
+      "snapshot": 23,
+      "events": 24,
+      "config": 25,
+      "timing": 26,
+      "legacy_mir": 21
+    },
+    "capabilities": {
+      "snapshot": true,
+      "events": true,
+      "config": true,
+      "timing": true,
+      "legacy_mir_json": true,
+      "stale_source_test": true
+    }
+  }
+}

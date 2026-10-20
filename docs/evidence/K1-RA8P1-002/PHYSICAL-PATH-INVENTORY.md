@@ -2,6 +2,11 @@
 
 Status: `HOST_INVENTORY_COMPLETE_PHYSICAL_PATHS_OPEN`
 
+Dated correction 2026-09-20: this inventory still does not claim physical
+capture, LED output, Titan-S3 integration, or acoustic-to-photon latency.
+It does not carry a sub-8 ms Titan latency stamp. "Resident comparator"
+below is historical wording, not a current INFO bind.
+
 This inventory identifies what is actually available at the pinned Titan BSP
 and what is still required. It does not claim physical capture, LED output,
 Titan-S3 integration, or acoustic-to-photon latency.

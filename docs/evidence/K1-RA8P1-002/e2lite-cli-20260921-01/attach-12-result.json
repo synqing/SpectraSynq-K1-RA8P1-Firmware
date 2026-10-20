@@ -1,0 +1,11 @@
+{
+  "utc": "2026-09-21T18:14:45Z",
+  "attach": 12,
+  "pid": 95550,
+  "result": "FAIL",
+  "error": "0x00030815 DAP cannot be found",
+  "not": "0x0003080A host lock; attach-10 unconnected cancel",
+  "log": "attach-12-hotplug-delayed.log",
+  "classification": "Host lock recovered. Delayed hot-plug prompt reached, then SWD/DAP failed at 10 kHz, probe power off, AuthLevel None, no download. This is the first clean 30815 after host-lock recovery. Clock sweep remains closed.",
+  "next_software_discriminator": "one reset-based attach, HotPlug=0 ResetBegin=1, J6 stays fitted; interrupts live application"
+}

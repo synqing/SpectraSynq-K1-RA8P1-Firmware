@@ -1,0 +1,36 @@
+
+GDB Server for Renesas targets.
+	Version 10.6.0.v20260707-035422 [acf4dadf] (Jul 17 2026 11:35:41)
+
+
+Starting server with the following options: 
+        Raw options                : ./e2-server-gdb -g E2LITE -t R7KA8P1KF -p 61236 -w 0 -uInteface= SWD -uIfSpeed= 10 -uSyncMode= async -uCore= CPU0|enabled|1|61236 -uCore= CPU1|disabled|0|61237 -uHotPlug= 0 -uShowGUI= 0 -uAuthLevel= 0 -uEnableSciBoot= 0 -uResetCon= 1 -uResetBeginConnection= 1 -uNoReset= 1 -uDisconnectionMode= 2 -uConnectionTimeout= 30 -ueraseRomOnDownload= 0
+
+Connecting to E2LITE, ARM target
+        GDBServer endian           : little
+        Target power from emulator : Off 
+Starting target connection
+
+Current TrustZone device status
+	DLM state			: Original Equipment Manufacturer (OEM)
+	Authentication level (AL)	: 2
+	Secure memory partition size	: 
+	-	MRAM Code Secure	(kB)	: 16352
+
+Version Information:
+  RFWARM.dll		
+  BFW versions
+  	LEVEL0			1.00.00.004
+  	LEVEL1			2.00.00.010
+  Communi.dll			
+  FPGA				00
+  	Communication FPGA	00
+
+Emulator Information:
+  Emulator Board Revision	E2LITE  Rev.0
+  User Vcc			3.31934 V
+  USB Bus Power			5.2207 V
+Finished target connection
+GDB: 61236
+Disconnected from the Target Debugger.
+EXIT:0

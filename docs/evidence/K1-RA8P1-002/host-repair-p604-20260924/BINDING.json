@@ -1,0 +1,101 @@
+{
+  "kind": "host-repair-p604-binding",
+  "date": "2026-09-24",
+  "supersedes": null,
+  "historical_bindings_untouched": [
+    "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/integration/PIN12-P604-20260923/binding-20260923T1306/BINDING.json",
+    "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/integration/PIN12-P604-20260923/programme-rearm-20260923T1207/receipt.json"
+  ],
+  "resident_build": "980eb3a9962e570437d7e1b6d7bae733b3a742284e4d45765742675409c90abe",
+  "uid": "545433931bd25436593630352d068363",
+  "pins": {
+    "din_a": "P601",
+    "din_b": "P604"
+  },
+  "programme": {
+    "dir": "programme-rearm-20260923T1207",
+    "hex_sha256": "029c582bad9adb78abb1c486ca9d02b080183d8420cd5c930ad5dea866f9c62f",
+    "pass": true
+  },
+  "runner": {
+    "tools/serial-studio/a8_bench_experiment.py": {
+      "sha256": "6b5dea2d8f18d9922de4b3641853b17ac27102b557be3ee026fec341299d72aa",
+      "bytes": 117510
+    },
+    "tools/serial-studio/tests/test_a8_bench_experiment.py": {
+      "sha256": "a0da953490c50a8a0b818f64c87652e38cc1c3ad038f2f34f30e2504cc937fc1",
+      "bytes": 84861
+    }
+  },
+  "fixtures": {
+    "colour_order": "GRB48 big-endian G,R,B",
+    "pack_vector": {
+      "rgb": [
+        4779,
+        13517,
+        22255
+      ],
+      "bytes": "34cd12ab56ef"
+    },
+    "pixels": {
+      "0": {
+        "lane": "A0",
+        "index": 0,
+        "file": "edge-in-lane0.bin"
+      },
+      "79": {
+        "lane": "A0",
+        "index": 79,
+        "file": "centre-out-lane0.bin"
+      },
+      "80": {
+        "lane": "A1",
+        "index": 0,
+        "file": "centre-out-lane1.bin"
+      },
+      "159": {
+        "lane": "A1",
+        "index": 79,
+        "file": "edge-in-lane1.bin"
+      }
+    },
+    "files": {
+      "centre-out-lane0.bin": {
+        "sha256": "d92a1db0fe5aad4adaa4c2bb2faa30f15363d1226348fee36a9a8d925f15ed5e",
+        "bytes": 480
+      },
+      "centre-out-lane1.bin": {
+        "sha256": "f15167aea006943c58c3a4449f91decad7cf9ac60bdb7a656ac4cc95a9139eec",
+        "bytes": 480
+      },
+      "edge-in-lane0.bin": {
+        "sha256": "2fa8235ba086fb89833c6a2e593c04a92797bfb75a6cd10f74a9f8e770fa3e3b",
+        "bytes": 480
+      },
+      "edge-in-lane1.bin": {
+        "sha256": "f5cd8c8b068f91225fee869f5ae6e0550367e2ea708585fa53f22f73a6fa5f74",
+        "bytes": 480
+      }
+    }
+  },
+  "packet": "mapping-packet.json",
+  "blackout_authorised": false,
+  "packet_sha256": "4e23a8e8637c5ef41a3b3c93223df646226dcb605bfe6c37375f3032a7eb5efd",
+  "schema_sha256": "a77dbf9298dbfb4385623dcb66d4c41037a60c6b65dc734bb7a521449f9d0e09",
+  "hold_budget": {
+    "normal_path_s": 12,
+    "restore_reserve_s": 3,
+    "fault_policy": "stop restore writes; 12s does not cover recovery from a held emit-off"
+  },
+  "packets": {
+    "mapping-packet.json": "4e23a8e8637c5ef41a3b3c93223df646226dcb605bfe6c37375f3032a7eb5efd",
+    "functional-packet.json": "a0f17434a4c980d9d9d473f20495295ccf06468f4556c5ab25ef89510fa6bdf5",
+    "preflight-packet.json": "0c727681e74dd56fa9c8e8aa5d5a49e9d1d5328bac89fb5d19734df9713d1ddd"
+  },
+  "current_limit": {
+    "live_admission": "rejected unless meter=true bench measurement",
+    "host_test_milliamps": 80
+  },
+  "preflight_live": "preflight-live/PREFLIGHT.json",
+  "expected_revision_live": 0
+}

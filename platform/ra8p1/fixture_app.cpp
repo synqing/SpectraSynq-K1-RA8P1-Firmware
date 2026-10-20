@@ -25,7 +25,10 @@
 #include "core/visual/ws2816_pack.h"
 #include "ws2816_gpio_emit.h"
 #include "ws281x_diag.h"
-#ifdef K1_PALETTE_GPT_DMA
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+#include "ws281x_gpt_dma_hw_pair.h"
+#include "pair_fixture_admit.h"
+#elif defined(K1_PALETTE_GPT_DMA)
 #include "ws281x_gpt_dma_hw.h"
 #endif
 #include "k1_status_led.h"
@@ -33,6 +36,8 @@
 #ifdef K1_PALETTE_RUNTIME
 #include "palette_runtime.h"
 #include "palette_clock.h"
+#include "hd_pixel16.h"
+#include "core/visual/audio_focus.h"
 #endif
 #ifdef K1_PCM1808_TARGET
 #include "pcm1808_target.h"
@@ -40,16 +45,225 @@
 #ifdef K1_PDM_TARGET
 #include "pdm_target.h"
 #endif
+#ifdef K1_LIVE_RUNTIME
+#include "k1_live_runtime.h"
+#include "k1_live_protocol.h"
+#endif
 namespace {
 fixture::Trajectory trajectory;
 fixture::Trace trace;
 k1_led2_phy_trace_t led2_trace_entries[K1_LED2_PHY_TRACE_CAPACITY]{};
 #ifdef K1_PALETTE_RUNTIME
 k1::titan::PaletteRuntime palettes;
+#ifdef K1_LIVE_RUNTIME
+k1::titan::LiveAudioRuntime live_runtime;
+k1::titan::LiveConfigBlob live_cfg{};
+std::uint8_t live_cfg_stage[k1::titan::kLiveConfigBlobBytes]{};
+std::uint32_t live_cfg_stage_len = 0;
+std::uint32_t live_cfg_stage_expected = 0;
+bool live_cfg_staging = false;
+std::uint32_t live_cfg_revision = 0;
+
+void live_hex32(const char* hex, std::uint8_t out[32]) {
+  for (unsigned i = 0; i < 32U; ++i) {
+    unsigned hi = 0;
+    unsigned lo = 0;
+    const char c0 = hex[i * 2U];
+    const char c1 = hex[i * 2U + 1U];
+    hi = static_cast<unsigned>(c0 <= '9' ? c0 - '0' : 10 + (c0 | 32) - 'a');
+    lo = static_cast<unsigned>(c1 <= '9' ? c1 - '0' : 10 + (c1 | 32) - 'a');
+    out[i] = static_cast<std::uint8_t>((hi << 4U) | lo);
+  }
+}
+
+void live_copy_focus(k1::core::visual::AudioFocusProfile& profile, const float* src) {
+  profile.level_gain = src[0];
+  profile.novelty_gain = src[1];
+  profile.low_gain = src[2];
+  profile.mid_gain = src[3];
+  profile.high_gain = src[4];
+  profile.tonal_gain = src[5];
+  profile.onset_gain = src[6];
+  profile.bass_onset_gain = src[7];
+  profile.beat_gain = src[8];
+  profile.transient_gain = src[9];
+  profile.kick_gain = src[10];
+  profile.snare_gain = src[11];
+  profile.hihat_gain = src[12];
+  for (unsigned i = 0; i < 80U; ++i) profile.spectrum_bin_gain[i] = src[13U + i];
+  for (unsigned i = 0; i < 12U; ++i) profile.chroma_bin_gain[i] = src[93U + i];
+}
+
+void live_read_focus(float* dest, const k1::core::visual::AudioFocusProfile& profile) {
+  dest[0] = profile.level_gain;
+  dest[1] = profile.novelty_gain;
+  dest[2] = profile.low_gain;
+  dest[3] = profile.mid_gain;
+  dest[4] = profile.high_gain;
+  dest[5] = profile.tonal_gain;
+  dest[6] = profile.onset_gain;
+  dest[7] = profile.bass_onset_gain;
+  dest[8] = profile.beat_gain;
+  dest[9] = profile.transient_gain;
+  dest[10] = profile.kick_gain;
+  dest[11] = profile.snare_gain;
+  dest[12] = profile.hihat_gain;
+  for (unsigned i = 0; i < 80U; ++i) dest[13U + i] = profile.spectrum_bin_gain[i];
+  for (unsigned i = 0; i < 12U; ++i) dest[93U + i] = profile.chroma_bin_gain[i];
+}
+
+void live_copy_visual(k1::core::visual::ChannelVisualControls& c,
+                     const k1::titan::LiveVisualControls& v) {
+  using namespace k1::titan;
+  c.chroma = v.chroma;
+  c.mood = v.mood;
+  c.saturation = v.saturation;
+  c.square_iterations = v.square_iterations;
+  c.sensitivity = v.sensitivity;
+  c.incandescent_filter = v.incandescent_filter;
+  c.bulb_opacity = v.bulb_opacity;
+  c.base_coat_intensity = v.base_coat_intensity;
+  c.prism_count = v.prism_count;
+  c.hue_position = v.hue_position;
+  c.chroma_value = v.chroma_value;
+  c.hue_shifting_mix = v.hue_shifting_mix;
+  c.vp_bloom_alpha = v.vp_bloom_alpha;
+  c.vp_bloom_shift_scale = v.vp_bloom_shift_scale;
+  c.vp_waveform_shift_rate = v.vp_waveform_shift_rate;
+  c.vp_waveform_idle_fade = v.vp_waveform_idle_fade;
+  c.vp_waveform_raw_margin = v.vp_waveform_raw_margin;
+  c.vp_waveform_peak_floor = v.vp_waveform_peak_floor;
+  c.vp_waveform_active_fade = v.vp_waveform_active_fade;
+  c.vp_waveform_chroma_blend_gain = v.vp_waveform_chroma_blend_gain;
+  c.vp_waveform_fallback_brightness = v.vp_waveform_fallback_brightness;
+  c.vp_waveform_vu_floor = v.vp_waveform_vu_floor;
+  c.sweet_spot_min_level = v.sweet_spot_min_level;
+  c.samples_per_chunk = v.samples_per_chunk;
+  c.enabled = (v.flags & kVisEnabled) != 0U;
+  c.mirror_enabled = (v.flags & kVisMirror) != 0U;
+  c.auto_colour_shift = (v.flags & kVisAutoColour) != 0U;
+  c.reverse_order = (v.flags & kVisReverse) != 0U;
+  c.incandescent_mode = (v.flags & kVisIncandescent) != 0U;
+  c.temporal_dithering = (v.flags & kVisDither) != 0U;
+  c.base_coat = (v.flags & kVisBaseCoat) != 0U;
+  c.chromatic_mode = (v.flags & kVisChromatic) != 0U;
+  c.vp_fix_agc_soft_knee = (v.flags & kVisFixAgc) != 0U;
+  c.vp_fix_chroma_gate = (v.flags & kVisFixChromaGate) != 0U;
+  c.vp_fix_prism_off = (v.flags & kVisFixPrismOff) != 0U;
+  c.vp_fix_bloom_decay = (v.flags & kVisFixBloomDecay) != 0U;
+  c.vp_fix_hsv_source_sat = (v.flags & kVisFixHsv) != 0U;
+  c.vp_fix_secondary_clean = (v.flags & kVisFixSecondary) != 0U;
+  c.vp_bloom_force_saturation = (v.flags & kVisBloomForceSat) != 0U;
+  // configure() owns palette identity. A v2 blob must not disable palette mode
+  // just because the UI omitted kVisPaletteMode.
+  c.palette_mode_enabled = true;
+}
+
+void live_read_visual(k1::titan::LiveVisualControls& v,
+                     const k1::core::visual::ChannelVisualControls& c) {
+  using namespace k1::titan;
+  v.chroma = c.chroma;
+  v.mood = c.mood;
+  v.saturation = c.saturation;
+  v.square_iterations = c.square_iterations;
+  v.sensitivity = c.sensitivity;
+  v.incandescent_filter = c.incandescent_filter;
+  v.bulb_opacity = c.bulb_opacity;
+  v.base_coat_intensity = c.base_coat_intensity;
+  v.prism_count = c.prism_count;
+  v.hue_position = c.hue_position;
+  v.chroma_value = c.chroma_value;
+  v.hue_shifting_mix = c.hue_shifting_mix;
+  v.vp_bloom_alpha = c.vp_bloom_alpha;
+  v.vp_bloom_shift_scale = c.vp_bloom_shift_scale;
+  v.vp_waveform_shift_rate = c.vp_waveform_shift_rate;
+  v.vp_waveform_idle_fade = c.vp_waveform_idle_fade;
+  v.vp_waveform_raw_margin = c.vp_waveform_raw_margin;
+  v.vp_waveform_peak_floor = c.vp_waveform_peak_floor;
+  v.vp_waveform_active_fade = c.vp_waveform_active_fade;
+  v.vp_waveform_chroma_blend_gain = c.vp_waveform_chroma_blend_gain;
+  v.vp_waveform_fallback_brightness = c.vp_waveform_fallback_brightness;
+  v.vp_waveform_vu_floor = c.vp_waveform_vu_floor;
+  v.sweet_spot_min_level = c.sweet_spot_min_level;
+  v.samples_per_chunk = c.samples_per_chunk;
+  v.flags = 0;
+  if (c.enabled) v.flags |= kVisEnabled;
+  if (c.mirror_enabled) v.flags |= kVisMirror;
+  if (c.auto_colour_shift) v.flags |= kVisAutoColour;
+  if (c.reverse_order) v.flags |= kVisReverse;
+  if (c.incandescent_mode) v.flags |= kVisIncandescent;
+  if (c.temporal_dithering) v.flags |= kVisDither;
+  if (c.base_coat) v.flags |= kVisBaseCoat;
+  if (c.palette_mode_enabled) v.flags |= kVisPaletteMode;
+  if (c.chromatic_mode) v.flags |= kVisChromatic;
+  if (c.vp_fix_agc_soft_knee) v.flags |= kVisFixAgc;
+  if (c.vp_fix_chroma_gate) v.flags |= kVisFixChromaGate;
+  if (c.vp_fix_prism_off) v.flags |= kVisFixPrismOff;
+  if (c.vp_fix_bloom_decay) v.flags |= kVisFixBloomDecay;
+  if (c.vp_fix_hsv_source_sat) v.flags |= kVisFixHsv;
+  if (c.vp_fix_secondary_clean) v.flags |= kVisFixSecondary;
+  if (c.vp_bloom_force_saturation) v.flags |= kVisBloomForceSat;
+}
+
+bool live_apply_config(const k1::titan::LiveConfigBlob& cfg, std::uint64_t now_us) {
+  if (cfg.revision != live_cfg_revision) return false;
+  k1::titan::PaletteConfig pal{};
+  pal.version = cfg.palette_version;
+  pal.palette_a = cfg.palette_a;
+  pal.palette_b = cfg.palette_b;
+  pal.mode_a = cfg.mode_a;
+  pal.mode_b = cfg.mode_b;
+  pal.flags = (cfg.flags | 4U) & ~2U;
+  pal.brightness = cfg.brightness;
+  pal.output_channel = cfg.output_channel;
+  pal.transition_ms = cfg.transition_ms;
+  pal.travel_ms = cfg.travel_ms;
+  if (!palettes.configure(pal, now_us)) return false;
+  live_copy_focus(palettes.channel(0).audioFocus(), cfg.focus_a);
+  live_copy_focus(palettes.channel(1).audioFocus(), cfg.focus_b);
+  if (cfg.version >= 2U) {
+    live_copy_visual(palettes.channel(0).controls(), cfg.visual_a);
+    live_copy_visual(palettes.channel(1).controls(), cfg.visual_b);
+  }
+  live_cfg = cfg;
+  live_cfg.emit_on = 1;
+  live_cfg.revision = ++live_cfg_revision;
+  live_cfg.flags = palettes.config().flags;
+  const auto& applied = palettes.config();
+  live_runtime.setControlMeta(static_cast<std::uint16_t>(applied.mode_a),
+                              static_cast<std::uint16_t>(applied.palette_a), 1,
+                              live_cfg.revision,
+                              static_cast<std::uint16_t>(applied.brightness));
+  return true;
+}
+
+void live_refresh_cfg_from_runtime() {
+  const auto& pal = palettes.config();
+  live_cfg.version = 2;
+  live_cfg.palette_version = pal.version;
+  live_cfg.palette_a = pal.palette_a;
+  live_cfg.palette_b = pal.palette_b;
+  live_cfg.mode_a = pal.mode_a;
+  live_cfg.mode_b = pal.mode_b;
+  live_cfg.flags = pal.flags;
+  live_cfg.brightness = pal.brightness;
+  live_cfg.output_channel = pal.output_channel;
+  live_cfg.transition_ms = pal.transition_ms;
+  live_cfg.travel_ms = pal.travel_ms;
+  live_cfg.emit_on = palettes.emitEnabled() ? 1 : 0;
+  live_cfg.revision = live_cfg_revision;
+  live_read_focus(live_cfg.focus_a, palettes.channel(0).audioFocus());
+  live_read_focus(live_cfg.focus_b, palettes.channel(1).audioFocus());
+  live_read_visual(live_cfg.visual_a, palettes.channel(0).controls());
+  live_read_visual(live_cfg.visual_b, palettes.channel(1).controls());
+}
+
+void live_handle_config(std::uint32_t size);
+#endif
 std::uint32_t palette_clock_hz = 0;
 std::uint64_t palette_time_us = 0;
 k1::titan::PaletteClock palette_clock;
-#ifdef K1_PALETTE_WS2816
+#if defined(K1_PALETTE_WS2816) || defined(K1_PALETTE_WS2816_GPT_PAIR)
 // Last completed submission: 16 LE32 words, native RGB8, then both GRB48 lanes.
 // Capture the actual emitter inputs, not a later re-render or a pre-gain tap.
 std::uint8_t palette_wire_snapshot[64U + 480U + 960U]{};
@@ -57,6 +271,21 @@ std::uint32_t palette_wire_sequence = 0;
 void snapshot_word(unsigned index, std::uint32_t value) {
   for (unsigned byte = 0; byte < 4; ++byte)
     palette_wire_snapshot[index*4U+byte] = value >> (8U*byte);
+}
+#endif
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+std::uint32_t palette_pair_frames=0, palette_pair_errors=0, palette_pair_generation=0;
+bool palette_pair_pending=false;
+bool fixture_hold=false;
+std::uint32_t fixture_hold_generation=0;
+std::uint8_t fixture_owned_a0[K1_PAIR_FIXTURE_LANE_BYTES];
+std::uint8_t fixture_owned_a1[K1_PAIR_FIXTURE_LANE_BYTES];
+void palette_pair_poll() {
+  k1_ws281x_gpt_dma_hw_pair_poll();
+  const auto completed=k1_ws281x_gpt_dma_hw_pair_completions();
+  const auto failed=k1_ws281x_gpt_dma_hw_pair_errors();
+  if (completed!=palette_pair_frames) { palettes.recordEmit(0,0); palette_pair_frames=completed; }
+  if (failed!=palette_pair_errors) { palettes.recordEmit(1,0); palette_pair_errors=failed; }
 }
 #endif
 #ifdef K1_PALETTE_GPT_DMA
@@ -73,21 +302,90 @@ void palette_gpt_poll() {
 }
 #endif
 void palette_step(bool emit) {
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  palette_pair_poll();
+#endif
 #ifdef K1_PALETTE_GPT_DMA
   palette_gpt_poll();
 #endif
+#ifdef K1_LIVE_RUNTIME
+  const k1::core::audio::AudioPipelineOutput* live = live_runtime.latest();
+  const k1::core::visual::VisualAudioFrameView view{
+      live ? live->features : trajectory.output.features,
+      live ? live->tempo : trajectory.output.tempo,
+      live_runtime.waveform(),
+      live ? live->features.publish_time_us : 0U};
+  // Freshness is a MIR flag, not a licence to starve the plate.
+  const bool rendered=palettes.step(palette_time_us, (live && live->valid) ? &view : nullptr);
+#else
   const k1::core::visual::VisualAudioFrameView view{
       trajectory.output.features, trajectory.output.tempo, trajectory.waveform,
       trajectory.output.features.publish_time_us};
   const bool rendered=palettes.step(palette_time_us, trajectory.output.valid ? &view : nullptr);
+#endif
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  if (fixture_hold) {
+    palette_pair_poll();
+    if (!k1_ws281x_gpt_dma_hw_pair_busy() &&
+        k1_ws281x_gpt_dma_hw_pair_completed_generation() == fixture_hold_generation &&
+        k1_ws281x_gpt_dma_hw_pair_lane_fault(0) == 0U &&
+        k1_ws281x_gpt_dma_hw_pair_lane_fault(1) == 0U) {
+      fixture_hold = false;
+    }
+  }
+  if (rendered) palette_pair_pending=true;
+  if (!rendered) return;
+#else
 #ifdef K1_PALETTE_GPT_DMA
   if (rendered) palette_gpt_pending=true;
   if (!palette_gpt_pending || !k1_ws281x_gpt_dma_hw_ready()) return;
 #else
   if (!rendered) return;
 #endif
+#endif
   if (emit && palettes.emitEnabled()) {
-#ifdef K1_PALETTE_WS2816
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+    const auto& config = palettes.config();
+    const auto& selected = palettes.channel(config.output_channel);
+    snapshot_word(0, 1U); snapshot_word(1, ++palette_wire_sequence);
+    snapshot_word(2, config.output_channel); snapshot_word(3, config.brightness);
+    snapshot_word(4, 2U); snapshot_word(5, 80U);
+    snapshot_word(6, 48U); snapshot_word(7, 3U);
+    snapshot_word(8, selected.controls().mode_id);
+    snapshot_word(9, selected.controls().palette_id);
+    snapshot_word(10, config.flags); snapshot_word(11, k1::titan::kPalettePeriodUs);
+    snapshot_word(14, static_cast<std::uint32_t>(palette_time_us));
+    snapshot_word(15, static_cast<std::uint32_t>(palette_time_us >> 32U));
+    static_assert(sizeof(k1::core::Pixel8) == 3U);
+    std::memcpy(palette_wire_snapshot+64U, selected.frame().data(), 480U);
+    auto* wire_a0 = palette_wire_snapshot + 64U + 480U;
+    auto* wire_a1 = palette_wire_snapshot + 64U + 480U + 480U;
+    {
+      k1::core::visual::Pixel16 wide[k1::core::visual::kPixelsPerChannel]{};
+      const auto frame = selected.frame();
+      for (unsigned i = 0; i < k1::core::visual::kPixelsPerChannel; ++i) {
+        // Staging bridge from the Pixel8 renderer. This is REPLICATE8 into the
+        // wide buffer so the Pixel16 pack path can run; it is not a TRUE16
+        // colour claim. Authored 0x12AB patterns must use stageWideFrame.
+        wide[i] = k1::titan::liftPixel8(frame[i]);
+      }
+      (void)palettes.stageWideFrame(config.output_channel, wide,
+                                    k1::core::visual::kPixelsPerChannel);
+    }
+    const auto size0 = palettes.packBenchGrb48Lane(wire_a0, 480U, 0U);
+    const auto size1 = palettes.packBenchGrb48Lane(wire_a1, 480U, 1U);
+    if (size0 == 480U && size1 == 480U && !fixture_hold) {
+      const std::uint32_t generation = ++palette_pair_generation;
+      snapshot_word(12, generation);
+      snapshot_word(13, generation);
+      const int status = k1_ws281x_gpt_dma_hw_pair_submit(
+          wire_a0, size0, wire_a1, size1, 3U, generation);
+      if (status == K1_WS281X_SUBMIT_ACCEPTED ||
+          status == K1_WS281X_SUBMIT_BUSY) {
+        palette_pair_pending = false;
+      }
+    }
+#elif defined(K1_PALETTE_WS2816)
     const auto& config = palettes.config();
     const auto& selected = palettes.channel(config.output_channel);
     snapshot_word(0, 1U); snapshot_word(1, ++palette_wire_sequence);
@@ -101,6 +399,15 @@ void palette_step(bool emit) {
     snapshot_word(15, static_cast<std::uint32_t>(palette_time_us >> 32U));
     static_assert(sizeof(k1::core::Pixel8) == 3U);
     std::memcpy(palette_wire_snapshot+64U, selected.frame().data(), 480U);
+    {
+      k1::core::visual::Pixel16 wide[k1::core::visual::kPixelsPerChannel]{};
+      const auto frame = selected.frame();
+      for (unsigned i = 0; i < k1::core::visual::kPixelsPerChannel; ++i) {
+        wide[i] = k1::titan::liftPixel8(frame[i]);
+      }
+      (void)palettes.stageWideFrame(config.output_channel, wide,
+                                    k1::core::visual::kPixelsPerChannel);
+    }
     int status = 0;
     std::uint32_t cycles = 0;
     for (unsigned lane = 0; lane < 2; ++lane) {
@@ -134,7 +441,11 @@ void palette_step(bool emit) {
   }
 }
 #endif
+#ifdef K1_LIVE_RUNTIME
+constexpr std::size_t kMaxRequestPayload=2048U;
+#else
 constexpr std::size_t kMaxRequestPayload=16U+K1_WS281X_DIAG_MAX_BYTES;
+#endif
 std::uint8_t rx[32U+kMaxRequestPayload], tx[20000], board_uid[16];
 std::size_t fill = 0, wanted = 32, tx_size = 0;
 std::uint32_t started = 0, clock_hz = 0, cpu_wait = 0, rejected = 0;
@@ -419,6 +730,101 @@ void respond(std::uint32_t status, std::uint32_t cycles, const char* payload, st
   tx_size = size+32;
 }
 void error(std::uint32_t status) { ++rejected; respond(status,0,"",0); fill=0; wanted=32; }
+#ifdef K1_PALETTE_RUNTIME
+#ifdef K1_LIVE_RUNTIME
+void live_handle_config(std::uint32_t size) {
+  if (size < 4U) { error(3); return; }
+  const auto* p = rx + 32;
+  const std::uint32_t sub = get32(p);
+  if (sub == k1::titan::kLiveCfgGetSchema) {
+    std::uint32_t offset = 0;
+    std::uint32_t want = 4032;
+    if (size >= 12U) {
+      offset = get32(p + 4);
+      want = get32(p + 8);
+    }
+    const auto n = k1::titan::liveEncodeSchemaPage(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), offset, want);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgGetConfig) {
+    live_refresh_cfg_from_runtime();
+    const auto n = k1::titan::liveEncodeConfig(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_cfg);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgSetConfig) {
+    if (size < 4U || !k1::titan::liveConfigSizeAccepted(size - 4U)) { error(3); return; }
+    k1::titan::LiveConfigBlob cfg{};
+    if (!k1::titan::liveDecodeConfig(p + 4, size - 4U, &cfg)) {
+      error(3); return;
+    }
+    if (!live_apply_config(cfg, palette_time_us)) { error(3); return; }
+    live_refresh_cfg_from_runtime();
+    const auto n = k1::titan::liveEncodeConfig(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_cfg);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgBeginSet && size == 8U) {
+    live_cfg_stage_expected = get32(p + 4);
+    if (!k1::titan::liveConfigSizeAccepted(live_cfg_stage_expected)) { error(3); return; }
+    live_cfg_stage_len = 0;
+    live_cfg_staging = true;
+    respond(0, 0, "BEGIN", 5);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgAppendSet && size >= 8U && live_cfg_staging) {
+    const std::uint32_t offset = get32(p + 4);
+    const std::uint32_t nbytes = size - 8U;
+    if (offset != live_cfg_stage_len || offset + nbytes > live_cfg_stage_expected) {
+      error(3); return;
+    }
+    std::memcpy(live_cfg_stage + offset, p + 8, nbytes);
+    live_cfg_stage_len += nbytes;
+    respond(0, 0, "APPEND", 6);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgCommitSet && size == 4U && live_cfg_staging) {
+    if (live_cfg_stage_len != live_cfg_stage_expected) { error(3); return; }
+    k1::titan::LiveConfigBlob cfg{};
+    if (!k1::titan::liveDecodeConfig(live_cfg_stage, live_cfg_stage_len, &cfg) ||
+        !live_apply_config(cfg, palette_time_us)) {
+      error(3); return;
+    }
+    live_cfg_staging = false;
+    live_refresh_cfg_from_runtime();
+    const auto n = k1::titan::liveEncodeConfig(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_cfg);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgAbortSet && size == 4U) {
+    live_cfg_staging = false;
+    live_cfg_stage_len = 0;
+    respond(0, 0, "ABORT", 5);
+    return;
+  }
+  if (sub == k1::titan::kLiveCfgTestStale && size == 4U + 16U + 32U) {
+    if (std::memcmp(p + 4, board_uid, 16) != 0) { error(5); return; }
+    std::uint8_t build[32];
+    live_hex32(K1_BUILD_ID, build);
+    if (std::memcmp(p + 20, build, 32) != 0) { error(5); return; }
+#ifdef K1_PDM_TARGET
+    if (k1_pdm_target_begin_stale_test(palette_time_us) != 0) { error(10); return; }
+    live_runtime.setStaleMarkers(k1_pdm_target_injection_start_us(), 0);
+    respond(0, 0, "STALE", 5);
+#else
+    error(10);
+#endif
+    return;
+  }
+  error(3);
+}
+#endif
+#endif
 static std::uint32_t led_now;
 void status_command(std::uint32_t size) {
   if (size == 0) {
@@ -502,9 +908,67 @@ void status_command(std::uint32_t size) {
     respond(0, 0, trace.data, bytes);
   } else error(3);
 }
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+void handle_pair_fixture(std::uint32_t size) {
+  k1_pair_fixture_gate_t gate{};
+  k1_pair_fixture_view_t view{};
+  gate.last_generation = k1_ws281x_gpt_dma_hw_pair_submitted_generation();
+  if (fixture_hold_generation > gate.last_generation) gate.last_generation = fixture_hold_generation;
+#ifdef K1_PDM_TARGET
+  const auto epoch64 = k1_pdm_target_stream_epoch();
+  gate.expected_epoch = epoch64 > 0xffffffffULL ? 0xffffffffU : static_cast<std::uint32_t>(epoch64);
+#else
+  gate.expected_epoch = 0U;
+#endif
+  gate.in_flight = (fixture_hold || k1_ws281x_gpt_dma_hw_pair_busy()) ? 1U : 0U;
+  const int admit = k1_pair_fixture_admit(&gate, rx + 32, size, &view);
+  if (admit != K1_PAIR_FIXTURE_OK) {
+    const int n = std::snprintf(trace.data, sizeof(trace.data),
+      "{\"accepted\":false,\"reason\":%d,\"generation\":0,\"kind\":0,\"submit\":-1}", admit);
+    ++rejected;
+    if (n > 0) respond(static_cast<std::uint32_t>(admit), 0, trace.data, std::size_t(n));
+    else error(3);
+    return;
+  }
+  std::memcpy(fixture_owned_a0, view.lane0, K1_PAIR_FIXTURE_LANE_BYTES);
+  std::memcpy(fixture_owned_a1, view.lane1, K1_PAIR_FIXTURE_LANE_BYTES);
+  const int submitted = k1_ws281x_gpt_dma_hw_pair_submit(
+      fixture_owned_a0, K1_PAIR_FIXTURE_LANE_BYTES,
+      fixture_owned_a1, K1_PAIR_FIXTURE_LANE_BYTES,
+      K1_PAIR_FIXTURE_PROFILE, view.generation);
+  if (submitted != K1_WS281X_SUBMIT_ACCEPTED) {
+    const int n = std::snprintf(trace.data, sizeof(trace.data),
+      "{\"accepted\":false,\"reason\":%d,\"generation\":%lu,\"kind\":%lu,\"submit\":%d}",
+      submitted, (unsigned long)view.generation, (unsigned long)view.kind, submitted);
+    ++rejected;
+    if (n > 0) respond(static_cast<std::uint32_t>(submitted), 0, trace.data, std::size_t(n));
+    else error(3);
+    return;
+  }
+  fixture_hold = true;
+  fixture_hold_generation = view.generation;
+  const int n = std::snprintf(trace.data, sizeof(trace.data),
+    "{\"accepted\":true,\"reason\":0,\"generation\":%lu,\"epoch\":%lu,\"kind\":%lu,\"submit\":0}",
+    (unsigned long)view.generation, (unsigned long)view.epoch, (unsigned long)view.kind);
+  if (n < 0 || std::size_t(n) >= sizeof(trace.data)) error(8);
+  else respond(0, 0, trace.data, std::size_t(n));
+}
+#endif
 void execute() {
+#ifdef K1_PALETTE_RUNTIME
+  // USB JSON can stall k1_fixture_poll. Render first so skipped_releases
+  // records genuine lateness, not host-CDC blocking. Cadence unchanged.
+  palette_time_us = palette_clock.sample(k1_cycle_count(), palette_clock_hz);
+  palette_step(true);
+#endif
   const auto command=get32(rx+4), size=get32(rx+16);
   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  if (command == K1_PAIR_FIXTURE_OPCODE) {
+    handle_pair_fixture(size);
+    fill=0; wanted=32; return;
+  }
+#endif
 #ifdef K1_PALETTE_GPT_DMA
   if (command == K1_WS281X_GPT_DIAG_OPCODE && size == 4 &&
       get32(rx + 32) == K1_WS281X_GPT_DIAG_V2_VERSION) {
@@ -549,6 +1013,38 @@ void execute() {
   } else if (command == k1::titan::kPaletteStatusOpcode && size == 0U) {
     const auto n = palettes.statusJson(trace.data, sizeof(trace.data));
     if (!n) error(8); else respond(0, 0, trace.data, n);
+#ifdef K1_LIVE_RUNTIME
+  } else if (command == k1::titan::kLiveMirOpcode && size == 0U) {
+    const auto n = live_runtime.mirJson(trace.data, sizeof(trace.data));
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kLiveSnapshotOpcode && size == 0U) {
+#ifdef K1_PDM_TARGET
+    live_runtime.setCaptureMeta(k1_pdm_target_first_capture_start_us(),
+                                k1_pdm_target_last_capture_end_us(),
+                                k1_pdm_target_asrc_starved(),
+                                k1_pdm_target_measured_hz(),
+                                k1_pdm_target_last_hop_dt_us());
+    live_runtime.setStaleMarkers(k1_pdm_target_injection_start_us(),
+                                 k1_pdm_target_injection_end_us());
+#endif
+    const auto n = live_runtime.encodeSnapshot(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), live_runtime.nowUs());
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kLiveEventsOpcode && (size == 0U || size == 8U)) {
+    const std::uint64_t after = size == 8U
+        ? (get32(rx+32) | (std::uint64_t(get32(rx+36)) << 32)) : 0U;
+    const auto n = live_runtime.encodeEvents(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), after);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kLiveTimingOpcode && (size == 0U || size == 8U)) {
+    const std::uint64_t after = size == 8U
+        ? (get32(rx+32) | (std::uint64_t(get32(rx+36)) << 32)) : 0U;
+    const auto n = live_runtime.encodeTiming(
+        reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), after);
+    if (!n) error(8); else respond(0, 0, trace.data, n);
+  } else if (command == k1::titan::kLiveConfigOpcode) {
+    live_handle_config(size);
+#endif
   } else if (command == k1::titan::kPaletteFrameOpcode && size == 4U) {
     const auto channel = get32(rx+32);
     if (channel > 1U) { error(3); return; }
@@ -557,8 +1053,11 @@ void execute() {
     respond(0, 0, reinterpret_cast<const char*>(pixels.data()), pixels.size()*3U);
 #ifdef K1_PALETTE_WS2816
   } else if (command == k1::titan::kPaletteWireSnapshotOpcode && size == 0U) {
+#elif defined(K1_PALETTE_WS2816_GPT_PAIR)
+  } else if (command == k1::titan::kPaletteWireSnapshotOpcode && size == 0U) {
+#endif
+#if defined(K1_PALETTE_WS2816) || defined(K1_PALETTE_WS2816_GPT_PAIR)
     if (!palette_wire_sequence) { error(8); return; }
-    // The fixture loop is single-threaded; both lane calls finished before here.
     respond(0, 0, reinterpret_cast<const char*>(palette_wire_snapshot), sizeof(palette_wire_snapshot));
 #endif
   } else
@@ -571,9 +1070,21 @@ void execute() {
     const char* u55_opened="false";
 #endif
     const int n=std::snprintf(trace.data,sizeof(trace.data),
-      "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\"sr24000.hop180.bins80.xover40\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true}",
+      "{\"protocol\":1,\"uid\":\"%s\",\"build\":\"%s\",\"source\":\"%s\",\"contract\":\"sr24000.hop180.bins80.xover40\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true"
+#ifdef K1_LIVE_RUNTIME
+      ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":true,\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":true"
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+      ",\"pair_fixture\":true"
+#endif
+      "}"
+#endif
+      "}",
       uid,K1_BUILD_ID,K1_SOURCE_PIN,(unsigned long)clock_hz,(unsigned long)cpu_wait,u55_opened,initialised?"true":"false",
-      (unsigned long)rejected,(unsigned long)trajectory.sequence,unsigned(sizeof(trajectory)),unsigned(sizeof(trace)));
+      (unsigned long)rejected,(unsigned long)trajectory.sequence,unsigned(sizeof(trajectory)),unsigned(sizeof(trace))
+#ifdef K1_LIVE_RUNTIME
+      , kTitanLiveSchemaSha256
+#endif
+      );
     if(n<0 || std::size_t(n)>=sizeof(trace.data)) error(8); else respond(0,0,trace.data,std::size_t(n));
   } else if(command==6 && size==0) {
     const std::size_t n=k1_platform_metrics(trace.data,sizeof(trace.data));
@@ -823,29 +1334,63 @@ extern "C" void k1_stage_probe_end(unsigned stage,std::uint32_t started) noexcep
 extern "C" void k1_fixture_initialise(const std::uint8_t uid[16],std::uint32_t hz,std::uint32_t wait) {
   std::memcpy(board_uid,uid,16); clock_hz=hz; cpu_wait=wait;
   k1_ws2816_set_clock(hz);
-#ifdef K1_PALETTE_GPT_DMA
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  (void)k1_ws281x_gpt_dma_hw_pair_init();
+#elif defined(K1_PALETTE_GPT_DMA)
   (void)k1_ws281x_gpt_dma_hw_init();
 #endif
 #ifdef K1_PALETTE_RUNTIME
   palette_clock_hz = hz;
 #ifdef K1_PALETTE_AUTOSTART
   k1::titan::PaletteConfig config;
-  // Active + physical emit. No 4 s catalogue carousel. No PALETTE_BOUNCE.
+  // Always boot audio-reactive WaveformK1 with physical emit on.
+  // Colour palettes 33/43. No 4 s catalogue carousel. No PALETTE_BOUNCE.
   config.flags = 5U;
   config.mode_a = k1::titan::kLiveAudioBootMode;
   config.mode_b = k1::titan::kLiveAudioBootMode;
 #ifdef K1_PALETTE_MORPH
   config.version = 3U; config.transition_ms = 1500U;
-  config.palette_a = 0U; config.palette_b = 1U;
-  config.brightness = 24U;
+  config.palette_a = 33U; config.palette_b = 43U;
+  config.brightness = 128U;
 #endif
 #ifdef K1_PALETTE_WS2816
   // Keep the selected showcase/morph defaults above across normal RESET.
   // Strip-specific gain is independent of palette and effect selection.
   config.palette_a = 33U; config.palette_b = 43U; config.brightness = 128U;
 #endif
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  config.palette_a = 33U; config.palette_b = 43U; config.brightness = 24U;
+#ifndef K1_LIVE_EMIT
+  config.flags = 1U; /* active, physical emit off until host/INFO */
+#endif
+#endif
   palettes.configure(config, 0U);
 #endif
+#endif
+#ifdef K1_LIVE_RUNTIME
+  live_runtime.initialise(hz);
+  live_cfg.version = 1U;
+  live_cfg.palette_version = 3U;
+  live_cfg.mode_a = k1::titan::kLiveAudioBootMode;
+  live_cfg.mode_b = k1::titan::kLiveAudioBootMode;
+  live_cfg.flags = 5U;
+  live_cfg.emit_on = 1;
+  live_cfg.palette_a = 33U;
+  live_cfg.palette_b = 43U;
+  live_cfg.brightness = 128U;
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+  live_cfg.brightness = 24U;
+#ifndef K1_LIVE_EMIT
+  live_cfg.flags = 1U;
+  live_cfg.emit_on = 0;
+#endif
+#endif
+  k1::titan::liveInitFocusUnity(live_cfg.focus_a);
+  k1::titan::liveInitFocusUnity(live_cfg.focus_b);
+  std::uint8_t build_sha[32]{};
+  live_hex32(K1_BUILD_ID, build_sha);
+  live_runtime.setIdentity(uid, build_sha);
+  live_runtime.setControlMeta(static_cast<std::uint16_t>(k1::titan::kLiveAudioBootMode), 33, 1, 0, 128);
 #endif
   // Constructor witness: ChannelRenderState must have installed each channel ID.
   initialised=trajectory.b.channel()==k1::core::visual::PixelChannelId::kChannelB;
@@ -873,18 +1418,46 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
   if(fill && now-started>2000) error(9);
 #ifdef K1_PALETTE_RUNTIME
   palette_time_us = palette_clock.sample(k1_cycle_count(), palette_clock_hz);
+  palette_step(true);
 #ifdef K1_RESIDENT_SCHEDULE
   if (k1_fixture_schedule_active()) return;
 #endif
 #ifdef K1_PDM_TARGET
   {
+#ifdef K1_LIVE_RUNTIME
+    const auto hop_status = live_runtime.serviceOneHop();
+    if (hop_status == k1::titan::LiveHopStatus::Discontinuity ||
+        hop_status == k1::titan::LiveHopStatus::Fault) {
+      palettes.resetAudioState();
+    }
+    live_runtime.setCaptureMeta(k1_pdm_target_first_capture_start_us(),
+                                k1_pdm_target_last_capture_end_us(),
+                                k1_pdm_target_asrc_starved(),
+                                k1_pdm_target_measured_hz(),
+                                k1_pdm_target_last_hop_dt_us());
+    live_runtime.setStaleMarkers(k1_pdm_target_injection_start_us(),
+                                 k1_pdm_target_injection_end_us());
+    if (!live_runtime.publicationFresh(live_runtime.nowUs())) {
+      live_runtime.noteStaleEntry(live_runtime.nowUs());
+    } else {
+      live_runtime.noteFreshPublication();
+    }
+    live_runtime.setControlMeta(static_cast<std::uint16_t>(palettes.config().mode_a),
+                                static_cast<std::uint16_t>(palettes.config().palette_a),
+                                palettes.emitEnabled() ? 1 : 0, live_cfg_revision,
+                                static_cast<std::uint16_t>(palettes.config().brightness));
+#else
     std::int16_t hop[180];
     if (k1_pdm_target_pull_ap_hop(hop) == 0) trajectory.process(hop);
+#endif
   }
-#ifndef K1_PALETTE_GPT_DMA
+#if !defined(K1_PALETTE_GPT_DMA) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
   if (k1_pdm_target_running()) return;
 #endif
   if (k1_pdm_target_running() && k1_pdm_target_spare_slots() == 0u) {
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+    palette_pair_poll();
+#endif
 #ifdef K1_PALETTE_GPT_DMA
     palette_gpt_poll();
     if (palette_gpt_pending && k1_ws281x_gpt_dma_hw_ready() &&
@@ -894,7 +1467,6 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
       if (status == K1_WS281X_SUBMIT_ACCEPTED) palette_gpt_pending = false;
     }
 #endif
-    return;
   }
 #endif
   palette_step(true);

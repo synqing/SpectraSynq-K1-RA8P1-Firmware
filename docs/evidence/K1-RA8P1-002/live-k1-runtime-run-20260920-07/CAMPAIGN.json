@@ -1,0 +1,202 @@
+{
+  "usb": "/dev/cu.usbmodem00000000000011",
+  "samples": 19,
+  "duration_s": 5.0,
+  "controls_ok": false,
+  "stale_ok": false,
+  "observer_off_ok": false,
+  "restore_ok": false,
+  "deadline_misses": 0,
+  "record": [
+    {
+      "t": 1789918684.643023,
+      "snap": {
+        "generation": 11136,
+        "hop": 11136,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.09759521484375
+      }
+    },
+    {
+      "t": 1789918684.9227269,
+      "snap": {
+        "generation": 11177,
+        "hop": 11177,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.319732666015625
+      }
+    },
+    {
+      "t": 1789918685.165299,
+      "snap": {
+        "generation": 11209,
+        "hop": 11209,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.128143310546875
+      }
+    },
+    {
+      "t": 1789918685.444511,
+      "snap": {
+        "generation": 11248,
+        "hop": 11248,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.071197509765625
+      }
+    },
+    {
+      "t": 1789918685.687129,
+      "snap": {
+        "generation": 11282,
+        "hop": 11282,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.05963134765625
+      }
+    },
+    {
+      "t": 1789918685.966571,
+      "snap": {
+        "generation": 11321,
+        "hop": 11321,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.070556640625
+      }
+    },
+    {
+      "t": 1789918686.230777,
+      "snap": {
+        "generation": 11356,
+        "hop": 11356,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.048614501953125
+      }
+    },
+    {
+      "t": 1789918686.509602,
+      "snap": {
+        "generation": 11395,
+        "hop": 11395,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.048187255859375
+      }
+    },
+    {
+      "t": 1789918686.773726,
+      "snap": {
+        "generation": 11431,
+        "hop": 11431,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.053466796875
+      }
+    },
+    {
+      "t": 1789918687.052865,
+      "snap": {
+        "generation": 11471,
+        "hop": 11471,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.91204833984375
+      }
+    },
+    {
+      "t": 1789918687.295661,
+      "snap": {
+        "generation": 11503,
+        "hop": 11503,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.073272705078125
+      }
+    },
+    {
+      "t": 1789918687.574801,
+      "snap": {
+        "generation": 11543,
+        "hop": 11543,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.057769775390625
+      }
+    },
+    {
+      "t": 1789918687.8392031,
+      "snap": {
+        "generation": 11578,
+        "hop": 11578,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.07464599609375
+      }
+    },
+    {
+      "t": 1789918688.118347,
+      "snap": {
+        "generation": 11617,
+        "hop": 11617,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.059814453125
+      }
+    },
+    {
+      "t": 1789918688.382905,
+      "snap": {
+        "generation": 11653,
+        "hop": 11653,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.05352783203125
+      }
+    },
+    {
+      "t": 1789918688.6611168,
+      "snap": {
+        "generation": 11693,
+        "hop": 11693,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.0458984375
+      }
+    },
+    {
+      "t": 1789918688.904565,
+      "snap": {
+        "generation": 11726,
+        "hop": 11726,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.053802490234375
+      }
+    },
+    {
+      "t": 1789918689.183446,
+      "snap": {
+        "generation": 11765,
+        "hop": 11765,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.047027587890625
+      }
+    },
+    {
+      "t": 1789918689.447658,
+      "snap": {
+        "generation": 11800,
+        "hop": 11800,
+        "stale": false,
+        "emit_on": 1,
+        "peak": 0.05242919921875
+      }
+    }
+  ]
+}

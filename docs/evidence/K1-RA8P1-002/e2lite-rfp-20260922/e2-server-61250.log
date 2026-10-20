@@ -1,0 +1,17 @@
+
+GDB Server for Renesas targets.
+	Version 10.6.0.v20260707-035422 [acf4dadf] (Jul 17 2026 11:35:41)
+
+
+Starting server with the following options: 
+        Raw options                : ./e2-server-gdb -g E2LITE -t R7KA8P1KF -p 61250 -w 0 -uInteface= SWD -uIfSpeed= 1000 -uSyncMode= async -uCore= CPU0|enabled|1|61250 -uCore= CPU1|disabled|0|61251 -uHotPlug= 0 -uShowGUI= 0 -uAuthLevel= 0 -uEnableSciBoot= 0 -uResetCon= 1 -uResetBeginConnection= 1 -uNoReset= 1 -uDisconnectionMode= 2 -uConnectionTimeout= 30 -ueraseRomOnDownload= 0
+
+Connecting to E2LITE, ARM target
+        GDBServer endian           : little
+        Target power from emulator : Off 
+Starting target connection
+GDB action 'connect to target', has failed with error report, Error 0x0F000000: A communication error occurred while communicating with the emulator (RFWERR_COM). Disconnect the debugger and reconnect the USB cable. Then turn the emulator on again to restart the debugger. 
+
+force_kill_gdb()
+Disconnected from the Target Debugger.
+EXIT:255

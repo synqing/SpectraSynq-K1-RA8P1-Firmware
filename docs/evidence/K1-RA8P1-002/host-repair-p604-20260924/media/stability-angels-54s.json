@@ -1,0 +1,19 @@
+{
+  "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/media/stability-angels-54s.pcm",
+  "bytes": 2592000,
+  "samples": 1296000,
+  "seconds": 54.0,
+  "rate_hz": 24000,
+  "format": "s16le_mono",
+  "sha256": "69a805126c3c122c7d9b0627adde0a4262a3f1e423f1471d444aa6c58d39ae41",
+  "permitted": true,
+  "identity": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Angels In Amplifiers - I'm Alright.stem.mp4",
+  "offset_s": 10,
+  "duration_requested_s": 54,
+  "distinct_from": [
+    "Cristina Vane - So Easy",
+    "Louis Cressy Band - Good Time"
+  ],
+  "loop": false,
+  "synthesized": false
+}

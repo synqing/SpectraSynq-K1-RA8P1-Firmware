@@ -1,0 +1,43 @@
+{
+  "mode": "yolo",
+  "granularity": "fine",
+  "workflow": {
+    "research": true,
+    "plan_check": true,
+    "verifier": true,
+    "auto_advance": false,
+    "nyquist_validation": true
+  },
+  "planning": {
+    "commit_docs": false,
+    "search_gitignored": false
+  },
+  "parallelization": {
+    "enabled": false,
+    "plan_level": false,
+    "task_level": false,
+    "skip_checkpoints": false,
+    "max_concurrent_agents": 3,
+    "min_plans_for_parallel": 99
+  },
+  "gates": {
+    "confirm_project": false,
+    "confirm_phases": false,
+    "confirm_roadmap": false,
+    "confirm_breakdown": false,
+    "confirm_plan": false,
+    "execute_next_plan": true,
+    "issues_review": true,
+    "confirm_transition": true
+  },
+  "safety": {
+    "always_confirm_destructive": true,
+    "always_confirm_external_services": true
+  },
+  "source": {
+    "prd": "docs/Titan_RA8P1_Takeover_Execution_Brief_2026-09-20.md",
+    "audited_commit": "431140853dd8b58af53240ef84d5fb1a08bd8b45",
+    "bootstrapped": "2026-09-20",
+    "note": "PRD express from takeover brief, then Captain 2026-09-20 correction: live-runtime un-deferred. Sequential CDC/programming. Do not auto-advance through flashes."
+  }
+}

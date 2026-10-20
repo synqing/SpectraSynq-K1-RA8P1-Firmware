@@ -1,0 +1,51 @@
+{
+  "timestamp": "20260921T182539Z",
+  "status": "DAP_UNRESOLVED_NO_NEW_ATTACH",
+  "fresh_host_check": "HOST_LOCK_CLEAR; no debugger/library consumers; no cleanup required",
+  "current_error": "0x00030815",
+  "not_current_error": "0x0003080A",
+  "static_pin_configuration": {
+    "P210": "IOPORT_PERIPHERAL_DEBUG",
+    "P211": "IOPORT_PERIPHERAL_DEBUG",
+    "live_registers_read": false
+  },
+  "vendor_option_semantics": {
+    "-uResetCon=": "-uResetCon= Specify whether hold reset during the connection progress. Default Value 0 Emulator E2, E2 Lite, J-Link Available Values 0 No 1 Yes Example -uResetCon= 1",
+    "-uResetBeginConnection=": "-uResetBeginConnection= Specifies the CPU should be reset at the beginning of connection. Default Value 1 Emulator E2, E2 Lite, J-Link Available Values 0 No 1 Yes Example -uResetBeginConnection= 1",
+    "-uNoReset=": "-uNoReset= Specify the CPU should not be reset at the end of connection. Default Value 1 Emulator E2, E2 Lite, J-Link Available Values 0 Reset 1 Not Reset Example -uNoReset= 1",
+    "-uHotPlug=": "-uHotPlug= Specify if connecting to an already running target system. Please refer Hot Plug page for more detailed information about Hot Plug feature. Default Value 0 Emulator E2, E2 Lite, J-Link Available Values 0 Disabled 1 Enabled Example -uHotPlug= 0",
+    "-uAuthLevel=": "-uAuthLevel= Specify the Authentication level. Default Value 0 Emulator E2, E2 Lite, J-Link Available Values Valid authentication level: 0 AL0: Ignores the key and connect without authentication 1 AL1: Authenticate device with key to AL1 3 AL2: Authenticate device with key to AL2 255 ALERASE: Intialize device back to AL2 Example -uAuthLevel= 3 Note Just using this parameter with the TrustZone device that supported for Authentication Level",
+    "-uEnableSciBoot=": "-uEnableSciBoot= Specify whether the boundaries of memory regions need to be set to separate each memory region when a debugging connection is initiated. When this parameter is sent with value \"1\", it's neccessary to use the below command \"-uMemRegion=\" to set the memory region boundaries. Default Value 0 Emulator E2, E2 Lite, J-Link Available Values 0 Disabled 1 Enabled Example -uEnableSciBoot= 1",
+    "-uDisconnectionMode=": "-uDisconnectionMode= Specify the disconnection mode to control the target state after disconnecting. Default Value 2 Emulator E2, E2 Lite, J-Link Available Values 0 No change mode: leave the target in its current state 1 Stop mode: leave the target in halted state 2 Continue mode: For the J-Link: program starts the image from target's current PC value or leave it running. For the E2/E2 Lite: program will be start from reset. Example -uDisconnectionMode= 1 SWV"
+  },
+  "source_hashes": {
+    "launcher": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/e2lite-cli-20260921-01/attach-12-launch.command",
+      "sha256": "c58ff1c60edaaff191071095de9da4ea3ffead8138c0a29f95b69e4a248f2ccc"
+    },
+    "latest_result": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/e2lite-cli-20260921-01/attach-12-result.json",
+      "sha256": "7064575f444c0edf61d4f4e12068b1ea507c1c73c5a14df3772a96abb5af982b"
+    },
+    "preserved_pin_config": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/docs/evidence/K1-RA8P1-002/live-k1-runtime-build-20260921-01/stage/ra_gen/pin_data.c",
+      "sha256": "6f259116ead80669d2fa31e6ceb0ac168f938fccff02d458c7ca14254e1bf9b5"
+    },
+    "vendor_schematic": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/sdk-bsp-ra8p1-titan-mini/docs/Titan_Mini_schematic_v1.0.pdf",
+      "sha256": "c8dba2a8e151a507878ce6cb835569567f8d5093abdb7dca5e5c68ba4cc659a4"
+    },
+    "vendor_option_documentation_plugin": {
+      "path": "/Applications/Renesas e2 studio with RA FSP v6.6.0/Renesas e2 studio with RA FSP 6.6.0.app/Contents/Eclipse/plugins/com.renesas.hardwaredebug.arm.common.help_1.1.200.v20260623-0739.jar",
+      "sha256": "47ae2789ae91d910cd37719acf2aa60799497924d1ba2f1a06906b4f066bc7e1"
+    }
+  },
+  "hardware_drawing_observations": {
+    "J6": "1=3V3,2=P210 SWDIO,3=GND,4=P211 SWCLK,5=GND,9=GND,10=RESET",
+    "reset": "R84 4.7k pullup; C119 0.47uF to GND; SW1 to GND",
+    "physical_connectivity_measured": false
+  },
+  "target_operations": [],
+  "flash_or_security_changes": [],
+  "decision": "Do not reclassify the earlier reset test as invalid based on uNoReset=1: vendor documentation says this suppresses reset at END of connection. No unchanged clock/reset retry. Next missing evidence is probe-end VTref, target reset level, and actual cable continuity."
+}

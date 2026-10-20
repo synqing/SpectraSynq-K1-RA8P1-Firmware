@@ -19,7 +19,9 @@
 #ifdef K1_PDM_TARGET
 #include "pdm_target.h"
 #endif
-#ifdef K1_PALETTE_GPT_DMA
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+#include "ws281x_gpt_dma_hw_pair.h"
+#elif defined(K1_PALETTE_GPT_DMA)
 #include "ws281x_gpt_dma_hw.h"
 #endif
 #ifdef K1_PCM1808_TARGET
@@ -68,7 +70,9 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
 #ifdef K1_PDM_TARGET
     /* Do not stall 100 ms on the USB request path. GPT timeout is ~14 ms. */
     k1_pdm_target_poll();
-#ifdef K1_PALETTE_GPT_DMA
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+    k1_ws281x_gpt_dma_hw_pair_poll();
+#elif defined(K1_PALETTE_GPT_DMA)
     k1_ws281x_gpt_dma_hw_poll();
 #endif
     k1_mark_service(&svc_pdm_cyc, &max_pdm_gap_cyc);
@@ -81,7 +85,7 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
     const uint32_t scb_ccr=SCB->CCR;
 #ifdef K1_PDM_TARGET
     const int n=snprintf(output,capacity,
-        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu,\"pdm_target\":{\"mpn\":\"LMD2718T261-OA1\",\"data_pin\":\"P502\",\"clock_pin\":\"P812\",\"sample_rate_hz\":%lu,\"profile\":\"ap_40k_asrc24\",\"working_source_sample_rate_hz\":24000,\"sample_rate_match\":false,\"slot_elements\":%lu,\"slot_duration_us\":%lu,\"shared_clock_and_data\":true,\"programme_lane\":0,\"acoustic_identity\":\"unproven\",\"initialised\":%s,\"running\":%s,\"last_fsp_error\":%ld,\"rearm_denied\":%lu,\"paired_slots\":%lu,\"pair_skew_drops\":%lu,\"startup_discard_pairs\":%lu,\"max_pair_skew_us\":%llu,\"first_capture_start_us\":%llu,\"last_capture_end_us\":%llu,\"asrc_starved\":%lu,\"ap_hops\":%lu,\"last_hop_dt_us\":%lu,\"last_hop_peak\":%lu,\"last_hop_gain_q8\":%lu,\"gain_clip_pos\":%lu,\"gain_clip_neg\":%lu,\"measured_hz\":%lu,\"rate_locked\":%lu,\"max_pdm_gap_us\":%lu,\"max_gpt_gap_us\":%lu,\"max_usb_gap_us\":%lu,\"lanes\":[{\"microphone\":\"U14\",\"select\":\"LOW\",\"edge\":\"RISE\",\"pdm_channel\":2,\"dma_channel\":%lu,\"role\":\"programme\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu,\"sat_neg\":%lu,\"sat_pos\":%lu,\"packing_mismatch\":%lu,\"first_sat_raw\":%lu},{\"microphone\":\"U13\",\"select\":\"HIGH\",\"edge\":\"FALL\",\"pdm_channel\":0,\"dma_channel\":%lu,\"role\":\"measurement\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu,\"sat_neg\":%lu,\"sat_pos\":%lu,\"packing_mismatch\":%lu,\"first_sat_raw\":%lu}]}}",
+        "{\"stack_bytes\":%lu,\"stack_untouched_bytes\":%lu,\"heap_total\":%lu,\"heap_used\":%lu,\"heap_maximum\":%lu,\"fpscr\":%lu,\"scb_ccr\":%lu,\"dcache_enabled\":%s,\"icache_enabled\":%s,\"clock_check_cycles\":%lu,\"clock_check_ticks\":%lu,\"tick_hz\":%lu,\"pdm_target\":{\"mpn\":\"LMD2718T261-OA1\",\"data_pin\":\"P502\",\"clock_pin\":\"P812\",\"sample_rate_hz\":%lu,\"profile\":\"ap_40k_asrc24\",\"working_source_sample_rate_hz\":24000,\"sample_rate_match\":false,\"slot_elements\":%lu,\"slot_duration_us\":%lu,\"shared_clock_and_data\":true,\"programme_lane\":0,\"acoustic_identity\":\"unproven\",\"initialised\":%s,\"running\":%s,\"last_fsp_error\":%ld,\"rearm_denied\":%lu,\"paired_slots\":%lu,\"pair_skew_drops\":%lu,\"startup_discard_pairs\":%lu,\"max_pair_skew_us\":%llu,\"first_capture_start_us\":%llu,\"last_capture_end_us\":%llu,\"asrc_starved\":%lu,\"ap_hops\":%lu,\"last_hop_dt_us\":%lu,\"last_hop_peak\":%lu,\"last_hop_gain_q8\":%lu,\"gain_clip_pos\":%lu,\"gain_clip_neg\":%lu,\"measured_hz\":%lu,\"rate_locked\":%lu,\"stream_epoch\":%llu,\"pair_epoch_drops\":%lu,\"asrc_consumed\":%lu,\"asrc_discarded\":%lu,\"push_rejected\":%lu,\"stale_discards\":%lu,\"max_pdm_gap_us\":%lu,\"max_gpt_gap_us\":%lu,\"max_usb_gap_us\":%lu,\"lanes\":[{\"microphone\":\"U14\",\"select\":\"LOW\",\"edge\":\"RISE\",\"pdm_channel\":2,\"dma_channel\":%lu,\"role\":\"programme\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu,\"sat_neg\":%lu,\"sat_pos\":%lu,\"packing_mismatch\":%lu,\"first_sat_raw\":%lu},{\"microphone\":\"U13\",\"select\":\"HIGH\",\"edge\":\"FALL\",\"pdm_channel\":0,\"dma_channel\":%lu,\"role\":\"measurement\",\"data_callbacks\":%lu,\"error_callbacks\":%lu,\"error_flags\":%lu,\"processed_slots\":%lu,\"processed_samples\":%lu,\"sample_hash\":%lu,\"sample_min\":%ld,\"sample_max\":%ld,\"sample_peak\":%lu,\"sample_square_sum\":%llu,\"overflow_events\":%lu,\"drop_events\":%lu,\"recovery_count\":%lu,\"sat_neg\":%lu,\"sat_pos\":%lu,\"packing_mismatch\":%lu,\"first_sat_raw\":%lu}]}}",
         (unsigned long)self->stack_size,(unsigned long)untouched,(unsigned long)total,
         (unsigned long)used,(unsigned long)maximum,(unsigned long)__get_FPSCR(),
         (unsigned long)scb_ccr,
@@ -108,6 +112,12 @@ size_t k1_platform_metrics(char* output, size_t capacity) {
         (unsigned long)k1_pdm_target_gain_clip_neg(),
         (unsigned long)k1_pdm_target_measured_hz(),
         (unsigned long)k1_pdm_target_rate_locked(),
+        (unsigned long long)k1_pdm_target_stream_epoch(),
+        (unsigned long)k1_pdm_target_pair_epoch_drops(),
+        (unsigned long)k1_pdm_target_asrc_consumed(),
+        (unsigned long)k1_pdm_target_asrc_discarded(),
+        (unsigned long)k1_pdm_target_push_rejected(),
+        (unsigned long)k1_pdm_target_stale_discards(),
         (unsigned long)k1_gap_us(max_pdm_gap_cyc),
         (unsigned long)k1_gap_us(max_gpt_gap_cyc),
         (unsigned long)k1_gap_us(max_usb_gap_cyc),
@@ -258,7 +268,7 @@ void hal_entry(void) {
         k1_mark_service(&svc_pdm_cyc, &max_pdm_gap_cyc);
 #endif
         k1_fixture_poll((uint32_t)((uint64_t)rt_tick_get()*1000U/RT_TICK_PER_SECOND));
-#ifdef K1_PALETTE_GPT_DMA
+#if defined(K1_PALETTE_GPT_DMA) || defined(K1_PALETTE_WS2816_GPT_PAIR)
         k1_mark_service(&svc_gpt_cyc, &max_gpt_gap_cyc);
 #endif
         k1_mark_service(&svc_usb_cyc, &max_usb_gap_cyc);

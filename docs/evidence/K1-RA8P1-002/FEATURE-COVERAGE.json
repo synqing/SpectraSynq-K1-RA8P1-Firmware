@@ -1,0 +1,22 @@
+{
+  "clock": "HOST_VERIFIED",
+  "hop": "HOST_VERIFIED",
+  "asrc": "HOST_VERIFIED",
+  "ap": "HOST_VERIFIED",
+  "protocol": "HOST_VERIFIED",
+  "lease": "HOST_VERIFIED",
+  "scorer_negatives": "HOST_VERIFIED",
+  "replay_compare": "HOST_VERIFIED_SILENT_FIXTURE",
+  "vp": "LIVE_WIRED_SOURCE",
+  "mir": "LIVE_WIRED_SOURCE",
+  "controls": "LIVE_WIRED_SOURCE",
+  "opcodes_23_26": "IN_REPLACEMENT_IMAGE_99e70c74_NOT_ON_SILICON",
+  "test_stale": "IN_REPLACEMENT_IMAGE_99e70c74_NOT_ON_SILICON",
+  "arm_candidate_programmed": "live-k1-runtime-build-20260920-02",
+  "arm_replacement": "live-k1-runtime-build-20260920-04",
+  "named_music": "NOT_LOCATED",
+  "physical_emit": "off",
+  "development_ready": false,
+  "music_intelligence_baseline": false,
+  "blocked_on": "Captain Rearm of live-k1-runtime-build-20260920-04"
+}

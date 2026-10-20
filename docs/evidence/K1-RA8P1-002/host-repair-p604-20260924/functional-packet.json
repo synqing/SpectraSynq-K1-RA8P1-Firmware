@@ -1,0 +1,70 @@
+{
+  "image": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "980eb3a9962e570437d7e1b6d7bae733b3a742284e4d45765742675409c90abe",
+    "schema_sha256": "a77dbf9298dbfb4385623dcb66d4c41037a60c6b65dc734bb7a521449f9d0e09",
+    "protocol": 1,
+    "source": "6b1e7bc5c9f9871e6ea4e900455bcb37d756304a",
+    "contract": "sr24000.hop180.bins80.xover40"
+  },
+  "expected_profile": {
+    "wire_profile": 3,
+    "configured_backend": "ws2816_gpt_pair",
+    "din_a": "P601",
+    "din_b": "P604",
+    "emit_enabled": true,
+    "brightness": 24,
+    "mode_a": 32,
+    "mode_b": 32
+  },
+  "expected_revision": 0,
+  "revision_provenance": "CFG_GET during H preflight; fill expected_revision from mapping-saved-config.json.revision after mapping restore",
+  "controls": [
+    {
+      "palette_a": 34
+    }
+  ],
+  "controls_at_s": 30.0,
+  "stages": {
+    "emit_off_observe": {
+      "host_runnable": false,
+      "max_duration_s": 30,
+      "samples": 1,
+      "interval_s": 0
+    },
+    "group_b": {
+      "quiet_s": 15.0,
+      "music_s": 60.0,
+      "pause_s": 15.0,
+      "resume_s": 30.0
+    }
+  },
+  "sequence": {
+    "music_clips": [
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/host-product-01/song-0.pcm",
+        "sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be",
+        "samples": 720000,
+        "permitted": true,
+        "identity": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Cristina Vane - So Easy.stem.mp4"
+      },
+      {
+        "path": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/host-product-01/song-1.pcm",
+        "sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a",
+        "samples": 720000,
+        "permitted": true,
+        "identity": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Louis Cressy Band - Good Time.stem.mp4"
+      }
+    ],
+    "resume_clip": {
+      "path": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/swarm-20260922/integration/A8-CORRECTION-20260923/media/resume-cristina-ss70.pcm",
+      "sha256": "2959ace250a555122e6f646a19a6a4a7d2f12b5efd02b444bccfd5532084f713",
+      "samples": 720000,
+      "permitted": true,
+      "identity": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Cristina Vane - So Easy.stem.mp4"
+    }
+  },
+  "max_record_bytes": 8000000,
+  "evidence_destination": "docs/evidence/K1-RA8P1-002/host-repair-p604-20260924/functional-run",
+  "note": "palette_a 34 differs from saved 33 on 980eb3a9. Fill expected_revision from preflight CFG_GET. Preserve the original two-minute sequence result."
+}

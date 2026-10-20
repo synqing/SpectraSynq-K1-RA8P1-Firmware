@@ -1,0 +1,15 @@
+Post-WRITE_VERIFIED bound runner for the recovery image live-audio-gpt-20260920-03.
+
+Programming success (WRITE_VERIFIED) is not application startup, peripheral transaction, register state, or emitted light. APP_CDC_SEEN is not identity. Optical evidence remains a separate boundary.
+
+1. CDC inventory (do not open serial, do not kill, do not unlink stale locks):
+   python3 scripts/check_cdc_owner.py
+
+2. Fresh INFO bind (exist_ok=False evidence directory; never reuse takeover-info-once-20260920-01):
+   python3 tools/serial-studio/titan_broker.py info-once --evidence "$FRESH_HANDOFF_DIR"
+
+3. Score identity_identified then identity_ok(..., checkpoint=None).
+   identity_verified remains false until INFO matches UID 545433931bd25436593630352d068363 and build
+   c7f6034a902833e3f8a17f7c5792f90990f647bccfcf7f0cd211036ebaba824c.
+
+4. No scalar-schedule target scorer is bound for this recovery SOP. After INFO, stop unless the live-runtime campaign runner is the authorised next command.

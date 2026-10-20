@@ -1,0 +1,35 @@
+{
+  "task": "M1",
+  "SWARM_BASE_ID": "cb33aab6c8fe327d782f8ad31c3966d00e8a7c1cd71e140dd03381e28eb8729a",
+  "REAL_PCM_FIXTURE": "BLOCKED",
+  "reason": "No already-permitted named real-music recording is located for MIR freeze. Existing host-product song PCM assets lack an explicit MIR permit stamp. The live-k1-runtime-host-g music_24k_s16le.pcm file is byte-identical to silence and named_music=false.",
+  "searched": [
+    "EdgeAI_Artifacts/Titan/k1-ra8p1-002/live-k1-runtime-host-g-20260920-01/FIXTURE.json",
+    "EdgeAI_Artifacts/Titan/k1-ra8p1-002/host-product-01/*.pcm",
+    "docs/evidence/K1-RA8P1-002/FEATURE-COVERAGE.json named_music=NOT_LOCATED",
+    "docs/evidence/K1-RA8P1-002/LIVE-RUNTIME-HANDBACK-2026-09-20.md"
+  ],
+  "digital_fixture_continued": true,
+  "digital_silence_fixture": {
+    "label": "DIGITAL_SILENCE_24K_S16LE",
+    "source_identity": "live-k1-runtime-host-g-20260920-01/silence_24k.wav",
+    "source_sha256": "651d0bac16d2010f6d3ff53b1b4493814736616c0e89528e7a723bee13a8152d",
+    "conversion_command": "scripts/prepare_live_music_fixture.py --input silence_24k.wav --output <dir>  (channels=1 width=2 rate=24000 -> copy)",
+    "input_hash": "651d0bac16d2010f6d3ff53b1b4493814736616c0e89528e7a723bee13a8152d",
+    "output_path": "live-k1-runtime-host-g-20260920-01/silence_24k_s16le.pcm",
+    "output_hash": "9202e68fbe5587e30738f2f118e87e10202a6eabd7297e1299978ed53c3a8f46",
+    "sample_rate": 24000,
+    "channels": 1,
+    "sample_format": "s16le",
+    "sample_count": 7200,
+    "bytes": 14400,
+    "named_music": false,
+    "claims_forbidden": [
+      "named real music",
+      "microphone fidelity",
+      "optical output",
+      "physical ingress"
+    ]
+  },
+  "prerequisite_to_unblock": "Captain or H supplies an identified, already-permitted real-music recording with license/permit receipt; then freeze source/conversion/input/output hashes and sample count."
+}
