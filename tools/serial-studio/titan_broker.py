@@ -589,6 +589,11 @@ class Broker:
             self.sample_mono = time.monotonic()
             self.topic_mono.update({k: self.sample_mono for k in ("identity", "native_health", "native_status")})
             self.recorder.put({"kind": "native_telemetry", "body": observed})
+            # Soak evidence (21 Oct 2026): one full health snapshot per minute, no extra device reads.
+            snap = getattr(self.control_plane, "last_health_snapshot", None)
+            if snap is not None and self.sample_mono - getattr(self, "_full_health_mono", float("-inf")) >= 60.0:
+                self._full_health_mono = self.sample_mono
+                self.recorder.put({"kind": "native_health_full", "snapshot": snap})
         except Exception as exc:
             self.errors.append(str(exc))
             self.recorder.put({"kind": "native_poll_error", "error": str(exc)})
