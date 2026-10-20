@@ -1,0 +1,43 @@
+{
+  "format": "sha256-packaged-files-v1",
+  "date": "2026-09-26",
+  "scope": "instruction package, not source/build admission",
+  "files": {
+    "GROK-SMC-MIGRATION-ADDENDUM.md": {
+      "sha256": "d9e45221cc35c67d54c2770794c53de74d8548d8fd4c02507286dad4830bf71f",
+      "bytes": 30182
+    },
+    "START-HERE.md": {
+      "sha256": "2215851f4496b00af3d53e12fc3bf9b4aa077415c947102d740d1ab18401d0e5",
+      "bytes": 3212
+    },
+    "evidence/SOURCE-RECHECK.md": {
+      "sha256": "d58acd6a8765110f750cd492be3322984578a95c415bb99f00a6766bdad23cd6",
+      "bytes": 8999
+    },
+    "reference/K1-Implementation-Handoff.md": {
+      "sha256": "d444efed18ae43f9fe187b11bb164d2d84c4df0c726c30e6c5341c9f49697bcf",
+      "bytes": 328666
+    },
+    "reference/Pasted text(20260925-182715).txt": {
+      "sha256": "2f607bfa124236e93525bac55ccaffe614e3f25c39d019d56b6329eff7f5fdff",
+      "bytes": 52866
+    },
+    "reference/previous-direction/K1-Grok-Execution-Brief.md": {
+      "sha256": "718e90105f10fa48ac3a10b6957669ebed80c2461b6ab88777e5c59c646a6090",
+      "bytes": 33147
+    },
+    "reference/previous-direction/NEXT-EXECUTION-BRIEF.md": {
+      "sha256": "89e6d4c30b2d6b59e00618f5d328f823e1ade5e691940a0b5d8ba3f60fc003b9",
+      "bytes": 20504
+    },
+    "reference/previous-direction/ORIGINAL-SOURCE-RECHECK.md": {
+      "sha256": "3d3e6cd8c60ab01dc16a780e1d134fdfc027fbf45e34384fa9c0afbf41444f10",
+      "bytes": 8194
+    },
+    "reference/previous-direction/R2-REVIEW-EVIDENCE.md": {
+      "sha256": "2043142b08ca0b4560ac0e614aaf17781b51721d4dc6c7f738ca251876fc6dc2",
+      "bytes": 13693
+    }
+  }
+}
