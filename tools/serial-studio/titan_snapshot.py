@@ -143,6 +143,7 @@ def snapshot(
     identity_scope: str | None = None,
     gate_result: int = 0,
     mode: int | None = None,
+    native: dict | None = None,
 ) -> dict:
     ok = bool(bound.get("ok"))
     identified = bool(bound.get("identified", ok))
@@ -202,7 +203,15 @@ def snapshot(
         "sequence": str(display_seq),
         "gate_result": gate_result,
     }
-    if identified:
+    if bound.get("protocol") == "titan-native":
+        observed = native or {}
+        identity = observed.get("identity") or {}
+        row.update(protocol="titan-native", uid=bound.get("uid"), build=bound.get("build"),
+                   source=identity.get("source_id"), contract=identity.get("contract"),
+                   hop_samples=UNAVAILABLE, admitted_rate_hz=UNAVAILABLE,
+                   native_health=observed.get("health"), native_status=observed.get("status"),
+                   physical_qualified=False)
+    elif identified:
         row.update(
             uid=bound["uid"],
             build=bound["build"],

@@ -139,7 +139,7 @@ def test_snapshot_ml_witness_real_broker_transport_admission(tmp_path):
                 super()._handle(op, req, payload)
 
     device = DeviceBytes()
-    evidence = _checkpoint(Path(tmp_path), build=device.build, schema=device.schema)
+    evidence = _checkpoint(_short_dir(), build=device.build, schema=device.schema)
     broker = Broker(evidence, backend=device, control_enabled=True)
     client = None
     try:
@@ -306,8 +306,13 @@ def test_serialised_transport(tmp_path):
     assert fake.max_in_flight == 1
 
 
+def _short_dir():
+    import tempfile
+    return Path(tempfile.mkdtemp(prefix="tcs", dir="/tmp"))
+
+
 def test_unix_socket_one_writer(tmp_path):
-    evidence = Path(tmp_path)
+    evidence = _short_dir()
     evidence.mkdir(parents=True, exist_ok=True)
     plane = RestrictedControlPlane(bound=_bound())
     sock_path = evidence / "titan-control.sock"
@@ -345,7 +350,7 @@ def test_load_approval_rejects_empty(tmp_path):
 
 
 def test_second_server_refuses_live_socket(tmp_path):
-    evidence = Path(tmp_path)
+    evidence = _short_dir()
     evidence.mkdir(parents=True, exist_ok=True)
     plane = RestrictedControlPlane(bound=_bound())
     sock_path = evidence / "titan-control.sock"
@@ -368,7 +373,7 @@ def test_one_connection_many_requests(tmp_path):
     import json
     import socket as sockmod
 
-    evidence = Path(tmp_path)
+    evidence = _short_dir()
     evidence.mkdir(parents=True, exist_ok=True)
     plane = RestrictedControlPlane(bound=_bound())
     sock_path = evidence / "titan-control.sock"

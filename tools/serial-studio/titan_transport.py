@@ -121,6 +121,53 @@ class Transport:
         self.quarantine = False
         self._pair_fixture = False
 
+    def native_exchange(self, opcode: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
+        """One K1S1 replacement transaction on the broker's existing serial owner.
+
+        This is not a second port and not a donor opcode. A timeout leaves the
+        transport quarantined so the caller cannot replay a durable save.
+        """
+        if opcode < 0x50524200 or opcode > 0x50524207:
+            raise ObserveDenied(f"opcode {opcode} is not a replacement opcode")
+        return self._native_framed_exchange(opcode, payload, timeout)
+
+    def _isolated_fixture_exchange(self, opcode: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
+        """Private collector seam; the broker verifies the grant and owner first."""
+        if opcode not in {0x50524601, 0x50524602, 0x50524603, 0x50524604}:
+            raise ObserveDenied(f"opcode {opcode} is not an isolated fixture opcode")
+        return self._native_framed_exchange(opcode, payload, timeout)
+
+    def _native_framed_exchange(self, opcode: int, payload: bytes, timeout: float) -> dict:
+        if self.quarantine:
+            raise FramingError("transport quarantined until re-identify")
+        if self.in_flight is not None:
+            raise RuntimeError("one outstanding transaction only")
+        self.next_req += 1
+        sequence = self.next_req
+        body_crc = zlib.crc32(payload) & 0xFFFFFFFF
+        header = struct.pack("<4sIQIII", b"K1S1", opcode, sequence, len(payload), body_crc, 1)
+        frame = header + struct.pack("<I", zlib.crc32(header) & 0xFFFFFFFF) + payload
+        self.in_flight = sequence
+        try:
+            self._write(frame)
+            raw = self._read_exact(HEADER, timeout)
+            magic, code, replied, size, reserved, crc, head_crc = struct.unpack("<4sIQIIII", raw)
+            if magic != b"K1R1" or reserved != 0 or zlib.crc32(raw[:28]) & 0xFFFFFFFF != head_crc or replied != sequence or size > MAX_BODY:
+                self.quarantine = True
+                raise FramingError(f"native header mismatch magic={magic!r} code={code} replied={replied}")
+            body = self._read_exact(size, timeout) if size else b""
+            if zlib.crc32(body) & 0xFFFFFFFF != crc:
+                self.quarantine = True
+                raise FramingError("native body crc mismatch")
+            if code:
+                return {"ok": False, "status": code, "body": body}
+            return {"ok": True, "status": 0, "body": body}
+        except FramingError:
+            self.quarantine = True
+            raise
+        finally:
+            self.in_flight = None
+
     def admit_pair_fixture(self) -> None:
         """Admit opcode 27 for this campaign session only.
 

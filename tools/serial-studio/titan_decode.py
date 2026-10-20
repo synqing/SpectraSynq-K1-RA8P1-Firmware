@@ -260,7 +260,8 @@ def _token(obj: dict, key: str, allowed: tuple[str, ...]) -> str | None:
 def _decode_schema3(obj: dict, last_seq: str, same_seq: int) -> tuple[list | None, str, int]:
     mode = _req_enum(obj, "mode", 9)
     identity_ok = _req_flag(obj, "identity_ok")
-    protocol = _req_enum(obj, "protocol", 1)
+    native = obj.get("protocol") == "titan-native"
+    protocol = "titan-native" if native else _req_enum(obj, "protocol", 1)
     origin = _token(obj, "origin", ORIGINS)
     scope = _token(obj, "identity_scope", (SCOPE_CURRENT, SCOPE_HISTORICAL, SCOPE_UNIDENTIFIED))
     mic_a_valid = _req_flag(obj, "mic_a_valid")
@@ -287,7 +288,7 @@ def _decode_schema3(obj: dict, last_seq: str, same_seq: int) -> tuple[list | Non
         epoch,
     ):
         return None, last_seq, same_seq
-    if protocol != 1 or device_age < 0:
+    if (protocol != 1 and not native) or device_age < 0:
         return None, last_seq, same_seq
     if origin == ORIGIN_REPLAY:
         mode = 7
@@ -297,6 +298,9 @@ def _decode_schema3(obj: dict, last_seq: str, same_seq: int) -> tuple[list | Non
     build = _req_string(obj, "build")
     source = _req_string(obj, "source")
     contract = _req_string(obj, "contract")
+    if native and (contract != "titan-replacement-v1" or source != build
+                   or obj.get("physical_qualified") is not False):
+        return None, last_seq, same_seq
     if identity_ok:
         if not uid or not build or not source or not contract:
             return None, last_seq, same_seq
@@ -326,8 +330,8 @@ def _decode_schema3(obj: dict, last_seq: str, same_seq: int) -> tuple[list | Non
     rms_a = _measured(obj, mic_a_valid, "mic_a_rms_dbfs", "finite")
     rms_b = _measured(obj, mic_b_valid, "mic_b_rms_dbfs", "finite")
     rate = _measured(obj, rate_valid, "capture_rate_hz", "finite")
-    hop_samples = _measured(obj, identity_ok, "hop_samples", "count")
-    admitted = _measured(obj, identity_ok, "admitted_rate_hz", "finite")
+    hop_samples = UNAVAILABLE if native else _measured(obj, identity_ok, "hop_samples", "count")
+    admitted = UNAVAILABLE if native else _measured(obj, identity_ok, "admitted_rate_hz", "finite")
     if None in (hop_max, late, deadlines, crc, dma, latched, led_faults, rms_a, rms_b, rate, hop_samples, admitted):
         return None, last_seq, same_seq
     if isinstance(hop_max, (int, float)) and hop_max < 0:

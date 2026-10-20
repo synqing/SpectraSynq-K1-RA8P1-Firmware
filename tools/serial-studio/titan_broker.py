@@ -37,6 +37,7 @@ from titan_control_server import (  # noqa: E402
     RestrictedControlError,
     RestrictedControlPlane,
     hardware_writes_admitted,
+    load_approval_record,
 )
 from titan_transport import (  # noqa: E402
     EXPECTED_UID,
@@ -438,6 +439,9 @@ class Broker:
         self.transport = Transport(
             backend, allowed={1}, log=self.log_tx, campaign=bool(self.control_enabled)
         )
+        approval = load_approval_record(self.evidence)
+        if approval and approval.get("protocol") == "titan-native":
+            return self._attach_native(approval, usb)
         info = self.transport.info(timeout=2.0)
         raw_path = self.evidence / f"info-epoch-{self.epoch + 1}.json"
         checkpoint = load_checkpoint(self.evidence)
@@ -520,9 +524,89 @@ class Broker:
         })
         return bound
 
+    def _native_observation(self, plane: RestrictedControlPlane) -> dict:
+        identity = plane._native_identity()
+        if (not identity.get("ok")
+                or identity["identity"].get("source_id") != self.bound["build"]
+                or identity["identity"].get("contract") != "titan-replacement-v1"):
+            raise RuntimeError(f"native identity rejected: {identity}")
+        health = plane._native_health()
+        status = plane._native_status()
+        if (not health.get("ok") or not status.get("ok")
+                or status.get("target_matches") is not True
+                or health.get("boot") != status.get("boot")):
+            raise RuntimeError(f"native health/status rejected: {health}; {status}")
+        return {"identity": identity["identity"], "health": health, "status": status}
+
+    def _attach_native(self, approval: dict, usb: dict) -> dict:
+        # Select the wire protocol before sending any legacy INFO probe.
+        try:
+            if approval.get("uid") != EXPECTED_UID or not self.control_enabled:
+                raise RuntimeError("native target/control admission required")
+            bound = dict(approval, schema="replacement-health-v1",
+                         schema_sha256="replacement-health-v1", identified=True,
+                         accepted=True, ok=True, reason="native_admitted",
+                         runtime_kind="live", contract="titan-replacement-v1")
+            admitted, reason = hardware_writes_admitted(self.evidence, bound)
+            if not admitted:
+                raise RuntimeError(f"native admission rejected: {reason}")
+            self.bound = bound
+            self.transport.allowed.clear()
+            plane = RestrictedControlPlane(transact=self.transact, evidence=self.evidence,
+                                           bound=self._control_bound(bound))
+            observed = self._native_observation(plane)
+            self.epoch += 1
+            self.native_boot = observed["health"]["boot"]
+            self.last_progress = observed["health"]["completed_count"]
+            self.bound["device_sequence"] = self.last_progress
+            self.sample_mono = time.monotonic()
+            self.topic_mono.update({k: self.sample_mono for k in ("identity", "native_health", "native_status")})
+            self.native_observation = observed
+            (self.evidence / "bind.json").write_text(json.dumps({
+                "epoch": self.epoch, "bound": self.bound, "usb": usb,
+                "native": observed, "poll_ops": [0x50524200, 0x50524205, 0x50524201]}, indent=2) + "\n")
+            self._bind_control_plane(self.bound)
+            self.recorder.put({"kind": "bind", "epoch": self.epoch, "bound": self.bound})
+            return self.bound
+        except BaseException:
+            self.bound = None
+            self.release_hardware()
+            raise
+
+    def _poll_native(self) -> None:
+        try:
+            observed = self._native_observation(self.control_plane)
+            boot = observed["health"]["boot"]
+            if boot != self.native_boot:
+                self.epoch += 1
+                self.control_plane.on_reconnect(self._control_bound(self.bound))
+                self.native_boot = boot
+            progress = observed["health"]["completed_count"]
+            self.same_progress = self.same_progress + 1 if progress == self.last_progress else 0
+            self.last_progress = progress
+            self.bound["device_sequence"] = progress
+            self.native_observation = observed
+            self.sample_mono = time.monotonic()
+            self.topic_mono.update({k: self.sample_mono for k in ("identity", "native_health", "native_status")})
+            self.recorder.put({"kind": "native_telemetry", "body": observed})
+        except Exception as exc:
+            self.errors.append(str(exc))
+            self.recorder.put({"kind": "native_poll_error", "error": str(exc)})
+            # Re-identification requires a fresh attach, never a legacy fallback.
+            self.stop = True
+            self.control_plane.on_reconnect({})
+
     def transact(self, op: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
         if self.transport is None:
             raise RuntimeError("no transport")
+        if 0x50524200 <= op <= 0x50524207:
+            if not self.control_enabled:
+                raise RestrictedControlError("observe_only", "control service off")
+            admitted, reason = hardware_writes_admitted(self.evidence, self._control_bound(self.bound))
+            if not admitted:
+                raise RestrictedControlError("ADMISSION_HOLD", reason)
+            with self._sched:
+                return self.transport.native_exchange(op, payload, timeout=timeout)
         with self._sched:
             if op == 25 and payload and len(payload) >= 4:
                 if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12, donor_wire.PATCH_SUB,
@@ -548,6 +632,9 @@ class Broker:
             "schema_sha256": bound.get("schema_sha256") or bound.get("schema"),
             "runtime_kind": bound.get("runtime_kind"),
             "contract": bound.get("contract"),
+            "protocol": bound.get("protocol"),
+            "controls_persistent": bound.get("controls_persistent"),
+            "durable_commit": bound.get("durable_commit"),
         }
 
     def _bind_control_plane(self, bound: dict) -> None:
@@ -559,10 +646,82 @@ class Broker:
             transact=self.transact,
             evidence=self.evidence,
             bound=identity,
+            isolated_execute=self._isolated_capture,
+            fixture_status_read=self._fixture_status_read,
         )
         sock_path = self.evidence / "titan-control.sock"
         self.control_server = ControlServer(self.control_plane, sock_path)
         self.control_server.start()
+
+    def _fixture_status_read(self, boot, epoch):
+        """Maintenance-only single STATUS read; never a caller-selected opcode."""
+        if self.transport is None or not self._sched.acquire(timeout=3.):
+            raise TimeoutError('Fixture status transport unavailable')
+        try:
+            got = self.transport._isolated_fixture_exchange(
+                0x50524602, struct.pack('<II', boot, epoch), timeout=3.)
+            if got.get('ok') is not True:
+                raise ValueError('Fixture STATUS rejected: ' + str(got.get('status')))
+            return got['body']
+        finally:
+            self._sched.release()
+
+    def _isolated_capture(self, request, admitted, current):
+        # Import the existing collector only for a separately granted operation.
+        import sys
+        ael_root = '/Users/spectrasynq/ai-embedded-lab'
+        if ael_root not in sys.path:
+            sys.path.insert(0, ael_root)
+        from ael.prism_native import validate_broker_capture, run_session, require_current_owner
+        try:
+            manifest, out = validate_broker_capture(request, admitted, current)
+        except BaseException as exc:
+            exc.collector_quiesced = True  # No transport operation has started.
+            raise
+        deadline = request['deadline']
+        active = False
+        allowed = {0x50524200, 0x50524201, 0x50524202, 0x50524205,
+                   0x50524601, 0x50524602, 0x50524603, 0x50524604}
+        def exchange(opcode, payload=b'', *, absolute_deadline=None, cancel_event=None):
+            nonlocal active
+            cutoff = min(deadline, absolute_deadline) if absolute_deadline is not None else deadline
+            remaining = cutoff - time.monotonic()
+            if opcode not in allowed or remaining <= 0 or self.transport is None:
+                raise ValueError('Isolated collector opcode/deadline/transport refused')
+            if cancel_event is not None and cancel_event.is_set():
+                raise InterruptedError('Isolated capture cancelled')
+            if opcode != 0x50524604 and time.time() >= admitted['isolated_capture_grant']['expires_at']:
+                raise ValueError('Isolated grant expired during capture')
+            if opcode != 0x50524604:
+                require_current_owner(manifest)
+            if not self._sched.acquire(timeout=remaining):
+                raise TimeoutError('Isolated scheduler deadline exhausted')
+            try:
+                remaining = cutoff - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('Isolated transport deadline exhausted before write')
+                if opcode == 0x50524601:
+                    active = True  # Set before write: an interrupted reply is ambiguous.
+                exchange_wire = (self.transport._isolated_fixture_exchange
+                                 if 0x50524601 <= opcode <= 0x50524604
+                                 else self.transport.native_exchange)
+                got = exchange_wire(opcode, payload, timeout=min(3., remaining))
+            finally:
+                self._sched.release()
+            if not got.get('ok'):
+                raise ValueError('Isolated packet refused; no retry: ' + str(got.get('status')))
+            if opcode == 0x50524604:
+                active = False
+            return got['body']
+        try:
+            result = run_session(manifest, out, 80, request['operation']['path'], deadline=deadline,
+                               operation_sha256=request['operation']['sha256'], exchange_override=exchange)
+            if active:
+                raise ValueError('Collector cancellation not confirmed')
+            return result
+        except BaseException as exc:
+            exc.collector_quiesced = not active
+            raise
 
     def release_hardware(self) -> None:
         if self.transport and self.port is not None:
@@ -595,6 +754,7 @@ class Broker:
             "pid": os.getpid(),
             "pdm": (self.last_metrics or {}).get("pdm_target") if isinstance(self.last_metrics, dict) else None,
             "palette": self.last_palette,
+            "native": getattr(self, "native_observation", None),
         }
         temp = self.evidence / "live-stats.tmp"
         temp.write_text(json.dumps(payload) + "\n")
@@ -602,6 +762,9 @@ class Broker:
 
     def poll_once(self) -> None:
         if self.replay_only or self.transport is None or self.quiesced():
+            return
+        if (self.bound or {}).get("protocol") == "titan-native":
+            self._poll_native()
             return
         ops = [op for op in (1, 6, 17) if op in self.transport.allowed]
         if not ops:
@@ -690,6 +853,7 @@ class Broker:
             frozen=frozen,
             metrics=self.last_metrics,
             palette=self.last_palette,
+            native=getattr(self, "native_observation", None),
         )
 
     def publish_row(self, origin: str = ORIGIN_LIVE) -> str:
@@ -982,7 +1146,8 @@ class Broker:
         next_pub = time.monotonic()
         while not self.stop:
             now = time.monotonic()
-            if not self.replay_only and self.transport:
+            if (not self.replay_only and self.transport
+                    and (self.bound or {}).get("protocol") != "titan-native"):
                 self._service_emit_requests()
             if not self.replay_only and self.transport and now >= next_poll:
                 self.poll_once()
