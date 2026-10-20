@@ -561,6 +561,7 @@ class RestrictedControlPlane:
         if second["completed_count"] <= first["completed_count"]:
             return {"ok": False, "error": "output_not_advancing", "session": self.session.token,
                     "completed_count": [first["completed_count"], second["completed_count"]]}
+        self.last_health_snapshot = second["snapshot"]  # full record for the broker's minute log
         return {"ok": True, "completed_count": second["completed_count"], "faults": 0, "boot": boot,
                 "physical_qualified": False, "saved": False, "session": self.session.token}
 

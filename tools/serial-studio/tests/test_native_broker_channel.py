@@ -375,3 +375,54 @@ def test_native_health_microsecond_age_from_framed_snapshot(tmp_path, monkeypatc
         assert result['completion_age_us'] == age_us and result['boot'] == 55
         assert result['snapshot_us'] == 700_025_000
         assert result['last_completed_us'] == 700_025_000 - age_us
+
+
+def test_full_health_snapshot_logged_once_per_minute(monkeypatch):
+    # Soak evidence (21 Oct 2026): the second health snapshot of each poll is kept and one full
+    # copy is recorded at most once per 60 s; no extra device traffic.
+    import tempfile
+    import titan_broker
+    monkeypatch.setattr(titan_broker.cdc_lock, 'acquire', lambda *a: object())
+    monkeypatch.setattr(titan_broker.cdc_lock, 'release', lambda *a: None)
+    monkeypatch.setattr(titan_broker, 'open_serial', lambda *a: pytest.fail('physical serial reached'))
+
+    class NativeDevice(FakeSerial):
+        def __init__(self):
+            super().__init__()
+            self.ops = []
+            self.count = 0
+        def write(self, data):
+            magic, op, seq, size, crc, version, header_crc = struct.unpack('<4sIQIIII', data[:32])
+            self.ops.append(op)
+            if op == 0x50524200:
+                value = json.loads(identity_body()); value['source_id'] = BUILD
+                body = json.dumps(value).encode()
+            elif op == 0x50524205:
+                self.count += 1
+                body = health_body(self.count, 2_000_000 + self.count * 1000)
+            elif op == 0x50524201:
+                body = struct.pack('<4I', 1, 7, 0, 1) + bytes(96)
+            else:
+                pytest.fail(f'Unexpected native operation {op:x}')
+            self.rx.extend(reply(seq, body))
+            return len(data)
+
+    with tempfile.TemporaryDirectory(prefix='native-full-', dir='/tmp') as directory:
+        evidence = Path(directory)
+        admit(evidence, monkeypatch)
+        device = NativeDevice()
+        broker = titan_broker.Broker(evidence, backend=device, control_enabled=True)
+        try:
+            broker.attach({'device': str(evidence / 'fake-cdc'), 'lsof': []})
+            rows = []
+            monkeypatch.setattr(broker.recorder, 'put', rows.append)
+            broker.poll_once(); broker.poll_once()
+            full = [r for r in rows if r.get('kind') == 'native_health_full']
+            assert len(full) == 1 and full[0]['snapshot']['schema'] == 'replacement-health-v1'
+            ops_per_poll = len(device.ops)
+            broker._full_health_mono -= 61.0
+            broker.poll_once()
+            assert len([r for r in rows if r.get('kind') == 'native_health_full']) == 2
+            assert not broker.errors
+        finally:
+            broker.shutdown()
