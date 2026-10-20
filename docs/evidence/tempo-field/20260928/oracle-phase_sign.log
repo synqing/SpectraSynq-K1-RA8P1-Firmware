@@ -1,0 +1,41 @@
+scene tests passed: immutable repeated reads, epoch/stale/future rejection, immediate accents, centre-outward travel, mirror geometry, toggles, silence, NaN; baseline_total=447.999994755 candidate_total=447.999998569 maximum_level=11.195755005
+test_all_impulse_positions_AP_AC04 (__main__.TempoOracle) ... FAIL
+test_consumer_AP_AC12 (__main__.TempoOracle) ... ok
+test_discontinuity_full_history_AP_AC03_08 (__main__.TempoOracle) ... ok
+test_exact_extended_ratios_AP_AC07 (__main__.TempoOracle) ... ok
+test_fractional_pulse_trains_AP_AC04 (__main__.TempoOracle) ... FAIL
+test_invalid_derived_AP_AC07 (__main__.TempoOracle) ... ok
+test_invalid_observation_AP_AC09 (__main__.TempoOracle) ... ok
+test_lifecycle_AP_AC06_08_09_10 (__main__.TempoOracle) ... test_metadata_AP_AC03_08 (__main__.TempoOracle) ... ok
+test_oracle_mutation_sensitivity (__main__.TempoOracle) ... ok
+test_projection_cadence_and_boundary_AP_AC04 (__main__.TempoOracle) ... ok
+test_publication_AP_AC02_03_08_09 (__main__.TempoOracle) ... ok
+
+======================================================================
+FAIL: test_all_impulse_positions_AP_AC04 (__main__.TempoOracle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/scripts/test_tempo_field.py", line 67, in test_all_impulse_positions_AP_AC04
+    self.assertLessEqual(error,expected['tolerance_cycles'],(bpm,amplitude,pos,error,expected))
+AssertionError: 0.005000000000002114 not less than or equal to 1.663451346555067e-13 : (60.0, 0.0009765625, 0, 0.005000000000002114, {'phase': 0.4975, 'tolerance_cycles': 1.663451346555067e-13, 'magnitude': 0.0009765625, 'l1': 0.0009765625})
+
+======================================================================
+FAIL: test_fractional_pulse_trains_AP_AC04 (__main__.TempoOracle)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/scripts/test_tempo_field.py", line 85, in test_fractional_pulse_trains_AP_AC04
+    self.assertLessEqual(oracle.circular_error(actual,expected['phase']),expected['tolerance_cycles'])
+AssertionError: 0.0037500964914169987 not less than or equal to 1.6647490781764555e-13
+
+======================================================================
+FAIL: test_lifecycle_AP_AC06_08_09_10 (__main__.TempoOracle) (name='negative_correction_wrap')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/scripts/test_tempo_field.py", line 137, in test_lifecycle_AP_AC06_08_09_10
+    with self.subTest(name=name):self.assertEqual(self.lib.phase_lifecycle(scenario),0,name)
+AssertionError: 19 != 0 : negative_correction_wrap
+
+----------------------------------------------------------------------
+Ran 12 tests in 2.297s
+
+FAILED (failures=3)

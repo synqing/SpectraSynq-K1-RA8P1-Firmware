@@ -17,21 +17,33 @@ from titan_decode import (
     decode,
 )
 
-CONTRACT_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.xover(\d+)$")
+XOVER_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.xover(\d+)$")
+EMOTISCOPE_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.emotiscope$")
+CONTRACT_RE = XOVER_RE
 EXPECTED_UID = "545433931bd25436593630352d068363"
 STALE_MS = 2000
 
 
 def parse_contract(text: str) -> dict | None:
-    match = CONTRACT_RE.match(text or "")
-    if not match:
-        return None
-    return {
-        "admitted_rate_hz": int(match.group(1)),
-        "hop_samples": int(match.group(2)),
-        "bins": int(match.group(3)),
-        "xover": int(match.group(4)),
-    }
+    match = XOVER_RE.match(text or "")
+    if match:
+        return {
+            "admitted_rate_hz": int(match.group(1)),
+            "hop_samples": int(match.group(2)),
+            "bins": int(match.group(3)),
+            "xover": int(match.group(4)),
+            "family": "xover",
+        }
+    match = EMOTISCOPE_RE.match(text or "")
+    if match:
+        return {
+            "admitted_rate_hz": int(match.group(1)),
+            "hop_samples": int(match.group(2)),
+            "bins": int(match.group(3)),
+            "xover": None,
+            "family": "emotiscope",
+        }
+    return None
 
 
 def identity_identified(info: dict, expected_uid: str = EXPECTED_UID) -> tuple[bool, str]:
@@ -67,6 +79,17 @@ def identity_ok(
         return False, f"contract not accepted {info['contract']!r}"
     if checkpoint.get("uid") and info["uid"] != checkpoint["uid"]:
         return False, f"UID not accepted {info['uid']!r}"
+    ck_schema = checkpoint.get("schema_sha256") or checkpoint.get("schema")
+    if ck_schema:
+        if not isinstance(ck_schema, str) or not ck_schema.strip():
+            return False, "schema not accepted"
+        info_schema = info.get("schema_sha256") or info.get("schema")
+        if info_schema != ck_schema:
+            return False, f"schema not accepted {info_schema!r}"
+    ck_runtime = checkpoint.get("runtime_kind")
+    if ck_runtime:
+        if info.get("runtime_kind") != ck_runtime:
+            return False, f"runtime_kind not accepted {info.get('runtime_kind')!r}"
     return True, "ok"
 
 
@@ -88,9 +111,13 @@ def bind_identity(
         "build": info.get("build") if visible else None,
         "source": info.get("source") if visible else None,
         "contract": info.get("contract") if visible else None,
+        "schema": info.get("schema") if visible else None,
+        "schema_sha256": (info.get("schema_sha256") or info.get("schema")) if visible else None,
         "protocol": info.get("protocol"),
         "clock_hz": info.get("clock_hz"),
         "device_sequence": info.get("sequence"),
+        "boot_id": info.get("boot_id") if visible else None,
+        "runtime_kind": info.get("runtime_kind"),
         "hop_samples": contract["hop_samples"] if contract else None,
         "admitted_rate_hz": contract["admitted_rate_hz"] if contract else None,
         "unsupported": False,
@@ -116,6 +143,7 @@ def snapshot(
     identity_scope: str | None = None,
     gate_result: int = 0,
     mode: int | None = None,
+    native: dict | None = None,
 ) -> dict:
     ok = bool(bound.get("ok"))
     identified = bool(bound.get("identified", ok))
@@ -175,7 +203,15 @@ def snapshot(
         "sequence": str(display_seq),
         "gate_result": gate_result,
     }
-    if identified:
+    if bound.get("protocol") == "titan-native":
+        observed = native or {}
+        identity = observed.get("identity") or {}
+        row.update(protocol="titan-native", uid=bound.get("uid"), build=bound.get("build"),
+                   source=identity.get("source_id"), contract=identity.get("contract"),
+                   hop_samples=UNAVAILABLE, admitted_rate_hz=UNAVAILABLE,
+                   native_health=observed.get("health"), native_status=observed.get("status"),
+                   physical_qualified=False)
+    elif identified:
         row.update(
             uid=bound["uid"],
             build=bound["build"],

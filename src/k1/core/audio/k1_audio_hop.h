@@ -29,6 +29,19 @@ typedef enum {
   K1_AUDIO_READ_FAULT = 3
 } k1_audio_read_result_t;
 
+/* Optional source-bound level carried with a 24 kHz descriptor. Version zero
+   means absent and preserves the legacy consumer. RMS is before sensitivity
+   gain and before int16 output quantisation, normalised to 32768 counts. */
+typedef struct k1_audio_paired_level {
+  uint32_t version;
+  uint32_t guarded_support;
+  uint64_t stream_epoch;
+  uint64_t hop_sequence;
+  float pre_guard_rms;
+  /* Version 2 adds the peak over those same resampled source samples. */
+  float pre_guard_peak;
+} k1_audio_paired_level_t;
+
 typedef struct k1_audio_hop {
   uint32_t contract_version;
   uint32_t samples;
@@ -64,6 +77,7 @@ typedef struct k1_audio_hop {
   uint32_t discontinuity_reason;
   uint32_t rate_state;
   int16_t pcm[K1_AUDIO_HOP_SAMPLES];
+  k1_audio_paired_level_t paired_level;
 } k1_audio_hop_t;
 
 int k1_audio_hop_init_interval(k1_audio_hop_t *hop, uint64_t stream_epoch, uint64_t hop_sequence);

@@ -1,0 +1,1671 @@
+diff --git a/platform/ra8p1/inhouse_audio.cpp b/platform/ra8p1/inhouse_audio.cpp
+index fa304ab..458da8d 100644
+--- a/platform/ra8p1/inhouse_audio.cpp
++++ b/platform/ra8p1/inhouse_audio.cpp
+@@ -132,6 +132,11 @@ void InhouseAudio::reset() noexcept {
+   pending_ = {};
+ #if defined(K1_INHOUSE_MAPPING_V9)
+   (void)sub_band_.configure(rate_hz_);  // P6 EXT trigger input; reads PCM only
++  // DBS pilot: on reset/gap only the new feature history is cleared; no stale attack survives.
++  detail_.reset();
++  detail_peaks_ = {};
++  for (std::size_t bin = 0; bin < detail_frequency_hz_.size(); ++bin)
++    detail_frequency_hz_[bin] = bin < frequencies_.size() ? frequencies_[bin].target_frequency_hz : 0.0F;
+ #endif
+   magnitude_average_ = {};
+   for (unsigned board = 0; board < conditioning_.size(); ++board) {
+@@ -306,6 +311,30 @@ void InhouseAudio::analyse(std::uint64_t end_sample, std::uint64_t capture_us,
+   publication_.linear_shape = conditioning_[0].linear_shape;
+ #endif
+   if (raw_.q0_overflow_count != 0U) publication_.valid = false;
++#if defined(K1_INHOUSE_MAPPING_V9)
++  {
++    // DBS producer seam: after analysis and overflow validation, once for both boards.
++    std::array<float, 80> magnitude{};
++    const unsigned support = std::min<unsigned>(80U, static_cast<unsigned>(raw_.nyquist_safe_bin_high));
++    for (unsigned bin = 0; bin < support; ++bin) magnitude[bin] = raw_.bins[bin].normalised_magnitude;
++    DetailInput input{};
++    input.magnitude = magnitude.data();
++    input.frequency_hz = detail_frequency_hz_.data();
++    input.epoch = epoch_;
++    input.generation = generation_;
++    input.support_end_sample = end_sample;
++    input.capture_us = capture_us;
++    input.sample_rate_hz = rate_hz_;
++    input.support = support;
++    input.valid = publication_.valid;
++    input.quiet = silence_;
++    (void)detail_.update(input);
++    const auto& record = detail_.record();
++    detail_peaks_[generation_ % detail_peaks_.size()] = DetailPeak{generation_, record.partition_generation,
++        record.full_bank_mean_change, record.static_partition.strength, record.adaptive_partition.strength,
++        record.valid && record.generation == generation_};
++  }
++#endif
+   peaks_[generation_ % peaks_.size()] = Peak{generation_, peak_scaled_};
+   unstamped_ = true;
+ }
+@@ -371,6 +400,9 @@ void InhouseAudio::stampPublication(std::uint64_t publish_us) noexcept {
+   if (!unstamped_) return;
+   publication_.publish_us = publish_us;
+   if (publication_.capture_us > publish_us) publication_.valid = false;
++#if defined(K1_INHOUSE_MAPPING_V9)
++  detail_.stampPublication(publish_us);
++#endif
+   unstamped_ = false;
+ }
+ 
+@@ -424,6 +456,26 @@ bool InhouseAudio::acquire(InhouseAudioCursor& cursor, std::uint64_t now_us,
+       out.observed_peak_scaled = std::max(out.observed_peak_scaled, item.peak);
+     }
+   }
++#if defined(K1_INHOUSE_MAPPING_V9)
++  // DBS: maximum raw strength over the generations this board has not read. A repeated read
++  // contributes nothing (fresh = false), so a render that reuses a publication cannot replay it.
++  out.detail = {};
++  {
++    const auto& latest = detail_.record();
++    out.detail.schema = core::visual::kInhouseDetailSchema;
++    out.detail.valid = latest.valid && latest.generation == generation_;
++    out.detail.generation = generation_;
++    out.detail.partition_generation = latest.partition_generation;
++    for (std::uint64_t gen = cursor.generation + 1U; out.detail.valid && gen <= generation_; ++gen) {
++      const auto& item = detail_peaks_[gen % detail_peaks_.size()];
++      if (item.generation != gen || !item.valid) continue;
++      out.detail.fresh = true;
++      out.detail.full_bank = std::max(out.detail.full_bank, item.full_bank);
++      out.detail.static16 = std::max(out.detail.static16, item.static16);
++      out.detail.adaptive16 = std::max(out.detail.adaptive16, item.adaptive16);
++    }
++  }
++#endif
+   cursor = {epoch_, generation_};
+   out.tempo_valid = out.tempo_valid && out.valid;
+   return out.valid;
+diff --git a/platform/ra8p1/inhouse_audio.h b/platform/ra8p1/inhouse_audio.h
+index 16bd0bd..bdf2032 100644
+--- a/platform/ra8p1/inhouse_audio.h
++++ b/platform/ra8p1/inhouse_audio.h
+@@ -7,6 +7,7 @@
+ #include "core/visual/inhouse_waveform.h"
+ #if defined(K1_INHOUSE_MAPPING_V9)
+ #include "core/audio/sub_band.h"
++#include "adaptive_spectral_detail.h"
+ #endif
+ #include "k1/core/audio/k1_audio_hop.h"
+ 
+@@ -82,6 +83,10 @@ class InhouseAudio final {
+   [[nodiscard]] const std::array<float, 80>& magnitudeFinal(unsigned board = 0U) const noexcept {
+     return conditioning_[board < conditioning_.size() ? board : 0U].magnitude_last;
+   }
++#if defined(K1_INHOUSE_MAPPING_V9)
++  // DBS pilot: the shared spectral-detail record of the latest accepted hop (read only).
++  [[nodiscard]] const DetailRecord& detailRecord() const noexcept { return detail_.record(); }
++#endif
+ 
+  private:
+   void analyse(std::uint64_t end_sample, std::uint64_t capture_us,
+@@ -121,6 +126,17 @@ class InhouseAudio final {
+   core::visual::InhouseWaveformAudio publication_{};
+ #if defined(K1_INHOUSE_MAPPING_V9)
+   core::audio::SubBandDetector sub_band_{};  // v9 EXT trigger input; no effect on any levelling stage
++  // DBS pilot: computed once per accepted hop from the raw normalised bank, before the
++  // 0.3/0.7 average, Mood LPF and AGC. Never feeds any levelling stage or the spectrum.
++  AdaptiveSpectralDetail detail_{};
++  std::array<float, 80> detail_frequency_hz_{};
++  struct DetailPeak final {
++    std::uint64_t generation = 0;
++    std::uint64_t partition_generation = 0;
++    float full_bank = 0.0F, static16 = 0.0F, adaptive16 = 0.0F;
++    bool valid = false;
++  };
++  std::array<DetailPeak, kInhousePeakHistory> detail_peaks_{};
+ #endif
+   std::uint64_t epoch_ = 0;
+   std::uint64_t expected_begin_ = 0;
+diff --git a/src/k1/core/visual/inhouse_waveform.cpp b/src/k1/core/visual/inhouse_waveform.cpp
+index 360e005..204b42a 100644
+--- a/src/k1/core/visual/inhouse_waveform.cpp
++++ b/src/k1/core/visual/inhouse_waveform.cpp
+@@ -809,8 +809,42 @@ void InhouseWaveformRenderer::fadeV9(bool mode32, bool silent, float dt) noexcep
+ // Deposit: level drives amplitude and a bounded triangular width. A pixel takes the
+ // new intensity AND its colour only where the deposit exceeds the decayed value, so
+ // trails keep their deposited colour and no hue is mixed per channel.
++// DBS pilot deposit contrast, gain = 1 - s * (1 - attack). It only scales the amplitude of
++// new material; width, position, scroll, release, stored history and palette coordinates are
++// untouched. Off, zero strength, an invalid/foreign record, stale input or quiet returns exactly
++// 1.0F so depositV9 takes the unchanged arithmetic. A repeated read of one publication has
++// fresh = false and therefore attack 0: continuing material, never a replayed attack.
++float InhouseWaveformRenderer::detailContrastV9(const InhouseWaveformAudio& audio,
++    const InhouseWaveformControls& controls, bool fresh, bool silent) noexcept {
++  observation_.detail_attack = 0.0F;
++  observation_.detail_gain = 1.0F;
++  const auto arm = static_cast<InhouseDetailArm>(controls.detail_arm);
++  if (arm == InhouseDetailArm::kOff || controls.detail_arm > 4U) return 1.0F;
++  if (!(controls.detail_strength > 0.0F) || !std::isfinite(controls.detail_strength)) return 1.0F;
++  if (!fresh || silent || !audio.detail.valid || audio.detail.schema != kInhouseDetailSchema) return 1.0F;
++  const auto calibrated = [](float x, const InhouseDetailCalibration& c) {
++    const float span = c.p95 - c.p50;
++    return std::isfinite(x) && span > 0.0F ? clamp01((x - c.p50) / span) : 0.0F;
++  };
++  float attack = 0.0F;
++  if (audio.detail.fresh) {
++    switch (arm) {
++      case InhouseDetailArm::kOnset: attack = std::isfinite(audio.detail.onset) ? clamp01(audio.detail.onset) : 0.0F; break;
++      case InhouseDetailArm::kFullBank: attack = calibrated(audio.detail.full_bank, kInhouseDetailCalFullBank); break;
++      case InhouseDetailArm::kStatic16: attack = calibrated(audio.detail.static16, kInhouseDetailCalStatic16); break;
++      case InhouseDetailArm::kAdaptive16: attack = calibrated(audio.detail.adaptive16, kInhouseDetailCalAdaptive16); break;
++      default: break;
++    }
++  }
++  const float s = std::min(kInhouseDetailMaxStrength, controls.detail_strength);
++  const float gain = 1.0F - s * (1.0F - attack);
++  observation_.detail_attack = attack;
++  observation_.detail_gain = gain;
++  return gain;
++}
++
+ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float position,
+-    float level, const FixedRgb& colour) noexcept {
++    float level, const FixedRgb& colour, float contrast) noexcept {
+ #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+   const InhouseV9Variant variant = v9_variant_;
+   const float gain = v9_gain_[mode32 ? 0 : 1];
+@@ -838,6 +872,8 @@ void InhouseWaveformRenderer::depositV9(bool mode32, unsigned start, float posit
+   }
+   if (accent_ > 0.0F) amplitude *= 1.0F + accent_config.boost * accent_;
+   amplitude = clamp01(amplitude);
++  if (contrast != 1.0F) amplitude *= contrast;  // DBS pilot: new material only
++  observation_.deposit_peak = amplitude;
+   const float reach = width + 1.0F;
+   const int first = std::max(static_cast<int>(start), static_cast<int>(std::ceil(position - reach)));
+   const int last = std::min(159, static_cast<int>(std::floor(position + reach)));
+@@ -1214,7 +1250,9 @@ bool InhouseWaveformRenderer::renderV9(const InhouseWaveformAudio& audio,
+   }
+   observation_.position = position;
+   observation_.deposit_strength = 0.0F;
+-  if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour);
++  observation_.deposit_peak = 0.0F;
++  const float contrast = detailContrastV9(audio, controls, fresh, silent);
++  if (!silent && level > 0.0F) depositV9(mode32, start, position, level, colour, contrast);
+ #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+   // A dark stop at the centre is invisible to the extent line, which reads
+   // display luma. When the inner eight pixels fall under that line, bring the
+diff --git a/src/k1/core/visual/inhouse_waveform.h b/src/k1/core/visual/inhouse_waveform.h
+index 0a1bad2..0172765 100644
+--- a/src/k1/core/visual/inhouse_waveform.h
++++ b/src/k1/core/visual/inhouse_waveform.h
+@@ -102,6 +102,42 @@ struct InhouseV9Front final {
+ #endif
+ #endif
+ 
++#if defined(K1_INHOUSE_MAPPING_V9)
++// DBS pilot (Titan_DBS_Translation.html; P6-DBS-PILOT-CRITERIA-v1). Shared spectral-detail
++// summary, computed once per accepted hop by the producer and read per board. Raw strengths
++// are positive log-magnitude changes of the raw normalised bank; each value is the maximum
++// over the generations this board has not read yet (a repeated read carries fresh = false,
++// so an attack is never replayed). Invalid, stale or foreign-schema records leave the
++// renderer on its exact baseline path.
++inline constexpr std::uint32_t kInhouseDetailSchema = 0xDB510001U;
++enum class InhouseDetailArm : std::uint8_t {
++  kOff = 0,
++  kOnset = 1,       // existing OnsetBeat transient_strength over pre-gain linear_shape (host comparator)
++  kFullBank = 2,    // full-bank mean positive change, raw tap
++  kStatic16 = 3,    // max of 16 static group means
++  kAdaptive16 = 4,  // max of 16 adaptive group means
++};
++struct InhouseDetailSummary final {
++  std::uint32_t schema = 0;
++  bool valid = false;   // record identity/support accepted and not quiet-suppressed
++  bool fresh = false;   // at least one unread generation contributed to this read
++  float onset = 0.0F;   // 0..1, own contract; host comparator only (0 on the product producer)
++  float full_bank = 0.0F;
++  float static16 = 0.0F;
++  float adaptive16 = 0.0F;
++  std::uint64_t generation = 0;
++  std::uint64_t partition_generation = 0;
++};
++// Frozen calibration for the raw arms, attack = clamp((x - p50) / (p95 - p50), 0, 1), from the
++// BOOM source replay 0-28 s (development material, outside the scored window).
++struct InhouseDetailCalibration final { float p50 = 0.0F; float p95 = 1.0F; };
++// _scratch/waveform-migration-001/runs/P6-DBS-20261015/calibration.json (3,722 valid primed non-quiet hops).
++inline constexpr InhouseDetailCalibration kInhouseDetailCalFullBank{0.304693F, 0.705258F};
++inline constexpr InhouseDetailCalibration kInhouseDetailCalStatic16{0.947843F, 2.735352F};
++inline constexpr InhouseDetailCalibration kInhouseDetailCalAdaptive16{1.017718F, 2.929534F};
++inline constexpr float kInhouseDetailMaxStrength = 0.25F;  // contract pilot range [0, 0.25]
++#endif
++
+ // One coherent producer observation; spectrum is the source 80-note bank after
+ // audio gain/tilt, BEFORE visual smoothing. PCM peak is in signed-16 units.
+ struct InhouseWaveformAudio final {
+@@ -136,6 +172,7 @@ struct InhouseWaveformAudio final {
+   float sub_rms = 0.0F;  // v9: 40-110 Hz band RMS of the hop PCM (core/audio/sub_band.h)
+   // Path P only: pre-knee bin shape (magnitude_last * tilt). Unused by v8 and by other v9 palettes.
+   std::array<float, 80> linear_shape{};
++  InhouseDetailSummary detail{};  // DBS pilot; read only when the board's detail arm is on
+ #endif
+ };
+ 
+@@ -150,6 +187,9 @@ struct InhouseWaveformControls final {
+   float sensitivity = 2.4F;  // Mode 8 displacement; distinct from input response.
+   float square_iter = 1.0F;  // Modes 8, 7 and 11 source colour contrast.
+   float photons = 1.0F;     // Mode 8 new-material gain; never scales stored history.
++  // DBS pilot trial control, per board, session only. 0 / 0.0 is the exact baseline path.
++  std::uint8_t detail_arm = 0;      // InhouseDetailArm (v9 renderer only)
++  float detail_strength = 0.0F;     // s in gain = 1 - s * (1 - attack), [0, 0.25]
+ };
+ 
+ // Read-only feature witness for source-vector comparisons, never output control.
+@@ -181,6 +221,9 @@ struct InhouseWaveformObservation final {
+   float accent = 0.0F;         // v9 iteration 6: drop accent 0..1
+   float luma_ref = 0.0F;       // v9 iteration 6: colour luma reference (luma hold)
+   float release = 0.0F;        // v9 extent release envelope 0..1
++  float deposit_peak = 0.0F;   // DBS: amplitude written by depositV9 this frame (0 if none)
++  float detail_attack = 0.0F;  // DBS: calibrated attack 0..1 used this frame
++  float detail_gain = 1.0F;    // DBS: deposit contrast multiplier applied this frame
+ #endif
+ };
+ 
+@@ -312,7 +355,10 @@ class InhouseWaveformRenderer final {
+   void updateReleaseV9(const InhouseWaveformAudio& audio, bool fresh, bool silent, float dt) noexcept;
+   [[nodiscard]] PaletteLinearRgb colourV9(std::uint16_t palette_id, float coordinate) const noexcept;
+   void depositV9(bool mode32, unsigned start, float position, float level,
+-                 const FixedRgb& colour) noexcept;
++                 const FixedRgb& colour, float contrast = 1.0F) noexcept;
++  // DBS pilot: deposit contrast for this frame; exactly 1 on every baseline/off/invalid path.
++  [[nodiscard]] float detailContrastV9(const InhouseWaveformAudio& audio,
++      const InhouseWaveformControls& controls, bool fresh, bool silent) noexcept;
+ #if defined(K1_INHOUSE_V9_HOST_VARIANTS)
+   void applyOracleFront(bool mode32, unsigned start, float music_position,
+                         std::uint16_t palette_id) noexcept;
+diff --git a/platform/ra8p1/adaptive_spectral_detail.h b/platform/ra8p1/adaptive_spectral_detail.h
+new file mode 100644
+index 0000000..8ae9a60
+--- /dev/null
++++ b/platform/ra8p1/adaptive_spectral_detail.h
+@@ -0,0 +1,208 @@
++#pragma once
++
++// DBS pilot (Titan_DBS_Translation.html section 2, sha256 bf489d3e...): a causal, bounded
++// 16-group spectral-change feature over the accepted 80-channel in-house bank. Every hop it
++// publishes a STATIC (5/5/5/5) and an ADAPTIVE (content-selected) partition built from the
++// SAME per-channel change, so a matched experiment differs only in partition selection.
++// All numbers below are fixed pilot settings, not optima and not product requirements.
++// No heap, no exceptions, no lookahead, no interrupt work: one accepted hop per update().
++#include <array>
++#include <cstddef>
++#include <cstdint>
++#include <type_traits>
++
++namespace k1::titan {
++namespace adaptive_detail {
++
++inline constexpr std::size_t kChannels = 80U;
++inline constexpr std::size_t kBlocks = 4U;  // [0,20) [20,40) [40,60) [60,80), fixed endpoints
++inline constexpr std::size_t kBlockWidth = kChannels / kBlocks;
++inline constexpr std::size_t kGroupsPerBlock = 4U;
++inline constexpr std::size_t kGroups = kBlocks * kGroupsPerBlock;
++inline constexpr std::size_t kCutsPerBlock = kGroupsPerBlock - 1U;
++inline constexpr std::size_t kMinGroupWidth = 2U;
++inline constexpr std::size_t kSplitsPerBlock = 455U;  // C(15,3): 3 interior cuts, groups >= 2
++inline constexpr std::uint64_t kSelectionPeriodHops = 4U;  // 30 ms at the 7.5 ms hop
++inline constexpr float kDescriptorTauSeconds = 0.100F;     // selection descriptors only
++inline constexpr float kHysteresisRatio = 1.10F;           // candidate >= current + 10 %
++inline constexpr std::uint8_t kConsecutiveUpdates = 2U;    // same candidate, back to back
++inline constexpr float kScoreFloor = 1.0e-6F;   // best score at or below: no-signal block
++inline constexpr float kNormFloor = 1.0e-6F;    // block max |delta| at or below: term is 0
++// Same value as the existing probe (tests/host/p6_onset_pre_agc.cpp kEpsilon). A numerical
++// floor for log(), NOT a calibrated microphone noise floor.
++inline constexpr float kMagnitudeFloor = 1.0e-6F;
++inline constexpr std::uint64_t kMaxHopSamples = 4096U;  // larger end-sample step = discontinuity
++static_assert(kChannels % kBlocks == 0U && kChannels <= 255U);
++
++// Local index (within its block) of the first channel of groups 1..3. Group k of a block
++// spans [cut[k-1], cut[k]) with implicit cut[-1] = 0 and cut[3] = kBlockWidth.
++using Cuts = std::array<std::uint8_t, kCutsPerBlock>;
++// out[j] scores a boundary between local channels j-1 and j; out[0] is always 0.
++using BoundaryScores = std::array<float, kBlockWidth>;
++
++[[nodiscard]] constexpr bool isLegal(const Cuts& cuts) noexcept {
++  std::size_t previous = 0U;
++  for (const std::uint8_t cut : cuts) {
++    if (cut < previous + kMinGroupWidth) return false;
++    previous = cut;
++  }
++  return previous + kMinGroupWidth <= kBlockWidth;
++}
++
++[[nodiscard]] constexpr std::size_t countLegalSplits() noexcept {
++  std::size_t count = 0U;
++  for (std::size_t a = 1U; a < kBlockWidth; ++a)
++    for (std::size_t b = a + 1U; b < kBlockWidth; ++b)
++      for (std::size_t c = b + 1U; c < kBlockWidth; ++c)
++        if (isLegal(Cuts{static_cast<std::uint8_t>(a), static_cast<std::uint8_t>(b),
++                         static_cast<std::uint8_t>(c)})) ++count;
++  return count;
++}
++static_assert(countLegalSplits() == kSplitsPerBlock, "pilot profile requires 455 splits per block");
++
++// Ascending lexicographic order: the table order IS the deterministic tie-break.
++[[nodiscard]] constexpr std::array<Cuts, kSplitsPerBlock> makeLegalSplits() noexcept {
++  std::array<Cuts, kSplitsPerBlock> table{};
++  std::size_t n = 0U;
++  for (std::size_t a = 1U; a < kBlockWidth; ++a)
++    for (std::size_t b = a + 1U; b < kBlockWidth; ++b)
++      for (std::size_t c = b + 1U; c < kBlockWidth; ++c) {
++        const Cuts cuts{static_cast<std::uint8_t>(a), static_cast<std::uint8_t>(b),
++                        static_cast<std::uint8_t>(c)};
++        if (isLegal(cuts) && n < kSplitsPerBlock) {
++          table[n][0] = cuts[0];
++          table[n][1] = cuts[1];
++          table[n][2] = cuts[2];
++          ++n;
++        }
++      }
++  return table;
++}
++inline constexpr std::array<Cuts, kSplitsPerBlock> kLegalSplits = makeLegalSplits();
++inline constexpr Cuts kStaticCuts{5U, 10U, 15U};  // static control: 5/5/5/5
++static_assert(isLegal(kStaticCuts));
++
++struct BlockSelection final {
++  Cuts current = kStaticCuts;
++  Cuts candidate = kStaticCuts;
++  std::uint8_t streak = 0U;
++};
++
++// b_j = 0.5 |d smoothed log| / block max + 0.5 |d smoothed change| / block max, over the
++// first `supported` channels of the block (boundaries touching unsupported channels score 0).
++void boundaryScores(const float* smoothed_log, const float* smoothed_change,
++                    std::size_t supported, BoundaryScores& out) noexcept;
++[[nodiscard]] float partitionScore(const BoundaryScores& scores, const Cuts& cuts) noexcept;
++// Highest score over all 455 splits. Ties keep `current`, then the lowest ascending cuts.
++[[nodiscard]] Cuts bestPartition(const BoundaryScores& scores, const Cuts& current) noexcept;
++// One selection update with the 10 % / two-consecutive hysteresis. True if `current` changed.
++// Worst case per update: 455 x (3 loads + 2 adds + 1 compare) + 2 extra scores; per hop the
++// caller runs 4 blocks every 4th hop = 1,820 scores, 3,640 adds, 1,820 compares per selection
++// update (plus 4 x 19 x 2 boundary terms). A bounded count, not a timing claim.
++[[nodiscard]] bool updateBlockSelection(BlockSelection& state, const BoundaryScores& scores) noexcept;
++
++}  // namespace adaptive_detail
++
++inline constexpr std::uint32_t kAdaptiveDetailSchemaId = 0x4B314453U;  // "K1DS"
++inline constexpr std::uint32_t kAdaptiveDetailSchemaVersion = 1U;
++
++struct DetailInput final {
++  const float* magnitude = nullptr;     // 80 nonnegative linear magnitudes; read-only
++  const float* frequency_hz = nullptr;  // 80 actual centre frequencies from configuration()
++  std::uint64_t epoch = 0;
++  std::uint64_t generation = 0;
++  std::uint64_t support_end_sample = 0;  // analysis end sample, exclusive
++  std::uint64_t capture_us = 0;
++  std::uint32_t sample_rate_hz = 0;
++  unsigned support = 0;  // channels [0, support) valid; the rest are treated as zero
++  bool valid = false;    // accepted analysis, no overflow
++  bool quiet = false;    // existing acoustic admission says quiet/silence
++};
++
++struct DetailGroup final {
++  std::uint64_t support_end_sample = 0;
++  std::uint32_t hop_samples = 0;
++  std::uint8_t first_channel = 0;
++  std::uint8_t last_channel = 0;  // inclusive
++  std::uint8_t channel_count = 0;
++  bool valid = false;             // every member < support
++  float lower_hz = 0.0F;          // centre frequency of the first member
++  float upper_hz = 0.0F;          // centre frequency of the last member
++  float centroid_hz = 0.0F;       // magnitude-weighted; arithmetic mean of centres if ~0
++  float mean_log_magnitude = 0.0F;
++  float mean_positive_change = 0.0F;
++  float max_positive_change = 0.0F;
++};
++
++struct DetailPartition final {
++  std::array<DetailGroup, adaptive_detail::kGroups> groups{};
++  std::array<adaptive_detail::Cuts, adaptive_detail::kBlocks> cuts{};
++  float strength = 0.0F;  // max over valid groups of mean_positive_change; raw, unnormalised
++};
++
++struct DetailRecord final {
++  std::uint64_t epoch = 0;
++  std::uint64_t generation = 0;
++  std::uint64_t support_end_sample = 0;
++  std::uint64_t capture_us = 0;
++  std::uint64_t publish_us = 0;  // stamped by the publisher, 0 until then
++  std::uint64_t partition_generation = 0;
++  std::uint64_t accepted_hops = 0;  // since the last history reset; the priming hop is 1
++  std::uint32_t schema_id = kAdaptiveDetailSchemaId;
++  std::uint32_t schema_version = kAdaptiveDetailSchemaVersion;
++  std::uint32_t sample_rate_hz = 0;
++  std::uint32_t hop_samples = 0;  // end-sample delta; 0 on a priming hop (not yet known)
++  std::uint32_t channel_count = static_cast<std::uint32_t>(adaptive_detail::kChannels);
++  std::uint32_t support = 0;
++  float full_bank_mean_change = 0.0F;  // mean positive change over [0, support)
++  bool primed = false;            // false: first observation since reset, change is 0
++  bool quiet = false;             // quiet hop: change fields are 0, history still advanced
++  bool valid = false;             // false: use the exact baseline path
++  bool selection_update = false;  // this hop ran a boundary reconsideration
++  DetailPartition static_partition{};
++  DetailPartition adaptive_partition{};
++};
++static_assert(std::is_trivially_copyable_v<DetailRecord>);
++
++class AdaptiveSpectralDetail final {
++ public:
++  AdaptiveSpectralDetail() noexcept { reset(); }
++  void reset() noexcept;
++  // One accepted analysis hop. False for a duplicate or stale generation (no state change)
++  // and for invalid input (history cleared, record.valid = false).
++  [[nodiscard]] bool update(const DetailInput& input) noexcept;
++  void stampPublication(std::uint64_t publish_us) noexcept { record_.publish_us = publish_us; }
++  [[nodiscard]] const DetailRecord& record() const noexcept { return record_; }
++  // Gated per-channel positive change of the latest hop (0 when priming or quiet).
++  [[nodiscard]] const std::array<float, adaptive_detail::kChannels>& channelChange() const noexcept {
++    return change_;
++  }
++#if defined(K1_ADAPTIVE_DETAIL_TEST_HOOKS)
++  // Takes effect from the next update(); bumps partition_generation if the layout moves.
++  [[nodiscard]] bool forcePartitionForTest(unsigned block, const adaptive_detail::Cuts& cuts) noexcept;
++#endif
++
++ private:
++  void restart() noexcept;  // clear feature history; partition back to STATIC
++  void fillPartition(DetailPartition& out,
++                     const std::array<adaptive_detail::Cuts, adaptive_detail::kBlocks>& layout,
++                     const DetailInput& input) noexcept;
++  std::array<float, adaptive_detail::kChannels> log_magnitude_{};    // history, by original channel
++  std::array<float, adaptive_detail::kChannels> change_{};
++  std::array<float, adaptive_detail::kChannels> smoothed_log_{};
++  std::array<float, adaptive_detail::kChannels> smoothed_change_{};
++  std::array<adaptive_detail::BlockSelection, adaptive_detail::kBlocks> selection_{};
++  DetailRecord record_{};
++  std::uint64_t epoch_ = 0;
++  std::uint64_t generation_ = 0;
++  std::uint64_t end_sample_ = 0;
++  std::uint64_t accepted_hops_ = 0;
++  std::uint64_t partition_generation_ = 0;
++  std::uint32_t sample_rate_hz_ = 0;
++  std::uint32_t hop_samples_ = 0;
++  unsigned support_ = 0;
++  float alpha_ = 0.0F;
++  bool have_history_ = false;
++};
++
++}  // namespace k1::titan
+diff --git a/platform/ra8p1/adaptive_spectral_detail.cpp b/platform/ra8p1/adaptive_spectral_detail.cpp
+new file mode 100644
+index 0000000..7085b33
+--- /dev/null
++++ b/platform/ra8p1/adaptive_spectral_detail.cpp
+@@ -0,0 +1,288 @@
++#include "adaptive_spectral_detail.h"
++
++#include <algorithm>
++#include <cmath>
++
++#include "core/audio/gdft_goertzel.h"
++
++namespace k1::titan {
++namespace adaptive_detail {
++
++static_assert(kChannels == core::audio::kGdftBinCount);
++
++void boundaryScores(const float* smoothed_log, const float* smoothed_change,
++                    std::size_t supported, BoundaryScores& out) noexcept {
++  out.fill(0.0F);
++  const std::size_t count = std::min(supported, kBlockWidth);
++  float max_log = 0.0F;
++  float max_change = 0.0F;
++  for (std::size_t j = 1U; j < count; ++j) {
++    max_log = std::max(max_log, std::fabs(smoothed_log[j] - smoothed_log[j - 1U]));
++    max_change = std::max(max_change, std::fabs(smoothed_change[j] - smoothed_change[j - 1U]));
++  }
++  // Each term is normalised within its block and weighted equally (section 2).
++  for (std::size_t j = 1U; j < count; ++j) {
++    const float log_term = max_log > kNormFloor
++        ? 0.5F * std::fabs(smoothed_log[j] - smoothed_log[j - 1U]) / max_log : 0.0F;
++    const float change_term = max_change > kNormFloor
++        ? 0.5F * std::fabs(smoothed_change[j] - smoothed_change[j - 1U]) / max_change : 0.0F;
++    out[j] = log_term + change_term;
++  }
++}
++
++float partitionScore(const BoundaryScores& scores, const Cuts& cuts) noexcept {
++  return scores[cuts[0]] + scores[cuts[1]] + scores[cuts[2]];
++}
++
++Cuts bestPartition(const BoundaryScores& scores, const Cuts& current) noexcept {
++  // Start from the current layout and replace only on a strictly higher score, scanning
++  // in ascending order: ties keep the current layout, then the lowest ascending cuts.
++  Cuts best = current;
++  float best_score = partitionScore(scores, current);
++  for (const Cuts& cuts : kLegalSplits) {
++    const float score = partitionScore(scores, cuts);
++    if (score > best_score) {
++      best = cuts;
++      best_score = score;
++    }
++  }
++  return best;
++}
++
++bool updateBlockSelection(BlockSelection& state, const BoundaryScores& scores) noexcept {
++  const Cuts best = bestPartition(scores, state.current);
++  const float current_score = partitionScore(scores, state.current);
++  const float best_score = partitionScore(scores, best);
++  // A tiny/no-signal block retains its layout; otherwise the candidate must beat the
++  // current layout by 10 % on two consecutive updates with the same candidate.
++  const bool qualifies = best != state.current && best_score > kScoreFloor &&
++                         best_score >= current_score * kHysteresisRatio;
++  if (!qualifies) {
++    state.streak = 0U;
++    return false;
++  }
++  if (state.streak == 0U || state.candidate != best) {
++    state.candidate = best;
++    state.streak = 1U;
++  } else {
++    ++state.streak;
++  }
++  if (state.streak < kConsecutiveUpdates) return false;
++  state.current = best;
++  state.streak = 0U;
++  return true;
++}
++
++}  // namespace adaptive_detail
++
++namespace {
++using adaptive_detail::kBlocks;
++using adaptive_detail::kBlockWidth;
++using adaptive_detail::kChannels;
++using adaptive_detail::kGroupsPerBlock;
++
++bool admissible(const DetailInput& input) noexcept {
++  if (!input.valid || input.magnitude == nullptr || input.frequency_hz == nullptr ||
++      input.epoch == 0U || input.sample_rate_hz == 0U || input.support == 0U ||
++      input.support > kChannels) return false;
++  for (std::size_t i = 0; i < kChannels; ++i) {
++    if (!std::isfinite(input.frequency_hz[i])) return false;
++    if (i < input.support &&
++        !(std::isfinite(input.magnitude[i]) && input.magnitude[i] >= 0.0F)) return false;
++  }
++  return true;
++}
++}  // namespace
++
++void AdaptiveSpectralDetail::reset() noexcept {
++  restart();
++  partition_generation_ = 0;
++  record_ = DetailRecord{};
++}
++
++void AdaptiveSpectralDetail::restart() noexcept {
++  log_magnitude_.fill(0.0F);
++  change_.fill(0.0F);
++  smoothed_log_.fill(0.0F);
++  smoothed_change_.fill(0.0F);
++  bool moved = false;
++  for (auto& state : selection_) {
++    if (state.current != adaptive_detail::kStaticCuts) moved = true;
++    state = adaptive_detail::BlockSelection{};
++  }
++  if (moved) ++partition_generation_;
++  epoch_ = generation_ = end_sample_ = accepted_hops_ = 0;
++  sample_rate_hz_ = hop_samples_ = 0;
++  support_ = 0;
++  alpha_ = 0.0F;
++  have_history_ = false;
++}
++
++bool AdaptiveSpectralDetail::update(const DetailInput& input) noexcept {
++  // A duplicate or stale generation of this epoch carries nothing new: no state change.
++  if (have_history_ && input.epoch == epoch_ && input.generation <= generation_) return false;
++  if (!admissible(input)) {
++    restart();
++    record_ = DetailRecord{};
++    record_.epoch = input.epoch;
++    record_.generation = input.generation;
++    record_.support_end_sample = input.support_end_sample;
++    record_.capture_us = input.capture_us;
++    record_.sample_rate_hz = input.sample_rate_hz;
++    record_.support = input.support;
++    record_.partition_generation = partition_generation_;
++    return false;
++  }
++  bool prime = !have_history_;
++  std::uint64_t hop = 0;
++  if (!prime) {
++    hop = input.support_end_sample > end_sample_ ? input.support_end_sample - end_sample_ : 0U;
++    // Epoch change, generation gap, support or profile change: nothing may replay.
++    const bool continuous = input.epoch == epoch_ && input.generation == generation_ + 1U &&
++        input.support == support_ && input.sample_rate_hz == sample_rate_hz_ &&
++        hop != 0U && hop <= adaptive_detail::kMaxHopSamples &&
++        (hop_samples_ == 0U || hop == hop_samples_);
++    if (!continuous) {
++      restart();
++      prime = true;
++    }
++  }
++  if (!prime && hop_samples_ == 0U) {
++    hop_samples_ = static_cast<std::uint32_t>(hop);
++    const float dt = static_cast<float>(hop_samples_) / static_cast<float>(input.sample_rate_hz);
++    alpha_ = 1.0F - std::exp(-dt / adaptive_detail::kDescriptorTauSeconds);
++  }
++  for (std::size_t i = 0; i < kChannels; ++i) {
++    const float magnitude = i < input.support ? input.magnitude[i] : 0.0F;
++    const float x = std::log(std::max(magnitude, adaptive_detail::kMagnitudeFloor));
++    // Positive change per ORIGINAL channel, before any grouping (section 2), so a moved
++    // boundary can never subtract one membership from another. Priming emits no change.
++    const float d = prime ? 0.0F : std::max(0.0F, x - log_magnitude_[i]);
++    log_magnitude_[i] = x;
++    change_[i] = d;
++    if (prime) {
++      smoothed_log_[i] = x;
++      smoothed_change_[i] = 0.0F;
++    } else {
++      smoothed_log_[i] += alpha_ * (x - smoothed_log_[i]);
++      smoothed_change_[i] += alpha_ * (d - smoothed_change_[i]);
++    }
++  }
++  epoch_ = input.epoch;
++  generation_ = input.generation;
++  end_sample_ = input.support_end_sample;
++  support_ = input.support;
++  sample_rate_hz_ = input.sample_rate_hz;
++  have_history_ = true;
++  accepted_hops_ = prime ? 1U : accepted_hops_ + 1U;
++
++  // Reconsider boundaries every fourth accepted hop; between updates the current layout is
++  // used at once, nothing waits. A quiet hop keeps its layout and restarts every streak.
++  bool selection_update = false;
++  if (!prime && accepted_hops_ % adaptive_detail::kSelectionPeriodHops == 0U) {
++    if (input.quiet) {
++      for (auto& state : selection_) state.streak = 0U;
++    } else {
++      selection_update = true;
++      bool moved = false;
++      for (std::size_t block = 0; block < kBlocks; ++block) {
++        const std::size_t base = block * kBlockWidth;
++        const std::size_t supported = input.support > base ? input.support - base : 0U;
++        adaptive_detail::BoundaryScores scores{};
++        adaptive_detail::boundaryScores(&smoothed_log_[base], &smoothed_change_[base],
++                                        supported, scores);
++        if (adaptive_detail::updateBlockSelection(selection_[block], scores)) moved = true;
++      }
++      if (moved) ++partition_generation_;
++    }
++  }
++  // Invalid or quiet states cannot generate new events; the descriptors already advanced.
++  if (prime || input.quiet) change_.fill(0.0F);
++
++  record_.schema_id = kAdaptiveDetailSchemaId;
++  record_.schema_version = kAdaptiveDetailSchemaVersion;
++  record_.epoch = input.epoch;
++  record_.generation = input.generation;
++  record_.support_end_sample = input.support_end_sample;
++  record_.capture_us = input.capture_us;
++  record_.publish_us = 0;
++  record_.partition_generation = partition_generation_;
++  record_.accepted_hops = accepted_hops_;
++  record_.sample_rate_hz = input.sample_rate_hz;
++  record_.hop_samples = hop_samples_;
++  record_.channel_count = static_cast<std::uint32_t>(kChannels);
++  record_.support = input.support;
++  record_.primed = !prime;
++  record_.quiet = input.quiet;
++  record_.valid = true;
++  record_.selection_update = selection_update;
++  std::array<adaptive_detail::Cuts, kBlocks> layout{};
++  layout.fill(adaptive_detail::kStaticCuts);
++  fillPartition(record_.static_partition, layout, input);
++  for (std::size_t block = 0; block < kBlocks; ++block) layout[block] = selection_[block].current;
++  fillPartition(record_.adaptive_partition, layout, input);
++  float sum = 0.0F;
++  for (std::size_t i = 0; i < input.support; ++i) sum += change_[i];
++  record_.full_bank_mean_change = sum / static_cast<float>(input.support);
++  return true;
++}
++
++void AdaptiveSpectralDetail::fillPartition(
++    DetailPartition& out, const std::array<adaptive_detail::Cuts, kBlocks>& layout,
++    const DetailInput& input) noexcept {
++  out.cuts = layout;
++  out.strength = 0.0F;
++  for (std::size_t block = 0; block < kBlocks; ++block) {
++    const std::size_t base = block * kBlockWidth;
++    for (std::size_t k = 0; k < kGroupsPerBlock; ++k) {
++      const std::size_t begin = base + (k == 0U ? 0U : layout[block][k - 1U]);
++      const std::size_t end = base + (k + 1U == kGroupsPerBlock ? kBlockWidth : layout[block][k]);
++      DetailGroup& group = out.groups[block * kGroupsPerBlock + k];
++      group.support_end_sample = input.support_end_sample;
++      group.hop_samples = hop_samples_;
++      group.first_channel = static_cast<std::uint8_t>(begin);
++      group.last_channel = static_cast<std::uint8_t>(end - 1U);
++      group.channel_count = static_cast<std::uint8_t>(end - begin);
++      group.lower_hz = input.frequency_hz[begin];
++      group.upper_hz = input.frequency_hz[end - 1U];
++      group.valid = end <= input.support;
++      float sum_frequency = 0.0F;
++      float sum_magnitude = 0.0F;
++      float sum_weighted = 0.0F;
++      float sum_log = 0.0F;
++      float sum_change = 0.0F;
++      float max_change = 0.0F;
++      for (std::size_t i = begin; i < end; ++i) {
++        sum_frequency += input.frequency_hz[i];
++        if (!group.valid) continue;
++        sum_magnitude += input.magnitude[i];
++        sum_weighted += input.magnitude[i] * input.frequency_hz[i];
++        sum_log += log_magnitude_[i];
++        sum_change += change_[i];
++        max_change = std::max(max_change, change_[i]);
++      }
++      const float inverse = 1.0F / static_cast<float>(end - begin);
++      const bool weighted = group.valid &&
++          sum_magnitude > adaptive_detail::kMagnitudeFloor * static_cast<float>(end - begin);
++      group.centroid_hz = weighted ? sum_weighted / sum_magnitude : sum_frequency * inverse;
++      group.mean_positive_change = sum_change * inverse;
++      group.max_positive_change = max_change;
++      group.mean_log_magnitude = sum_log * inverse;
++      if (group.valid) out.strength = std::max(out.strength, group.mean_positive_change);
++    }
++  }
++}
++
++#if defined(K1_ADAPTIVE_DETAIL_TEST_HOOKS)
++bool AdaptiveSpectralDetail::forcePartitionForTest(unsigned block,
++                                                   const adaptive_detail::Cuts& cuts) noexcept {
++  if (block >= kBlocks || !adaptive_detail::isLegal(cuts)) return false;
++  auto& state = selection_[block];
++  if (state.current != cuts) ++partition_generation_;
++  state.current = state.candidate = cuts;
++  state.streak = 0U;
++  return true;
++}
++#endif
++
++}  // namespace k1::titan
+diff --git a/tests/host/test_adaptive_spectral_detail.cpp b/tests/host/test_adaptive_spectral_detail.cpp
+new file mode 100644
+index 0000000..3f0fb56
+--- /dev/null
++++ b/tests/host/test_adaptive_spectral_detail.cpp
+@@ -0,0 +1,514 @@
++// DBS pilot: host test of platform/ra8p1/adaptive_spectral_detail.{h,cpp}. Exit 0 only if all
++// nine cases hold. tests/host/test_adaptive_spectral_detail.py also builds planted faults and
++// requires the named case to go red. Built with K1_ADAPTIVE_DETAIL_TEST_HOOKS.
++#include "adaptive_spectral_detail.h"
++
++#include <array>
++#include <cmath>
++#include <cstdint>
++#include <cstdio>
++#include <cstring>
++#include <type_traits>
++#include <vector>
++
++namespace {
++using namespace k1::titan;
++using namespace k1::titan::adaptive_detail;
++using Spectrum = std::array<float, kChannels>;
++
++#define CHECK(cond)                                                              \
++  do {                                                                           \
++    if (!(cond)) {                                                               \
++      std::printf("  [%s] FAIL line %d: %s\n", tag, __LINE__, #cond);            \
++      ok = false;                                                                \
++    }                                                                            \
++  } while (0)
++
++Spectrum frequencies() {
++  Spectrum f{};
++  // Note-bank-like labels (not equally spaced): 110 Hz x 2^(i/12).
++  for (std::size_t i = 0; i < kChannels; ++i)
++    f[i] = 110.0F * std::exp2(static_cast<float>(i) / 12.0F);
++  return f;
++}
++const Spectrum kFrequency = frequencies();
++
++DetailInput hop(const Spectrum& m, std::uint64_t epoch, std::uint64_t generation,
++                bool quiet = false, unsigned support = 80U) {
++  DetailInput in{};
++  in.magnitude = m.data();
++  in.frequency_hz = kFrequency.data();
++  in.epoch = epoch;
++  in.generation = generation;
++  in.support_end_sample = generation * 180U;
++  in.capture_us = generation * 7500U;
++  in.sample_rate_hz = 24000U;
++  in.support = support;
++  in.valid = true;
++  in.quiet = quiet;
++  return in;
++}
++
++Spectrum flat(float value) {
++  Spectrum m{};
++  m.fill(value);
++  return m;
++}
++// Block 0 has level steps at local channels 3, 8 and 13; the other blocks are flat.
++Spectrum stepped() {
++  Spectrum m = flat(1.0F);
++  for (std::size_t i = 3; i < 8; ++i) m[i] = 10.0F;
++  for (std::size_t i = 13; i < 20; ++i) m[i] = 10.0F;
++  return m;
++}
++Spectrum noise(std::uint32_t& seed) {
++  Spectrum m{};
++  for (auto& v : m) {
++    seed = seed * 1664525U + 1013904223U;
++    v = 0.01F + static_cast<float>(seed >> 8) * (1.0F / 16777216.0F);
++  }
++  return m;
++}
++
++template <typename T>
++bool sameBytes(const T& a, const T& b) {
++  static_assert(std::is_trivially_copyable_v<T>);
++  return std::memcmp(&a, &b, sizeof(T)) == 0;
++}
++
++bool allChangeZero(const DetailRecord& r) {
++  if (r.static_partition.strength != 0.0F || r.adaptive_partition.strength != 0.0F ||
++      r.full_bank_mean_change != 0.0F) return false;
++  for (const auto* p : {&r.static_partition, &r.adaptive_partition})
++    for (const auto& g : p->groups)
++      if (g.mean_positive_change != 0.0F || g.max_positive_change != 0.0F) return false;
++  return true;
++}
++
++// Every channel assigned exactly once, every group >= 2 wide, 16 groups, ascending order.
++bool coversOnce(const DetailPartition& p) {
++  std::array<int, kChannels> seen{};
++  std::size_t next = 0;
++  for (const auto& g : p.groups) {
++    if (g.first_channel != next || g.channel_count < kMinGroupWidth ||
++        g.last_channel + 1U != g.first_channel + g.channel_count) return false;
++    for (std::size_t i = g.first_channel; i <= g.last_channel; ++i) ++seen[i];
++    next = g.last_channel + 1U;
++  }
++  if (next != kChannels || p.groups.size() != 16U) return false;
++  for (int count : seen) if (count != 1) return false;
++  return true;
++}
++
++bool test1() {
++  const char* tag = "test1";
++  bool ok = true;
++  CHECK(kLegalSplits.size() == 455U);
++  std::size_t brute = 0;
++  for (unsigned a = 1; a < 20; ++a)
++    for (unsigned b = a + 1; b < 20; ++b)
++      for (unsigned c = b + 1; c < 20; ++c)
++        if (a >= 2 && b - a >= 2 && c - b >= 2 && 20 - c >= 2) ++brute;
++  CHECK(brute == 455U);
++  for (std::size_t n = 0; n < kLegalSplits.size(); ++n) {
++    CHECK(isLegal(kLegalSplits[n]));
++    if (n > 0) CHECK(kLegalSplits[n - 1] < kLegalSplits[n]);  // strictly ascending, distinct
++  }
++  CHECK((kStaticCuts == Cuts{5U, 10U, 15U}));
++  AdaptiveSpectralDetail detail;
++  const Spectrum m = flat(1.0F);
++  std::uint64_t generation = 0;
++  CHECK(detail.update(hop(m, 1, ++generation)));
++  for (std::size_t g = 0; g < kGroups; ++g) {
++    const auto& group = detail.record().static_partition.groups[g];
++    CHECK(group.channel_count == 5U && group.first_channel == 5U * g && group.last_channel == 5U * g + 4U);
++  }
++  CHECK(coversOnce(detail.record().static_partition));
++  for (std::size_t n = 0; n < kLegalSplits.size(); ++n) {
++    for (unsigned block = 0; block < kBlocks; ++block)
++      CHECK(detail.forcePartitionForTest(block, kLegalSplits[(n + 113U * block) % kSplitsPerBlock]));
++    CHECK(detail.update(hop(m, 1, ++generation)));
++    if (!coversOnce(detail.record().adaptive_partition)) {
++      CHECK(coversOnce(detail.record().adaptive_partition));
++      break;
++    }
++  }
++  CHECK(!detail.forcePartitionForTest(0U, Cuts{1U, 10U, 15U}));
++  CHECK(!detail.forcePartitionForTest(0U, Cuts{5U, 6U, 15U}));
++  CHECK(!detail.forcePartitionForTest(0U, Cuts{5U, 10U, 19U}));
++  CHECK(!detail.forcePartitionForTest(4U, kStaticCuts));
++  return ok;
++}
++
++bool test2() {
++  const char* tag = "test2";
++  bool ok = true;
++  AdaptiveSpectralDetail detail;
++  Spectrum m{};
++  for (std::size_t i = 0; i < kChannels; ++i) m[i] = 0.5F + 0.01F * static_cast<float>(i);
++  CHECK(detail.update(hop(m, 7, 1)));
++  CHECK(detail.record().valid && !detail.record().primed);
++  CHECK(allChangeZero(detail.record()));
++  for (float d : detail.channelChange()) CHECK(d == 0.0F);
++  Spectrum next = m;
++  next[7] *= 4.0F;
++  next[41] *= 4.0F;
++  next[60] *= 0.25F;  // a step DOWN is not a positive change
++  CHECK(detail.update(hop(next, 7, 2)));
++  const auto& r = detail.record();
++  CHECK(r.primed);
++  for (std::size_t i = 0; i < kChannels; ++i) {
++    const float d = detail.channelChange()[i];
++    if (i == 7 || i == 41) CHECK(std::fabs(d - std::log(4.0F)) < 1.0e-5F);
++    else CHECK(d == 0.0F);
++  }
++  for (const auto* p : {&r.static_partition, &r.adaptive_partition})
++    for (const auto& g : p->groups) {
++      const bool holds = (g.first_channel <= 7 && 7 <= g.last_channel) ||
++                         (g.first_channel <= 41 && 41 <= g.last_channel);
++      CHECK(holds ? g.mean_positive_change > 0.0F : g.mean_positive_change == 0.0F);
++    }
++  CHECK(std::fabs(r.static_partition.strength - std::log(4.0F) / 5.0F) < 1.0e-5F);
++  CHECK(std::fabs(r.full_bank_mean_change - 2.0F * std::log(4.0F) / 80.0F) < 1.0e-5F);
++  // Descriptors: actual frequency labels, magnitude-weighted centroid, inclusive bounds.
++  const auto& g8 = r.static_partition.groups[8];  // channels 40..44, 41 boosted
++  float weighted = 0.0F, total = 0.0F;
++  for (std::size_t i = 40; i < 45; ++i) { weighted += next[i] * kFrequency[i]; total += next[i]; }
++  CHECK(g8.first_channel == 40U && g8.last_channel == 44U && g8.channel_count == 5U && g8.valid);
++  CHECK(g8.lower_hz == kFrequency[40] && g8.upper_hz == kFrequency[44]);
++  CHECK(std::fabs(g8.centroid_hz - weighted / total) <= 1.0e-5F * g8.centroid_hz);
++  CHECK(g8.centroid_hz > kFrequency[40] && g8.centroid_hz < kFrequency[42]);  // pulled toward 41
++  CHECK(g8.support_end_sample == 2U * 180U && g8.hop_samples == 180U);
++  // Support 70: groups reaching channel 70+ are invalid and excluded; data beyond support is
++  // never read (a NaN there is accepted).
++  AdaptiveSpectralDetail partial;
++  Spectrum p = flat(1.0F);
++  p[75] = std::nanf("");
++  CHECK(partial.update(hop(p, 2, 1, false, 70U)));
++  Spectrum p2 = p;
++  p2[72] = 100.0F;  // beyond support: must not create change
++  p2[66] = 3.0F;
++  CHECK(partial.update(hop(p2, 2, 2, false, 70U)));
++  const auto& pr = partial.record();
++  CHECK(pr.static_partition.groups[13].valid && !pr.static_partition.groups[14].valid &&
++        !pr.static_partition.groups[15].valid);
++  CHECK(pr.static_partition.groups[14].mean_positive_change == 0.0F);
++  for (std::size_t g = 14; g < 16; ++g) {
++    const auto& invalid = pr.static_partition.groups[g];
++    float mean_hz = 0.0F;
++    for (std::size_t i = invalid.first_channel; i <= invalid.last_channel; ++i) mean_hz += kFrequency[i];
++    mean_hz /= static_cast<float>(invalid.channel_count);
++    CHECK(std::isfinite(invalid.centroid_hz) && std::fabs(invalid.centroid_hz - mean_hz) <= 1.0e-5F * mean_hz);
++    CHECK(invalid.mean_log_magnitude == 0.0F && invalid.max_positive_change == 0.0F);
++  }
++  CHECK(std::fabs(pr.static_partition.strength - std::log(3.0F) / 5.0F) < 1.0e-5F);
++  CHECK(std::fabs(pr.full_bank_mean_change - std::log(3.0F) / 70.0F) < 1.0e-5F);
++  return ok;
++}
++
++bool test3() {
++  const char* tag = "test3";
++  bool ok = true;
++  AdaptiveSpectralDetail detail;
++  std::uint32_t seed = 3U;
++  std::uint64_t generation = 0;
++  for (int i = 0; i < 10; ++i) CHECK(detail.update(hop(noise(seed), 5, ++generation)));
++  CHECK(detail.forcePartitionForTest(1U, Cuts{2U, 4U, 6U}));
++  CHECK(detail.update(hop(noise(seed), 5, ++generation)));
++  const Spectrum other = noise(seed);
++
++  // Duplicate and stale generations: no state change at all (object and record bytes).
++  std::vector<unsigned char> before(sizeof(detail));
++  std::memcpy(before.data(), &detail, sizeof(detail));
++  const DetailRecord record_before = detail.record();
++  CHECK(!detail.update(hop(other, 5, generation)));
++  CHECK(!detail.update(hop(other, 5, generation - 3U)));
++  CHECK(std::memcmp(before.data(), &detail, sizeof(detail)) == 0);
++  CHECK(sameBytes(record_before, detail.record()));
++
++  // Each discontinuity clears history and re-primes on the triggering hop; the next hop
++  // compares against that hop, never against pre-break history.
++  const Spectrum a = flat(1.0F);
++  Spectrum b = a;
++  b[10] = 50.0F;
++  std::uint64_t g = generation;
++  for (int kind = 0; kind < 5; ++kind) {
++    CHECK(detail.update(hop(a, 5, ++g)));
++    CHECK(detail.forcePartitionForTest(0U, Cuts{3U, 8U, 13U}));
++    CHECK(detail.update(hop(a, 5, ++g)));
++    DetailInput first = hop(b, 5, g + 1U);
++    if (kind == 0) first = hop(b, 5, g + 2U);                // generation and sample gap
++    if (kind == 1) first.support = 70U;                      // support change
++    if (kind == 2) first.generation = g + 2U;                // generation gap, samples contiguous
++    if (kind == 3) first.support_end_sample += 180U;         // sample gap, generation contiguous
++    if (kind == 4) first = hop(b, 6, 1U);                    // epoch change (last: epoch moves)
++    CHECK(detail.update(first));
++    const auto& r = detail.record();
++    CHECK(r.valid && !r.primed && r.accepted_hops == 1U && allChangeZero(r));
++    for (const auto& cuts : r.adaptive_partition.cuts) CHECK(cuts == kStaticCuts);
++    DetailInput second = first;
++    second.generation += 1U;
++    second.support_end_sample += 180U;
++    CHECK(detail.update(second));
++    CHECK(detail.record().primed && allChangeZero(detail.record()));
++    g = second.generation;
++  }
++  detail.reset();
++  g = 0;
++
++  // Invalid input: false, record.valid false, history cleared, the next valid hop primes.
++  for (int kind = 0; kind < 4; ++kind) {
++    CHECK(detail.update(hop(a, 5, ++g)));
++    DetailInput bad = hop(b, 5, ++g);
++    Spectrum nan = b;
++    nan[3] = std::nanf("");
++    if (kind == 0) bad.valid = false;
++    if (kind == 1) bad.magnitude = nan.data();
++    if (kind == 2) bad.frequency_hz = nullptr;
++    if (kind == 3) bad.support = 81U;
++    CHECK(!detail.update(bad));
++    CHECK(!detail.record().valid && allChangeZero(detail.record()));
++    CHECK(detail.update(hop(b, 5, ++g)));
++    CHECK(detail.record().valid && !detail.record().primed && allChangeZero(detail.record()));
++  }
++  return ok;
++}
++
++std::vector<DetailRecord> run(AdaptiveSpectralDetail& detail, std::uint32_t prefix_seed,
++                              std::uint32_t suffix_seed, bool stepped_suffix) {
++  std::vector<DetailRecord> records;
++  std::uint32_t seed = prefix_seed;
++  std::uint64_t generation = 0;
++  for (int i = 0; i < 120; ++i) {
++    (void)detail.update(hop(noise(seed), 9, ++generation, i % 37 == 20));
++    records.push_back(detail.record());
++  }
++  seed = suffix_seed;
++  for (int i = 0; i < 60; ++i) {
++    (void)detail.update(hop(stepped_suffix ? stepped() : noise(seed), 9, ++generation));
++    records.push_back(detail.record());
++  }
++  return records;
++}
++
++bool test4() {
++  const char* tag = "test4";
++  bool ok = true;
++  AdaptiveSpectralDetail one;
++  AdaptiveSpectralDetail two;
++  AdaptiveSpectralDetail reused;
++  const auto a = run(one, 41U, 1000U, false);
++  const auto b = run(two, 41U, 2000U, true);
++  CHECK(b.back().adaptive_partition.cuts[0] != kStaticCuts);  // suffix B really moved a layout
++  (void)run(reused, 41U, 2000U, true);
++  reused.reset();
++  const auto c = run(reused, 41U, 1000U, false);
++  for (std::size_t i = 0; i < 120; ++i) {
++    CHECK(sameBytes(a[i], b[i]));
++    CHECK(sameBytes(a[i], c[i]));
++    if (!ok) break;
++  }
++  bool suffix_differs = false;
++  for (std::size_t i = 120; i < a.size(); ++i) suffix_differs |= !sameBytes(a[i], b[i]);
++  CHECK(suffix_differs);
++  return ok;
++}
++
++bool test5() {
++  const char* tag = "test5";
++  bool ok = true;
++  // Steady input with spectral structure: forced movement every hop and free selection.
++  const Spectrum m = stepped();
++  AdaptiveSpectralDetail forced;
++  AdaptiveSpectralDetail selected;
++  for (std::uint64_t generation = 1; generation <= 200; ++generation) {
++    for (unsigned block = 0; block < kBlocks; ++block)
++      CHECK(forced.forcePartitionForTest(block,
++          kLegalSplits[(generation * 37U + block * 101U) % kSplitsPerBlock]));
++    CHECK(forced.update(hop(m, 3, generation)));
++    CHECK(selected.update(hop(m, 3, generation)));
++    if (!allChangeZero(forced.record()) || !allChangeZero(selected.record())) {
++      CHECK(allChangeZero(forced.record()) && allChangeZero(selected.record()));
++      break;
++    }
++  }
++  CHECK(forced.record().partition_generation >= 190U);
++  CHECK(selected.record().partition_generation >= 1U);  // selection really moved
++  CHECK(selected.record().adaptive_partition.cuts[0] != kStaticCuts);
++
++  // One stepped channel: every partition's strength is bounded by that channel's change.
++  constexpr std::size_t k = 47;  // block 2, local 7
++  Spectrum up = flat(1.0F);
++  up[k] = 3.0F;
++  for (const Cuts& cuts : kLegalSplits) {
++    AdaptiveSpectralDetail detail;
++    CHECK(detail.update(hop(flat(1.0F), 4, 1)));
++    CHECK(detail.forcePartitionForTest(2U, cuts));
++    CHECK(detail.update(hop(up, 4, 2)));
++    const float d = detail.channelChange()[k];
++    const auto& r = detail.record();
++    CHECK(d > 0.0F);
++    CHECK(r.adaptive_partition.strength > 0.0F && r.adaptive_partition.strength <= d);
++    CHECK(r.static_partition.strength > 0.0F && r.static_partition.strength <= d);
++    if (!ok) break;
++  }
++  return ok;
++}
++
++BoundaryScores scores(std::initializer_list<std::pair<unsigned, float>> values) {
++  BoundaryScores b{};
++  for (const auto& [j, v] : values) b[j] = v;
++  return b;
++}
++
++bool test6() {
++  const char* tag = "test6";
++  bool ok = true;
++  const Cuts better{3U, 8U, 13U};
++  // Static layout scores 0.75; the candidate scores 0.8625 (15 %) or 0.7875 (5 %).
++  const auto b15 = scores({{5, 0.25F}, {10, 0.25F}, {15, 0.25F}, {3, 0.2875F}, {8, 0.2875F}, {13, 0.2875F}});
++  const auto b5 = scores({{5, 0.25F}, {10, 0.25F}, {15, 0.25F}, {3, 0.2625F}, {8, 0.2625F}, {13, 0.2625F}});
++  const auto neutral = scores({{5, 0.25F}, {10, 0.25F}, {15, 0.25F}});
++  BlockSelection s{};
++  CHECK(!updateBlockSelection(s, b15));
++  CHECK(s.current == kStaticCuts);
++  CHECK(!updateBlockSelection(s, neutral));  // exactly one update at 15 %: no change
++  CHECK(!updateBlockSelection(s, b15));
++  CHECK(s.current == kStaticCuts);
++  CHECK(updateBlockSelection(s, b15));       // two consecutive: change
++  CHECK(s.current == better);
++  // The streak restarts when the best candidate changes.
++  BlockSelection t{};
++  const auto other15 = scores({{5, 0.25F}, {10, 0.25F}, {15, 0.25F}, {2, 0.2875F}, {7, 0.2875F}, {12, 0.2875F}});
++  CHECK(!updateBlockSelection(t, b15));
++  CHECK(!updateBlockSelection(t, other15));
++  CHECK(t.current == kStaticCuts);
++  CHECK(updateBlockSelection(t, other15));
++  CHECK((t.current == Cuts{2U, 7U, 12U}));
++  // 5 % better for many updates: no change.
++  BlockSelection u{};
++  for (int i = 0; i < 100; ++i) CHECK(!updateBlockSelection(u, b5));
++  CHECK(u.current == kStaticCuts);
++  // No-signal block keeps its layout.
++  BlockSelection v{};
++  for (int i = 0; i < 10; ++i) CHECK(!updateBlockSelection(v, BoundaryScores{}));
++  CHECK(v.current == kStaticCuts);
++  // Tiny structure (block max |delta| below the 1e-6 floor) scores 0 and keeps its layout.
++  std::array<float, kBlockWidth> tiny_log{};
++  const std::array<float, kBlockWidth> tiny_change{};
++  for (std::size_t j = 3; j < 8; ++j) tiny_log[j] = 5.0e-7F;
++  for (std::size_t j = 13; j < 20; ++j) tiny_log[j] = 5.0e-7F;
++  BoundaryScores tiny{};
++  boundaryScores(tiny_log.data(), tiny_change.data(), kBlockWidth, tiny);
++  for (float value : tiny) CHECK(value == 0.0F);
++  BlockSelection w{};
++  for (int i = 0; i < 4; ++i) (void)updateBlockSelection(w, tiny);
++  CHECK(w.current == kStaticCuts);
++  // Unsupported channels contribute no boundary.
++  std::array<float, kBlockWidth> edge_log{};
++  for (std::size_t j = 10; j < 20; ++j) edge_log[j] = 1.0F;
++  BoundaryScores edge{};
++  boundaryScores(edge_log.data(), tiny_change.data(), 10U, edge);
++  for (float value : edge) CHECK(value == 0.0F);
++  // Ties: current kept; between two non-current layouts, the lower ascending cuts.
++  const auto tie_current = scores({{3, 0.5F}, {5, 0.5F}, {8, 0.5F}, {10, 0.5F}, {13, 0.5F}, {15, 0.5F}});
++  CHECK(bestPartition(tie_current, kStaticCuts) == kStaticCuts);
++  const auto tie_other = scores({{3, 0.5F}, {8, 0.5F}, {13, 0.5F}, {4, 0.5F}, {9, 0.5F}, {14, 0.5F}});
++  CHECK(bestPartition(tie_other, kStaticCuts) == better);
++
++  // Through the class: a better layout must win two selection updates (hops 4 and 8);
++  // partition_generation rises by exactly one, at hop 8.
++  AdaptiveSpectralDetail detail;
++  for (std::uint64_t generation = 1; generation <= 40; ++generation) {
++    CHECK(detail.update(hop(stepped(), 2, generation)));
++    const auto& r = detail.record();
++    CHECK(r.partition_generation == (generation < 8U ? 0U : 1U));
++  }
++  CHECK(detail.record().adaptive_partition.cuts[0] == better);
++  for (unsigned block = 1; block < kBlocks; ++block)
++    CHECK(detail.record().adaptive_partition.cuts[block] == kStaticCuts);
++  return ok;
++}
++
++bool test7() {
++  const char* tag = "test7";
++  bool ok = true;
++  AdaptiveSpectralDetail detail;
++  const Spectrum a = flat(0.5F);
++  Spectrum b = a;
++  b[20] = 2.5F;
++  CHECK(detail.update(hop(a, 1, 1)));
++  CHECK(detail.update(hop(b, 1, 2, true)));  // quiet step
++  const auto& r = detail.record();
++  CHECK(r.valid && r.quiet && r.primed);
++  CHECK(allChangeZero(r));
++  for (float d : detail.channelChange()) CHECK(d == 0.0F);
++  CHECK(r.static_partition.groups[4].mean_log_magnitude > std::log(0.5F));  // level advanced
++  CHECK(detail.update(hop(b, 1, 3)));  // same level after quiet: history already advanced
++  CHECK(!detail.record().quiet && allChangeZero(detail.record()));
++  Spectrum c = b;
++  c[20] = 12.5F;
++  CHECK(detail.update(hop(c, 1, 4)));
++  CHECK(detail.channelChange()[20] > 1.5F && detail.record().static_partition.strength > 0.0F);
++  // A quiet hop on a selection update keeps the layout and restarts the streak: qualifying
++  // updates at hops 4, (8 quiet), 12, 16 change the layout at 16, not at 8 or 12.
++  AdaptiveSpectralDetail held;
++  for (std::uint64_t generation = 1; generation <= 20; ++generation) {
++    CHECK(held.update(hop(stepped(), 3, generation, generation == 8U)));
++    CHECK(held.record().selection_update == (generation % 4U == 0U && generation != 8U));
++    CHECK(held.record().partition_generation == (generation < 16U ? 0U : 1U));
++  }
++  return ok;
++}
++
++bool test8() {
++  const char* tag = "test8";
++  bool ok = true;
++  AdaptiveSpectralDetail detail;
++  std::uint64_t last_generation = 0;
++  std::uint64_t first_change = 0;
++  for (std::uint64_t generation = 1; generation <= 40; ++generation) {
++    CHECK(detail.update(hop(generation < 6U ? flat(1.0F) : stepped(), 8, generation)));
++    const auto& r = detail.record();
++    CHECK(r.accepted_hops == generation);
++    CHECK(r.selection_update == (generation % 4U == 0U));
++    if (r.partition_generation != last_generation) {
++      CHECK(generation % 4U == 0U);
++      if (first_change == 0U) first_change = generation;
++      last_generation = r.partition_generation;
++    }
++  }
++  CHECK(first_change == 12U);  // structure from hop 6; qualifying updates at 8 and 12
++  return ok;
++}
++
++bool test9() {
++  const char* tag = "test9";
++  bool ok = true;
++  CHECK(std::is_trivially_copyable_v<DetailRecord>);
++  CHECK(std::is_trivially_copyable_v<AdaptiveSpectralDetail>);
++  CHECK(std::is_trivially_copyable_v<DetailInput>);
++  return ok;
++}
++static_assert(std::is_trivially_copyable_v<DetailRecord>, "test9: DetailRecord");
++}  // namespace
++
++int main() {
++  struct Case { const char* name; bool (*run)(); };
++  const Case cases[] = {
++      {"test1 legal splits and coverage", test1}, {"test2 priming and step", test2},
++      {"test3 duplicate and resets", test3},      {"test4 causality", test4},
++      {"test5 no partition-created attacks", test5}, {"test6 hysteresis and ties", test6},
++      {"test7 quiet", test7},                     {"test8 cadence", test8},
++      {"test9 trivially copyable", test9}};
++  int failures = 0;
++  for (const auto& c : cases) {
++    const bool ok = c.run();
++    std::printf("%s: %s\n", c.name, ok ? "ok" : "FAIL");
++    failures += ok ? 0 : 1;
++  }
++  std::printf("sizeof(AdaptiveSpectralDetail)=%zu sizeof(DetailRecord)=%zu sizeof(DetailPartition)=%zu "
++              "sizeof(DetailGroup)=%zu\n", sizeof(AdaptiveSpectralDetail), sizeof(DetailRecord),
++              sizeof(DetailPartition), sizeof(DetailGroup));
++  return failures == 0 ? 0 : 1;
++}
+diff --git a/tests/host/test_adaptive_spectral_detail.py b/tests/host/test_adaptive_spectral_detail.py
+new file mode 100644
+index 0000000..889fd4c
+--- /dev/null
++++ b/tests/host/test_adaptive_spectral_detail.py
+@@ -0,0 +1,132 @@
++"""DBS pilot: AdaptiveSpectralDetail passes its nine host cases, compiles warning-free, and each
++planted fault turns its named case red (Titan_DBS_Translation.html section 2)."""
++import re
++import shutil
++import subprocess
++from pathlib import Path
++
++import pytest
++
++ROOT = Path(__file__).resolve().parents[2]
++HEADER = ROOT / "platform/ra8p1/adaptive_spectral_detail.h"
++SOURCE = ROOT / "platform/ra8p1/adaptive_spectral_detail.cpp"
++TEST = ROOT / "tests/host/test_adaptive_spectral_detail.cpp"
++CASES = [f"test{n}" for n in range(1, 10)]
++
++
++def build_and_run(tmp: Path, extra: list[str] | None = None, src_dir: Path | None = None):
++    """Compile the C++ test against src_dir (default: the real sources) and run it."""
++    test_cpp = src_dir / TEST.name if src_dir else TEST
++    src_dir = src_dir or ROOT / "platform/ra8p1"
++    exe = tmp / "test_adaptive_spectral_detail"
++    build = subprocess.run(
++        ["c++", "-std=c++17", "-O2", "-fno-fast-math", "-Wall", "-Wextra", "-DK1_ADAPTIVE_DETAIL_TEST_HOOKS",
++         *(extra or []), "-I", str(src_dir), "-I", str(ROOT / "platform/ra8p1"), "-I", str(ROOT / "src"),
++         "-I", str(ROOT / "src/k1"), str(test_cpp), str(src_dir / SOURCE.name), "-o", str(exe)],
++        capture_output=True, text=True)
++    if build.returncode != 0:
++        return build
++    return subprocess.run([str(exe)], capture_output=True, text=True, timeout=120)
++
++
++def test_product_compiles_warning_free(tmp_path):
++    for defines in ([], ["-DK1_ADAPTIVE_DETAIL_TEST_HOOKS"]):
++        r = subprocess.run(
++            ["c++", "-std=c++17", "-O2", "-fno-fast-math", "-fno-exceptions", "-fno-rtti", "-Wall", "-Wextra",
++             "-Wpedantic", "-Wshadow", "-Wdouble-promotion", "-Wconversion", "-Wsign-conversion", "-Werror",
++             *defines, "-I", str(ROOT / "platform/ra8p1"), "-I", str(ROOT / "src"), "-I", str(ROOT / "src/k1"),
++             "-c", str(SOURCE), "-o", str(tmp_path / "asd.o")], capture_output=True, text=True)
++        assert r.returncode == 0, r.stderr
++
++
++def test_all_cases_pass(tmp_path):
++    r = build_and_run(tmp_path)
++    assert r.returncode == 0, r.stdout + r.stderr
++    for case in CASES:
++        assert re.search(rf"^{case} .*: ok$", r.stdout, re.M), r.stdout
++
++
++def test_all_cases_pass_sanitised(tmp_path):
++    r = build_and_run(tmp_path, ["-fsanitize=address,undefined", "-fno-sanitize-recover=all", "-g"])
++    assert r.returncode == 0, r.stdout + r.stderr
++
++
++FORBIDDEN = re.compile(r"std::(vector|string|map|function|shared_ptr|unique_ptr|deque|list)\b|\bnew\b|"
++                       r"\bmalloc\s*\(|\bthrow\b|\btry\b|dynamic_cast|typeid")
++
++
++def forbidden_tokens(text: str) -> list[str]:
++    code = re.sub(r"//[^\n]*", "", text)
++    return [m.group(0) for m in FORBIDDEN.finditer(code)]
++
++
++def test_no_allocation_in_module():
++    for path in (HEADER, SOURCE):
++        assert forbidden_tokens(path.read_text()) == [], path
++
++
++def test_allocation_grep_goes_red_on_planted_vector():
++    planted = HEADER.read_text().replace("  float alpha_ = 0.0F;", "  std::vector<float> scratch_;\n  float alpha_ = 0.0F;")
++    assert forbidden_tokens(planted), "grep did not flag a planted std::vector member"
++
++
++# (name, file, [(old, new), ...], case expected to go red or "compile").
++MUTATIONS = [
++    ("static_not_5555", HEADER, [("kStaticCuts{5U, 10U, 15U}", "kStaticCuts{5U, 10U, 14U}")], "test1"),
++    ("group_overlap", SOURCE, [("group.last_channel = static_cast<std::uint8_t>(end - 1U);",
++                                "group.last_channel = static_cast<std::uint8_t>(end);")], "test1"),
++    ("min_width_1", HEADER, [("kMinGroupWidth = 2U;", "kMinGroupWidth = 1U;")], "compile"),
++    ("negative_change", SOURCE, [("std::max(0.0F, x - log_magnitude_[i])", "(x - log_magnitude_[i])")], "test2"),
++    ("prime_emits_change", SOURCE, [("const float d = prime ? 0.0F : std::max(", "const float d = std::max("),
++                                    ("if (prime || input.quiet) change_.fill", "if (input.quiet) change_.fill")],
++     "test2"),
++    ("duplicate_advances", SOURCE, [("input.generation <= generation_) return false;",
++                                     "input.generation < generation_) return false;")], "test3"),
++    ("gap_undetected", SOURCE, [("input.generation == generation_ + 1U &&", "input.generation > generation_ &&")],
++     "test3"),
++    ("sample_gap_undetected", SOURCE, [("(hop_samples_ == 0U || hop == hop_samples_);", "true;")], "test3"),
++    ("reset_keeps_layout", SOURCE, [("state = adaptive_detail::BlockSelection{};", "state.streak = 0U;")], "test4"),
++    ("group_slot_differencing", SOURCE, [("group.mean_positive_change = sum_change * inverse;",
++                                          "group.mean_positive_change = std::max(0.0F, sum_log * inverse - "
++                                          "group.mean_log_magnitude);")], "test5"),
++    ("one_update_switches", HEADER, [("kConsecutiveUpdates = 2U;", "kConsecutiveUpdates = 1U;")], "test6"),
++    ("hysteresis_4pct", HEADER, [("kHysteresisRatio = 1.10F;", "kHysteresisRatio = 1.04F;")], "test6"),
++    ("tie_prefers_later", SOURCE, [("if (score > best_score) {", "if (score >= best_score) {")], "test6"),
++    ("tie_ignores_current", SOURCE, [("Cuts best = current;\n  float best_score = partitionScore(scores, current);",
++                                      "Cuts best = kLegalSplits[0];\n  float best_score = partitionScore(scores, best);")],
++     "test6"),
++    ("tiny_signal_normalised", HEADER, [("kNormFloor = 1.0e-6F;", "kNormFloor = 1.0e-9F;")], "test6"),
++    ("quiet_not_gated", SOURCE, [("if (prime || input.quiet) change_.fill", "if (prime) change_.fill")], "test7"),
++    ("quiet_freezes_history", SOURCE, [("    log_magnitude_[i] = x;\n", "    if (!input.quiet) log_magnitude_[i] = x;\n")],
++     "test7"),
++    ("quiet_keeps_streak", SOURCE, [("for (auto& state : selection_) state.streak = 0U;", "(void)selection_;")],
++     "test7"),
++    ("centroid_unweighted", SOURCE, [("group.centroid_hz = weighted ? sum_weighted / sum_magnitude :",
++                                      "group.centroid_hz = false ? sum_weighted / sum_magnitude :")], "test2"),
++    ("invalid_group_reads_data", SOURCE, [("        if (!group.valid) continue;\n", "")], "test2"),
++    ("selection_every_hop", HEADER, [("kSelectionPeriodHops = 4U;", "kSelectionPeriodHops = 1U;")], "test8"),
++    ("selection_every_3", HEADER, [("kSelectionPeriodHops = 4U;", "kSelectionPeriodHops = 3U;")], "test8"),
++    ("record_not_trivially_copyable", HEADER, [("struct DetailRecord final {\n",
++                                                "struct DetailRecord final {\n  DetailRecord() = default;\n"
++                                                "  DetailRecord(const DetailRecord& o) noexcept : epoch(o.epoch) {}\n")],
++     "compile"),
++]
++
++
++@pytest.mark.parametrize("name,path,edits,expected", MUTATIONS, ids=[m[0] for m in MUTATIONS])
++def test_planted_fault_goes_red(tmp_path, name, path, edits, expected):
++    for source in (HEADER, SOURCE, TEST):
++        shutil.copy(source, tmp_path / source.name)
++    target = tmp_path / path.name
++    text = target.read_text()
++    for old, new in edits:
++        # A refactor that loses the anchor must fail here, not silently pass the mutation.
++        assert text.count(old) == 1, f"{name}: anchor not unique: {old!r}"
++        text = text.replace(old, new)
++    target.write_text(text)
++    r = build_and_run(tmp_path, src_dir=tmp_path)
++    assert r.returncode != 0, f"{name} stayed green:\n{r.stdout}"
++    if expected == "compile":
++        assert "error" in r.stderr, r.stdout + r.stderr
++    else:
++        assert re.search(rf"^{expected} .*: FAIL$", r.stdout, re.M), f"{name} did not fail {expected}:\n{r.stdout}"
+diff --git a/tests/host/p6_dbs_probe.cpp b/tests/host/p6_dbs_probe.cpp
+new file mode 100644
+index 0000000..35b3514
+--- /dev/null
++++ b/tests/host/p6_dbs_probe.cpp
+@@ -0,0 +1,219 @@
++// DBS pilot host replay (P6-DBS-PILOT-CRITERIA-v1). Product v9 path: 40 kHz int16 mono PCM ->
++// k1_poly24 (24 kHz / 180) -> InhouseAudio (with the shared spectral-detail producer) -> one
++// InhouseWaveformRenderer per board at the 10 ms render period, v9 boot composition controls
++// (lower mode 32 palette 32, upper mode 18 palette 39, speed 0.5, mirror on), board 0 detail
++// arm/strength from argv, board 1 always off. Built WITHOUT K1_INHOUSE_V9_HOST_VARIANTS, so
++// the renderer constants are the product constants. Not modelled: donor admission, display
++// stage and the wire packer (identical for every arm; the deposit is the measured operation).
++//
++// Host-only additions, never in the product image:
++//   arm 1 (onset): OnsetBeat over each accepted publication's pre-gain linear_shape, exactly as
++//     tests/host/p6_onset_pre_agc.cpp; its transient_strength is the maximum over the
++//     generations board 0 has not read, injected into InhouseWaveformAudio::detail.onset.
++//   plants (metric validity, arm 2 only): uniform | random | oracle overwrite detail.full_bank
++//     with p50 / seeded U(p50,p95) / (p95 within 0..30 ms after a listed onset else p50).
++//
++//   p6_dbs_probe in.s16 out_prefix arm strength [plant onsets.txt offset_s scale]
++// Writes <out_prefix>.ticks.csv (both boards), <out_prefix>.hops.csv (producer record per
++// accepted hop) and <out_prefix>.frames.bin (board 0 then board 1 Pixel16 per tick).
++#include "inhouse_audio.h"
++#include "core/audio/onset_beat.h"
++#include "core/visual/inhouse_waveform.h"
++#include "k1_poly24.h"
++#include "pdm_target.h"
++
++#include <algorithm>
++#include <cmath>
++#include <cstdint>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <deque>
++#include <random>
++#include <string>
++#include <vector>
++
++using k1::core::visual::InhouseWaveformAudio;
++using k1::core::visual::InhouseWaveformControls;
++using k1::core::visual::InhouseWaveformRenderer;
++using k1::core::visual::Pixel16;
++
++namespace {
++struct Hop final { k1_audio_hop_t hop; std::uint64_t capture_us; };
++}  // namespace
++
++int main(int argc, char** argv) {
++  if (argc != 5 && argc != 9) {
++    std::fprintf(stderr, "usage: p6_dbs_probe in.s16 out_prefix arm(0-4) strength [plant onsets.txt offset_s scale]\n");
++    return 2;
++  }
++  const int arm = std::atoi(argv[3]);
++  const float strength = std::strtof(argv[4], nullptr);
++  if (arm < 0 || arm > 4 || !(strength >= 0.0F && strength <= 0.25F)) return 2;
++  const std::string plant = argc == 9 ? argv[5] : "none";
++  if (plant != "none" && plant != "uniform" && plant != "random" && plant != "oracle") return 2;
++  if (plant != "none" && arm != 2) return 2;
++  std::vector<double> onsets;
++  double offset = 0.0, scale = 1.0;
++  if (argc == 9) {
++    offset = std::strtod(argv[7], nullptr);
++    scale = std::strtod(argv[8], nullptr);
++    if (std::FILE* f = std::fopen(argv[6], "r")) {
++      for (double t; std::fscanf(f, "%lf", &t) == 1;) onsets.push_back(t);
++      std::fclose(f);
++    } else if (plant == "oracle") return 3;
++  }
++
++  std::FILE* in = std::fopen(argv[1], "rb");
++  if (!in) return 3;
++  std::vector<std::int16_t> pcm;
++  for (std::int16_t s; std::fread(&s, 2, 1, in) == 1;) pcm.push_back(s);
++  std::fclose(in);
++  const std::string prefix = argv[2];
++  std::FILE* ticks = std::fopen((prefix + ".ticks.csv").c_str(), "w");
++  std::FILE* hops = std::fopen((prefix + ".hops.csv").c_str(), "w");
++  std::FILE* bin = std::fopen((prefix + ".frames.bin").c_str(), "wb");
++  if (!ticks || !hops || !bin) return 3;
++
++  static k1::titan::InhouseAudio audio;
++  audio.reset();
++  k1::titan::InhouseAudioConfig config{};
++  config.analysis_rate_hz = k1::titan::kInhouseAnalysis24Rate;
++  if (!audio.configure(config)) return 5;
++  // Same setup as p6_effect_probe.cpp (both boards demand tempo; renderers reset).
++  audio.setTempoDemand(0, true);
++  audio.setTempoDemand(1, true);
++  static k1_poly24_t poly;
++  k1_poly24_reset(&poly, 40000U);
++  k1::core::audio::OnsetBeat onset;
++  std::vector<float> onset_by_generation;  // index = generation
++  std::uint64_t onset_read_generation = 0;  // board 0 host cursor for the onset injection
++  static InhouseWaveformRenderer renderer[2];
++  renderer[0].reset();
++  renderer[1].reset();
++  InhouseWaveformControls controls[2];
++  for (unsigned b = 0; b < 2; ++b) { controls[b].motion_scale = 0.5F * 2.0F; controls[b].mirror = true; }
++  controls[0].mode = 32; controls[0].palette_id = 32 - 1;
++  controls[1].mode = 18; controls[1].palette_id = 39 - 1;
++  controls[0].detail_arm = static_cast<std::uint8_t>(arm);
++  controls[0].detail_strength = strength;
++  k1::titan::InhouseAudioCursor cursor[2]{};
++  static Pixel16 frame[2][160];
++  std::mt19937 rng(20261015U);
++  std::uniform_real_distribution<float> unit(0.0F, 1.0F);
++  const auto cal = k1::core::visual::kInhouseDetailCalFullBank;
++
++  std::fprintf(ticks, "t_s,board,fresh_audio,silence,level,position,scroll_steps,deposit_peak,"
++                      "detail_attack,detail_gain,detail_valid,detail_fresh,detail_generation,"
++                      "partition_generation,intensity_mean\n");
++  std::fprintf(hops, "t_s,generation,capture_us,publish_us,valid,primed,quiet,support,full_bank,"
++                     "static16,adaptive16,partition_generation,selection_update,onset_transient\n");
++  constexpr unsigned kSlot = 296U;
++  constexpr std::uint64_t kOriginUs = 1000000U;
++  constexpr std::uint64_t kRenderUs = 10000U;
++  std::deque<Hop> queue;
++  std::uint64_t hop_seq = 0, next_tick = kOriginUs + kRenderUs;
++  for (std::size_t at = 0; at + kSlot <= pcm.size(); at += kSlot) {
++    if (k1_poly24_push(&poly, &pcm[at], kSlot) != k1_poly24_ok) return 6;
++    Hop h{};
++    while (k1_poly24_pull180(&poly, h.hop.pcm) == k1_poly24_ok) {
++      h.hop.contract_version = K1_PDM_TARGET_AUDIO_CONTRACT_VERSION;
++      h.hop.samples = K1_POLY24_OUT_FRAMES;
++      h.hop.analysis_rate_hz = K1_POLY24_OUT_HZ;
++      h.hop.stream_epoch = 1U;
++      h.hop.hop_sequence = hop_seq + 1U;
++      h.hop.analysis_begin = hop_seq * K1_POLY24_OUT_FRAMES;
++      h.hop.analysis_end_exclusive = h.hop.analysis_begin + K1_POLY24_OUT_FRAMES;
++      ++hop_seq;
++      h.capture_us = kOriginUs + h.hop.analysis_end_exclusive * 1000000ULL / K1_POLY24_OUT_HZ;
++      h.hop.capture_estimate_valid = 1;
++      h.hop.newest_sample_capture_estimate_us = h.capture_us;
++      queue.push_back(h);
++    }
++    const std::uint64_t now = kOriginUs + (at + kSlot) * 1000000ULL / 40000ULL;
++    while (next_tick <= now) {
++      const std::uint64_t tick = next_tick;
++      next_tick += kRenderUs;
++      while (!queue.empty() && queue.front().capture_us <= tick) {
++        const auto hop = queue.front();
++        queue.pop_front();
++        if (!audio.consume(hop.hop, hop.capture_us, true)) continue;
++        const std::uint64_t publish_us = std::min(hop.capture_us + 100U, tick);
++        audio.stampPublication(publish_us);
++        const auto& pub = audio.latest();
++        const auto& rec = audio.detailRecord();
++        float transient = 0.0F;
++        if (pub.valid) {
++          // Host comparator: OnsetBeat over this accepted publication's pre-gain bank (board 0).
++          InhouseWaveformAudio view{};
++          k1::titan::InhouseAudioCursor scratch{};
++          (void)audio.acquire(scratch, publish_us, 50000U, view, 0);
++          const bool quiet = view.silence && view.raw_rms < view.quiet_entry_rms;
++          k1::contract::AudioFeaturesV1 features{};
++          float energy = 0.0F, low = 0.0F;
++          for (unsigned bin = 0; bin < 80U; ++bin) { features.spectrum[bin] = view.linear_shape[bin]; energy += view.linear_shape[bin]; }
++          for (unsigned bin = 1; bin < 25U; ++bin) low += view.linear_shape[bin];
++          features.spectral_energy = energy / 80.0F;
++          features.novelty = view.novelty;
++          features.low_energy = low / 24.0F;
++          features.peak_scaled = std::clamp(view.peak_scaled, 0.0F, 1.0F);
++          features.nyquist_safe_bin_hi = 80;
++          features.source_frame_ms = static_cast<std::uint32_t>(hop.capture_us / 1000U);
++          features.event_flags = quiet ? k1::contract::kEventSilence : 0U;
++          features.validity_flags = k1::contract::kValidSpectrum;
++          if (view.valid) transient = onset.update(features).transient_strength;
++        }
++        if (onset_by_generation.size() <= pub.generation) onset_by_generation.resize(pub.generation + 1U, 0.0F);
++        onset_by_generation[pub.generation] = transient;
++        std::fprintf(hops, "%.6f,%llu,%llu,%llu,%d,%d,%d,%u,%.8g,%.8g,%.8g,%llu,%d,%.8g\n",
++                     static_cast<double>(hop.capture_us - kOriginUs) / 1.0e6,
++                     static_cast<unsigned long long>(rec.generation), static_cast<unsigned long long>(rec.capture_us),
++                     static_cast<unsigned long long>(rec.publish_us), rec.valid ? 1 : 0, rec.primed ? 1 : 0,
++                     rec.quiet ? 1 : 0, rec.support, rec.full_bank_mean_change, rec.static_partition.strength,
++                     rec.adaptive_partition.strength, static_cast<unsigned long long>(rec.partition_generation),
++                     rec.selection_update ? 1 : 0, transient);
++      }
++      const double t_s = static_cast<double>(tick - kOriginUs) / 1.0e6;
++      for (unsigned b = 0; b < 2; ++b) {
++        InhouseWaveformAudio a{};
++        (void)audio.acquire(cursor[b], tick, 50000U, a, b);
++        const bool confirmed_quiet = a.silence && a.raw_rms < a.quiet_entry_rms;
++        a.silence = confirmed_quiet;
++        a.peak_scaled = std::clamp(a.peak_scaled, 0.0F, 1.0F);
++        a.vu_level = std::clamp(a.vu_level, 0.0F, 1.0F);
++        a.vu_average = std::clamp(a.vu_average, 0.0F, 1.0F);
++        a.observed_peak_scaled = std::clamp(a.observed_peak_scaled, 0.0F, 1.0F);
++        if (b == 0U) {
++          // Onset injection: maximum over generations board 0 has not yet read (host cursor).
++          float m = 0.0F;
++          for (std::uint64_t g = onset_read_generation + 1U; g <= a.generation && g < onset_by_generation.size(); ++g)
++            m = std::max(m, onset_by_generation[g]);
++          if (a.generation > onset_read_generation) onset_read_generation = a.generation;
++          a.detail.onset = m;
++          if (plant != "none" && a.detail.valid) {
++            float x = cal.p50;
++            if (plant == "random") x = cal.p50 + unit(rng) * (cal.p95 - cal.p50);
++            if (plant == "oracle") {
++              const double song = (t_s - offset) / scale;
++              for (double o : onsets) if (song >= o && song <= o + 0.030) { x = cal.p95; break; }
++            }
++            a.detail.full_bank = x;
++            a.detail.fresh = true;
++          }
++        }
++        if (!renderer[b].render(a, controls[b], tick, frame[b], 160)) std::memset(frame[b], 0, sizeof frame[b]);
++        std::fwrite(frame[b], sizeof(Pixel16), 160, bin);
++        const auto& o = renderer[b].observation();
++        std::fprintf(ticks, "%.6f,%u,%d,%d,%.8g,%.8g,%u,%.8g,%.8g,%.8g,%d,%d,%llu,%llu,%.8g\n", t_s, b,
++                     o.input_fresh ? 1 : 0, a.silence ? 1 : 0, o.level, o.position, o.scroll_steps,
++                     o.deposit_peak, o.detail_attack, o.detail_gain, a.detail.valid ? 1 : 0,
++                     a.detail.fresh ? 1 : 0, static_cast<unsigned long long>(a.detail.generation),
++                     static_cast<unsigned long long>(a.detail.partition_generation), o.intensity_mean);
++      }
++    }
++  }
++  std::fclose(ticks);
++  std::fclose(hops);
++  std::fclose(bin);
++  return 0;
++}

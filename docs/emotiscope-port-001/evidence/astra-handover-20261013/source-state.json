@@ -1,0 +1,347 @@
+{
+  "recorded_at": "2026-10-13T14:01:34.781979+00:00",
+  "scope": "read-only filesystem handover snapshot; no fresh device readback or physical acceptance",
+  "repositories": {
+    "U": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM",
+      "head": "d7a6072fe4d470b06ee0da2427b92be4584528f0",
+      "branch": "main",
+      "status": " M Kx-Titan\n",
+      "tracked_diff_sha256": "e5547f08c320122eab6d8d401f14454d2337456349d0186672d87e2dfd827b57"
+    },
+    "F": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001",
+      "head": "71404c46d62b193f3689e0737e8ca51db7a120d5",
+      "branch": "feat/titan-emotiscope-port-001",
+      "status": " M docs/emotiscope-port-001/CURRENT-STATE.md\n M docs/emotiscope-port-001/evidence/audio-windows-001/manifest.json\n M docs/emotiscope-port-001/evidence/waveform-migration-001/capture_existing.py\n?? _scratch/\n?? docs/emotiscope-port-001/CANONICAL-AUDIO-PERFORMANCE-SUITE.md\n?? docs/emotiscope-port-001/evidence/arm-palette-001/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-001/build.log\n?? docs/emotiscope-port-001/evidence/arm-palette-001/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-001/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-001/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-001/stage/\n?? docs/emotiscope-port-001/evidence/arm-palette-001/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-002/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-002/build.log\n?? docs/emotiscope-port-001/evidence/arm-palette-002/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-002/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-002/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-002/stage/\n?? docs/emotiscope-port-001/evidence/arm-palette-002/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-003/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-003/build.log\n?? docs/emotiscope-port-001/evidence/arm-palette-003/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-003/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-003/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-palette-003/stage/\n?? docs/emotiscope-port-001/evidence/arm-palette-003/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-port-001/build.log\n?? docs/emotiscope-port-001/evidence/arm-port-001/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-port-001/stage/\n?? docs/emotiscope-port-001/evidence/arm-port-002/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-port-002/build.log\n?? docs/emotiscope-port-001/evidence/arm-port-002/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-port-002/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-port-002/stage/\n?? docs/emotiscope-port-001/evidence/arm-port-002/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-port-003/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-port-003/build.log\n?? docs/emotiscope-port-001/evidence/arm-port-003/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-port-003/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-port-003/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-port-003/stage/\n?? docs/emotiscope-port-001/evidence/arm-port-003/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-port-004/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-port-004/build.log\n?? docs/emotiscope-port-001/evidence/arm-port-004/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-port-004/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-port-004/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-port-004/stage/\n?? docs/emotiscope-port-001/evidence/arm-port-004/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-precision-001/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-precision-001/build.log\n?? docs/emotiscope-port-001/evidence/arm-precision-001/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-precision-001/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-precision-001/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-precision-001/stage/\n?? docs/emotiscope-port-001/evidence/arm-precision-001/symbols.txt\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/attributes.txt\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/build.log\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/compiler-macros.txt\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/disassembly.txt\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/emotiscope-object-undefined.txt\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/stage/\n?? docs/emotiscope-port-001/evidence/arm-smc-controls-001/symbols.txt\n?? docs/emotiscope-port-001/evidence/audio-windows-001/boom-0-75s-derivation.json\n?? docs/emotiscope-port-001/evidence/audio-windows-001/derive_boom.py\n?? docs/emotiscope-port-001/evidence/captain-broker-recovery-20260930-01/live-fader-observation-001.json\n?? docs/emotiscope-port-001/evidence/captain-host-repair-20260929-01/controller-live-window-001.json\n?? docs/emotiscope-port-001/evidence/instrument-v1-captain-sweep-01/\n?? docs/emotiscope-port-001/evidence/instrument-v1-captain-sweep-02/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/legacy_deadline\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/legacy_deadline-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/legacy_deadline-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/legacy_deadline.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/legacy_deadline.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/missing_sample_contract\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/missing_sample_contract-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/missing_sample_contract-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/missing_sample_contract.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/missing_sample_contract.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/normal\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/normal-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/normal-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/normal.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/normal.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/test_emotiscope_live_bridge.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/wrong_media_rate\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/wrong_media_rate-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/wrong_media_rate-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/wrong_media_rate.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-001/wrong_media_rate.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/legacy_deadline\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/legacy_deadline-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/legacy_deadline-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/legacy_deadline.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/legacy_deadline.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/missing_sample_contract\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/missing_sample_contract-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/missing_sample_contract-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/missing_sample_contract.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/missing_sample_contract.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/normal\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/normal-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/normal-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/normal.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/normal.dSYM/\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/test_emotiscope_live_bridge.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/wrong_media_rate\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/wrong_media_rate-build.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/wrong_media_rate-run.log\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/wrong_media_rate.cpp\n?? docs/emotiscope-port-001/evidence/live-bridge-host-002/wrong_media_rate.dSYM/\n?? docs/emotiscope-port-001/evidence/parked-20260929/old-tracked.patch\n?? docs/emotiscope-port-001/evidence/preflight-live-002/\n?? docs/emotiscope-port-001/evidence/preflight-usb-001/\n?? docs/emotiscope-port-001/evidence/programme-port-003-console.log\n?? docs/emotiscope-port-001/evidence/programme-port-004-console.log\n?? docs/emotiscope-port-001/evidence/target-disconnect-return-004/\n?? docs/emotiscope-port-001/evidence/visible-ab-intensity-20261011/\n?? docs/emotiscope-port-001/evidence/waveform-migration-001/capture_av_validation.py\n?? docs/emotiscope-port-001/evidence/waveform-migration-001/test_capture_av.py\n?? tests/host/test_fixture_capture_pressure.cpp\n?? tests/host/test_fixture_capture_pressure.py\n",
+      "tracked_diff_sha256": "e764175f56201ce26594f7dcb2a072d0f75922dfae4fad5cc7c389002d52b764"
+    },
+    "R": {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware",
+      "head": "be0a97e31ff51f65bdc5b6b0081585acdf88c32b",
+      "branch": "fix/b489-ws2816-reference-capture",
+      "status": " M .claude/skills/claude-mem-router/SKILL.md\n?? \"Claude outputs/\"\n?? tools/k1live/\n",
+      "tracked_diff_sha256": "deb9b2daa0cd579f6f5721dcd74e10fb4c21065e2d5f3a2a30ed809abaebb108"
+    },
+    "H": {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001",
+      "head": "eb3f78538c2bca10f9b2eb8b81ab159d22ad63c2",
+      "branch": "feat/smc-titan-control-001",
+      "status": " M AGENTS.md\n M docs/execution/SMC-TITAN-CONTROL-001-GATES.md\n M docs/execution/SMC-TITAN-CONTROL-001.md\n?? CLAUDE.md\n?? docs/evidence/\n?? docs/execution/SMC-TITAN-CONTROL-001-DISPATCH.md\n?? docs/execution/SMC-TITAN-CONTROL-001-INDEPENDENT-REVIEW-20260926.md\n?? docs/execution/SMC-TITAN-CONTROL-001-REVIEW-R2-20260926.md\n?? docs/execution/SMC-TITAN-CONTROL-001-REVIEW-R3-20260926.md\n?? docs/execution/SMC-TITAN-CONTROL-001-REVIEW-R4-20260926.md\n?? docs/execution/SMC-TITAN-CONTROL-001-REVIEW-R5-20260926.md\n?? docs/execution/SMC-TITAN-CONTROL-001-case-verifier-contract.v1.json\n?? docs/execution/SMC-TITAN-HARDWARE-TEST-001.md\n?? docs/execution/SMC-TITAN-R6-FAULT6-EXECUTE-NOW.md\n?? docs/execution/SMC-TITAN-RESTORE-PROVEN-BUILD-RECIPE.md\n?? docs/execution/SMC-TITAN-STAGE-B-EXECUTE-NOW.md\n?? docs/execution/SMC-TITAN-STANDING-DEPLOYMENT-AUTHORITY.md\n?? host/titan_control/tools/smc-ble-monitor\n?? reports/\n",
+      "tracked_diff_sha256": "6c8f585432ffbec7a965da05d312f6cbf8747fb8384da311666418c01616e523"
+    }
+  },
+  "files": [
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM/HANDOFF.md",
+      "exists": true,
+      "size": 119519,
+      "sha256": "e1550c373d263601ecc3d294b7f83f02e6faa5a8d07c3342f09dc7d25138a3e5"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM/docs/lightshow-loop/README.md",
+      "exists": true,
+      "size": 1884,
+      "sha256": "6bf3298675d5d2d27ee39d9b7acecfe43b1cbc44726e52490ae66d1c885d9bf1"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/INHOUSE-WAVEFORM-MIGRATION-20261012.md",
+      "exists": true,
+      "size": 133592,
+      "sha256": "92102c92dcc072d13cf815fc6512a91b76d31a903d13408203c3ef9e9232ca37"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/CONTINUOUS-BLOOM-PHYSICAL-20261012.md",
+      "exists": true,
+      "size": 26104,
+      "sha256": "14eb5d9f341ee02a44c6dbe95dbb81bc8117e4d54bd0dccddaaa77e670f5adc5"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/CANONICAL-AUDIO-PERFORMANCE-SUITE.md",
+      "exists": true,
+      "size": 37568,
+      "sha256": "cae7bcf0023167d9edbaf3bfbfaa1c8b3ce0aa95583be8c769c18d6efc9f9ec9"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/CURRENT-STATE.md",
+      "exists": true,
+      "size": 44464,
+      "sha256": "e6b27b7d2e7a567010c1bbf601ae1d8e1c3c3c8bcc343ace5ad6cde5593796f3"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/docs/handover/HANDOVER_2026-10-13_B489_WS2816_REFERENCE.md",
+      "exists": true,
+      "size": 10124,
+      "sha256": "54c4c879ad61caedb7e8e717249793926d954182830bc8cc83f6ca73127e6f22"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/docs/hardware/im69d130-board-wiring-from-eda-2026-08-05.md",
+      "exists": true,
+      "size": 9473,
+      "sha256": "86c3cb177025badfd0ac9a447a75b19a89fd8884acf67eeccda410a36df0931f"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/docs/forensics/G1_AP_INPUT_SLOT_RATIFICATION_2026-08-15.md",
+      "exists": true,
+      "size": 5392,
+      "sha256": "cd8b5f44b7e74386e1eb3ad2fe6a935213fad3e325ba2024c4947b87ad00a868"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/docs/forensics/P0_0_AP_INPUT_QUARANTINE_MANIFEST_2026-08-15.md",
+      "exists": true,
+      "size": 18447,
+      "sha256": "7f97c0819822c753cf2e771c78c4fbe0067b626a0bb3b532d0902ef971192799"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/docs/hardware/im69d130-dual-mic-learnings-2026-08-13.md",
+      "exists": true,
+      "size": 26024,
+      "sha256": "87195bcb3ccc01410bff0140f73df9abb1a27203a9db0079584ab1d11b16571e"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/.claude/skills/claude-mem-router/SKILL.md",
+      "exists": true,
+      "size": 4680,
+      "sha256": "f1f23f25747ca3f3f6f106b424d687808d6753035b04735c1556bd88b7275457"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/audio-windows-001/manifest.json",
+      "exists": true,
+      "size": 6543,
+      "sha256": "e1754a273572afbfa6c50b5e883a16e6198761f8a75d1295a50db1ab5e8fd611"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/audio-windows-001/derive_boom.py",
+      "exists": true,
+      "size": 12539,
+      "sha256": "f5086dbcabc220c2d81e33ff6a17a0d4239ff401261a79d8ccba74b85ddbd510"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/audio-windows-001/boom-0-75s-derivation.json",
+      "exists": true,
+      "size": 6831,
+      "sha256": "404b38f2d33f46357ac64d3d420ba432cb0a6730c4d9c16206b1ab4e0ecf5c0a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/waveform-migration-001/capture_existing.py",
+      "exists": true,
+      "size": 28410,
+      "sha256": "e8e35d7e797cbff6952a2668c536853a16d8a771ddae290291c4de5753dfb8eb"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/waveform-migration-001/capture_av_validation.py",
+      "exists": true,
+      "size": 10197,
+      "sha256": "c7170c81a8f5fcac492b11e26881fa020c018a8976d2e68d06632ba1422be733"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/waveform-migration-001/test_capture_av.py",
+      "exists": true,
+      "size": 4132,
+      "sha256": "9471e8c11434770603b5787c24cab7f856f679de351db1d7638fdcd9aa1cb02c"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tests/host/test_fixture_capture_pressure.cpp",
+      "exists": true,
+      "size": 7437,
+      "sha256": "ac0c0b09ab28e849d490b1a7840e8b64220d48265a0bef702e2277bb513c6f43"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tests/host/test_fixture_capture_pressure.py",
+      "exists": true,
+      "size": 7541,
+      "sha256": "e516772133a92c8c435460849275094bdd92bdc100485545a54090d2ba3572c1"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/visible-dual-20261011/product_camera.swift",
+      "exists": true,
+      "size": 9752,
+      "sha256": "3be43c1f90e006bc085fca509bf916e56bd00aa2f832a00a25db80f0db9b947d"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/visible-dual-20261011/product_camera",
+      "exists": true,
+      "size": 110616,
+      "sha256": "457681bbb2003c88de150d80eb048b0b38c28aa20efc99916c43f7bffad4b2ec"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/audio-boom-001/boom-0-75s-pcm16.wav",
+      "exists": true,
+      "size": 13230044,
+      "sha256": "09c9a02f439cbeb66f006cf5a973ae7988b5ef2e9ecdcf470c140d6918e63652"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/b489-ws2816-reference-20261013/original-flash-921600.bin",
+      "exists": true,
+      "size": 16777216,
+      "sha256": "25ecc4adb141d35186045af81991195efbefce81f0afe17968f7d0de913a6593"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/b489-ws2816-reference-20261013/original-app-app0.bin",
+      "exists": true,
+      "size": 6553600,
+      "sha256": "3d3b929e71b0d1ddc471f64f263a30c85aa38fc5a6c261dcef6087f376f9c226"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/b489-ws2816-reference-20261013/original-app-app1.bin",
+      "exists": true,
+      "size": 6553600,
+      "sha256": "5393d0abf56f98debbc69b85ff2d2f65a559fee7ff6c0f0fe4f694860431f568"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/b489-ws2816-reference-20261013/commit-gate-r3.log",
+      "exists": true,
+      "size": 1544,
+      "sha256": "bc277bcfb970943bda3ed831cc6157dbb78587b9a11ce43da66aa0aca2bf9d5e"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/b489-ws2816-reference-20261013/raw-input-observation.json",
+      "exists": true,
+      "size": 3139,
+      "sha256": "ec5f4999f3865095aa3de2e7e2883a1747d65540bbb4cc535d8cf9ceb4756ae5"
+    },
+    {
+      "path": "/Users/spectrasynq/SpectraSynq_K1_Firmware/_scratch/b489-ws2816-reference-20261013/post-backup-status.json",
+      "exists": true,
+      "size": 5868,
+      "sha256": "f9bbec5090ac6597f39ec2a6b248783e12f75adfee40d8c4afa01d42e1e827de"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/sonic-proof-001/original.mov",
+      "exists": true,
+      "size": 54614064,
+      "sha256": "98d5bba797007f9ceb2b89542f2dbede3dc5819c95c6ac489bc02dd3499387f9"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/sonic-proof-001/av-validation.json",
+      "exists": true,
+      "size": 3415,
+      "sha256": "0b03785390c2eb9d3cd5a7461d071618b59d99ad41cd6e091b1e64b4e67d3eb9"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/sonic-proof-001/before.json",
+      "exists": true,
+      "size": 55524,
+      "sha256": "026e85335c888b501577de2c52cf3d7044c3d03956db30b44e3c8230079f1b42"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/sonic-proof-001/after.json",
+      "exists": true,
+      "size": 17927,
+      "sha256": "129010d9999cc53ad0d7acb3761c73b891575a9728f18a588e15bebf95bdfe82"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/sonic-proof-001/events.json",
+      "exists": true,
+      "size": 2883,
+      "sha256": "580d0b39cbe54f98ab7f8e055b4d48014d16e5a58a5cf95c24b1561efcbf2e7f"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-baseline-001/original.mov",
+      "exists": true,
+      "size": 136617200,
+      "sha256": "5fee99a611c68641d8d7948c84f5a578f9b666032a0e20a0d64276278e91bf20"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-baseline-001/av-validation.json",
+      "exists": true,
+      "size": 3404,
+      "sha256": "fa789ce556fcfbd1abc2a40b5ce831fdec5d8497d09ccd34751cbed1dfcf7b8e"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-baseline-001/before.json",
+      "exists": true,
+      "size": 55519,
+      "sha256": "ac8c90f75ee769bbf8cdfc24492e55f0efc1b9f27e6032033ab8d01740bbdd41"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-baseline-001/after.json",
+      "exists": true,
+      "size": 17936,
+      "sha256": "d50b305bc086195cbbecd22b6d4af38b48eb0a7c8cb432d049361e0acc64123f"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-baseline-001/events.json",
+      "exists": true,
+      "size": 2892,
+      "sha256": "ff5f5182aa11ff06a65cd5017b78c32f4585435e52f2470be746480b389687ef"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-tempo-gold-baseline-001/original.mov",
+      "exists": true,
+      "size": 116513578,
+      "sha256": "477417dcd949a57db508a71bac2f59d2acd891ff433d398d54a8892dfa19028c"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-tempo-gold-baseline-001/av-validation.json",
+      "exists": true,
+      "size": 3420,
+      "sha256": "7f78287015f5d317b148bef9d911c68fc529c07b4f58e547104f99bbf9b26971"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-tempo-gold-baseline-001/before.json",
+      "exists": true,
+      "size": 56243,
+      "sha256": "931f33dac9a8c70e81ef9a21d14e68c8569caa4106fd23a666ef30c79aef317b"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-tempo-gold-baseline-001/after.json",
+      "exists": true,
+      "size": 18267,
+      "sha256": "eace4328db640c00d07c1ce2e469d64cf87dad5a9d5c33c500bef79b6fa46c3e"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-tempo-gold-baseline-001/events.json",
+      "exists": true,
+      "size": 2919,
+      "sha256": "f930f9675f9012920d34962e2828076ff59ec5aa1687fccfc45201cb0ae9940a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/camera-install.json",
+      "exists": true,
+      "size": 2032,
+      "sha256": "89150e82ab29869ec457a0078a50ba76d891f057372f44d5138a009b09a67168"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/top-tempo-crimson-gold-selection.json",
+      "exists": true,
+      "size": 17558,
+      "sha256": "759273e31a92a3d5b5cb33cd7cbb49e073394b3a705b30eb3730f8925e69a5ee"
+    }
+  ],
+  "s3_committed_change": "commit be0a97e31ff51f65bdc5b6b0081585acdf88c32b\nAuthor:     SpectraSynq <elroy@spectrasynq.com>\nAuthorDate: Tue Oct 13 21:51:44 2026 +0800\nCommit:     SpectraSynq <elroy@spectrasynq.com>\nCommitDate: Tue Oct 13 21:51:44 2026 +0800\n\n    fix: restore B489 WS2816 output and dual-edge capture\n\n .claude/handoff.md                                 |   2 +\n AGENT_OS.md                                        |   2 +\n SPECTRASYNQ_K1_FIRMWARE/audio/i2s_audio.h          |  12 +\n SPECTRASYNQ_K1_FIRMWARE/serial/serial_menu.cpp     |  17 ++\n SPECTRASYNQ_K1_FIRMWARE/system/config_types.h      |  10 +\n SPECTRASYNQ_K1_FIRMWARE/system/constants.h         |  18 +-\n SPECTRASYNQ_K1_FIRMWARE/system/globals.h           |  12 +-\n SPECTRASYNQ_K1_FIRMWARE/system/globals_config.cpp  |   2 +-\n SPECTRASYNQ_K1_FIRMWARE/system/system.h            |   2 +-\n .../visual/k1_b489_legacy_power.h                  |  77 ++++++\n SPECTRASYNQ_K1_FIRMWARE/visual/k1_render_trace.cpp | 268 +++++++++++++++-----\n SPECTRASYNQ_K1_FIRMWARE/visual/k1_render_trace.h   |  18 ++\n SPECTRASYNQ_K1_FIRMWARE/visual/led_utilities.h     | 143 ++++++++++-\n .../HANDOVER_2026-10-13_B489_WS2816_REFERENCE.md   | 162 ++++++++++++\n docs/spec-index.md                                 |   6 +-\n platformio.ini                                     |  15 ++\n progress.md                                        |   2 +\n scripts/agent/pio-build.sh                         |   4 +-\n scripts/platformio/k1_device_identities.json       |   6 +-\n scripts/regression-harness/golden/oracle_gdft.py   |   2 +-\n scripts/regression-harness/golden/oracle_render.py |   2 +-\n .../golden/oracle_serial_replay.py                 |   2 +-\n scripts/regression-harness/render_replay.py        |   2 +-\n .../regression-harness/score_rtrace_occupancy.py   | 133 ++++++++--\n tests/test_b489_legacy_power_host.cpp              | 130 ++++++++++\n tests/test_b489_legacy_power_host.py               |  94 +++++++\n tests/test_k1_upload_guard.py                      |   2 +\n tests/test_main_rpl_env_static.py                  |   2 +-\n tests/test_render_trace_static.py                  |   4 +-\n tests/test_rtrace_capture_host.py                  | 274 +++++++++++++++++++++\n tests/test_rtrace_occupancy_host.py                |  11 +-\n tests/test_serial_menu_odr_static.py               |   2 +-\n 32 files changed, 1333 insertions(+), 105 deletions(-)\n",
+  "s3_changed_paths": [
+    ".claude/handoff.md",
+    "AGENT_OS.md",
+    "SPECTRASYNQ_K1_FIRMWARE/audio/i2s_audio.h",
+    "SPECTRASYNQ_K1_FIRMWARE/serial/serial_menu.cpp",
+    "SPECTRASYNQ_K1_FIRMWARE/system/config_types.h",
+    "SPECTRASYNQ_K1_FIRMWARE/system/constants.h",
+    "SPECTRASYNQ_K1_FIRMWARE/system/globals.h",
+    "SPECTRASYNQ_K1_FIRMWARE/system/globals_config.cpp",
+    "SPECTRASYNQ_K1_FIRMWARE/system/system.h",
+    "SPECTRASYNQ_K1_FIRMWARE/visual/k1_b489_legacy_power.h",
+    "SPECTRASYNQ_K1_FIRMWARE/visual/k1_render_trace.cpp",
+    "SPECTRASYNQ_K1_FIRMWARE/visual/k1_render_trace.h",
+    "SPECTRASYNQ_K1_FIRMWARE/visual/led_utilities.h",
+    "docs/handover/HANDOVER_2026-10-13_B489_WS2816_REFERENCE.md",
+    "docs/spec-index.md",
+    "platformio.ini",
+    "progress.md",
+    "scripts/agent/pio-build.sh",
+    "scripts/platformio/k1_device_identities.json",
+    "scripts/regression-harness/golden/oracle_gdft.py",
+    "scripts/regression-harness/golden/oracle_render.py",
+    "scripts/regression-harness/golden/oracle_serial_replay.py",
+    "scripts/regression-harness/render_replay.py",
+    "scripts/regression-harness/score_rtrace_occupancy.py",
+    "tests/test_b489_legacy_power_host.cpp",
+    "tests/test_b489_legacy_power_host.py",
+    "tests/test_k1_upload_guard.py",
+    "tests/test_main_rpl_env_static.py",
+    "tests/test_render_trace_static.py",
+    "tests/test_rtrace_capture_host.py",
+    "tests/test_rtrace_occupancy_host.py",
+    "tests/test_serial_menu_odr_static.py"
+  ]
+}

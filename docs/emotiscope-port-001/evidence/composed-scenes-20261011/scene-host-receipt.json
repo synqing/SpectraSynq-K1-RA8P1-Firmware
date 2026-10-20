@@ -1,0 +1,72 @@
+{
+  "utc": "2026-10-11T13:29:51.249883+00:00",
+  "target": "host only",
+  "records": [
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-I.",
+        "harness/tests/test_composed_scene.cpp",
+        "platform/ra8p1/emotiscope_ml.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/test_composed_scene"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/test_composed_scene",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/frames.rgbf"
+      ],
+      "exit_code": 0,
+      "output": "scene switch/drain and call-answer host assertions passed\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/test_composed_scene",
+        "reconfigure"
+      ],
+      "exit_code": 0,
+      "output": "after answer config: caller scene=1 phase=3 gesture=3 first=1\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/test_composed_scene",
+        "phrase_reconfigure"
+      ],
+      "exit_code": 0,
+      "output": "rest while waiting: a_held=0 b_held=0 caller=2 answer=1\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/test_composed_scene",
+        "linked_bloom"
+      ],
+      "exit_code": 0,
+      "output": "linked Bloom at100ms: call energy=3.000 answer energy=0.000\n"
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_scene/test_composed_scene",
+        "mismatched_quiet"
+      ],
+      "exit_code": 0,
+      "output": "mismatched travel protected shared quiet=1\n"
+    }
+  ],
+  "sha256_inputs": {
+    "platform/ra8p1/composed_motion.h": "d15dcb0165ba0ec34219d1febb23faf549f4d755a998c5772abe7959c7ce36f6",
+    "platform/ra8p1/composed_scene_runtime.h": "b7150b0323f9dcf2eb5f18b1b3615f6cd569866c0917f02305f091da29599761",
+    "harness/tests/test_composed_scene.cpp": "f89b72b5f5466d6b87c84764d758cfe216df2629a523c55d88cad1085e0b0d59"
+  },
+  "image_sha256": "8fbfac901618a74bb80126e92206239259ac2a4fa71065ac9de5819dc15b8522"
+}

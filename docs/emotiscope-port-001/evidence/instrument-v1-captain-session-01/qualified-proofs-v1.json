@@ -1,0 +1,144 @@
+{
+  "identity": {
+    "driver": "com.apple.AppleMIDIBluetoothDriver",
+    "endpoint": "SMC-Mixer Bluetooth",
+    "peripheral_id": "9B4CCE67-9BA5-456D-EF69-451FC96D45F1",
+    "profile_sha256": "0eacc4b9bddbc8983d51aa0a5302007bddf45667d2359b51d741c2476256fe23",
+    "unique_id": -2057804531
+  },
+  "proofs": {
+    "Fader1": {
+      "dropped": 0,
+      "endpoint": "SMC-Mixer Bluetooth",
+      "epoch": [
+        "bluetooth",
+        1
+      ],
+      "events": 205,
+      "expected": [
+        0,
+        40
+      ],
+      "identity": {
+        "driver": "com.apple.AppleMIDIBluetoothDriver",
+        "endpoint": "SMC-Mixer Bluetooth",
+        "peripheral_id": "9B4CCE67-9BA5-456D-EF69-451FC96D45F1",
+        "profile_sha256": "0eacc4b9bddbc8983d51aa0a5302007bddf45667d2359b51d741c2476256fe23",
+        "unique_id": -2057804531
+      },
+      "label": "Fader1",
+      "observed": [
+        [
+          0,
+          40
+        ]
+      ],
+      "ok": true,
+      "raw_path": "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/reports/emotiscope-labelled-captures/Fader1-7fe8d5e1418d45e9a2384ae24f43cbb3.jsonl",
+      "raw_sha256": "9a4b28166f2912028464e14de8d6744ef9e089f416c8e89f19f613a5bd4183a5",
+      "reason": "isolated labelled gesture captured",
+      "seconds": 67.141446167,
+      "version": 1
+    },
+    "Fader4": {
+      "dropped": 0,
+      "endpoint": "SMC-Mixer Bluetooth",
+      "epoch": [
+        "bluetooth",
+        1
+      ],
+      "events": 184,
+      "expected": [
+        0,
+        43
+      ],
+      "identity": {
+        "driver": "com.apple.AppleMIDIBluetoothDriver",
+        "endpoint": "SMC-Mixer Bluetooth",
+        "peripheral_id": "9B4CCE67-9BA5-456D-EF69-451FC96D45F1",
+        "profile_sha256": "0eacc4b9bddbc8983d51aa0a5302007bddf45667d2359b51d741c2476256fe23",
+        "unique_id": -2057804531
+      },
+      "label": "Fader4",
+      "observed": [
+        [
+          0,
+          43
+        ]
+      ],
+      "ok": true,
+      "raw_path": "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/reports/emotiscope-labelled-captures/Fader4-5553219634e240f895524ae3d8352df4.jsonl",
+      "raw_sha256": "23468aa5289828a61a25271d21155a2fc415fd393ee157b2ef8edab380979f41",
+      "reason": "isolated labelled gesture captured",
+      "seconds": 91.478271542,
+      "version": 1
+    },
+    "R5": {
+      "dropped": 0,
+      "endpoint": "SMC-Mixer Bluetooth",
+      "epoch": [
+        "bluetooth",
+        1
+      ],
+      "events": 2,
+      "expected": [
+        1,
+        40
+      ],
+      "identity": {
+        "driver": "com.apple.AppleMIDIBluetoothDriver",
+        "endpoint": "SMC-Mixer Bluetooth",
+        "peripheral_id": "9B4CCE67-9BA5-456D-EF69-451FC96D45F1",
+        "profile_sha256": "0eacc4b9bddbc8983d51aa0a5302007bddf45667d2359b51d741c2476256fe23",
+        "unique_id": -2057804531
+      },
+      "label": "R5",
+      "observed": [
+        [
+          1,
+          40
+        ]
+      ],
+      "ok": true,
+      "raw_path": "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/reports/emotiscope-labelled-captures/R5-f2214272cfb04433a4c4f1572e74001b.jsonl",
+      "raw_sha256": "265fb2ce90f04eb4f3a89a5bed65fdb6214a523ff2d601ca79a53f62b6c6c8ee",
+      "reason": "isolated labelled gesture captured",
+      "seconds": 75.191977,
+      "version": 1
+    },
+    "R8": {
+      "dropped": 0,
+      "endpoint": "SMC-Mixer Bluetooth",
+      "epoch": [
+        "bluetooth",
+        3
+      ],
+      "events": 2,
+      "expected": [
+        1,
+        43
+      ],
+      "identity": {
+        "driver": "com.apple.AppleMIDIBluetoothDriver",
+        "endpoint": "SMC-Mixer Bluetooth",
+        "peripheral_id": "9B4CCE67-9BA5-456D-EF69-451FC96D45F1",
+        "profile_sha256": "0eacc4b9bddbc8983d51aa0a5302007bddf45667d2359b51d741c2476256fe23",
+        "unique_id": -2057804531
+      },
+      "label": "R8",
+      "observed": [
+        [
+          1,
+          43
+        ]
+      ],
+      "ok": true,
+      "raw_path": "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/reports/emotiscope-labelled-captures/R8-c04aa8e606c0492f80125ca7ae949aab.jsonl",
+      "raw_sha256": "750f863a9940003d4530e6c2cd230600aba5b35d804a598f408435e0db2e62ad",
+      "reason": "isolated labelled gesture captured",
+      "seconds": 7.968620333,
+      "version": 1
+    }
+  },
+  "version": 1
+}

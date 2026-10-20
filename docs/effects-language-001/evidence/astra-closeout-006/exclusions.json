@@ -1,0 +1,13 @@
+{
+  "registry": {
+    "path": "docs/evidence/K1-RA8P1-002/k1-swarm-20260924/TASK_REGISTRY.json",
+    "owner": "Earlier primary native Codex/Astra workflow binding in this effects lane",
+    "reason": "Preserve additive ORCH observer and blocked state without committing registry ownership alongside portable renderer",
+    "sha256": "19e346993a573cddd014d855c6be4c61a2565956f00999cb9eae50d877d72bd2",
+    "copy": "registry-working.json",
+    "patch": "registry-working.patch"
+  },
+  "local_artifacts": "local-artifacts.json",
+  "excluded_executable": "docs/effects-language-001/evidence/source-probe-002/probe",
+  "newer_renderer_edits": false
+}

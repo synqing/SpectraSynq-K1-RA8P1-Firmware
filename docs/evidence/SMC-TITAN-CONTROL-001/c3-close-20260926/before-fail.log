@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tools/serial-studio/tests/test_c3_close.py", line 258, in <module>
+    test_c3a_same_target_external_edit_does_not_overwrite()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/tools/serial-studio/tests/test_c3_close.py", line 119, in test_c3a_same_target_external_edit_does_not_overwrite
+    assert applied == []
+           ^^^^^^^^^^^^^
+AssertionError

@@ -11,7 +11,7 @@ extern "C" {
    Pair success requires both DMA complete, both hardware stops, and both
    reset intervals. DMA-complete alone never credits the pair. */
 
-#define K1_WS281X_PAIR_LANE_BYTES 480u
+#define K1_WS281X_PAIR_LANE_BYTES (K1_WS281X_WAVE_MAX_PIXELS_WS2816 * 6u)
 #define K1_WS281X_PAIR_PROFILE_WS2816C 3u
 
 enum {

@@ -13,7 +13,9 @@ extern "C" {
 
 #define K1_PDM_CAPTURE_ADAPTER_ID "k1-ra8p1-pdm-capture-v1"
 #define K1_PDM_MAX_REQUESTED_FRAMES 16000u
+#ifndef K1_PDM_STREAM_SLOT_COUNT
 #define K1_PDM_STREAM_SLOT_COUNT 2u
+#endif
 #define K1_PDM_STREAM_NO_SLOT 0xFFFFFFFFu
 
 enum {

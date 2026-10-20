@@ -1,0 +1,24 @@
+{
+  "schema": "titan.p4.corrections.tolerance/1",
+  "package": "P4 analysis rate, required corrections 1-2 (REVIEW.md) plus F9",
+  "written_before_results": "Written before the correction image exists. Prior evidence that motivates it (already on record, not a result of this image): since-boot capture_service.poll_max_cycles 8,655,499 on 5f1483e8 and 8,664,475 on f2f1983a, both above one PDM slot.",
+  "frozen_reference": "TOLERANCE-FROZEN-analysis24.json (sha 7841d4fb...) stays frozen and is re-run unchanged; this file adds criteria, it does not edit that one.",
+  "host": {
+    "H1_design_equivalence": "New k1_poly24 design (offline Kaiser window table + sinc by rotation recurrence) against the previous on-device formula, same source rate, rates 36000, 40000, 41417, 44000 Hz: max |coefficient difference| <= 2e-6 over all 129 x 96 taps.",
+    "H2_analysis24_gate_unchanged": "scripts/p4_analysis24_gate.py against TOLERANCE-FROZEN-analysis24.json passes all gates (i)-(iv) with the new design, criteria unchanged.",
+    "H3_poly24_tests": "tests/host/test_poly24.py all pass.",
+    "H4_long_index": "Capture-lag arithmetic is wrap-safe: for newest/content source indices near 2^32, 2^33 and 2^40 the computed lag equals the exact integer lag (newest - content) to the Q32 bit, and content-after-newest is reported invalid. A planted non-modular version must fail the same test.",
+    "H5_window_table_guard": "The generated window table matches the Kaiser formula (beta 7, 96 taps, 129 phases) to <= 1e-6 and a planted single-entry edit fails the check."
+  },
+  "device": {
+    "image": "P4-correction image: f2f1983a build flags and sources plus only (a) counter export, (b) design-cost fix, (c) F9 wrap fix. Deployed only via deploy_titan_image.sh; readback 127 fields, 0 diffs.",
+    "D1_stall": "MIR snapshot after the BOOM capture: since-boot capture_service.poll_max_cycles < 7150000 (one PDM slot, 7.15 ms at 1 GHz) AND donor stream_epoch == 1 (no logical-stream reset since boot).",
+    "D2_design_cost_reported": "MIR snapshot reports poly24 design count and max design cycles since boot; reported, no threshold beyond D1.",
+    "D3_analysis24_loss": "k1_pdm_target_analysis24_drops and the 24 kHz epoch read in MIR snapshots taken before and after the BOOM 0-75 s capture: drops delta == 0 and epoch unchanged.",
+    "D4_resampler_cycles": "poly24 cycles (push + pull, k1_pdm_target_take_analysis24_cycles) reported on their own per donor hop: p50, p99, max over BOOM 28-75 s. Reported, no threshold.",
+    "D5_no_regression": "titan_cost_capture.py BOOM: no fault, loss or skipped frame on existing counters; p4_cost_compare.py against f2f1983a: in-house p50 within +-3 percent, VP/emit/queue p50 within +-3 percent."
+  },
+  "failure_handling": "Any device criterion failing: recover to f2f1983a (recovery image), record the failure, do not widen. This file is never edited after freezing.",
+  "frozen_utc": "2026-10-14T12:11:59Z",
+  "frozen_sha256": "8780cd10e50adab786c9871917d8d61a635d13c9a4196b65e3093b572fbb6ce9"
+}

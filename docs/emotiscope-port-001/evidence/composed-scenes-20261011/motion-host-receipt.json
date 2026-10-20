@@ -1,0 +1,70 @@
+{
+  "utc": "2026-10-11T13:29:49.947811+00:00",
+  "target": "host only",
+  "records": [
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wdouble-promotion",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-I.",
+        "harness/tests/test_composed_motion.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_motion/test_composed_motion"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_motion/test_composed_motion",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_motion/frames.rgbf"
+      ],
+      "exit_code": 0,
+      "output": "composed motion assertions passed; Renderer bytes=23432; host only\n"
+    },
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-Wdouble-promotion",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_motion/mutant",
+        "-I.",
+        "harness/tests/test_composed_motion.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_motion/test_composed_motion_mutant"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_motion/test_composed_motion_mutant"
+      ],
+      "exit_code": -6,
+      "output": "Assertion failed: (!tail.quiet()), function main, file test_composed_motion.cpp, line 21.\n"
+    }
+  ],
+  "sha256_inputs": {
+    "platform/ra8p1/composed_motion.h": "d15dcb0165ba0ec34219d1febb23faf549f4d755a998c5772abe7959c7ce36f6",
+    "harness/tests/test_composed_motion.cpp": "d0542c9b3229f47eda848f953f3450b0bffd0c58832ee4eb37f2ebe4fe58b024"
+  },
+  "sha256_outputs": {
+    "frames.rgbf": "04642f0532b304795883a49036d98f7fccf7465677d4f5b6ca8ead8d37080c82",
+    "host-frames.png": "257c5bab495eedb7ded5dd852ee1a7d893ad82b02b506fe1a4462a0cc162bd94"
+  }
+}

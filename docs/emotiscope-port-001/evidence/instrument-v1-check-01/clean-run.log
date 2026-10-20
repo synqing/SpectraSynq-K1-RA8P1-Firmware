@@ -1,0 +1,99 @@
+== interpreters
+host:     /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/.venv/bin/python (Python 3.13.11)
+firmware: /opt/homebrew/opt/python@3.14/bin/python3.14 (Python 3.14.7)
+== worktrees
+F /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001 HEAD=3c7eb8e tracked-dirty=1 (feat/titan-emotiscope-port-001)
+S /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001 HEAD=db9fcce tracked-dirty=3 (feat/smc-titan-control-001)
+== output /tmp/check-instrument.ghofdE
+
+== S host suite (run_tests.py, pytest)
+............................................s........................... [ 42%]
+........................................................................ [ 84%]
+......................s...                                               [100%]
+168 passed, 2 skipped in 1.84s
+
+== F serial-studio broker suite
+........................................................................ [ 25%]
+........................................................................ [ 51%]
+........................................................................ [ 77%]
+...............................................................          [100%]
+=============================== warnings summary ===============================
+tools/serial-studio/tests/test_ss03_lock.py::test_tiocexcl_scope_on_pty
+  /Users/spectrasynq/Library/Python/3.14/lib/python/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tools/serial-studio/tests/test_ss03_lock.py::test_tiocexcl_scope_on_pty returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+279 passed, 1 warning in 58.18s
+
+== F live protocol
+clang++: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+clang++: warning: treating 'c' input as 'c++' when in C++ mode, this behavior is deprecated [-Wdeprecated]
+LIVE_PROTOCOL_HOST_PASS snap=1184 events=256 timing=120 schema=229c40d80d70915acd2ef5645bbd687477889b40f807ec847c2d2a384130fb10
+status=0 ch=1 req=99 a=0.110000 b=0.370000 emit=0
+LIVE_PROTOCOL_PY_PASS 229c40d80d70915acd2ef5645bbd687477889b40f807ec847c2d2a384130fb10
+R4_CONSUMPTION_PREVIEW_PASS
+R4_CONSUMPTION_EFFECT_PASS
+R4_CONSUMPTION_DWELL_PASS
+R4_CONSUMPTION_PENDING_PASS
+R4_CONSUMPTION_PASS
+LIVE_BOOT_IDENTITY_HOST_PASS first=1 second=2 crossed=16777216
+
+== F Emotiscope controls codec
+{"pass": true, "result": "/private/tmp/check-instrument.ghofdE/controls/result.json"}
+
+== F Emotiscope output path
+{
+  "host_output_checks_satisfied": true,
+  "result": "/private/tmp/check-instrument.ghofdE/output/result.json",
+  "cases": [
+    {
+      "name": "output-compile",
+      "exit": 0
+    },
+    {
+      "name": "markers",
+      "exit": 0
+    },
+    {
+      "name": "direct",
+      "exit": 0
+    },
+    {
+      "name": "runtime",
+      "exit": 0
+    },
+    {
+      "name": "direct-donor-to-production-packer",
+      "exit": 0
+    },
+    {
+      "name": "wrong-lane-split-binary-compile",
+      "exit": 0
+    },
+    {
+      "name": "wrong-lane-split",
+      "exit": 2
+    },
+    {
+      "name": "double-global-brightness-binary-compile",
+      "exit": 0
+    },
+    {
+      "name": "double-global-brightness",
+      "exit": 2
+    },
+    {
+      "name": "second-gamma-binary-compile",
+      "exit": 0
+    },
+    {
+      "name": "second-gamma",
+      "exit": 2
+    }
+  ],
+  "error": null
+}
+
+CHECK_INSTRUMENT PASS

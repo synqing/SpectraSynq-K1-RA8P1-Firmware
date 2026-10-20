@@ -1,0 +1,17 @@
+{
+  "scope": "Documentation/source snapshot integrity only",
+  "execution_receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/76fac0584e65d4605b32377960ca4518d7c0e89a57ef6bef8f45a7db2508280b.json",
+  "exit_code": 0,
+  "checks": [
+    "Original assessment prefix unchanged",
+    "Exact approved final-message plan retained",
+    "M00-M24 present",
+    "14 entry-file snapshots match hashes",
+    "Golden binary and four recovery HEX/ELF hashes match",
+    "git diff --check"
+  ],
+  "inspection": "Append-only diff inspected; images N/A for this documentation-only task",
+  "workflow_accept": "Refused: Bind an assignment before admission",
+  "workflow_gate": "No task ledger bound; not a completion certificate",
+  "physical_acceptance": "OPEN; no live operations performed"
+}

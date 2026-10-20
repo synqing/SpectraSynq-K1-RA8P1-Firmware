@@ -1,0 +1,1209 @@
+diff --git a/docs/contracts/titan-emotiscope-v1.json b/docs/contracts/titan-emotiscope-v1.json
+index d443f4e..a493063 100644
+--- a/docs/contracts/titan-emotiscope-v1.json
++++ b/docs/contracts/titan-emotiscope-v1.json
+@@ -166,7 +166,7 @@
+     "events": true,
+     "timing": true,
+     "legacy_mir_json": true,
+-    "config": false,
++    "config": true,
+     "stale_source_test": false,
+     "mode_control": true,
+     "beat_lock": false,
+@@ -178,11 +178,53 @@
+   "config_subcommands": {},
+   "disabled_config": {
+     "opcode": 25,
+-    "all_subcommands_rejected": true,
+-    "status": 3,
+-    "reason": "Legacy K1 focus/performance/PATCH/config/schema commands do not control this donor. GET_SCHEMA is also unavailable through opcode 25; bind the local schema file to the INFO/snapshot schema hash."
++    "all_subcommands_rejected": false,
++    "legacy_subcommands_rejected": true,
++    "legacy_status": 3,
++    "reason": "Superseded 2026-09-29. Legacy K1 subcommands 1 through 12 remain rejected. Donor GET 0x454D0101 and masked PATCH 0x454D0102 are the control surface. Bind this schema file to the INFO schema hash.",
++    "superseded_reason": "Legacy K1 focus/performance/PATCH/config/schema commands do not control this donor."
++  },
++  "donor_control": {
++    "opcode": 25,
++    "get_sub": 1162674433,
++    "patch_sub": 1162674434,
++    "state_bytes": 160,
++    "state_magic": 1162695508,
++    "engine_id": 1,
++    "version": 1,
++    "patch_max_bytes": 152,
++    "fields": {
++      "brightness": {"id": 1, "kind": "f32", "min": 0, "max": 1, "default": 1.0},
++      "softness": {"id": 2, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
++      "color": {"id": 3, "kind": "f32", "min": 0, "max": 1, "default": 0.33, "note": "Explicit write replaces the auto-color phase. Readback color may exceed 1 while auto-color is evolving. effective_hue is the fractional part and is not written back."},
++      "warmth": {"id": 4, "kind": "f32", "min": 0, "max": 1, "default": 0},
++      "color_range": {"id": 5, "kind": "f32", "min": 0, "max": 1, "default": 0},
++      "speed": {"id": 6, "kind": "f32", "min": 0, "max": 1, "default": 0.5, "applicable_when": "current_mode == Analog (0). Stored but ineffective in other modes, including this donor Bloom variant."},
++      "saturation": {"id": 7, "kind": "f32", "min": 0, "max": 1, "default": 0.75, "wire": "native raw. Host UI uses one sqrt transform."},
++      "background": {"id": 8, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
++      "current_mode": {"id": 9, "kind": "i32", "min": 0, "max": 6, "default": 1},
++      "mirror_mode": {"id": 10, "kind": "bool", "default": true},
++      "screensaver": {"id": 11, "kind": "bool", "default": true},
++      "temporal_dithering": {"id": 12, "kind": "bool", "default": true},
++      "auto_color_cycle": {"id": 13, "kind": "bool", "default": false},
++      "reverse_color_range": {"id": 14, "kind": "bool", "default": false, "applicable_when": "color_range > 0"},
++      "hardware_output_brightness": {"id": 15, "kind": "u32", "min": 0, "max": 255, "default": 100},
++      "emission_enabled": {"id": 16, "kind": "bool", "default": true}
++    },
++    "statuses": {
++      "ok": 0,
++      "invalid": 3,
++      "stale_revision": 5,
++      "wrong_boot": 6,
++      "request_conflict": 7,
++      "reconcile": 9,
++      "busy": 10,
++      "reconcile_versus_timeout": "Owner reconcile status 9 includes the 160-byte state. Transport timeout status 9 has an empty body."
++    }
+   },
+   "mode_control": {
++    "rejected_under_donor_profile": true,
++    "superseded_by": "donor_control",
+     "opcode": 16,
+     "version": 1,
+     "request_bytes": 32,
+diff --git a/platform/ra8p1/emotiscope_port.cpp b/platform/ra8p1/emotiscope_port.cpp
+index 30f7fe8..3c85bb1 100644
+--- a/platform/ra8p1/emotiscope_port.cpp
++++ b/platform/ra8p1/emotiscope_port.cpp
+@@ -159,6 +159,70 @@ extern "C" bool k1_emotiscope_set_config(const K1EmotiscopeConfig* input){
+ extern "C" void k1_emotiscope_get_config(K1EmotiscopeConfig* out){
+   if(out)std::memcpy(out,&emotiscope::configuration,sizeof(*out));
+ }
++static bool emotiscope_unit_float(float value){
++  return std::isfinite(value) && value>=0.0f && value<=1.0f;
++}
++extern "C" bool k1_emotiscope_patch(const K1EmotiscopePatch* patch,uint32_t* changed,uint32_t* mode_transition){
++  using namespace emotiscope;
++  if(changed)*changed=0;
++  if(mode_transition)*mode_transition=0;
++  if(!initialized || !patch || (patch->mask & ~0x3FFFu))return false;
++  K1EmotiscopeConfig next;
++  std::memcpy(&next,&configuration,sizeof(next));
++  const uint32_t mask=patch->mask;
++  if(mask&1u && !emotiscope_unit_float(patch->brightness))return false;
++  if(mask&2u && !emotiscope_unit_float(patch->softness))return false;
++  if(mask&4u && !emotiscope_unit_float(patch->color))return false;
++  if(mask&8u && !emotiscope_unit_float(patch->warmth))return false;
++  if(mask&16u && !emotiscope_unit_float(patch->color_range))return false;
++  if(mask&32u && !emotiscope_unit_float(patch->speed))return false;
++  if(mask&64u && !emotiscope_unit_float(patch->saturation))return false;
++  if(mask&128u && !emotiscope_unit_float(patch->background))return false;
++  if(mask&256u && (patch->current_mode<0 || patch->current_mode>6))return false;
++  const uint8_t flags[]={patch->mirror_mode,patch->screensaver,patch->temporal_dithering,
++    patch->auto_color_cycle,patch->reverse_color_range};
++  for(unsigned i=0;i<5;++i) if((mask&(1u<<(9+i))) && flags[i]>1u) return false;
++  if(mask&1u) next.brightness=patch->brightness;
++  if(mask&2u) next.softness=patch->softness;
++  if(mask&4u) next.color=patch->color;
++  if(mask&8u) next.warmth=patch->warmth;
++  if(mask&16u) next.color_range=patch->color_range;
++  if(mask&32u) next.speed=patch->speed;
++  if(mask&64u) next.saturation=patch->saturation;
++  if(mask&128u) next.background=patch->background;
++  if(mask&256u) next.current_mode=patch->current_mode;
++  if(mask&512u) next.mirror_mode=patch->mirror_mode!=0;
++  if(mask&1024u) next.screensaver=patch->screensaver!=0;
++  if(mask&2048u) next.temporal_dithering=patch->temporal_dithering!=0;
++  if(mask&4096u) next.auto_color_cycle=patch->auto_color_cycle!=0;
++  if(mask&8192u) next.reverse_color_range=patch->reverse_color_range!=0;
++  const bool mode_changed=(mask&256u) && configuration.current_mode!=next.current_mode;
++  const bool any=std::memcmp(&configuration,&next,sizeof(next))!=0;
++  if(!any)return true;
++  std::memcpy(&configuration,&next,sizeof(configuration));
++  if(mode_changed)lpf_drag=1.0f;
++  if(changed)*changed=1u;
++  if(mode_transition)*mode_transition=mode_changed?1u:0u;
++  return true;
++}
++extern "C" float k1_emotiscope_effective_hue(void){
++  const float color=emotiscope::configuration.color;
++  if(!std::isfinite(color))return 0.0f;
++  float wrapped=color-std::floor(color);
++  if(wrapped<0.0f)wrapped+=1.0f;
++  if(wrapped>=1.0f)wrapped=0.0f;
++  return wrapped;
++}
++#ifdef K1_EMOTISCOPE_TEST_SEAM
++extern "C" void k1_emotiscope_test_set_raw_color(float color){
++  emotiscope::configuration.color=color;
++}
++extern "C" float k1_emotiscope_test_lpf_drag(void){return emotiscope::lpf_drag;}
++extern "C" void k1_emotiscope_test_set_novelty_sample(float value){
++  emotiscope::novelty_curve[10]=value;
++}
++extern "C" float k1_emotiscope_test_novelty_sample(void){return emotiscope::novelty_curve[10];}
++#endif
+ extern "C" bool k1_emotiscope_push_pcm64(const float* samples,uint32_t now_us){
+   using namespace emotiscope;
+   if(!initialized||!samples){++rejected_audio_chunks;return false;}
+diff --git a/platform/ra8p1/emotiscope_port.h b/platform/ra8p1/emotiscope_port.h
+index 060e8e2..51c71d2 100644
+--- a/platform/ra8p1/emotiscope_port.h
++++ b/platform/ra8p1/emotiscope_port.h
+@@ -47,6 +47,25 @@ bool k1_emotiscope_init(uint32_t random_seed);
+ void k1_emotiscope_default_config(K1EmotiscopeConfig *out);
+ bool k1_emotiscope_set_config(const K1EmotiscopeConfig *configuration);
+ void k1_emotiscope_get_config(K1EmotiscopeConfig *out);
++/* Masked update. Bits are field_id-1 for fields 1..14 only. Validates supplied
++ * fields and leaves every clear field untouched, including an auto-color phase
++ * that has walked above 1. An explicit color write stores a normalized hue and
++ * replaces that phase. A real mode change sets the donor fade once. */
++typedef struct {
++  uint32_t mask;
++  float brightness, softness, color, warmth, color_range, speed, saturation, background;
++  int32_t current_mode;
++  uint8_t mirror_mode, screensaver, temporal_dithering, auto_color_cycle, reverse_color_range;
++} K1EmotiscopePatch;
++bool k1_emotiscope_patch(const K1EmotiscopePatch *patch, uint32_t *changed, uint32_t *mode_transition);
++/* Fractional part of the stored color phase, in [0,1). Not written back. */
++float k1_emotiscope_effective_hue(void);
++#ifdef K1_EMOTISCOPE_TEST_SEAM
++void k1_emotiscope_test_set_raw_color(float color);
++float k1_emotiscope_test_lpf_drag(void);
++void k1_emotiscope_test_set_novelty_sample(float value);
++float k1_emotiscope_test_novelty_sample(void);
++#endif
+ /* Exactly 64 normalized mono samples at 12800 Hz. Rejects an entire invalid chunk.
+  * now_us is the deterministic clock supplied to the hardware-independent engine. */
+ bool k1_emotiscope_push_pcm64(const float samples[64], uint32_t now_us);
+diff --git a/platform/ra8p1/fixture_app.cpp b/platform/ra8p1/fixture_app.cpp
+index eff7515..200eb1b 100644
+--- a/platform/ra8p1/fixture_app.cpp
++++ b/platform/ra8p1/fixture_app.cpp
+@@ -38,6 +38,7 @@
+ #include "palette_runtime.h"
+ #ifdef K1_EMOTISCOPE_PORT
+ #include "emotiscope_port.h"
++#include "emotiscope_control.h"
+ #endif
+ #include "palette_clock.h"
+ #include "hd_pixel16.h"
+@@ -77,7 +78,11 @@ std::uint32_t live_cfg_revision = 0;
+ // Single foreground producer and RT owner; USB RX remains backpressured until
+ // the immutable command is applied and its response is transmitted.
+ enum class ControlPhase : std::uint8_t { Empty, Queued, Applied };
+-enum class ControlKind : std::uint8_t { Palette, Patch, Performance, PerformanceScene, PerformanceAudition, PerformanceSelection };
++enum class ControlKind : std::uint8_t { Palette, Patch, Performance, PerformanceScene, PerformanceAudition, PerformanceSelection,
++#ifdef K1_EMOTISCOPE_PORT
++  Donor
++#endif
++};
+ k1::titan::PerformanceRamp performance_ramp;
+ k1::titan::PerformanceAudition performance_auditions[16];
+ auto& performance_audition=performance_auditions[0]; // level lease, retained test name
+@@ -90,8 +95,15 @@ struct PendingControl {
+   std::uint32_t base_revision = 0;
+   std::uint32_t request_id = 0;
+   std::uint32_t status = 0;
++#ifdef K1_EMOTISCOPE_PORT
++  k1::emotiscope::DonorIntent donor{};
++  std::uint8_t donor_response[k1::emotiscope::kDonorStateBytes]{};
++#endif
+ };
+ PendingControl pending_control;
++#ifdef K1_EMOTISCOPE_PORT
++k1::emotiscope::DonorDedup donor_dedup;
++#endif
+ std::uint32_t control_queued = 0, control_applied = 0;
+ std::uint32_t control_overlap = 0, readonly_started_pair = 0;
+ bool realtime_owner_active = false;
+@@ -1291,6 +1303,54 @@ std::size_t control_palette_status(char* out, std::size_t capacity) {
+ #endif
+ }
+ #endif
++#if defined(K1_EMOTISCOPE_PORT) && defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
++void donor_queue_config(std::uint32_t size) {
++  if (pending_control.phase != ControlPhase::Empty || realtime_owner_active) {
++    error(10);
++    return;
++  }
++  k1::emotiscope::DonorIntent intent{};
++  const std::uint32_t status = k1::emotiscope::donorParse(rx + 32, size, &intent);
++  if (status != 0U) {
++    error(status);
++    return;
++  }
++  pending_control.kind = ControlKind::Donor;
++  pending_control.donor = intent;
++  pending_control.request_id = intent.request_id;
++  pending_control.status = 0;
++  ++control_queued;
++  pending_control.phase = ControlPhase::Queued;
++}
++void donor_apply_pending() {
++  k1::emotiscope::DonorObserved observed{};
++  observed.boot_id = live_cfg.boot_id;
++  observed.revision = live_cfg_revision;
++  observed.hardware_brightness = palettes.config().brightness;
++  observed.emission = palettes.emitEnabled() ? 1U : 0U;
++  observed.accepted_request_id = live_render_receipt.accepted_request_id;
++  observed.rendered_request_id = live_render_receipt.rendered_request_id;
++  observed.emitted_request_id = live_render_receipt.emitted_request_id;
++  observed.rendered_frame = live_render_frames;
++  live_hex32(kTitanLiveSchemaSha256, observed.schema_sha);
++  k1::emotiscope::DonorApplyResult result{};
++  k1::emotiscope::donorApply(&donor_dedup, pending_control.donor, observed, &result);
++  pending_control.status = result.status;
++  std::memcpy(pending_control.donor_response, result.response, k1::emotiscope::kDonorStateBytes);
++  if (result.brightness_changed) palettes.setHardwareBrightness(result.hardware_brightness);
++  if (result.emission_changed && palettes.setEmissionEnabled(result.emission != 0U))
++    pair_begin_black_shutdown();
++  if (result.mode_changed) palettes.noteDonorMode(static_cast<std::uint32_t>(result.mode));
++  if (result.revision_changed) {
++    live_cfg_revision = result.revision;
++    live_cfg.revision = result.revision;
++    k1::titan::liveNotePatchAccepted(&live_render_receipt, pending_control.donor.request_id,
++                                    result.revision);
++    live_runtime.setRenderReceipt(live_render_receipt);
++  }
++  if (result.status != 0U) ++rejected;
++}
++#endif
+ void execute() {
+ #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+   struct LifecycleWitness {
+@@ -1318,9 +1378,8 @@ void execute() {
+ #endif
+   const auto command=get32(rx+4), size=get32(rx+16);
+   if (crc(rx+32,size)!=get32(rx+20)) { error(4); return; }
+-#ifdef K1_EMOTISCOPE_PORT
+-  // The donor has its own controls. Do not acknowledge old Titan performance
+-  // mutations that cannot affect this render engine.
++#if defined(K1_EMOTISCOPE_PORT) && !defined(K1_PALETTE_WS2816_GPT_PAIR)
++  // Pair-owner builds replace this reject with the donor GET/PATCH queue.
+   if (command == k1::titan::kLiveConfigOpcode) { error(3); return; }
+ #endif
+ #if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
+@@ -1366,6 +1425,9 @@ void execute() {
+     const auto n = palettes.catalogueJson(trace.data, sizeof(trace.data));
+     if (!n) error(8); else respond(0, 0, trace.data, n);
+   } else if (command == k1::titan::kPaletteConfigureOpcode && (size == 32U || size == 36U || size == 40U)) {
++#ifdef K1_EMOTISCOPE_PORT
++    error(3); return;
++#endif
+ #ifdef K1_RESIDENT_SCHEDULE
+     if (k1_fixture_schedule_active()) { error(10); return; }
+ #endif
+@@ -1450,7 +1512,11 @@ void execute() {
+         reinterpret_cast<std::uint8_t*>(trace.data), sizeof(trace.data), after);
+     if (!n) error(8); else respond(0, 0, trace.data, n);
+   } else if (command == k1::titan::kLiveConfigOpcode) {
++#if defined(K1_EMOTISCOPE_PORT) && defined(K1_PALETTE_WS2816_GPT_PAIR)
++    donor_queue_config(size);
++#else
+     live_handle_config(size);
++#endif
+ #endif
+   } else if (command == k1::titan::kPaletteFrameOpcode && size == 4U) {
+     const auto channel = get32(rx+32);
+@@ -1489,11 +1555,7 @@ void execute() {
+       "\",\"clock_hz\":%lu,\"cpu1_actcsr\":%lu,\"u55_opened\":%s,\"cpp_initialised\":%s,\"rejected\":%lu,\"sequence\":%lu,\"trajectory_bytes\":%u,\"trace_bytes\":%u,\"status_led\":true"
+ #ifdef K1_LIVE_RUNTIME
+       ",\"runtime_kind\":\"live\",\"schema_sha256\":\"%s\",\"boot_id\":%lu,\"opcodes\":{\"snapshot\":23,\"events\":24,\"config\":25,\"timing\":26,\"legacy_mir\":21},\"capabilities\":{\"snapshot\":true,\"events\":true,\"config\":"
+-#ifdef K1_EMOTISCOPE_PORT
+-      "false"
+-#else
+       "true"
+-#endif
+       ",\"timing\":true,\"legacy_mir_json\":true,\"stale_source_test\":"
+ #ifdef K1_EMOTISCOPE_PORT
+       "false"
+@@ -1504,7 +1566,9 @@ void execute() {
+ #ifdef K1_PALETTE_WS2816_GPT_PAIR
+       ",\"pair_fixture\":true"
+ #ifdef K1_EMOTISCOPE_PORT
+-      ",\"emotiscope\":true,\"donor_mode_config_opcode\":16,"
++      ",\"emotiscope\":true,\"donor_mode_config_opcode\":25,"
++      "\"donor_get_sub\":1162674433,\"donor_patch_sub\":1162674434,"
++      "\"palette_configure_rejected\":true,"
+       "\"legacy_performance_controls\":false,\"spectrum_bins\":64,"
+       "\"chroma_origin\":\"D#/Eb\",\"render_hz\":100"
+ #endif
+@@ -1900,6 +1964,10 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
+   struct OwnerExit { ~OwnerExit() { realtime_owner_active = false; } } owner_exit;
+   if (pending_control.phase == ControlPhase::Queued &&
+       !k1_ws281x_gpt_dma_hw_pair_transmitting()) {
++#ifdef K1_EMOTISCOPE_PORT
++    if (pending_control.kind != ControlKind::Donor) pending_control.status = 3;
++    else donor_apply_pending();
++#else
+     if (pending_control.kind == ControlKind::Palette) {
+       performance_ramp.cancel();
+       for(auto& lease:performance_auditions)lease.active=false;
+@@ -1940,11 +2008,12 @@ extern "C" void k1_fixture_poll(std::uint32_t now) {
+                                       pending_control.request_id, live_cfg.revision);
+       live_runtime.setRenderReceipt(live_render_receipt);
+     }
++#endif
+     ++control_applied;
+     pending_control.phase = ControlPhase::Applied;
+   }
+ #endif
+-#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR)
++#if defined(K1_LIVE_RUNTIME) && defined(K1_PALETTE_WS2816_GPT_PAIR) && !defined(K1_EMOTISCOPE_PORT)
+   // Device-owned timeout restores a momentary gesture even if the host dies.
+   // It runs only in this owner and never writes a DMA-owned frame.
+   if (!k1_ws281x_gpt_dma_hw_pair_transmitting()) {
+@@ -2053,6 +2122,14 @@ extern "C" void k1_fixture_control_service(void) {
+     if (fill && !tx_size && pending_control.phase == ControlPhase::Empty) error(9);
+   }
+   if (pending_control.phase != ControlPhase::Applied || tx_size) return;
++#ifdef K1_EMOTISCOPE_PORT
++  if (pending_control.kind == ControlKind::Donor) {
++    respond(pending_control.status, 0,
++            reinterpret_cast<const char*>(pending_control.donor_response),
++            k1::emotiscope::kDonorStateBytes);
++  } else if (pending_control.status) error(pending_control.status);
++  else error(3);
++#else
+   if (pending_control.status) error(pending_control.status);
+   else {
+     const auto n = pending_control.kind == ControlKind::Palette
+@@ -2061,6 +2138,7 @@ extern "C" void k1_fixture_control_service(void) {
+                                       sizeof(trace.data), live_cfg);
+     if (!n) error(8); else respond(0, 0, trace.data, n);
+   }
++#endif
+   pending_control.phase = ControlPhase::Empty;
+ #endif
+ }
+diff --git a/platform/ra8p1/k1_live_protocol.h b/platform/ra8p1/k1_live_protocol.h
+index 06e9fc2..7d1963d 100644
+--- a/platform/ra8p1/k1_live_protocol.h
++++ b/platform/ra8p1/k1_live_protocol.h
+@@ -66,7 +66,8 @@ inline bool livePathConsumesAcceptedRevision(const char* path) noexcept {
+   if (path == nullptr) {
+     return false;
+   }
+-  return std::strcmp(path, "effect") == 0 || std::strcmp(path, "hold") == 0;
++  return std::strcmp(path, "effect") == 0 || std::strcmp(path, "hold") == 0 ||
++         std::strcmp(path, "emotiscope") == 0 || std::strcmp(path, "emotiscope_history") == 0;
+ }
+ 
+ void liveNotePatchAccepted(LiveRenderReceipt* receipt, std::uint32_t request_id,
+diff --git a/platform/ra8p1/palette_runtime.cpp b/platform/ra8p1/palette_runtime.cpp
+index 171f21a..3d264e1 100644
+--- a/platform/ra8p1/palette_runtime.cpp
++++ b/platform/ra8p1/palette_runtime.cpp
+@@ -208,6 +208,20 @@ bool PaletteRuntime::configure(const PaletteConfig& config, std::uint64_t now_us
+   wide_valid_[0] = wide_valid_[1] = false;
+   return true;
+ }
++void PaletteRuntime::setHardwareBrightness(std::uint32_t brightness) noexcept {
++  if (brightness <= 255U) config_.brightness = brightness;
++}
++bool PaletteRuntime::setEmissionEnabled(bool enabled) noexcept {
++  const bool was = emitEnabled();
++  if (enabled) config_.flags |= 4U;
++  else config_.flags &= ~4U;
++  return was && !enabled;
++}
++void PaletteRuntime::noteDonorMode(std::uint32_t mode) noexcept {
++  if (mode > 6U) return;
++  config_.mode_a = config_.mode_b = mode;
++  a_.controls().mode_id = b_.controls().mode_id = static_cast<std::uint16_t>(mode);
++}
+ void PaletteRuntime::selectPerformancePalette(std::uint32_t id, std::uint64_t now_us) noexcept {
+   // Caller validates the curated ID; preserve audio and owner timing.
+   if (id >= kProductPaletteCount || config_.output_channel != 0U) return;
+@@ -450,7 +464,7 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
+       "{\"version\":1,\"engine\":\"emotiscope_v1.1\",\"mode_count\":7,"
+       "\"modes\":[\"Analog\",\"Spectrum\",\"Octave\",\"Metronome\","
+       "\"Spectronome\",\"Hype\",\"Bloom\"],\"palette_count\":0,"
+-      "\"configure_opcode\":16,\"configure_version\":1,"
++      "\"configure_opcode\":25,\"configure_version\":1,\"palette_configure_rejected\":true,"
+       "\"mode_a_equals_mode_b\":true,\"palettes_must_be_zero\":true}");
+   return n > 0 && std::size_t(n) < capacity ? std::size_t(n) : 0U;
+ #else
+diff --git a/platform/ra8p1/palette_runtime.h b/platform/ra8p1/palette_runtime.h
+index f47fbf3..392a7a5 100644
+--- a/platform/ra8p1/palette_runtime.h
++++ b/platform/ra8p1/palette_runtime.h
+@@ -100,6 +100,9 @@ class PaletteRuntime {
+   PaletteRuntime(const PaletteRuntime&) = delete;
+   PaletteRuntime& operator=(const PaletteRuntime&) = delete;
+   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
++  void setHardwareBrightness(std::uint32_t brightness) noexcept;
++  bool setEmissionEnabled(bool enabled) noexcept;
++  void noteDonorMode(std::uint32_t mode) noexcept;
+   bool step(std::uint64_t now_us,
+             const core::visual::VisualAudioFrameView* audio) noexcept;
+   void selectPerformanceMode(std::uint32_t mode) noexcept;
+diff --git a/scripts/build_scalar.py b/scripts/build_scalar.py
+index eab7a09..be6210a 100644
+--- a/scripts/build_scalar.py
++++ b/scripts/build_scalar.py
+@@ -104,7 +104,8 @@ EMOTISCOPE_DONOR_COMMIT = '7f86939bd7c16c4a6dd5789813e9d551246ed134'
+ EMOTISCOPE_MANIFEST = ROOT / 'docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.json'
+ EMOTISCOPE_CLOCK_DELTA = ROOT / 'docs/emotiscope-port-001/CLOCK-PORT-DELTA.json'
+ EMOTISCOPE_PLATFORM_FILES = ['emotiscope_port.h', 'emotiscope_port.cpp',
+-                            'emotiscope_quantize.inc', 'emotiscope_output.h']
++                            'emotiscope_quantize.inc', 'emotiscope_output.h',
++                            'emotiscope_control.h']
+ EMOTISCOPE_CXXFLAGS = '-Wno-narrowing'
+ 
+ def emotiscope_inputs():
+diff --git a/scripts/test_live_protocol.py b/scripts/test_live_protocol.py
+index 87f3a17..8cca5c6 100644
+--- a/scripts/test_live_protocol.py
++++ b/scripts/test_live_protocol.py
+@@ -10,6 +10,22 @@ from pathlib import Path
+ from verify_imports import ROOT
+ 
+ NAMES = json.loads((ROOT / "docs/import-slices.json").read_text())["product"]
++# audio_pipeline.cpp calls publishTempoField. The product slice does not
++# list the publisher or the phase-track unit it calls, so the host link adds
++# those existing translation units and does not change the product slice.
++EXTRA_CPP = (
++    "core/audio/tempo_field_publisher.cpp",
++    "core/audio/tempo_phase_tracks.cpp",
++)
++
++
++def cpp_units(tree: Path) -> list[str]:
++    files = [str(tree / name) for name in NAMES if name.endswith(".cpp")]
++    present = {Path(path).name for path in files}
++    for name in EXTRA_CPP:
++        if Path(name).name not in present:
++            files.append(str(tree / name))
++    return files
+ 
+ 
+ def main() -> int:
+@@ -31,7 +47,7 @@ def main() -> int:
+             str(ROOT / "platform/ra8p1/k1_live_runtime.cpp"),
+             str(ROOT / "platform/ra8p1/k1_live_protocol.cpp"),
+             str(ROOT / "src/k1/core/audio/k1_audio_hop.c"),
+-            *[str(sources / name) for name in NAMES if name.endswith(".cpp")],
++            *cpp_units(sources),
+             str(ROOT / "tests/host/test_live_protocol.cpp"),
+             "-o",
+             str(exe),
+@@ -130,7 +146,7 @@ def main() -> int:
+             "-I" + str(ROOT / "tests/target"),
+             str(ROOT / "platform/ra8p1/k1_live_protocol.cpp"),
+             str(ROOT / "platform/ra8p1/palette_runtime.cpp"),
+-            *[str(sources / name) for name in NAMES if name.endswith(".cpp")],
++            *cpp_units(sources),
+             str(ROOT / "src/k1/core/visual/frame_blend.cpp"),
+             str(ROOT / "src/k1/core/visual/product_runtime_policy.cpp"),
+             str(ROOT / "tests/host/test_r4_consumption.cpp"),
+diff --git a/tests/host/test_live_protocol.cpp b/tests/host/test_live_protocol.cpp
+index b36bbb9..3a3f05d 100644
+--- a/tests/host/test_live_protocol.cpp
++++ b/tests/host/test_live_protocol.cpp
+@@ -51,6 +51,8 @@ int main() {
+   assert(receipt.pending_request_id == 0);
+   assert(k1::titan::livePathConsumesAcceptedRevision("effect"));
+   assert(k1::titan::livePathConsumesAcceptedRevision("hold"));
++  assert(k1::titan::livePathConsumesAcceptedRevision("emotiscope"));
++  assert(k1::titan::livePathConsumesAcceptedRevision("emotiscope_history"));
+   assert(!k1::titan::livePathConsumesAcceptedRevision("preview"));
+   assert(!k1::titan::livePathConsumesAcceptedRevision("dwell"));
+   assert(!k1::titan::livePathConsumesAcceptedRevision("no_audio"));
+diff --git a/tools/serial-studio/tests/test_identity_checkpoint.py b/tools/serial-studio/tests/test_identity_checkpoint.py
+index d774510..c9634de 100644
+--- a/tools/serial-studio/tests/test_identity_checkpoint.py
++++ b/tools/serial-studio/tests/test_identity_checkpoint.py
+@@ -6,7 +6,7 @@ from pathlib import Path
+ 
+ HERE = Path(__file__).resolve().parents[1]
+ sys.path.insert(0, str(HERE))
+-from titan_snapshot import EXPECTED_UID, bind_identity, identity_identified, identity_ok  # noqa: E402
++from titan_snapshot import EXPECTED_UID, bind_identity, identity_identified, identity_ok, parse_contract  # noqa: E402
+ 
+ 
+ def _info(build: str) -> dict:
+@@ -48,8 +48,59 @@ def test_bind_keeps_unaccepted_observation_truthful():
+     assert bound["build"] == "new-unverified-build"
+ 
+ 
++def test_xover_contract_still_parses():
++    parsed = parse_contract("sr24000.hop180.bins80.xover40")
++    assert parsed == {
++        "admitted_rate_hz": 24000,
++        "hop_samples": 180,
++        "bins": 80,
++        "xover": 40,
++        "family": "xover",
++    }
++
++
++def test_emotiscope_contract_is_identified():
++    info = _info("393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb")
++    info["contract"] = "sr12800.hop64.bins64.emotiscope"
++    identified, reason = identity_identified(info)
++    assert identified and reason == "identified"
++    parsed = parse_contract(info["contract"])
++    assert parsed["admitted_rate_hz"] == 12800
++    assert parsed["hop_samples"] == 64
++    assert parsed["bins"] == 64
++    assert parsed["xover"] is None
++    assert parsed["family"] == "emotiscope"
++    bound = bind_identity(info)
++    assert bound["identified"] is True
++    assert bound["contract"] == "sr12800.hop64.bins64.emotiscope"
++    assert bound["hop_samples"] == 64
++    assert bound["admitted_rate_hz"] == 12800
++    assert bound["ok"] is False
++
++
++def test_unknown_contract_tail_stays_unparsed():
++    info = _info("x")
++    for contract in (
++        "sr12800.hop64.bins64.other",
++        "sr12800.hop64.bins64",
++        "sr12800.hop64.bins64.emotiscope.extra",
++        "sr12800.hop64.bins64.xover",
++    ):
++        info["contract"] = contract
++        identified, reason = identity_identified(info)
++        assert identified is False, contract
++        assert reason.startswith("unparsed contract"), (contract, reason)
++    info["contract"] = ""
++    identified, reason = identity_identified(info)
++    assert identified is False
++    assert reason == "missing contract"
++
++
+ if __name__ == "__main__":
+     test_unbound_builds_are_identified_not_accepted()
+     test_checkpoint_match_and_mismatch()
+     test_bind_keeps_unaccepted_observation_truthful()
++    test_xover_contract_still_parses()
++    test_emotiscope_contract_is_identified()
++    test_unknown_contract_tail_stays_unparsed()
+     print("identity_checkpoint_ok")
+diff --git a/tools/serial-studio/tests/test_performance_control.py b/tools/serial-studio/tests/test_performance_control.py
+index 25510c4..4ccd312 100644
+--- a/tools/serial-studio/tests/test_performance_control.py
++++ b/tools/serial-studio/tests/test_performance_control.py
+@@ -4,6 +4,7 @@ import struct
+ import threading
+ from types import SimpleNamespace
+ import pytest
++import emotiscope_control as donor
+ import live_protocol as p
+ from titan_control_server import RestrictedControlPlane, RestrictedControlError
+ from titan_broker import Broker
+@@ -56,6 +57,20 @@ def test_final_broker_boundary_rechecks_admission(sub):
+         Broker.transact(fake,25,struct.pack('<I',sub))
+ 
+ 
++def test_donor_patch_is_gated_and_get_is_not():
++    calls=[]
++    def transport_transact(op, payload=b'', timeout=2.0):
++        calls.append((op, bytes(payload)))
++        return {'ok': True, 'status': 0, 'body': b''}
++    paused=SimpleNamespace(transport=SimpleNamespace(transact=transport_transact),
++                           _sched=threading.Lock(), quiesced=lambda: True)
++    with pytest.raises(RestrictedControlError, match='paused'):
++        Broker.transact(paused, 25, donor.encode_patch(1, 0x11, 0, {'brightness': 0.5}))
++    assert calls == []
++    Broker.transact(paused, 25, donor.encode_get(4, 0x11))
++    assert calls == [(25, donor.encode_get(4, 0x11))]
++
++
+ def test_selection_codec_and_finite_modes():
+     for mode in p.CONTRACT['performance']['selection']['modes']:
+         assert struct.unpack('<IIIIII',p.pack_selection(7,91,4,mode,36)) == (12,7,91,4,mode,36)
+diff --git a/tools/serial-studio/tests/test_titan_control_server.py b/tools/serial-studio/tests/test_titan_control_server.py
+index 9ad359b..35d6260 100644
+--- a/tools/serial-studio/tests/test_titan_control_server.py
++++ b/tools/serial-studio/tests/test_titan_control_server.py
+@@ -10,6 +10,7 @@ from pathlib import Path
+ 
+ HERE = Path(__file__).resolve().parents[1]
+ sys.path.insert(0, str(HERE))
++import emotiscope_control as donor  # noqa: E402
+ import live_protocol as proto  # noqa: E402
+ from titan_control_server import (  # noqa: E402
+     ControlServer,
+@@ -302,6 +303,231 @@ def test_one_connection_many_requests(tmp_path):
+         server.close()
+ 
+ 
++def _donor_state(request_id, boot_id=0x11, revision=4, brightness=0.5, mode=1, flags=39, output=100, accepted=4):
++    import struct
++    body = bytearray(donor.STATE_BYTES)
++    def pu(off, value):
++        struct.pack_into("<I", body, off, int(value) & 0xFFFFFFFF)
++    def pf(off, value):
++        struct.pack_into("<f", body, off, float(value))
++    pu(0, donor.STATE_MAGIC)
++    pu(4, 1)
++    pu(8, 1)
++    pu(12, boot_id)
++    pu(16, revision)
++    pu(20, request_id)
++    pf(24, brightness)
++    pf(28, 0.25)
++    pf(32, 0.33)
++    pf(56, 0.33)
++    struct.pack_into("<i", body, 60, mode)
++    pu(64, flags)
++    pu(68, output)
++    pu(72, 0xDFDF)
++    pu(76, accepted)
++    return bytes(body)
++
++
++def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    (evidence / "accepted-checkpoint.json").write_text(
++        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["patch","emotiscope_patch"]}\n'
++        % (UID, BUILD, SCHEMA)
++    )
++    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
++    fake = FakeTransport()
++    plane = RestrictedControlPlane(transact=fake.transact, evidence=evidence, bound=_bound())
++    hello = plane.handle({"op": "hello"})
++    legacy = plane.handle({
++        "op": "patch",
++        "session": hello["session"],
++        "request_id": 7,
++        "revision": 3,
++        "boot_id": 1,
++        "fields": {"visual_a.vp_waveform_shift_rate": 40.0},
++    })
++    assert legacy["ok"] is True
++    assert proto._u32(fake.ops[-1][1], 0) == proto.CFG_PATCH
++    calls = []
++
++    def donor_transact(op, payload):
++        calls.append((op, bytes(payload)))
++        return {"ok": True, "status": 0, "body": _donor_state(3, accepted=3, revision=9, brightness=0.5)}
++
++    plane.transact = donor_transact
++    scene = {name: 0.5 for name in (
++        "brightness", "softness", "color", "warmth", "color_range", "speed", "saturation", "background")}
++    scene.update({
++        "current_mode": 1,
++        "mirror_mode": 1,
++        "screensaver": 1,
++        "temporal_dithering": 1,
++        "auto_color_cycle": 0,
++        "reverse_color_range": 0,
++        "hardware_output_brightness": 100,
++    })
++    got = plane.handle({
++        "op": "emotiscope_patch",
++        "session": hello["session"],
++        "request_id": 3,
++        "revision": 8,
++        "boot_id": 0x11,
++        "fields": scene,
++    })
++    assert got["ok"] is True
++    assert got["state"]["brightness"] == 0.5
++    assert got["state"]["hardware_output_brightness"] == 100
++    assert got["state"]["emission_enabled"] is True
++    assert calls[0][0] == 25
++    assert calls[0][1] == donor.encode_patch(3, 0x11, 8, scene)
++    assert proto._u32(calls[0][1], 0) == donor.PATCH_SUB
++    assert len(calls[0][1]) == 24 + 15 * 8
++
++
++def test_donor_patch_rejected_by_legacy_only_approval(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    (evidence / "accepted-checkpoint.json").write_text(
++        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["patch"]}\n' % (UID, BUILD, SCHEMA)
++    )
++    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
++    calls = []
++    plane = RestrictedControlPlane(
++        transact=lambda op, payload: calls.append(op) or {"ok": True, "status": 0, "body": b""},
++        evidence=evidence,
++        bound=_bound(),
++    )
++    hello = plane.handle({"op": "hello"})
++    got = plane.handle({
++        "op": "emotiscope_patch",
++        "session": hello["session"],
++        "request_id": 1,
++        "revision": 0,
++        "boot_id": 1,
++        "fields": {"brightness": 0.5},
++    })
++    assert got["ok"] is False
++    assert got["error"] == "ops_denied"
++    assert calls == []
++
++
++def test_legacy_patch_rejected_by_donor_only_approval(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    (evidence / "accepted-checkpoint.json").write_text(
++        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n' % (UID, BUILD, SCHEMA)
++    )
++    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
++    assert hardware_writes_admitted(evidence, _bound()) == (True, "ok")
++    calls = []
++    plane = RestrictedControlPlane(
++        transact=lambda op, payload: calls.append(op) or {"ok": True, "status": 0, "body": b""},
++        evidence=evidence,
++        bound=_bound(),
++    )
++    hello = plane.handle({"op": "hello"})
++    got = plane.handle({
++        "op": "patch",
++        "session": hello["session"],
++        "request_id": 1,
++        "revision": 0,
++        "boot_id": 1,
++        "fields": {"visual_a.hue_position": 0.2},
++    })
++    assert got["ok"] is False
++    assert got["admit_reason"] == "legacy_patch_not_admitted"
++    assert calls == []
++
++
++def test_donor_invalid_values_do_not_transact(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    (evidence / "accepted-checkpoint.json").write_text(
++        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n' % (UID, BUILD, SCHEMA)
++    )
++    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
++    calls = []
++    plane = RestrictedControlPlane(
++        transact=lambda op, payload: calls.append(payload) or {"ok": False, "status": 3, "body": b""},
++        evidence=evidence,
++        bound=_bound(),
++    )
++    hello = plane.handle({"op": "hello"})
++    base = {"op": "emotiscope_patch", "session": hello["session"], "request_id": 4, "revision": 1, "boot_id": 2}
++    for fields in ({"current_mode": 7}, {"current_mode": 8}, {"brightness": float("nan")},
++                   {"hardware_output_brightness": 256}, {"mirror_mode": 2}):
++        got = plane.handle({**base, "fields": fields})
++        assert got["ok"] is False
++        assert got["error"] == "forbidden_or_invalid_field"
++    zero = plane.handle({**base, "request_id": 0, "fields": {"brightness": 0.5}})
++    assert zero["ok"] is False
++    assert calls == []
++
++
++def test_approval_without_either_write_capability_denied(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    (evidence / "accepted-checkpoint.json").write_text(
++        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["get_config"]}\n' % (UID, BUILD, SCHEMA)
++    )
++    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
++    ok, reason = hardware_writes_admitted(evidence, _bound())
++    assert ok is False
++    assert reason == "ops_denied"
++
++
++def test_donor_get_uses_get_discriminator(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    calls = []
++
++    def transact(op, payload):
++        calls.append((op, bytes(payload)))
++        return {"ok": True, "status": 0, "body": _donor_state(9, revision=5)}
++
++    plane = RestrictedControlPlane(transact=transact, evidence=evidence, bound=_bound())
++    hello = plane.handle({"op": "hello"})
++    got = plane.handle({
++        "op": "emotiscope_get",
++        "session": hello["session"],
++        "request_id": 9,
++        "boot_id": 0x11,
++    })
++    assert got["ok"] is True
++    assert got["state"]["revision"] == 5
++    assert calls == [(25, donor.encode_get(9, 0x11))]
++    assert proto._u32(calls[0][1], 0) == donor.GET_SUB
++
++
++def test_donor_conflict_returns_state_without_counting_a_write(tmp_path):
++    evidence = Path(tmp_path)
++    evidence.mkdir(parents=True, exist_ok=True)
++    (evidence / "accepted-checkpoint.json").write_text(
++        '{"uid":"%s","build":"%s","schema_sha256":"%s","ops":["emotiscope_patch"]}\n' % (UID, BUILD, SCHEMA)
++    )
++    os.environ["TITAN_LIVE_CONTROL_ADMITTED"] = "1"
++    plane = RestrictedControlPlane(
++        transact=lambda op, payload: {"ok": False, "status": 7, "body": _donor_state(1, revision=3, brightness=0.25)},
++        evidence=evidence,
++        bound=_bound(),
++    )
++    hello = plane.handle({"op": "hello"})
++    before = plane.hw_writes
++    got = plane.handle({
++        "op": "emotiscope_patch",
++        "session": hello["session"],
++        "request_id": 2,
++        "revision": 3,
++        "boot_id": 0x11,
++        "fields": {"brightness": 0.2},
++    })
++    assert got["ok"] is False
++    assert got["error"] == "request_conflict"
++    assert got["state"]["brightness"] == 0.25
++    assert plane.hw_writes == before
++
++
+ if __name__ == "__main__":
+     with tempfile.TemporaryDirectory() as d:
+         root = Path(d)
+@@ -320,4 +546,11 @@ if __name__ == "__main__":
+         test_second_server_refuses_live_socket(root / "busy")
+         test_one_connection_many_requests(root / "persist")
+         test_schema_required_when_approval_names_it(root / "schema")
++        test_legacy_patch_still_subcommand_8_and_donor_is_separate(root / "donor-separate")
++        test_donor_patch_rejected_by_legacy_only_approval(root / "donor-legacy-only")
++        test_legacy_patch_rejected_by_donor_only_approval(root / "legacy-donor-only")
++        test_donor_invalid_values_do_not_transact(root / "donor-invalid")
++        test_approval_without_either_write_capability_denied(root / "neither-write")
++        test_donor_get_uses_get_discriminator(root / "donor-get")
++        test_donor_conflict_returns_state_without_counting_a_write(root / "donor-conflict")
+     print("TITAN_CONTROL_SERVER_PASS")
+diff --git a/tools/serial-studio/titan_broker.py b/tools/serial-studio/titan_broker.py
+index ee07b82..0024a01 100644
+--- a/tools/serial-studio/titan_broker.py
++++ b/tools/serial-studio/titan_broker.py
+@@ -30,6 +30,7 @@ from titan_snapshot import (  # noqa: E402
+     identity_ok,
+     snapshot,
+ )
++import emotiscope_control as donor_wire  # noqa: E402
+ import live_protocol as proto  # noqa: E402
+ from titan_control_server import (  # noqa: E402
+     ControlServer,
+@@ -511,7 +512,7 @@ class Broker:
+             raise RuntimeError("no transport")
+         with self._sched:
+             if op == 25 and payload and len(payload) >= 4:
+-                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12):
++                if proto._u32(payload, 0) in (proto.CFG_PATCH, 9, 10, 11, 12, donor_wire.PATCH_SUB):
+                     if self.quiesced():
+                         raise RestrictedControlError("paused", "quiesce.flag")
+                     if not self.control_enabled:
+diff --git a/tools/serial-studio/titan_control_server.py b/tools/serial-studio/titan_control_server.py
+index 4b1d1eb..3c31764 100644
+--- a/tools/serial-studio/titan_control_server.py
++++ b/tools/serial-studio/titan_control_server.py
+@@ -12,10 +12,17 @@ import time
+ from pathlib import Path
+ from typing import Callable
+ 
++import emotiscope_control as donor
+ import live_protocol as proto
+ 
+-ALLOWED_OPS = frozenset({"hello", "get_config", "patch", "performance", "selection", "snapshot"})
+-ALLOWED_WRITE_OPS = frozenset({"patch", "performance", "selection", "get_config", "snapshot"})
++ALLOWED_OPS = frozenset({
++    "hello", "get_config", "patch", "performance", "selection", "snapshot",
++    "emotiscope_get", "emotiscope_patch",
++})
++ALLOWED_WRITE_OPS = frozenset({
++    "patch", "performance", "selection", "get_config", "snapshot",
++    "emotiscope_get", "emotiscope_patch",
++})
+ APPROVAL_FILES = ("accepted-checkpoint.json", "accepted-candidate.json")
+ FORBIDDEN_CONFIG_SUBS = frozenset(
+     {
+@@ -106,7 +113,7 @@ def hardware_writes_admitted(evidence: Path, bound: dict | None = None) -> tuple
+         return False, "ops_type"
+     if any(op not in ALLOWED_WRITE_OPS for op in ops):
+         return False, "ops_denied"
+-    if "patch" not in ops:
++    if "patch" not in ops and "emotiscope_patch" not in ops:
+         return False, "ops_denied"
+     scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
+     if scoped is not None:
+@@ -165,6 +172,7 @@ class RestrictedControlPlane:
+         self.forbidden_attempts = 0
+         self.hw_writes = 0
+         self.last_config: dict | None = None
++        self.last_donor: dict | None = None
+         self._io = threading.Lock()
+         self._outstanding = 0
+ 
+@@ -180,6 +188,10 @@ class RestrictedControlPlane:
+                 return self._get_config(request)
+             if op == "snapshot":
+                 return self._snapshot(request)
++            if op == "emotiscope_get":
++                return self._emotiscope_get(request)
++            if op == "emotiscope_patch":
++                return self._emotiscope_patch(request, conn_id)
+             return self._patch(request, conn_id)
+         except RestrictedControlError as exc:
+             return {"ok": False, "error": exc.code, "detail": exc.detail}
+@@ -188,6 +200,7 @@ class RestrictedControlPlane:
+         self.session.bound = bound or self.session.bound
+         self.session.rotate()
+         self.last_config = None
++        self.last_donor = None
+ 
+     def _hello(self, conn_id: str | None) -> dict:
+         if conn_id:
+@@ -317,6 +330,8 @@ class RestrictedControlPlane:
+         rec = load_approval_record(self.evidence)
+         if request.get("op") in {"performance", "selection"} and (rec is None or request["op"] not in rec.get("ops", [])):
+             return {"ok": False, "error": "ops_denied", "admit_reason": "performance_not_admitted"}
++        if request.get("op") == "patch" and (rec is None or "patch" not in rec.get("ops", [])):
++            return {"ok": False, "error": "ops_denied", "admit_reason": "legacy_patch_not_admitted"}
+         scoped = None
+         if rec is not None:
+             scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
+@@ -373,6 +388,198 @@ class RestrictedControlPlane:
+             "boot_id": cfg.get("boot_id"),
+         }
+ 
++    def _donor_ids(self, request: dict) -> tuple[int, int, int] | dict:
++        request_id = request.get("request_id")
++        boot_id = request.get("boot_id")
++        revision = request.get("revision", 0)
++        if request_id is None:
++            return {"ok": False, "error": "request_id_required"}
++        if boot_id is None:
++            return {
++                "ok": False,
++                "error": "missing_boot_id",
++                "request_id": int(request_id) if isinstance(request_id, int) else request_id,
++                "session": self.session.token,
++            }
++        try:
++            return int(request_id), int(boot_id), int(revision)
++        except (TypeError, ValueError):
++            return {"ok": False, "error": "forbidden_or_invalid_field"}
++
++    def _donor_reply(self, got: dict, request_id: int, wrote: bool) -> dict:
++        body = got.get("body") or b""
++        state = _decode_donor_body(body) if isinstance(body, (bytes, bytearray)) else None
++        status = int(got.get("status") or 0)
++        if got.get("ok") and status == 0 and state is not None:
++            self.last_donor = state
++            if wrote:
++                self.hw_writes += 1
++            return {
++                "ok": True,
++                "state": state,
++                "revision": state["revision"],
++                "boot_id": state["boot_id"],
++                "request_id": request_id,
++                "accepted_request_id": state["accepted_request_id"],
++                "rendered_request_id": state["rendered_request_id"],
++                "emitted_request_id": state["emitted_request_id"],
++                "dedup": state["dedup"],
++                "changed": state["changed"],
++                "mode_transition": state["mode_transition"],
++                "session": self.session.token,
++                "status": 0,
++            }
++        error = _DONOR_STATUS.get(status, "patch_rejected")
++        if state is None and status == 0:
++            error = "donor_framing"
++        reply = {
++            "ok": False,
++            "error": error,
++            "status": status,
++            "request_id": request_id,
++            "session": self.session.token,
++        }
++        if state is not None:
++            self.last_donor = state
++            reply["state"] = state
++            reply["revision"] = state["revision"]
++            reply["boot_id"] = state["boot_id"]
++        return reply
++
++    def _emotiscope_get(self, request: dict) -> dict:
++        err = self._require_session(request)
++        if err:
++            return {"ok": False, "error": err}
++        ids = self._donor_ids(request)
++        if isinstance(ids, dict):
++            return ids
++        request_id, boot_id, _revision = ids
++        try:
++            wire = donor.encode_get(request_id, boot_id)
++        except (ValueError, TypeError, OverflowError) as exc:
++            self.forbidden_attempts += 1
++            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
++        if self.transact is None:
++            if self.last_donor is None:
++                return {"ok": False, "error": "ADMISSION_HOLD"}
++            return {"ok": True, "state": self.last_donor, "session": self.session.token, "cached": True}
++        got = self._transact(25, wire)
++        return self._donor_reply(got, request_id, wrote=False)
++
++    def _emotiscope_patch(self, request: dict, conn_id: str | None) -> dict:
++        err = self._require_session(request)
++        if err:
++            return {"ok": False, "error": err}
++        if conn_id and self.session.writer_id not in (None, conn_id):
++            return {"ok": False, "error": "writer_busy"}
++        if conn_id and self.session.writer_id is None:
++            self.session.writer_id = conn_id
++        fields = request.get("fields")
++        if not isinstance(fields, dict) or len(fields) > 16:
++            return {"ok": False, "error": "empty_patch" if not isinstance(fields, dict) else "too_many_fields"}
++        ids = self._donor_ids(request)
++        if isinstance(ids, dict):
++            return ids
++        request_id, boot_id, revision = ids
++        try:
++            wire = donor.encode_patch(request_id, boot_id, revision, fields)
++        except (ValueError, TypeError, OverflowError, KeyError) as exc:
++            self.forbidden_attempts += 1
++            return {"ok": False, "error": "forbidden_or_invalid_field", "detail": str(exc)}
++        if donor.PATCH_SUB != int.from_bytes(wire[:4], "little"):
++            self.forbidden_attempts += 1
++            return {"ok": False, "error": "would_emit_whole_config"}
++        if (self.evidence / "quiesce.flag").exists():
++            return {
++                "ok": False,
++                "error": "hold",
++                "request_id": request_id,
++                "session": self.session.token,
++                "queued_cleared": True,
++            }
++        admitted, reason = hardware_writes_admitted(self.evidence, self.session.bound)
++        if self.transact is None or not admitted:
++            return {
++                "ok": False,
++                "error": "ADMISSION_HOLD",
++                "admit_reason": reason,
++                "request_id": request_id,
++                "session": self.session.token,
++                "queued_cleared": False,
++            }
++        rec = load_approval_record(self.evidence)
++        if rec is None or "emotiscope_patch" not in rec.get("ops", []):
++            return {"ok": False, "error": "ops_denied", "admit_reason": "emotiscope_patch_not_admitted"}
++        scoped = rec.get("fields") if rec.get("fields") is not None else rec.get("targets")
++        if scoped is not None and set(fields) - set(scoped):
++            return {
++                "ok": False,
++                "error": "ops_denied",
++                "admit_reason": "field_scope",
++                "request_id": request_id,
++                "session": self.session.token,
++            }
++        got = self._transact(25, wire)
++        return self._donor_reply(got, request_id, wrote=True)
++
++
++def donor_public_state(state: dict) -> dict:
++    flags = int(state["flags"])
++    applicability = int(state["applicability"])
++    return {
++        "boot_id": state["boot_id"],
++        "revision": state["revision"],
++        "request_id": state["request_id"],
++        "brightness": state["brightness"],
++        "softness": state["softness"],
++        "color": state["color"],
++        "effective_hue": state["effective_hue"],
++        "warmth": state["warmth"],
++        "color_range": state["color_range"],
++        "speed": state["speed"],
++        "saturation": state["saturation"],
++        "background": state["background"],
++        "mode": state["mode"],
++        "mirror_mode": bool(flags & 1),
++        "screensaver": bool(flags & 2),
++        "temporal_dithering": bool(flags & 4),
++        "auto_color_cycle": bool(flags & 8),
++        "reverse_color_range": bool(flags & 16),
++        "emission_enabled": bool(flags & 32),
++        "hardware_output_brightness": state["output_brightness"],
++        "applicability": applicability,
++        "speed_applicable": bool(applicability & (1 << 5)),
++        "reverse_applicable": bool(applicability & (1 << 13)),
++        "accepted_request_id": state["accepted_request_id"],
++        "rendered_request_id": state["rendered_request_id"],
++        "emitted_request_id": state["emitted_request_id"],
++        "rendered_frame": state["rendered_frame"],
++        "last_status": state["last_status"],
++        "dedup": state["dedup"],
++        "changed": state["changed"],
++        "mode_transition": state["mode_transition"],
++        "schema_sha256": state["schema"].hex(),
++    }
++
++
++_DONOR_STATUS = {
++    3: "invalid",
++    5: "stale",
++    6: "wrong_boot",
++    7: "request_conflict",
++    9: "reconcile",
++    10: "busy",
++}
++
++
++def _decode_donor_body(body: bytes) -> dict | None:
++    if len(body) != donor.STATE_BYTES:
++        return None
++    state = donor.decode_state(body)
++    if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * 20:
++        return None
++    return donor_public_state(state)
++
+ 
+ def _visual_get(cfg: dict, name: str):
+     channel, field = name.split(".", 1)
+diff --git a/tools/serial-studio/titan_snapshot.py b/tools/serial-studio/titan_snapshot.py
+index d7c1a44..ecc3c6f 100644
+--- a/tools/serial-studio/titan_snapshot.py
++++ b/tools/serial-studio/titan_snapshot.py
+@@ -17,21 +17,33 @@ from titan_decode import (
+     decode,
+ )
+ 
+-CONTRACT_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.xover(\d+)$")
++XOVER_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.xover(\d+)$")
++EMOTISCOPE_RE = re.compile(r"^sr(\d+)\.hop(\d+)\.bins(\d+)\.emotiscope$")
++CONTRACT_RE = XOVER_RE
+ EXPECTED_UID = "545433931bd25436593630352d068363"
+ STALE_MS = 2000
+ 
+ 
+ def parse_contract(text: str) -> dict | None:
+-    match = CONTRACT_RE.match(text or "")
+-    if not match:
+-        return None
+-    return {
+-        "admitted_rate_hz": int(match.group(1)),
+-        "hop_samples": int(match.group(2)),
+-        "bins": int(match.group(3)),
+-        "xover": int(match.group(4)),
+-    }
++    match = XOVER_RE.match(text or "")
++    if match:
++        return {
++            "admitted_rate_hz": int(match.group(1)),
++            "hop_samples": int(match.group(2)),
++            "bins": int(match.group(3)),
++            "xover": int(match.group(4)),
++            "family": "xover",
++        }
++    match = EMOTISCOPE_RE.match(text or "")
++    if match:
++        return {
++            "admitted_rate_hz": int(match.group(1)),
++            "hop_samples": int(match.group(2)),
++            "bins": int(match.group(3)),
++            "xover": None,
++            "family": "emotiscope",
++        }
++    return None
+ 
+ 
+ def identity_identified(info: dict, expected_uid: str = EXPECTED_UID) -> tuple[bool, str]:

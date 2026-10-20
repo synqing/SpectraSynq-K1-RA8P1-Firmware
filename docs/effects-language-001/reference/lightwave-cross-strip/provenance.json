@@ -1,0 +1,86 @@
+{
+  "pin": "60009324ec3e7785c11db010343189d34e7314e0",
+  "repository": "/Users/spectrasynq/Workspace_Management/Software/Lightwave-Ledstrip",
+  "records": [
+    {
+      "upstream_path": "firmware-v3/src/effects/ieffect/CrossStripWaveInterferenceEffect.cpp",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/CrossStripWaveInterferenceEffect.cpp",
+      "sha256": "1adbb169359026156df4142a3aa89bb18670123ece65913a088cd7a6b950d04d",
+      "blob": "bed33fa17cedf046a8b081730bf5a36c1e58c262"
+    },
+    {
+      "upstream_path": "firmware-v3/src/effects/ieffect/CrossStripWaveInterferenceEffect.h",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/CrossStripWaveInterferenceEffect.h",
+      "sha256": "c44de9be99e26e3e0cff07d31367111c9d08004df769d01fcb8738cc583d0929",
+      "blob": "160932e41ede6ed7b20e6c6837a295e6faf2f4c0"
+    },
+    {
+      "upstream_path": "firmware-v3/src/plugins/api/EffectContext.h",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/EffectContext.h",
+      "sha256": "e4354cf181f590b2255fab5211d51fddede0dc60fd5b0d0bfaee8bbffb13441c",
+      "blob": "61f501ecb8168e066288fd7f2e2091b87edf50f3"
+    },
+    {
+      "upstream_path": "firmware-v3/platformio.ini",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/platformio.ini",
+      "sha256": "6c8bf5e34fb32bb10c023fb4664d79a2f8103a987ad20e178db3a328a85777ef",
+      "blob": "f9a802cb5cb7490eaa1f8febb1ae1dfb59a2b0d7"
+    },
+    {
+      "upstream_path": "LICENSE",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "blob": "d645695673349e3947e8e5ae42332d0ac3164cd7"
+    },
+    {
+      "upstream_path": "NOTICE",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/NOTICE",
+      "sha256": "5f00dbc71f9cce50f0d1a9b1b6f6fe46956e95ca66fada3e0bc2196b8e58e1d0",
+      "blob": "cba70b932ec09672c0b63bbf51c70355e88e6354"
+    },
+    {
+      "local_dependency": "/Users/spectrasynq/Workspace_Management/Software/Lightwave-Ledstrip/firmware-v3/.pio/libdeps/esp32dev_audio_esv11_32khz/FastLED/src/lib8tion/scale8.h",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/FastLED-scale8.h",
+      "sha256": "ae27afef283fc6d5f3d0b44062893c7c0cbc62f6b97f9417a8eed20d8e9ab3eb"
+    },
+    {
+      "local_dependency": "/Users/spectrasynq/Workspace_Management/Software/Lightwave-Ledstrip/firmware-v3/.pio/libdeps/esp32dev_audio_esv11_32khz/FastLED/src/fastled_config.h",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/FastLED-fastled_config.h",
+      "sha256": "ead560ea0b26e84b23f58bcf2a219f042406d1b603cffbd6b80712ac1a44fcff"
+    },
+    {
+      "local_dependency": "/Users/spectrasynq/Workspace_Management/Software/Lightwave-Ledstrip/firmware-v3/.pio/libdeps/esp32dev_audio_esv11_32khz/FastLED/src/crgb.h",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/FastLED-crgb.h",
+      "sha256": "911dcd604227d3d886d836e568af16d6b918b68fd23ffa2a0fbffebdf643d7e6"
+    },
+    {
+      "local_dependency": "/Users/spectrasynq/Workspace_Management/Software/Lightwave-Ledstrip/firmware-v3/.pio/libdeps/esp32dev_audio_esv11_32khz/FastLED/library.json",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/FastLED-library.json",
+      "sha256": "7efe40686d2c3772b7b82729292f58d24e52c7c2e2d5e44cedfe61e3cb402fcf"
+    },
+    {
+      "upstream_path": "firmware-v3/src/effects/ieffect/LGPRoseBloomAREffect.cpp",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/LGPRoseBloomAREffect.cpp",
+      "sha256": "90aaaa83294c5f161fa995b4e4d35a6d5a3c7199493c0b6cc2db26cddbe7969b",
+      "blob": "a15486baadabd8f99e2579bd5d5c617312654a55"
+    },
+    {
+      "upstream_path": "firmware-v3/src/effects/ieffect/LGPHolyShitBangersPack.cpp",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/LGPHolyShitBangersPack.cpp",
+      "sha256": "840c4448d630592e0b9a649797066d549dae4a66322dfcb5c72100697bde9c74",
+      "blob": "60e0d9c3d1a6c8f4b59eb1d58849d60567a0ba0e"
+    },
+    {
+      "upstream_path": "firmware-v3/src/effects/ieffect/LGPMoireCurtainsEffect.cpp",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/LGPMoireCurtainsEffect.cpp",
+      "sha256": "3a92d41d4d857bcf636293d6c858c865432857ca1471848f4276555ac1f241f5",
+      "blob": "cb6e86d85907a0b69528f54e13344123edb85c09"
+    },
+    {
+      "upstream_path": "firmware-v3/src/effects/ieffect/LGPFilmPost.cpp",
+      "path": "docs/effects-language-001/reference/lightwave-cross-strip/LGPFilmPost.cpp",
+      "sha256": "0d9c3f7591ff274fdc7dfb39cafe7fb267d665dd5d77dedb2416fd9cae7a4d50",
+      "blob": "bd27f0f84c38bca734992d9f6ae23870d1cda7d9"
+    }
+  ]
+}

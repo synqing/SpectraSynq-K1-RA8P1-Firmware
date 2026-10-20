@@ -1,0 +1,21 @@
+{
+  "name": "Titan live control latency (atlas Experiment 3 step 2)",
+  "status": "PROPOSAL \u2014 NOT APPROVED. Device read/write of one live control; no flash.",
+  "purpose": "A host-timed trigger (a riser puppet now, a release puppet later) is only usable if a command reaches the device quickly and consistently. This measures command to device readback.",
+  "operation": "Twenty live speed changes on board 0 through the mixer API (POST /api/controls with the session token), alternating 0.50 and 0.55. Each is confirmed when /api/status board_states.0.speed equals the commanded value; the status is polled every 5 ms. Board 1 is never commanded.",
+  "latency": "Wall-clock time from just before the POST to the first status read showing the commanded value on board 0.",
+  "pass": [
+    "all 20 commands are confirmed within 2.0 s",
+    "p95 latency <= 150 ms",
+    "board 1 speed reads 0.50 at every poll",
+    "after the run board 0 speed is restored to 0.50 and confirmed"
+  ],
+  "jitter_reported": "p50, p95, max and (p95 - p50) are reported; a host-timed trigger can lead by p50 but carries (p95 - p50) as timing uncertainty.",
+  "planted_faults": {
+    "late_poll": "The same run scored with 200 ms added to every latency (a poll that starts 200 ms late). Expected RED on the p95 clause.",
+    "board1_command": "One extra command scored as if it were on board 1 (board 1 speed 0.55 in its readback). Expected RED on the board-1 clause."
+  },
+  "safety": "Speed only. Brightness, palette and mode are not touched. The Titan keeps visualising throughout; testing-scope ruling applies.",
+  "frozen_utc": "2026-10-14T22:35:13Z",
+  "frozen_sha256": "1f615d324404ce2f089e41bd239ecdd4587e8a2439b3066f22e62ab5701f57ac"
+}

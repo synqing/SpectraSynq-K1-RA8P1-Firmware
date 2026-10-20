@@ -1,0 +1,130 @@
+{
+ "kick1_stab0": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.419
+  },
+  "prior_flat": {
+   "69": 0.0,
+   "92": 0.0,
+   "138": 1.0,
+   "locked": 1.0,
+   "comb92_over_comb138_median": 0.419
+  }
+ },
+ "kick1_stab0.9": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 1.0,
+   "comb92_over_comb138_median": 0.433
+  },
+  "prior_flat": {
+   "69": 0.0,
+   "92": 0.0,
+   "138": 1.0,
+   "locked": 1.0,
+   "comb92_over_comb138_median": 0.433
+  }
+ },
+ "kick1_stab2": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.501
+  },
+  "prior_flat": {
+   "69": 0.0,
+   "92": 0.0,
+   "138": 1.0,
+   "locked": 1.0,
+   "comb92_over_comb138_median": 0.501
+  }
+ },
+ "kick1_stab4": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.563
+  },
+  "prior_flat": {
+   "69": 0.0,
+   "92": 0.0,
+   "138": 1.0,
+   "locked": 1.0,
+   "comb92_over_comb138_median": 0.563
+  }
+ },
+ "kick0.5_stab4": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.67
+  },
+  "prior_flat": {
+   "69": 0.0,
+   "92": 0.0,
+   "138": 1.0,
+   "locked": 1.0,
+   "comb92_over_comb138_median": 0.67
+  }
+ },
+ "kick0_stab1": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.905
+  },
+  "prior_flat": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.905
+  }
+ },
+ "bounce_kick332_snare24_stab0": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.686
+  },
+  "prior_flat": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.686
+  }
+ },
+ "bounce_kick332_snare24_stab1": {
+  "baseline": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.718
+  },
+  "prior_flat": {
+   "69": 1.0,
+   "92": 0.0,
+   "138": 0.0,
+   "locked": 0.0,
+   "comb92_over_comb138_median": 0.718
+  }
+ }
+}

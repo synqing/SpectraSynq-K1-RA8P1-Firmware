@@ -1,0 +1,30 @@
+[
+  {
+    "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/lightshow_modes.h",
+    "url": "https://raw.githubusercontent.com/connornishijima/SensoryBridge/5f329261987144242be4c3729f6d344631d3be1e/SENSORY_BRIDGE_FIRMWARE/lightshow_modes.h",
+    "local_sha256": "39b93c9f99a1d7c8c1719feaa17025e211cd6a96f9e610ea98e2693a2e0c6267",
+    "upstream_sha256": "39b93c9f99a1d7c8c1719feaa17025e211cd6a96f9e610ea98e2693a2e0c6267",
+    "exact_blob_match": true
+  },
+  {
+    "path": "docs/effects-language-001/reference/donor-local/sensory-4.1.1/SENSORY_BRIDGE_FIRMWARE/led_utilities.h",
+    "url": "https://raw.githubusercontent.com/connornishijima/SensoryBridge/5f329261987144242be4c3729f6d344631d3be1e/SENSORY_BRIDGE_FIRMWARE/led_utilities.h",
+    "local_sha256": "ce17aced87bdc4df119055b51f65f2d0e3fc6566bd7690af590d135693ff7cb9",
+    "upstream_sha256": "ce17aced87bdc4df119055b51f65f2d0e3fc6566bd7690af590d135693ff7cb9",
+    "exact_blob_match": true
+  },
+  {
+    "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/light_modes/active/bloom.h",
+    "url": "https://raw.githubusercontent.com/Lixie-Labs/Emotiscope/634b7ed8eefa2f1913ba1a1e7b29c116f22714d4/src/light_modes/active/bloom.h",
+    "local_sha256": "50eb5c380e95573adee25b793cd53c33b9be7ddc9745663846314b5048ba3d99",
+    "upstream_sha256": "50eb5c380e95573adee25b793cd53c33b9be7ddc9745663846314b5048ba3d99",
+    "exact_blob_match": true
+  },
+  {
+    "path": "docs/effects-language-001/reference/donor-local/emotiscope-1.1/src/leds.h",
+    "url": "https://raw.githubusercontent.com/Lixie-Labs/Emotiscope/634b7ed8eefa2f1913ba1a1e7b29c116f22714d4/src/leds.h",
+    "local_sha256": "312708a94b085aa362cbac9f6e31a25ed6b6cfee52766cce3fc2de1f61353b89",
+    "upstream_sha256": "312708a94b085aa362cbac9f6e31a25ed6b6cfee52766cce3fc2de1f61353b89",
+    "exact_blob_match": true
+  }
+]

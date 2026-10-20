@@ -43,6 +43,7 @@ def apply_tempo_acf_slice_overlay(root):
                                 state.acf_job.sample * state.novelty_scale);
                 state.event = buildOutput(state);
                 state.event.updated = true;
+                completeTempoEvidence(state);
             }
         }
         return;
@@ -50,7 +51,8 @@ def apply_tempo_acf_slice_overlay(root):
     if after_c.count(old) != 1:
         raise RuntimeError('tempo overlay early-return mismatch')
     after_c = after_c.replace(old, new)
-    old = '''    computeTempoAcfAtRate(state.novelty_history,
+    old = '''    captureTempoEvidence(state);
+    computeTempoAcfAtRate(state.novelty_history,
                           state.history_index,
                           state.novelty_scale,
                           state.novelty_rate_hz,
@@ -59,7 +61,8 @@ def apply_tempo_acf_slice_overlay(root):
     advanceFlywheel(
         state, delta_seconds, sample * state.novelty_scale);
     state.event = buildOutput(state);
-    state.event.updated = true;'''
+    state.event.updated = true;
+    completeTempoEvidence(state);'''
     new = '''    if (state.acf_job.active) {
         while (state.acf_job.active && !state.acf_job.lags_done) {
             tempoAcfSlicePump(state.acf_job, 65535U);
@@ -71,8 +74,10 @@ def apply_tempo_acf_slice_overlay(root):
                             state.acf_job.sample * state.novelty_scale);
             state.event = buildOutput(state);
             state.event.updated = true;
+                completeTempoEvidence(state);
         }
     }
+    captureTempoEvidence(state);
     tempoAcfSliceBegin(state.acf_job,
                        state.novelty_history,
                        state.history_index,
@@ -80,6 +85,10 @@ def apply_tempo_acf_slice_overlay(root):
                        state.novelty_rate_hz,
                        delta_seconds,
                        sample);
+    state.acf_job.evidence_endpoint = state.evidence.pending.endpoint;
+    state.acf_job.evidence_epoch = state.evidence.pending.epoch;
+    state.acf_job.evidence_configuration_revision = state.evidence.pending.configuration_revision;
+    state.acf_job.evidence_valid = state.evidence.pending.valid;
     {
         const unsigned chunk =
             static_cast<unsigned>((state.acf_job.lag_count + 2) / 3);
@@ -90,6 +99,7 @@ def apply_tempo_acf_slice_overlay(root):
             advanceFlywheel(state, delta_seconds, sample * state.novelty_scale);
             state.event = buildOutput(state);
             state.event.updated = true;
+                completeTempoEvidence(state);
         }
     }'''
     if after_c.count(old) != 1:

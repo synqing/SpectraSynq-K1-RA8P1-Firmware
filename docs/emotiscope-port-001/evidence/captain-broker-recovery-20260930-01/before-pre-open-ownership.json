@@ -1,0 +1,12 @@
+{
+  "device": "/dev/cu.usbmodem00000000000011",
+  "location": "0-1.2.4",
+  "serial": "0000000000001",
+  "product": "CDC USB Demonstration",
+  "aliases": [
+    "/dev/cu.usbmodem00000000000011",
+    "/dev/tty.usbmodem00000000000011"
+  ],
+  "lsof": [],
+  "lsof_skipped": "timed_lsof_hangs_on_this_cdc_node; flock is owner gate"
+}

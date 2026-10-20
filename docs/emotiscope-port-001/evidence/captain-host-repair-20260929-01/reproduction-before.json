@@ -1,0 +1,54 @@
+{
+  "repeated_press": {
+    "patches": [
+      [
+        "emotiscope_patch",
+        4242,
+        3,
+        {
+          "mirror_mode": false
+        },
+        3
+      ],
+      [
+        "emotiscope_patch",
+        4242,
+        4,
+        {
+          "mirror_mode": true
+        },
+        4
+      ]
+    ],
+    "mirror_final": true,
+    "expected_one_patch": true
+  },
+  "scene_then_next": {
+    "patches": [
+      [
+        "emotiscope_patch",
+        4242,
+        3,
+        {
+          "current_mode": 5
+        },
+        3
+      ],
+      [
+        "emotiscope_patch",
+        4242,
+        4,
+        {
+          "current_mode": 2
+        },
+        4
+      ]
+    ],
+    "mode_final": 2,
+    "expected_mode": 6
+  },
+  "unlabelled_faders_auto_arm": {
+    "writes_armed": true,
+    "qualified": false
+  }
+}

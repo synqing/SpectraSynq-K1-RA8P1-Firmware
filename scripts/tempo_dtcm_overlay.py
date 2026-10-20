@@ -14,12 +14,23 @@ HOT_ARRAY_BYTES = (512 + 200) * 4
 PLACEMENTS = ('empty-tcm', 'dtcm')
 
 
+def validate_tempo_placement_owner(placement, resident, donor, tempo, live):
+    if resident and not placement:
+        raise ValueError('--resident-controls requires explicit --tempo-placement')
+    if placement and not resident and not (donor and tempo and live):
+        raise ValueError('--tempo-placement requires resident controls or --emotiscope-port --tempo-field --live-runtime')
+
+
 def apply_tempo_dtcm_overlay(root):
     path = root / 'core/audio/tempo_acf.cpp'
     before = path.read_text()
     after = before
     old = '    std::array<float, kTempoAcfHistoryLength> work{};'
-    new = ('    static std::array<float, kTempoAcfHistoryLength> work '
+    new = ('    // DTCM scratch belongs to the sole synchronous audio caller.\n'
+           '    // Not reentrant or ISR-safe: finish one tracker before the next.\n'
+           '    // Musical histories/results remain in each tracker state.\n'
+           '    static_assert((kTempoAcfHistoryLength + kAcfTableLength) * sizeof(float) == 2848U);\n'
+           '    static std::array<float, kTempoAcfHistoryLength> work '
            '__attribute__((section(".dtcm"), aligned(32)));\n'
            '    work = {};')
     if after.count(old) != 1:
@@ -60,6 +71,7 @@ def apply_tempo_placement(root, placement):
             'placement': 'dtcm',
             'hot_array_bytes': HOT_ARRAY_BYTES,
             'residence': 'section .dtcm',
+            'caller_contract': 'sole synchronous audio caller; never ISR or reentrant; no shared musical history',
             'overlay': overlay,
         }
     raise RuntimeError(f'unknown tempo placement: {placement!r}')
@@ -101,7 +113,9 @@ def _hot_array_addresses(symbols_text):
     return hits
 
 
-def verify_tempo_elf_placement(symbols_text, placement):
+def verify_tempo_elf_placement(symbols_text, placement, scratch_only=False, declared_regions=()):
+    """declared_regions: other DTCM placement regions (e.g. '__dtcm_from_flash') that the caller
+    has declared and verifies itself; every other non-empty __dtcm_* region still fails."""
     hits = _hot_array_addresses(symbols_text)
     evidence = {
         'placement': placement,
@@ -130,5 +144,30 @@ def verify_tempo_elf_placement(symbols_text, placement):
             raise RuntimeError('dtcm image did not place tempo hot arrays in DTCM')
         evidence['residence'] = 'section .dtcm'
         evidence['stack_delta_bytes'] = 0
+        if scratch_only:
+            symbols = {}
+            for line in symbols_text.splitlines():
+                parts = line.split()
+                if len(parts) >= 3:
+                    try:
+                        symbols[parts[-1]] = int(parts[0], 16)
+                    except ValueError:
+                        pass
+            base = symbols.get('__dtcm_zero$$Base')
+            limit = symbols.get('__dtcm_zero$$Limit')
+            if base is None or limit is None or limit - base != HOT_ARRAY_BYTES:
+                raise RuntimeError('donor DTCM zero region must contain exactly 2848 scratch bytes')
+            if len(hits['work']) != 1 or len(hits['acf']) != 1:
+                raise RuntimeError('donor DTCM requires exactly one work and one acf workspace')
+            spans = sorted([(hits['work'][0], 512 * 4), (hits['acf'][0], 200 * 4)])
+            if spans[0][0] != base or spans[0][0] + spans[0][1] != spans[1][0] or spans[1][0] + spans[1][1] != limit:
+                raise RuntimeError('donor DTCM scratch symbols do not exactly cover the zero region')
+            for name, address in symbols.items():
+                if (name.startswith('__dtcm_') and name.endswith('$$Base') and name != '__dtcm_zero$$Base'
+                        and name[:-6] not in declared_regions):
+                    if symbols.get(name[:-4] + 'Limit') != address:
+                        raise RuntimeError('donor DTCM contains another placement: ' + name)
+            evidence['zero_initialised_bytes'] = limit - base
+            evidence['scratch_only'] = True
         return evidence
     raise RuntimeError(f'unknown tempo placement: {placement!r}')

@@ -1,0 +1,37 @@
+{
+  "lane": "P6 effect mapping EXT v3",
+  "name": "P6 EXT-v3 hold and drop-row black frame",
+  "status": "written before any Experiment 1b result",
+  "what_this_file_is": "The pass/fail rule for the released-extent hold and for a black frame at the drop. It does not replace TOLERANCE-FROZEN-P6-EXT-v3.json. EXT-v3 is still scored by scripts/p6_ext.py --criterion v3.",
+  "why_these_numbers": "The atlas R01 record says hold 1-2 s, then return to flow. 1000 ms is the low end of that range. At 120 BPM one beat is 500 ms, so 1000 ms is the first two beats of the drop. The fall after the hold uses the atlas R02 Progressive Ignition fall, 0.40 s, and is not itself the pass bar. The full-extension line 0.90 is the line EXT-v3 already uses for T90. The existing Experiment 1 front, measured on the BOOM file frames already on disk, stays at or above 0.90 for about 40 ms after it first gets there (about 55.78 s to 55.82 s). 1000 ms is far above that, so that front must fail this bar. The 40 ms figure was not used to place the bar inside the new front.",
+  "extent": "The unchanged EXT-v3 right-half extent: innermost pixel of pixels 80..159 at or above 10 percent of that half's display-stage Rec.709 peak, extent = (160 - index) / 80. Both edge fields must pass. A case passes only when every drop on both edge fields passes.",
+  "hold": {
+    "full_extension": 0.9,
+    "sustain_ms": 1000,
+    "clock": "Time starts at the first frame with t_song >= t_d and extent >= full_extension. From that frame through sustain_ms later, every frame must have extent >= full_extension. The search for the first full frame stops at t_d + 0.15 s, the EXT-v3 full-extension window. Frames are the probe's 10 ms rows.",
+    "pass": "sustain_ms of frames at or above full_extension, on both edge fields, for every tuning drop."
+  },
+  "black_frame": {
+    "window_s": [
+      0.0,
+      0.05
+    ],
+    "window": "Frames with t_song >= t_d and t_song <= t_d + 0.05 s.",
+    "fully_black": "Every channel of every pixel on that edge field is 0.",
+    "edge_cut": "Pixels 8 through 151 are all 0, and the previous frame had a lit pixel in that same interior. This is the drop row on the Experiment 1 strips: eight edge pixels stay lit and the rest of the field is cleared.",
+    "silence": "A fully black frame or an edge cut is allowed only when the probe silence flag on that frame is 1. The drop is not silent.",
+    "pass": "No frame in the window is fully black or an edge cut unless that frame is silent. Both edge fields."
+  },
+  "plants": {
+    "recede": "The Experiment 1 front (legacy_recede, no hold, pixels ahead of the front cleared). It must fail the hold. It must also fail the edge-cut check on a drop whose previous frame still has interior light.",
+    "black": "One all-zero frame written onto an otherwise passing replay at the frame nearest t_d, with silence left at 0. The black-frame check must fail. The renderer is not changed to do this."
+  },
+  "anchors": "Same tuning drops as TOLERANCE-FROZEN-P6-EXT-v3.json: boom_source 55.7, boom_room 55.7, sonic_source 27.7, sonic_source 54.7. Carte Blanche is not a hold case.",
+  "renderer_constants": {
+    "hold_s": 1.0,
+    "decay_s": 0.4,
+    "source": "hold_s is the low end of atlas R01 'hold 1-2 s'. decay_s is the atlas R02 Progressive Ignition fall, 0.40 s. Travel stays 0.12 s, the middle of the R01 100-180 ms range, unchanged from Experiment 1."
+  },
+  "frozen_utc": "2026-10-14T20:59:23Z",
+  "frozen_sha256": "50991d99de93940f8dacbc44805f6eaf87e3f1f02ec5da541cacc2a64be1052e"
+}

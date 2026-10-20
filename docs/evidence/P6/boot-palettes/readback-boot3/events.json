@@ -1,0 +1,30 @@
+[
+  {
+    "event": "start",
+    "mono": 374425.692611291,
+    "wall": 1792060199.593287,
+    "mode": "readback",
+    "profile_sha256": "c4a4ac5a2ba13195aa4903d1b6775737a19551f3c7a723fb4c9bf8fd9513a4a4",
+    "expected_build": "fe4bf14a8a8e674f2962ad13e9b42b332da95208c2c4864b4ca9c92b6f4cfa9d"
+  },
+  {
+    "event": "completed",
+    "mono": 374425.892237041,
+    "wall": 1792060199.792913,
+    "profile_differences": {
+      "0": {
+        "palette": [
+          3,
+          32
+        ]
+      },
+      "1": {
+        "palette": [
+          27,
+          39
+        ]
+      }
+    },
+    "profile_fields_compared": 127
+  }
+]

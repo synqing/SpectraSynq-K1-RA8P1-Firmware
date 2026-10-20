@@ -1,0 +1,403 @@
+{
+  "replay": "/tmp/p6-gain-final2/P",
+  "C1": {
+    "pass": false,
+    "cases": [
+      {
+        "input": "boom_source",
+        "board": 0,
+        "loudness_ratio": 2.2141229053597544,
+        "S_build": 0.00873392,
+        "S_drop": 0.01011922,
+        "S_ratio": 1.1586114825874294,
+        "L_ratio": 1.2813778689319475,
+        "valid": true,
+        "pass": true
+      },
+      {
+        "input": "boom_source",
+        "board": 1,
+        "loudness_ratio": 2.2141229053597544,
+        "S_build": 0.00618555,
+        "S_drop": 0.0049058,
+        "S_ratio": 0.7931065143762479,
+        "L_ratio": 0.5978385396136343,
+        "valid": true,
+        "pass": false
+      },
+      {
+        "input": "boom_room",
+        "board": 0,
+        "loudness_ratio": 1.710196935816431,
+        "S_build": 0.00661992,
+        "S_drop": 0.008508229999999999,
+        "S_ratio": 1.2852466495063384,
+        "L_ratio": 1.1703671404744536,
+        "valid": true,
+        "pass": true
+      },
+      {
+        "input": "boom_room",
+        "board": 1,
+        "loudness_ratio": 1.710196935816431,
+        "S_build": 0.005430155000000001,
+        "S_drop": 0.00908161,
+        "S_ratio": 1.6724402894576673,
+        "L_ratio": 1.6045122735635966,
+        "valid": true,
+        "pass": true
+      }
+    ]
+  },
+  "C2": {
+    "pass": true,
+    "boards": [
+      {
+        "board": 0,
+        "same_song_pairs": 9,
+        "same_song_concordant": 9,
+        "cross_song_pairs": 18,
+        "cross_song_concordant": 18,
+        "cross_fraction": 1.0,
+        "L_same_concordant": 9,
+        "L_cross_concordant": 18,
+        "median_same_song_slope_db_per_db": 0.5100942956977385,
+        "pass": true
+      },
+      {
+        "board": 1,
+        "same_song_pairs": 9,
+        "same_song_concordant": 9,
+        "cross_song_pairs": 18,
+        "cross_song_concordant": 18,
+        "cross_fraction": 1.0,
+        "L_same_concordant": 9,
+        "L_cross_concordant": 16,
+        "median_same_song_slope_db_per_db": 0.4600488970780998,
+        "pass": true
+      }
+    ],
+    "conditions": {
+      "boom_room-6dB": {
+        "song": "boom_room",
+        "ladder_db": -6.0,
+        "loudness_db": -24.521639411327648,
+        "S": [
+          0.002179035,
+          0.002471035
+        ],
+        "L": [
+          0.00167708,
+          0.0018621050000000002
+        ]
+      },
+      "boom_room": {
+        "song": "boom_room",
+        "ladder_db": 0.0,
+        "loudness_db": -18.513913119971303,
+        "S": [
+          0.00562928,
+          0.00571344
+        ],
+        "L": [
+          0.00440356,
+          0.0045091950000000006
+        ]
+      },
+      "boom_room+6dB": {
+        "song": "boom_room",
+        "ladder_db": 6.0,
+        "loudness_db": -12.512329358782619,
+        "S": [
+          0.008337945,
+          0.007071485000000001
+        ],
+        "L": [
+          0.007032925,
+          0.005312145
+        ]
+      },
+      "sonic_room-6dB": {
+        "song": "sonic_room",
+        "ladder_db": -6.0,
+        "loudness_db": -23.924850658656197,
+        "S": [
+          0.00238213,
+          0.00228204
+        ],
+        "L": [
+          0.0017429,
+          0.001531315
+        ]
+      },
+      "sonic_room": {
+        "song": "sonic_room",
+        "ladder_db": 0.0,
+        "loudness_db": -17.918797632505175,
+        "S": [
+          0.00577143,
+          0.00503275
+        ],
+        "L": [
+          0.004369215,
+          0.0034502350000000003
+        ]
+      },
+      "sonic_room+6dB": {
+        "song": "sonic_room",
+        "ladder_db": 6.0,
+        "loudness_db": -11.917237645956721,
+        "S": [
+          0.009760385,
+          0.00814202
+        ],
+        "L": [
+          0.00747907,
+          0.005187995
+        ]
+      },
+      "dopex_room-6dB": {
+        "song": "dopex_room",
+        "ladder_db": -6.0,
+        "loudness_db": -24.563034536179508,
+        "S": [
+          0.00211012,
+          0.0016219
+        ],
+        "L": [
+          0.00179221,
+          0.001019265
+        ]
+      },
+      "dopex_room": {
+        "song": "dopex_room",
+        "ladder_db": 0.0,
+        "loudness_db": -18.55588465544683,
+        "S": [
+          0.005450825,
+          0.003859425
+        ],
+        "L": [
+          0.004679475000000001,
+          0.0023312050000000003
+        ]
+      },
+      "dopex_room+6dB": {
+        "song": "dopex_room",
+        "ladder_db": 6.0,
+        "loudness_db": -12.554135103476824,
+        "S": [
+          0.00886518,
+          0.00590687
+        ],
+        "L": [
+          0.00780502,
+          0.0032616
+        ]
+      }
+    }
+  },
+  "C3": {
+    "pass": true,
+    "a_q2_preserved": {
+      "pass": true,
+      "rows": [
+        {
+          "input": "boom_room",
+          "board": 0,
+          "R": 0.4034742346616453,
+          "R_v8": 0.6108641149407132,
+          "n_silence_frames": 1206,
+          "S_music_median": 0.006133725,
+          "S_music_median_v8": 0.00645759,
+          "pass": true
+        },
+        {
+          "input": "boom_room",
+          "board": 1,
+          "R": 0.32504779530781397,
+          "R_v8": 0.8206508142402666,
+          "n_silence_frames": 1206,
+          "S_music_median": 0.006548760000000001,
+          "S_music_median_v8": 0.006055645,
+          "pass": true
+        },
+        {
+          "input": "sonic_room",
+          "board": 0,
+          "R": 0.35903307733595075,
+          "R_v8": 0.8797426874807881,
+          "n_silence_frames": 1148,
+          "S_music_median": 0.005766335,
+          "S_music_median_v8": 0.006034685,
+          "pass": true
+        },
+        {
+          "input": "sonic_room",
+          "board": 1,
+          "R": 0.4477781060760358,
+          "R_v8": 1.2990310571499415,
+          "n_silence_frames": 1148,
+          "S_music_median": 0.005228985,
+          "S_music_median_v8": 0.005767110000000001,
+          "pass": true
+        },
+        {
+          "input": "dopex_room",
+          "board": 0,
+          "R": 0.06390372184526438,
+          "R_v8": 1.0951702708701234,
+          "n_silence_frames": 1213,
+          "S_music_median": 0.0049814,
+          "S_music_median_v8": 0.00518145,
+          "pass": true
+        },
+        {
+          "input": "dopex_room",
+          "board": 1,
+          "R": 0.115943176188481,
+          "R_v8": 0.9168966624200736,
+          "n_silence_frames": 1213,
+          "S_music_median": 0.0036636050000000003,
+          "S_music_median_v8": 0.00495299,
+          "pass": true
+        }
+      ]
+    },
+    "b_true_black": {
+      "pass": true,
+      "rows": [
+        {
+          "input": "boom_source",
+          "board": 0,
+          "frames_checked": 300,
+          "first_all_black_after_zeros_s": 0.08999999999999829,
+          "pass": true
+        },
+        {
+          "input": "boom_source",
+          "board": 1,
+          "frames_checked": 300,
+          "first_all_black_after_zeros_s": 0.8200000000000023,
+          "pass": true
+        },
+        {
+          "input": "boom_room",
+          "board": 0,
+          "frames_checked": 299,
+          "first_all_black_after_zeros_s": 0.1693249999999955,
+          "pass": true
+        },
+        {
+          "input": "boom_room",
+          "board": 1,
+          "frames_checked": 299,
+          "first_all_black_after_zeros_s": 0.8293250000000063,
+          "pass": true
+        },
+        {
+          "input": "sonic_room",
+          "board": 0,
+          "frames_checked": 300,
+          "first_all_black_after_zeros_s": 0.17532499999999573,
+          "pass": true
+        },
+        {
+          "input": "sonic_room",
+          "board": 1,
+          "frames_checked": 300,
+          "first_all_black_after_zeros_s": 0.9053249999999997,
+          "pass": true
+        },
+        {
+          "input": "dopex_room",
+          "board": 0,
+          "frames_checked": 300,
+          "first_all_black_after_zeros_s": 0.092650000000001,
+          "pass": true
+        },
+        {
+          "input": "dopex_room",
+          "board": 1,
+          "frames_checked": 300,
+          "first_all_black_after_zeros_s": 0.6226500000000021,
+          "pass": true
+        }
+      ]
+    }
+  },
+  "C5": {
+    "pass": true,
+    "rows": [
+      {
+        "input": "boom_source",
+        "board": 0,
+        "lit_px": 399144,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "boom_source",
+        "board": 1,
+        "lit_px": 390824,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "boom_room",
+        "board": 0,
+        "lit_px": 670942,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "boom_room",
+        "board": 1,
+        "lit_px": 648828,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "sonic_room",
+        "board": 0,
+        "lit_px": 267276,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "sonic_room",
+        "board": 1,
+        "lit_px": 208418,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "dopex_room",
+        "board": 0,
+        "lit_px": 540458,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      },
+      {
+        "input": "dopex_room",
+        "board": 1,
+        "lit_px": 396106,
+        "offpal_px": 0,
+        "fraction": 0.0,
+        "pass": true
+      }
+    ]
+  },
+  "mean_S_calibration_corpus": [
+    0.006181006785164929,
+    0.005430522790975901
+  ],
+  "pass": false
+}

@@ -1,0 +1,138 @@
+{
+  "schema": "k1-effects-language-profiles.v1",
+  "geometry": {
+    "reference_pixels": 128,
+    "k1_pixels": 160,
+    "k1_centres": [
+      79,
+      80
+    ],
+    "mapping": "Reference radial 0..63 linearly resampled to 0..79; one logical channel; physical DIN halves are not product channels"
+  },
+  "references": [
+    {
+      "name": "sensory-4.1.1-rgb-history-kernel",
+      "pin": "5f329261987144242be4c3729f6d344631d3be1e",
+      "state": "128 Q15.16 RGB values, zero initialised",
+      "injection": "Normalised post-colour RGB at63/64 after shift; original upstream colour formation narrows to RGB8 before this boundary",
+      "interpolation": "Original forward fractional scatter, left then right, retention0.99 in Q15.16",
+      "transport": "0.25+1.75*mood logical reference pixels/call; mood0.2",
+      "retention": "Per call0.99; coupled with speed/cadence",
+      "edge": "Retain pre-fade history; final32 right pixels multiply (i/31)^2, then mirror",
+      "palette_edit": "Only new deposits"
+    },
+    {
+      "name": "emotiscope-1.1-scalar-history-kernel",
+      "pin": "634b7ed8eefa2f1913ba1a1e7b29c116f22714d4",
+      "state": "128 FP32 scalar values, zero initialised",
+      "injection": "min(1,VU) at history0 after shift",
+      "interpolation": "Original forward fractional scatter, left then right, alpha0.99",
+      "transport": "0.125+0.875*speed logical reference pixels/call; speed0.2",
+      "retention": "Per call0.99; coupled with speed/cadence",
+      "edge": "Out of bounds scatter omitted; mirrored output reads first64 history cells",
+      "palette_edit": "Retained scalar trail recolours using current palette"
+    }
+  ],
+  "reference_cadence": {
+    "hz": 100,
+    "meaning": "Chosen deterministic comparison cadence; matches Emotiscope REFERENCE_FPS constant, not measured donor cadence"
+  },
+  "omitted_reference_stages": [
+    "Donor AP",
+    "HSV/colour construction upstream of supplied boundary",
+    "Donor gamma",
+    "Donor white balance",
+    "Donor hardware transfer"
+  ],
+  "k1_ap_mapping": {
+    "sb": "K1 VU times selected palette sample at0.35 -> donor-ready RGB; adaptation, not donor AP parity",
+    "emotiscope": "K1 VU -> donor VU, selected palette sample at0.35 -> current colour",
+    "features": "Same causally available unmodified AP publications for all lanes"
+  },
+  "candidate": {
+    "name": "k1-ribbon-flow-v3",
+    "state": "16 bounded objects,24 retained RGB cross-sections each; per logical channel",
+    "formation": "Up to350ms of causal VU/chroma deposits behind each front; offsets retained as physical distances; taper towards end",
+    "velocity_px_s": 64,
+    "spread_px2_s": 0.12,
+    "decay_half_life_s": 1.6,
+    "width_px": 2,
+    "tail_ratio": 1.8,
+    "minimum_launch_spacing_s": 0.7,
+    "quiet_interval_s": 0.32,
+    "return_strength": 0.24,
+    "injection_gain": 1.6,
+    "palette_id": 33,
+    "palette_behaviour": "Deposited samples own their colours by default; explicit live-palette option recolours without resetting geometry",
+    "dense": "Only youngest material still within2pixels of injection accepts a bounded local colour merge; departed objects unchanged, excess events counted as omitted",
+    "fallback": "Immediate onset or energy gesture; bounded recurring energy gesture for held input; no phase requirement; stale/future publications do not invent attacks",
+    "treatment_order": [
+      "Float retained geometry and RGB",
+      "Independent outgoing/return composition",
+      "Optional per-layer immediate-attack release persistence with lifecycle extinction",
+      "Outgoing foreground ownership; returns multiplied0.35 while outgoing exists",
+      "Saturation",
+      "Warmth",
+      "Luminance contrast",
+      "Optional common soft peak knee",
+      "Shared channel peak limiter",
+      "Master <=24/255",
+      "Round to native RGB16",
+      "Existing packPixel and splitChannel160 identity GRB16 staging"
+    ],
+    "disabled_stages": [
+      "Atmosphere",
+      "Additional spatial blur",
+      "Donor gamma",
+      "Colour calibration correction"
+    ],
+    "speed_edit": "Advance old law to edit timestamp, then new speed; no radius reset. Fixed350ms formation window means faster speed intentionally creates a longer newly forming ribbon; half-life and diffusion coefficients remain independent",
+    "quiet": "Per-gesture complete departure, waiting state then weaker return; dense independent gestures may overlap. Final persistence cannot outlive its layer. No promise of whole-channel darkness during continuous dense music",
+    "admission": "Operator rejected the flow revision: Still too mechanical or repetitive. Retained as an identical-edge baseline."
+  },
+  "paired_reference": {
+    "name": "cross-strip-wave-original-kernel",
+    "pin": "60009324ec3e7785c11db010343189d34e7314e0",
+    "geometry": "two separate160-pixel edge arrays;79/80 centre pairs",
+    "phase_offset_cycles": 0.375,
+    "wavelength_px": 12,
+    "drift_hz": 0.12,
+    "context_speed": 50,
+    "intensity": 255,
+    "brightness": 24,
+    "cadence_hz": 120,
+    "safe_dt_seconds": [
+      0.0001,
+      0.05
+    ],
+    "output": "Original CRGB kernel with fixed FastLED scaling, widened by257. Complete Lightwave renderer/film treatment omitted.",
+    "oracle": "1800 frames from extracted original helper/init/render statements; edge-collapse negative fails."
+  },
+  "paired_candidate": {
+    "name": "paired-reserved-capacity-006",
+    "state": "144 fixed slots:16 reserved short accents,128 body knots; one scene owner; ARM state13048bytes",
+    "source_transfer": "Cross-Strip edge relationship; Lorenz retained radial history/distance-kernel body and narrower same-colour core; Rose multi-timescale response. Explicit adaptation, not donor parity.",
+    "geometry": "All new positions begin at79/80; positive outward transport; weaker edge-origin return after complete departure and gap. Physical edge swap/reversals explicit and tested with asymmetric sentinels.",
+    "formation": "Body admission is checked at24Hz or a fresh attack, but waits for travelled clearance10*launchWidth + currentVelocity*(gap+edgeDelay). Each body forms over120ms locally. Accents respond immediately; their width is35% of the body launch width.",
+    "units_defaults": {
+      "velocity_px_s": 40,
+      "width_px": 7,
+      "spread_px2_s": 0,
+      "half_life_s": 2.8,
+      "edge_delay_s": 0.18,
+      "gap_s": 0.32,
+      "return_strength": 0.22,
+      "articulation": 0.7,
+      "palette_id": 33
+    },
+    "colour": "Deposited RGB memory; selected-palette coordinates move at bounded .08units/s based on slow spectral balance. Palette edits affect future deposits. No hue cycling.",
+    "lifetime": "Body decay remains time-based; no5.8s retirement. Bodies complete outward/gap/inward traversal. Spread caps at2*launchWidth. Accents fade over their last250ms and end at700ms on each edge. At short half-life, a slow return may fade below visible/native output; the return control remains a coefficient, not a guaranteed visible return.",
+    "capacity": "Body cannot use the16accent slots. With700ms accent lifetime plus at most500ms handoff and140ms refractory, at most9accent knots overlap. Attempts, admissions, slot omissions and refractory suppression are separate counters. Travelling knots are never reclaimed. Body omission counts include sub-threshold deposits as well as unavailable body slots.",
+    "composition": "Body/return use retained maximum kernels and weighted deposited colour. Accent overlap contributes bounded extra intensity beyond the strongest accent, so new material is not silently hidden by an equal maximum. Return coefficient applies only to body return. Shared two-edge peak attenuation,24/255 master, native16 rounding and identity GRB16 staging remain.",
+    "appearance": "Unaccepted revision006. Song0occupancy53.9%,dense45.9%; final frames inspected and playable. Numerical gaps and source fixes are not an artistic or optical verdict.",
+    "pipeline_boundary": "PairedFrame16 is post-master. Do not feed pre-master PaletteRuntime staging or multiply brightness again.",
+    "target": "Not integrated/flashed. Two160-pixel physical edge mapping still requires platform qualification.",
+    "injection": "Body strength0.60*sqrt(level)*(0.55+0.45*formation), formed locally over120ms; level is causal envelope or current energy at an admitted formation window. Accent strength(.35+.65*energy)*(.25+.75*articulation), with energy=sqrt(VU); existing silence/freshness/refractory checks retained.",
+    "musical_scope": "Consumes VU, onset/energy rise and low/high balance. Does not consume new tempo field, beat phase or chroma; useful fallback only, no new-intelligence benefit claimed."
+  }
+}

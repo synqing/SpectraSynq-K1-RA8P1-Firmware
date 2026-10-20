@@ -1,0 +1,39 @@
+{
+  "id": "P6-DBS-PILOT-CRITERIA-v2-AMENDMENT",
+  "amends": {
+    "path": "_scratch/waveform-migration-001/runs/P6-DBS-20261015/DBS-CRITERIA-FROZEN.json",
+    "body_sha256": "bd48725f35a28e1cd0250e19763566f31587d1debbecea8ab0137511711e1472"
+  },
+  "why": "The onset reference failed its own validation (dbs-reference handback 2026-10-14T23:0xZ): planted-attack recall at >= -18 dB 0.53 (BOOM set A), 0.40 (set B), 0.79 (Sonic) against a 0.90 requirement; it fires 16.75 detections/s on the attack-free sustain probe; Sonic timing p95 8.6 ms raw / 13.6 ms refined against 6 ms. Using every v1 reference onset would turn noise-flux detections into 'arrivals', absorb real false births and inflate the missed set. BOOM timing passes (p95 3.5 / 2.9 ms).",
+  "state_at_freeze": "Arm, plant and probe replays (arms/*) were generated before this amendment; NO arm, plant or probe result has been scored or inspected. All replays are rerun after this freeze and must be byte-identical to the pre-freeze files; the scored files are the post-freeze ones.",
+  "unchanged": "Everything in v1 not named here: arms, tap, calibration procedure, strength 0.25, birth rule (A_k >= 0.05, local max, prominence >= 1.20 over min of 3 frames each side), matching window [t_o - 5 ms, t_o + 45 ms], one-to-one greedy, M1/M2/M3 thresholds, winner rule, plants, off-path and isolation requirements.",
+  "boom_reference": {
+    "file": "docs/evidence/P6/dbs/reference/boom-onsets.json",
+    "sha256": "36f855173a5c5f381c39dce8326de5faba16b6b66ab3b2f09b030efdefae56b8",
+    "time_field": "time_s (refined; BOOM plant timing p95 3.5 / 2.9 ms)",
+    "salient_set_R": "scored onsets (28-75 s) with picked_up_to_delta > 29.158 (strongest steady-span detection on the attack-free sustain probe at the frozen delta 3; scripts/p6_dbs_salience_floor.py): 207 onsets",
+    "ambiguous_set_A": "scored onsets with picked_up_to_delta <= 29.158: a birth matched to one of these (one-to-one, after R is matched) is neither credited nor counted false",
+    "false_birth": "a birth in the scored window matched to neither R nor A",
+    "missed_set": "R onsets in dense context, unmatched by the baseline, cue present in the raw bank (v1 rule); predeclared from arm0 only and hashed before any arm is scored",
+    "applies_to": [
+      "boom_source",
+      "boom_room"
+    ]
+  },
+  "sonic_transfer": {
+    "reason": "At 12.8 kHz the same probe floor is 37.323 and only 3 of 319 scored Sonic onsets exceed it, so the Sonic reference cannot support a false-birth count.",
+    "time_field": "time_frame_s (the refinement did not transfer)",
+    "S1_retention": ">= 95% of baseline births have an arm birth within +-1 render frame (10 ms) on sonic_room 0.5-23.5 s",
+    "S2_no_unanchored_growth": "births matched to no Sonic reference onset at all (any strength) are no more than the baseline's",
+    "limit": "weak evidence of transfer; disclosed as such"
+  },
+  "probes": {
+    "truth": "exact planted event times from the probe JSON (scripts/p6_dbs_probes.py), matched with the same [-5, +45] ms window",
+    "P1_sustain": "births on sustain.s16 over its 10 s layer span no more than the baseline's",
+    "P2_weak": "planted weak attacks matched on weak_alone, weak_over_sustain and the 12 weak attacks of quiet_recovery no fewer than the baseline's",
+    "P3_spacing": "spacing_200/100/75 distinct matched births per train reported, not gating"
+  },
+  "known_limit": "The reference under-detects kicks (recall 0.13-0.33). A kick that an arm makes visible but the reference missed is scored as a false birth, which biases against the arms, not for them.",
+  "frozen_utc": "2026-10-14T23:02:04Z",
+  "frozen_sha256": "5df8497213f234a03ac743086187786f6053101d091c2ae074362616596e0e0c"
+}

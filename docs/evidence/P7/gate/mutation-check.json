@@ -1,0 +1,59 @@
+{
+ "unmutated": {
+  "pytest_exit": 0,
+  "summary": "\u001b[32m\u001b[32m\u001b[1m25 passed\u001b[0m\u001b[32m in 0.84s\u001b[0m\u001b[0m"
+ },
+ "mutants": {
+  "flip_detection_disabled": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m4 failed\u001b[0m, \u001b[32m21 passed\u001b[0m\u001b[31m in 0.90s\u001b[0m\u001b[0m"
+  },
+  "acquire_grace_8_beats": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m2 failed\u001b[0m, \u001b[32m23 passed\u001b[0m\u001b[31m in 0.90s\u001b[0m\u001b[0m"
+  },
+  "step_grace_4_beats": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m24 passed\u001b[0m\u001b[31m in 0.90s\u001b[0m\u001b[0m"
+  },
+  "release_grace_20_beats": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m24 passed\u001b[0m\u001b[31m in 0.89s\u001b[0m\u001b[0m"
+  },
+  "assert_confidence_0.6": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m24 passed\u001b[0m\u001b[31m in 0.85s\u001b[0m\u001b[0m"
+  },
+  "tolerance_widened_10pct": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m24 passed\u001b[0m\u001b[31m in 0.84s\u001b[0m\u001b[0m"
+  },
+  "lowconf_ignored": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m3 failed\u001b[0m, \u001b[32m22 passed\u001b[0m\u001b[31m in 0.88s\u001b[0m\u001b[0m"
+  },
+  "missing_trace_passes": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m, \u001b[32m24 passed\u001b[0m\u001b[31m in 0.88s\u001b[0m\u001b[0m"
+  },
+  "truth_and_audio_shift_10ms": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m3 failed\u001b[0m, \u001b[32m22 passed\u001b[0m\u001b[31m in 0.81s\u001b[0m\u001b[0m"
+  },
+  "audio_only_shift_2ms": {
+   "pytest_exit": 1,
+   "killed": true,
+   "summary": "\u001b[31m\u001b[31m\u001b[1m3 failed\u001b[0m, \u001b[32m22 passed\u001b[0m\u001b[31m in 0.86s\u001b[0m\u001b[0m"
+  }
+ },
+ "all_killed": true
+}

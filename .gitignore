@@ -39,5 +39,18 @@ tools/serial-studio/.locks/
 platform/ra8p1/Archive.zip
 *.sconsign.dblite
 
+# Local agent scratch (builds, captures and video). The scratch/ rule does not match this name.
+_scratch/
+
+# Generated ARM stage trees, compiler listings and host binaries under the port evidence tree.
+docs/emotiscope-port-001/evidence/arm-*/
+docs/emotiscope-port-001/evidence/**/stage/
+docs/emotiscope-port-001/evidence/**/*.dSYM/
+docs/emotiscope-port-001/evidence/live-bridge-host-*/legacy_deadline
+docs/emotiscope-port-001/evidence/live-bridge-host-*/missing_sample_contract
+docs/emotiscope-port-001/evidence/live-bridge-host-*/normal
+docs/emotiscope-port-001/evidence/live-bridge-host-*/wrong_media_rate
+docs/emotiscope-port-001/evidence/live-bridge-host-*/*-build.log
+
 # Linked git worktrees are checkouts, not repository content.
 .worktrees/

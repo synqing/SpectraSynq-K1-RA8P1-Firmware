@@ -1,0 +1,83 @@
+{
+  "checkpoint": "health-and-reconciliation",
+  "utc": "2026-10-13T17:40:44Z",
+  "session": "d3fb1393e619ab79b31dd8a3",
+  "health": {
+    "broker_pid": 15234,
+    "mixer_pid": 79093,
+    "serial_opens": 1,
+    "quiesced": false,
+    "frames_per_s": 100.0,
+    "led_faults": 0,
+    "emission": true,
+    "mixer_bluetooth": "absent_found_0",
+    "writes_last_120s": 0,
+    "identity_ok_flag": false,
+    "identity_reason": "no accepted checkpoint bound",
+    "identity_identified": true,
+    "uid": "545433931bd25436593630352d068363",
+    "build": "a43e4842b3a7cf8b5150787f613b575551dc090d80779dae6474784de59cd606",
+    "schema_sha256": "e99c1ec147288a7beaed728fc91e42530efc91c26f223164e03d07745b68c2da",
+    "telemetry_source_field": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+    "telemetry_source_note": "donor field, not git HEAD; installed source receipt remains 99c0cf44000471fd30a6b368bd2c18a4403adf46"
+  },
+  "composition_readback": {
+    "lower": {
+      "mode": 32,
+      "name": "Waveform Hybrid K1",
+      "palette": 32,
+      "active_scene": 0,
+      "stored_scene": 3,
+      "mirror": true
+    },
+    "upper": {
+      "mode": 18,
+      "name": "Waveform Tempo",
+      "palette": 39,
+      "name_palette": "Crimson Gold",
+      "active_scene": 0,
+      "stored_scene": 0,
+      "mirror": true
+    },
+    "master": 255,
+    "gains": [
+      0.25,
+      0.25
+    ],
+    "secondary_output_enabled": true,
+    "precision": 0,
+    "ml_enabled": false,
+    "screensaver": false,
+    "auto_color_cycle": false,
+    "preset_slot_selected": "Draft",
+    "sq_slots_written_this_session": false
+  },
+  "source": {
+    "git_head": "71404c46d62b193f3689e0737e8ca51db7a120d5",
+    "installed_source": "99c0cf44000471fd30a6b368bd2c18a4403adf46",
+    "host_head": "eb3f785",
+    "platform_sources_newer_than_handover": [],
+    "post_handover_files": [
+      "docs/emotiscope-port-001/ASTRA-RESUME-20261013.md",
+      "docs/emotiscope-port-001/CURRENT-STATE.md",
+      "docs/emotiscope-port-001/CANONICAL-AUDIO-PERFORMANCE-SUITE.md",
+      "tests/host/test_fixture_capture_pressure.cpp",
+      "tests/host/test_fixture_capture_pressure.py"
+    ],
+    "disposition": "No firmware platform edit after handover. Running image matches family008. Other-team dirty docs/host reports and untracked pressure tests left untouched."
+  },
+  "reuse_hashes": {
+    "product_camera_swift": "3be43c1f90e006bc085fca509bf916e56bd00aa2f832a00a25db80f0db9b947d",
+    "product_camera_exe": "457681bbb2003c88de150d80eb048b0b38c28aa20efc99916c43f7bffad4b2ec",
+    "boom_wav": "09c9a02f439cbeb66f006cf5a973ae7988b5ef2e9ecdcf470c140d6918e63652",
+    "boom_mp3": "3d60c58eccef198bb8062bef68df4d882c1b49c8f246623c4ba88d337cad8e4d",
+    "charter": "5c2d54ad5189892c0cd633afa60cffcafb2880c4f74c3916ca6b782f225da74e",
+    "charter_lock_match": true
+  },
+  "camera_inventory": {
+    "video": "EB6E6241-CD5C-4917-91B3-7E6500000001 EiP Camera connected",
+    "audio": "EB6E6241-CD5C-4917-91B3-7E6500000003 EiP Microphone connected",
+    "permissions": "video3 audio3 authorised"
+  },
+  "next": "framing preview then BOOM 0-75 capture if the plate is in frame"
+}

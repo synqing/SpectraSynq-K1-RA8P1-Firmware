@@ -1,0 +1,940 @@
+--- a/smc/host/titan_control/smc_titan_control/emotiscope_engine.py
++++ b/smc/host/titan_control/smc_titan_control/emotiscope_engine.py
+@@ -2,8 +2,8 @@
+ 
+ Saturation: fader u becomes sqrt(u) once. Pickup compares u with raw squared.
+ Color pickup uses the sampled effective hue and does not follow auto-color.
+-Fader1 (ch0 CC40) and Fader4 (ch0 CC43) do not write until each has been seen
+-on channel 0. Channel 1 CC40 is R5 and channel 1 CC43 is R8. They never alias.
++Fader1 (ch0 CC40) and Fader4 (ch0 CC43) require isolated labelled capture
++of both faders and R5/R8 witnesses. Unlabelled traffic cannot qualify a control.
+ """
+ from __future__ import annotations
+ 
+@@ -154,12 +154,18 @@
+         self.accepted_request_id = None
+         self.rendered_request_id = None
+         self.emitted_request_id = None
+-        self.sent_batches = []
++        self.sent_batches = deque(maxlen=512)
++        self.qualification = None
++        self.request_ids = None
+         if store is not None and store.error is None:
+             self._overlay_assignments(store.assignments)
+ 
+     def attach(self, now: float = 0.0) -> dict:
+         hello = self.client.hello()
++        if not hello.get("ok") or hello.get("admitted") is False:
++            self.ready = False
++            self.last_error = hello.get("error") or hello.get("admit_reason") or "admission_hold"
++            return hello
+         self.bound = hello.get("bound") or {}
+         self._reset_gestures()
+         hinted = self.bound.get("boot_id")
+@@ -215,9 +221,14 @@
+             return
+         if int(value) != 127 or name in self.release_required:
+             return
++        self.release_required.add(name)
+         self._press(name)
+ 
+     def tick(self, now: float = 0.0) -> dict:
++        if self.qualification and self.qualification.active:
++            self.abandon()
++            self._reset_gestures()
++            return {"ipc": None, "qualification": "writes_held"}
+         self._service_local()
+         if not self.ready or self.fault:
+             return {"ipc": None, "fault": self.fault}
+@@ -264,7 +275,7 @@
+                 "release_needed": name in self.release_required,
+                 "writes_armed": self._armed(name),
+                 "evidence": rule.get("evidence"),
+-                "qualified": False,
++                "qualified": bool(self.qualification and self.qualification.qualified(name)),
+             })
+         return {
+             "ready": self.ready,
+@@ -295,6 +306,7 @@
+             "controls": rows,
+             "scenes": sorted(self.store.scenes) if self.store else [],
+             "store_error": self.store.error if self.store else None,
++            "qualification": self.qualification.status() if self.qualification else None,
+             "optical_proof": False,
+         }
+ 
+@@ -339,6 +351,8 @@
+         self.release_required = set(self.button_names)
+         self.need_reconcile = False
+         self.fault = None
++        self.faders_armed = False
++        self.seen_f1 = self.seen_f4 = False
+ 
+     def _accept_snapshot(self, reply: dict, sample_hue: bool, now: float) -> dict:
+         if not reply.get("ok") or not reply.get("state"):
+@@ -393,7 +407,7 @@
+                 self.dirty_at.pop(field, None)
+ 
+     def _get(self, boot_id: int) -> dict:
+-        self.request_seq += 1
++        self.request_seq = self.request_ids.next() if self.request_ids else self.request_seq + 1
+         reply = self.client.emotiscope_get(int(boot_id), self.request_seq)
+         if reply.get("state") and reply.get("ok"):
+             self._apply(reply["state"])
+@@ -405,7 +419,7 @@
+         if any(key not in NATIVE_FIELDS for key in fields) or "current_mode" in fields and not 0 <= int(fields["current_mode"]) <= 6:
+             self.last_error = "refusing non-donor patch"
+             return {"ok": False, "error": "refusing non-donor patch"}
+-        self.request_seq += 1
++        self.request_seq = self.request_ids.next() if self.request_ids else self.request_seq + 1
+         reply = self.client.emotiscope_patch(self.boot_id, self.revision, dict(fields), self.request_seq)
+         self.sent_batches.append(dict(fields))
+         if reply.get("ok") and reply.get("state"):
+@@ -497,15 +511,11 @@
+     def _fader_write_allowed(self, name: str) -> bool:
+         if self.bindings[name].get("write_gate") != "fader-pair":
+             return True
+-        if name == "Fader1" and not self.seen_f1:
+-            self.seen_f1 = True
+-            self.qualification_log.append(("Fader1", 0, 40))
+-        elif name == "Fader4" and not self.seen_f4:
+-            self.seen_f4 = True
+-            self.qualification_log.append(("Fader4", 0, 43))
+-        was = self.faders_armed
+-        self.faders_armed = self.seen_f1 and self.seen_f4
+-        return was
++        self.faders_armed = bool(self.qualification and all(
++            self.qualification.qualified(label)
++            for label in ("Fader1", "Fader4", "R5", "R8")
++        ))
++        return self.faders_armed
+ 
+     def _device_ui(self, field: str) -> float:
+         if field == "saturation":
+@@ -539,14 +549,9 @@
+             self._queue_recall(rule["slot"])
+ 
+     def _queue_step(self, delta: int) -> None:
+-        if "current_mode" in self.unknown:
+-            self.discrete.append(("step", delta))
+-            return
+-        base = self.state["current_mode"]
+-        for kind, arg in self.discrete:
+-            if kind == "mode":
+-                base = arg
+-        self.discrete.append(("mode", (int(base) + delta) % 7))
++        # Resolve after all preceding scene/default/mode acknowledgements,
++        # never against the state that happened to exist at MIDI arrival.
++        self.discrete.append(("step", int(delta)))
+ 
+     def _queue_recall(self, slot: str) -> None:
+         if self.store is None:
+--- a/smc/host/titan_control/smc_titan_control/emotiscope_live.py
++++ b/smc/host/titan_control/smc_titan_control/emotiscope_live.py
+@@ -3,6 +3,9 @@
+ 
+ from collections import deque
+ import sys
++import fcntl
++import os
++from pathlib import Path
+ import threading
+ import time
+ 
+@@ -12,6 +15,7 @@
+ from .emotiscope_engine import EmotiscopeEngine
+ from .emotiscope_store import EmotiscopeStore
+ from .live_loop import RateLoop
++from .emotiscope_session import LabelledCapture, PersistentRequestIds
+ 
+ LAUNCH = (
+     "cd /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001\n"
+@@ -46,7 +50,8 @@
+ class GestureInbox:
+     """MIDI callback only queues. Absolute runs keep the ends and the extremes."""
+ 
+-    def __init__(self, absolute_keys: set[tuple[int, int]]):
++    def __init__(self, absolute_keys: set[tuple[int, int]], capture=None):
++        self.capture = capture
+         self.absolute = absolute_keys
+         self.groups = deque()
+         self.overflow = False
+@@ -59,6 +64,8 @@
+             return
+         key = (int(message.channel), int(message.control))
+         value = int(message.value)
++        if self.capture is not None:
++            self.capture.observe(key[0], key[1], value)
+         with self._lock:
+             self.recent.append((key, value))
+             if self.groups and self.groups[-1][0] == key and key in self.absolute:
+@@ -90,7 +97,113 @@
+             port.close()
+ 
+ 
++def connected_ble_epoch(snapshot: dict, spec: dict):
++    if (not snapshot.get("fresh") or snapshot.get("state") != 5
++            or spec["peripheral_id"] not in snapshot.get("connected_ids", [])
++            or type(snapshot.get("epoch")) is not int):
++        return None
++    return ("bluetooth", snapshot["epoch"])
++
++
++class TransportFence:
++    """A loss/epoch change clears intent before fresh read-only attachment."""
++    def __init__(self, engine, inbox, capture, transport):
++        self.engine, self.inbox = engine, inbox
++        self.capture, self.transport = capture, transport
++        self.epoch = None
++        self.attached = False
++        self.retry_at = 0.0
++        self.error = None
++
++    def hold(self, reason):
++        self.engine.abandon()
++        self.engine._reset_gestures()
++        self.engine.ready = False
++        self.engine.last_error = reason
++        self.inbox.drain()
++        if self.attached or self.epoch is not None:
++            self.capture.invalidate(None)
++        self.epoch = None
++        self.attached = False
++        self.error = reason
++
++    def check(self, epoch, now):
++        if epoch is None:
++            self.hold("selected MIDI transport unavailable or stale")
++            return False
++        if self.attached and epoch == self.epoch and self.engine.ready:
++            return True
++        if epoch != self.epoch:
++            self.hold("transport epoch changed; reconciling")
++            self.epoch = epoch
++            self.capture.invalidate(epoch)
++            self.retry_at = 0.0
++        if now < self.retry_at:
++            self.inbox.drain()
++            return False
++        self.retry_at = now + 1.0
++        self.inbox.drain()
++        try:
++            reply = self.engine.attach(now)
++        except (OSError, ConnectionError, TimeoutError) as exc:
++            self.transport.close()
++            self.error = str(exc)
++            return False
++        if not self.engine.ready or not reply.get("ok"):
++            self.error = self.engine.last_error
++            return False
++        # Events arriving before readback never act on the new attachment.
++        self.inbox.drain()
++        self.attached = True
++        self.error = None
++        return False
++
++
++class QualificationActions:
++    def __init__(self, capture, engine, inbox, owner):
++        self.capture, self.engine, self.inbox, self.owner = capture, engine, inbox, owner
++
++    def begin(self, label):
++        with self.owner:
++            self.engine.abandon()
++            self.engine._reset_gestures()
++            self.inbox.drain()
++            return self.capture.begin(label)
++
++    def finish(self):
++        with self.owner:
++            result = self.capture.finish()
++            self.engine.abandon()
++            self.engine._reset_gestures()
++            self.inbox.drain()
++            self.engine.faders_armed = all(self.capture.qualified(n) for n in ("Fader1","Fader4","R5","R8"))
++            return result
++
++    def cancel(self):
++        with self.owner:
++            result = self.capture.cancel()
++            self.engine.abandon()
++            self.engine._reset_gestures()
++            self.inbox.drain()
++            return result
++
++
+ def run_emotiscope(args, endpoint_reader=None, opener=None) -> int:
++    # Both USB and BLE feed one selected owner, not two parallel writers.
++    with os.fdopen(os.open("/tmp/smc-emotiscope-midi-owner.lock", os.O_CREAT|os.O_RDWR, 0o600), "a+") as lock:
++        try:
++            fcntl.flock(lock, fcntl.LOCK_EX|fcntl.LOCK_NB)
++        except BlockingIOError:
++            sys.stderr.write("MIDI_OWNER_BUSY: an Emotiscope controller is already running\n")
++            return 2
++        if opener is None:
++            import mido
++            mido.set_backend("mido.backends.rtmidi")
++            opener = mido.open_input
++        return _run_emotiscope(args, endpoint_reader, opener)
++
++
++def _run_emotiscope(args, endpoint_reader=None, opener=None) -> int:
+     if not 1 <= args.hz <= 25:
+         raise ValueError("Emotiscope host rate must be 1..25 Hz")
+     profile = load_profile()
+@@ -101,80 +214,80 @@
+     client = BrokerClient(transport)
+     store = EmotiscopeStore(args.emotiscope_assignments, args.emotiscope_scenes)
+     engine = EmotiscopeEngine(client, profile, store)
+-    try:
+-        engine.attach()
+-    except (OSError, ConnectionError) as exc:
+-        engine.last_error = str(exc)
+-        engine.ready = False
+-    if not engine.ready:
+-        sys.stderr.write(f"TITAN_CONTROL_UNAVAILABLE {engine.last_error}\n")
+-        transport.close()
+-        return 2
+-    absolute = {
+-        (int(rule["channel"]), int(rule["cc"]))
+-        for rule in profile["bindings"].values() if rule["kind"] == "absolute"
+-    }
+-    inbox = GestureInbox(absolute)
+-    if opener is None:
+-        import mido
+-
+-        mido.set_backend("mido.backends.rtmidi")
+-        opener = mido.open_input
++    capture = LabelledCapture(profile, Path(__file__).resolve().parents[3]/"reports"/"emotiscope-labelled-captures", args.port)
++    engine.qualification = capture
++    engine.request_ids = PersistentRequestIds(Path(args.emotiscope_scenes).parent/"smc-emotiscope-wire-ids-v1.json")
++    absolute = {(int(r["channel"]),int(r["cc"])) for r in profile["bindings"].values() if r["kind"] == "absolute"}
++    inbox = GestureInbox(absolute, capture)
++    owner = threading.RLock()
++    fence = TransportFence(engine, inbox, capture, transport)
++    ble = None
++    http = status_http = loop = None
++    status_thread = None
+     try:
+         inbox.port = opener(args.port, callback=inbox.receive)
+-    except (OSError, RuntimeError) as exc:
+-        engine.abandon()
+-        transport.close()
+-        sys.stderr.write(f"MIDI_UNAVAILABLE {exc}\n")
+-        return 2
+-    ble = None
+-    if spec["transport"] == "bluetooth":
+-        from .ble_monitor import BluetoothMonitor
+-        ble = BluetoothMonitor()
+-    owner = threading.RLock()
+-
+-    def tick():
+-        with owner:
+-            if inbox.overflow:
+-                engine.note_overflow()
+-                return
+-            if spec["transport"] == "bluetooth" and ble is not None:
+-                snap = ble.snapshot()
+-                if spec["peripheral_id"] not in snap.get("connected_ids", []):
+-                    engine.abandon()
++        if spec["transport"] == "bluetooth":
++            from .ble_monitor import BluetoothMonitor
++            ble = BluetoothMonitor()
++
++        def tick():
++            with owner:
++                now = time.monotonic()
++                if inbox.overflow:
++                    engine.note_overflow()
+                     return
+-            for key, values in inbox.drain():
+-                for value in values:
+-                    engine.observe(key[0], key[1], value)
+-            engine.tick(time.monotonic())
+-
+-    def status():
+-        with owner:
+-            body = engine.status()
+-            body["endpoint"] = args.port
+-            body["launch"] = LAUNCH
+-            return body
+-
+-    loop = RateLoop(args.hz, tick)
+-    http = make_emotiscope_dashboard(status, engine, args.dashboard_port)
+-    status_http = make_emotiscope_dashboard(status, engine, args.status_port)
+-    status_thread = threading.Thread(target=status_http.serve_forever, daemon=True, name="emotiscope-status")
+-    status_thread.start()
+-    loop.start()
+-    print("EMOTISCOPE_DASHBOARD http://127.0.0.1:" + str(args.dashboard_port), flush=True)
+-    try:
++                epoch = connected_ble_epoch(ble.snapshot(), spec) if ble else ("usb", spec["unique_id"])
++                if not fence.check(epoch, now):
++                    return
++                for key, values in inbox.drain():
++                    for value in values:
++                        engine.observe(key[0],key[1],value)
++                try:
++                    result = engine.tick(now)
++                except (OSError, ConnectionError, TimeoutError) as exc:
++                    transport.close()
++                    fence.hold(str(exc))
++                    return
++                reply = result.get("reply") or {}
++                if reply.get("error") in {"wrong_boot","stale_session","writer_busy","schema_mismatch","ADMISSION_HOLD"}:
++                    transport.close()
++                    fence.hold(reply["error"])
++
++        def status():
++            with owner:
++                body = engine.status()
++                body.update(endpoint=args.port, launch=LAUNCH,
++                            transport_ready=fence.attached,
++                            transport_error=fence.error,
++                            loop_healthy=loop.healthy if loop else False,
++                            loop_error=str(loop.failed) if loop and loop.failed else None)
++                return body
++
++        actions = QualificationActions(capture, engine, inbox, owner)
++        http = make_emotiscope_dashboard(status, engine, args.dashboard_port, qualification=actions)
++        status_http = make_emotiscope_dashboard(status, engine, args.status_port, qualification=actions)
++        loop = RateLoop(args.hz, tick)
++        status_thread = threading.Thread(target=status_http.serve_forever, daemon=True, name="emotiscope-status")
++        status_thread.start()
++        loop.start()
++        print("EMOTISCOPE_DASHBOARD http://127.0.0.1:"+str(args.dashboard_port),flush=True)
++        print("SELECTED_MIDI "+args.port+"; Fader1/Fader4 require labelled collision capture",flush=True)
+         http.serve_forever()
+     except KeyboardInterrupt:
+         return 0
+     finally:
+-        loop.close()
++        if loop is not None:
++            loop.close()
+         with owner:
+             engine.abandon()
+             inbox.close()
+             if ble is not None:
+                 ble.close()
+             transport.close()
+-        status_http.shutdown()
+-        status_http.server_close()
+-        http.server_close()
+-    return 0 if loop.healthy else 3
++        if status_http is not None:
++            if status_thread is not None:
++                status_http.shutdown()
++            status_http.server_close()
++        if http is not None:
++            http.server_close()
++    return 0 if loop is not None and loop.healthy else 3
+--- a/smc/host/titan_control/smc_titan_control/emotiscope_dashboard.py
++++ b/smc/host/titan_control/smc_titan_control/emotiscope_dashboard.py
+@@ -35,12 +35,14 @@
+ <tr><td>Previous / Next</td><td>ch 0, CC 57 / 58</td><td>Previous / next musical mode</td></tr>
+ <tr><td>SQ1–SQ8</td><td>see profile</td><td>Recall a saved scene. An empty slot does nothing.</td></tr>
+ </table>
+-<p class="note">Saturation fader position is squared for pickup and square-rooted once when sent. Auto color does not make the color fader chase the moving hue. Fader 1 and Fader 4 wait until each has moved on channel 0, so they cannot be confused with R5 and R8.</p>
++<p class="note">Saturation fader position is squared for pickup and square-rooted once when sent. Auto color does not make the color fader chase the moving hue. Fader 1 and Fader 4 remain blocked until isolated labelled captures identify both faders and R5/R8. Select a label below, begin, move only that control (full fader sweep or button press/release), then finish. All Titan writes pause during capture; autonomous music continues.</p>
+ <p>
+ <button id="defaults" type="button">Restore donor defaults</button>
+ <button id="save" type="button">Save scene SQ1</button>
+ </p>
+-<pre id="state">waiting</pre>
++<p><label>Physical label <select id="qual-control"><option>Fader1</option><option>Fader4</option><option>R5</option><option>R8</option></select></label>
++<button id="qual-begin">Begin labelled capture</button><button id="qual-finish">Finish capture</button><button id="qual-cancel">Cancel capture</button></p>
++<pre id="qualification"></pre><pre id="state">waiting</pre>
+ <script>
+ let token = "";
+ async function session() {
+@@ -51,6 +53,7 @@
+   const reply = await fetch("/api/status");
+   const body = await reply.json();
+   const lines = [
++    "ready " + body.ready + " | " + (body.endpoint || "") + " | " + (body.transport_error || body.last_error || ""),
+     "mode " + body.mode_name + " (" + body.mode + ")",
+     "donor brightness " + body.donor_brightness,
+     "output brightness " + body.output_brightness + "/255",
+@@ -58,14 +61,20 @@
+     "hue sample " + body.color_reference,
+     "accepted " + body.accepted_request_id + "  rendered " + body.rendered_request_id + "  emitted " + body.emitted_request_id,
+     "fader 1 and 4 writes armed: " + body.faders_armed,
+-    (body.applicability_notes || []).join("\\n")
++    (body.applicability_notes || []).join("\\n"),
++    "Recent physical input: " + JSON.stringify((body.recent || []).slice(-8)),
++    "Pickup: " + (body.controls || []).filter(x => x.field).map(x => x.control + "=" + (x.picked_up ? "picked up" : "cross current value") + (x.writes_armed ? "" : " [blocked]")).join(", ")
+   ];
+   document.getElementById("state").textContent = lines.join("\\n");
++  document.getElementById("qualification").textContent = JSON.stringify(body.qualification || {}, null, 2);
+ }
+ async function post(path, payload) {
+   if (!token) await session();
+   await fetch(path, {method: "POST", headers: {"Content-Type": "application/json", "X-SMC-Token": token}, body: JSON.stringify(payload)});
+ }
++document.getElementById("qual-begin").onclick = () => post("/api/qualification", {action:"begin",control:document.getElementById("qual-control").value});
++document.getElementById("qual-finish").onclick = () => post("/api/qualification", {action:"finish"});
++document.getElementById("qual-cancel").onclick = () => post("/api/qualification", {action:"cancel"});
+ document.getElementById("defaults").onclick = () => post("/api/defaults", {});
+ document.getElementById("save").onclick = () => post("/api/scene", {slot: "SQ1", action: "save"});
+ refresh();
+@@ -76,7 +85,7 @@
+ """
+ 
+ 
+-def make_emotiscope_dashboard(status, engine, port: int):
++def make_emotiscope_dashboard(status, engine, port: int, qualification=None):
+     token = secrets.token_urlsafe(32)
+ 
+     class Handler(BaseHTTPRequestHandler):
+@@ -132,6 +141,18 @@
+                     raise ValueError("body size")
+                 body = json.loads(self.rfile.read(length))
+                 path = urlparse(self.path).path
++                if path == "/api/qualification" and qualification is not None:
++                    action = body.get("action")
++                    if action == "begin":
++                        result = qualification.begin(str(body.get("control")))
++                    elif action == "finish":
++                        result = qualification.finish()
++                    elif action == "cancel":
++                        result = qualification.cancel()
++                    else:
++                        raise ValueError("unknown qualification action")
++                    self.reply(result)
++                    return
+                 if path == "/api/scene" and body.get("action") == "save":
+                     engine.request_save(str(body.get("slot")))
+                 elif path == "/api/scene" and body.get("action") == "recall":
+--- a/smc/host/titan_control/tests/test_emotiscope_strategy.py
++++ b/smc/host/titan_control/tests/test_emotiscope_strategy.py
+@@ -191,22 +191,17 @@
+         self.assertEqual(found.recent[-3]["name"], "R5")
+         self.assertNotIn("brightness", found.dirty)
+ 
+-    def test_fader1_and_fader4_arm_without_writing_including_the_completing_event(self):
+-        donor = DonorDouble()
+-        found = engine(donor)
+-        found.observe(0, 40, 127)
+-        found.observe(0, 43, 32)
+-        self.assertTrue(found.faders_armed)
+-        self.assertEqual([item[0] for item in found.qualification_log], ["Fader1", "Fader4"])
+-        found.tick(0.0)
+-        self.assertEqual(patches(donor), [])
+-        found.observe(0, 40, 64)
+-        result = found.tick(0.0)
+-        sent = patches(donor)
+-        self.assertEqual(len(sent), 1)
+-        self.assertEqual(set(sent[0][3]), {"brightness"})
+-        self.assertAlmostEqual(sent[0][3]["brightness"], 64 / 127)
+-        self.assertEqual(result["ipc"], "patch")
++    def test_fader1_and_fader4_never_arm_from_unlabelled_traffic(self):
++        donor = DonorDouble()
++        found = engine(donor)
++        for _ in range(3):
++            found.observe(0, 40, 127)
++            found.observe(0, 43, 32)
++            found.observe(0, 40, 64)
++            found.tick(0.0)
++        self.assertFalse(found.faders_armed)
++        self.assertEqual(patches(donor), [])
++        self.assertEqual(found.qualification_log, [])
+ 
+     def test_duplicate_identity_and_aliased_witness_are_rejected(self):
+         profile = load_profile()
+--- /dev/null
++++ b/smc/host/titan_control/smc_titan_control/emotiscope_session.py
+@@ -0,0 +1,179 @@
++"""Host session identities and bounded, explicitly labelled MIDI evidence.
++
++No target writes, pairing, or file I/O take place in a MIDI callback.
++"""
++from __future__ import annotations
++
++import fcntl
++import hashlib
++import json
++import os
++from pathlib import Path
++import threading
++import time
++import uuid
++
++
++class PersistentRequestIds:
++    """Reserve disjoint wire-ID blocks across process restart; never wrap.
++
++The old experimental clients used small IDs. The production host owns the
++0x40000000..0xffffffff range, persisted independently of scenes/assignments.
++A damaged counter stops allocation rather than silently reusing an ID.
++"""
++    BASE = 0x40000000
++    BLOCK = 65536
++
++    def __init__(self, path: Path):
++        self.path = Path(path)
++        self.current = self.limit = 0
++        self._reserve()
++
++    def _reserve(self):
++        self.path.parent.mkdir(parents=True, exist_ok=True)
++        lock_path = self.path.with_suffix(self.path.suffix + ".lock")
++        with os.fdopen(os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600), "a+") as lock:
++            fcntl.flock(lock, fcntl.LOCK_EX)
++            if self.path.exists():
++                data = json.loads(self.path.read_text())
++                start = data.get("next")
++                if data.get("version") != 1 or type(start) is not int or start < self.BASE:
++                    raise ValueError("invalid persisted Emotiscope request-ID counter")
++            else:
++                start = self.BASE
++            end = start + self.BLOCK
++            if end > 0x100000000:
++                raise ValueError("Emotiscope wire-ID space exhausted; refusing reuse")
++            temp = self.path.with_name(self.path.name + "." + uuid.uuid4().hex + ".tmp")
++            with os.fdopen(os.open(temp, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600), "w") as out:
++                json.dump({"version": 1, "next": end}, out)
++                out.flush()
++                os.fsync(out.fileno())
++            os.replace(temp, self.path)
++            # Flush directory metadata before any reserved ID is used.
++            fd = os.open(self.path.parent, os.O_RDONLY)
++            try:
++                os.fsync(fd)
++            finally:
++                os.close(fd)
++            self.current, self.limit = start, end
++
++    def next(self) -> int:
++        if self.current >= self.limit:
++            self._reserve()
++        value = self.current
++        self.current += 1
++        return value
++
++
++class LabelledCapture:
++    """A human selects a physical label before its isolated gesture.
++
++Raw callbacks are retained before gesture coalescing. Overflow, timeout,
++wrong identities and insufficient movement cannot qualify a control.
++Proof belongs to this exact transport epoch and is never auto-loaded.
++"""
++    MAX_EVENTS = 8192
++    MAX_SECONDS = 120
++
++    def __init__(self, profile: dict, evidence: Path, endpoint: str):
++        self.rules = {**profile["bindings"], **profile.get("witnesses", {})}
++        self.evidence = Path(evidence)
++        self.endpoint = endpoint
++        self.epoch = None
++        self._lock = threading.RLock()
++        self._capture = None
++        self.proofs = {}
++        self.last_result = None
++
++    @property
++    def active(self):
++        with self._lock:
++            return self._capture is not None
++
++    def qualified(self, label):
++        with self._lock:
++            return label in self.proofs and self.proofs[label]["epoch"] == self.epoch
++
++    def invalidate(self, epoch):
++        with self._lock:
++            self.epoch = epoch
++            self.proofs.clear()
++            self._capture = None
++            self.last_result = {"ok": False, "reason": "transport epoch changed; fresh labelled capture required"}
++
++    def begin(self, label):
++        with self._lock:
++            if label not in self.rules:
++                raise ValueError("unknown physical control label")
++            if self._capture is not None:
++                raise ValueError("finish or cancel the current labelled capture first")
++            self.proofs.pop(label, None)
++            self._capture = {"label": label, "started_ns": time.monotonic_ns(),
++                             "epoch": self.epoch, "rows": [], "dropped": 0}
++            return {"state": "capture_active", "label": label, "writes_held": True}
++
++    def observe(self, channel, cc, value):
++        with self._lock:
++            cap = self._capture
++            if cap is None:
++                return
++            now = time.monotonic_ns()
++            if len(cap["rows"]) >= self.MAX_EVENTS or now-cap["started_ns"] > self.MAX_SECONDS*1_000_000_000:
++                cap["dropped"] += 1
++                return
++            cap["rows"].append({"mono_ns": now, "channel": int(channel), "cc": int(cc), "value": int(value)})
++
++    def cancel(self):
++        with self._lock:
++            self._capture = None
++            self.last_result = {"ok": False, "reason": "operator cancelled capture"}
++            return self.last_result
++
++    def finish(self):
++        with self._lock:
++            cap = self._capture
++            if cap is None:
++                raise ValueError("no active labelled capture")
++            # Keep writes held until validation and evidence persistence finish.
++            cap = {**cap, "rows": list(cap["rows"])}
++            rule = self.rules[cap["label"]]
++            expected = (int(rule["channel"]), int(rule["cc"]))
++            identities = {(r["channel"], r["cc"]) for r in cap["rows"]}
++            values = {r["value"] for r in cap["rows"]}
++            elapsed = (time.monotonic_ns()-cap["started_ns"])/1_000_000_000
++            kind = rule.get("kind", "button")
++            gesture = (len(values) >= 3 and min(values) <= 16 and max(values) >= 111) if kind == "absolute" else {0,127}.issubset(values)
++            ok = (not cap["dropped"] and elapsed <= self.MAX_SECONDS and identities == {expected}
++                  and gesture and cap["epoch"] == self.epoch)
++            result = {"version": 1, "ok": bool(ok), "label": cap["label"], "endpoint": self.endpoint,
++                      "epoch": cap["epoch"], "expected": list(expected), "observed": [list(i) for i in sorted(identities)],
++                      "events": len(cap["rows"]), "dropped": cap["dropped"], "seconds": elapsed,
++                      "reason": "isolated labelled gesture captured" if ok else "wrong/mixed identity, insufficient sweep, timeout or dropped evidence"}
++        self.evidence.mkdir(parents=True, exist_ok=True)
++        stem = cap["label"] + "-" + uuid.uuid4().hex
++        raw = b"".join((json.dumps(row,sort_keys=True)+"\n").encode() for row in cap["rows"])
++        raw_path = self.evidence / (stem + ".jsonl")
++        with os.fdopen(os.open(raw_path, os.O_CREAT|os.O_EXCL|os.O_WRONLY, 0o600), "wb") as out:
++            out.write(raw)
++        result["raw_path"] = str(raw_path)
++        result["raw_sha256"] = hashlib.sha256(raw).hexdigest()
++        with self._lock:
++            # A reconnect during persistence invalidates, rather than admits, it.
++            if self.epoch != cap["epoch"]:
++                result.update(ok=False, reason="transport changed during capture persistence")
++            self._capture = None
++            self.last_result = result
++            if result["ok"]:
++                self.proofs[cap["label"]] = result
++        with os.fdopen(os.open(self.evidence/(stem+".json"), os.O_CREAT|os.O_EXCL|os.O_WRONLY, 0o600), "w") as out:
++            json.dump(result,out,indent=2)
++        return result
++
++    def status(self):
++        with self._lock:
++            return {"active": self._capture is not None,
++                    "label": self._capture["label"] if self._capture else None,
++                    "events": len(self._capture["rows"]) if self._capture else 0,
++                    "qualified": sorted(self.proofs), "last_result": self.last_result,
++                    "collision_required": [n for n in ("Fader1","Fader4","R5","R8") if not self.qualified(n)]}
+--- /dev/null
++++ b/smc/host/titan_control/tests/test_captain_emotiscope_repairs.py
+@@ -0,0 +1,137 @@
++"""Regressions for reproduced September 29 integration faults, no hardware I/O."""
++import json
++import tempfile
++import unittest
++from pathlib import Path
++from types import SimpleNamespace
++from test_emotiscope_strategy import DonorDouble, engine, patches, press, public_state
++from smc_titan_control.emotiscope_engine import load_profile
++from smc_titan_control.emotiscope_live import GestureInbox, TransportFence, connected_ble_epoch
++from smc_titan_control.emotiscope_session import LabelledCapture, PersistentRequestIds
++
++
++class Repairs(unittest.TestCase):
++    def test_duplicate_down_needs_release_before_a_second_toggle(self):
++        donor=DonorDouble(); found=engine(donor)
++        found.observe(0,28,0)
++        for _ in range(4): found.observe(0,28,127)
++        found.tick(.1); found.tick(.2)
++        self.assertEqual([p[3] for p in patches(donor)],[{"mirror_mode":False}])
++        press(found,0,28);found.tick(.3)
++        self.assertEqual(patches(donor)[-1][3],{"mirror_mode":True})
++
++    def test_scene_then_next_uses_the_confirmed_scene_mode(self):
++        donor=DonorDouble();found=engine(donor)
++        found.discrete.append(("patch",{"current_mode":5}))
++        press(found,0,58);found.tick(.1);found.tick(.2)
++        self.assertEqual([p[3]["current_mode"] for p in patches(donor)],[5,6])
++
++    def test_defaults_then_next_uses_defaults_not_prior_mode(self):
++        donor=DonorDouble(public_state(mode=6));found=engine(donor)
++        found.discrete.append(("defaults",None));press(found,0,58)
++        found.tick(.1);found.tick(.2)
++        self.assertEqual([p[3]["current_mode"] for p in patches(donor)],[1,2])
++
++    def test_writer_busy_is_not_a_successful_attachment(self):
++        donor=DonorDouble();donor.hello=lambda:{"ok":False,"error":"writer_busy","session":"other"}
++        found=engine(donor)
++        self.assertFalse(found.ready)
++        self.assertEqual(found.last_error,"writer_busy")
++        self.assertEqual(donor.ops,[])
++
++    def test_request_ids_never_restart_at_one_or_overlap_reserved_blocks(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            p=Path(tmp)/"ids.json";a=PersistentRequestIds(p);b=PersistentRequestIds(p)
++            aa=[a.next() for _ in range(10)];bb=[b.next() for _ in range(10)]
++            self.assertEqual(len(set(aa+bb)),20)
++            self.assertGreater(bb[0],aa[-1])
++            c=PersistentRequestIds(p);self.assertGreater(c.next(),bb[-1])
++            self.assertEqual(p.stat().st_mode&0o777,0o600)
++            p.write_text('{"version":1,"next":true}')
++            with self.assertRaises(ValueError): PersistentRequestIds(p)
++
++    def test_ble_requires_fresh_powered_on_exact_peripheral_and_epoch(self):
++        spec=load_profile()["endpoints"]["SMC-Mixer Bluetooth"]
++        good={"fresh":True,"state":5,"epoch":7,"connected_ids":[spec["peripheral_id"]]}
++        self.assertEqual(connected_ble_epoch(good,spec),("bluetooth",7))
++        for change in ({"fresh":False},{"state":4},{"epoch":None},{"connected_ids":[]}):
++            self.assertIsNone(connected_ble_epoch({**good,**change},spec))
++
++    def capture(self, cap, name):
++        r=cap.rules[name];cap.begin(name)
++        values=[0,64,127,0] if r.get("kind")=="absolute" else [127,0]
++        for value in values:cap.observe(r["channel"],r["cc"],value)
++        result=cap.finish();self.assertTrue(result["ok"],result)
++        self.assertTrue(Path(result["raw_path"]).exists())
++        return result
++
++    def test_only_four_labelled_isolated_captures_arm_collision_faders(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            d=DonorDouble();e=engine(d);cap=LabelledCapture(load_profile(),Path(tmp),"test-labelled-fixture")
++            e.qualification=cap;cap.invalidate(("fixture",1))
++            e.observe(0,40,127);e.observe(0,43,32)
++            self.assertFalse(e.faders_armed)
++            for name in ("Fader1","Fader4","R5"):
++                self.capture(cap,name)
++                self.assertFalse(e._fader_write_allowed("Fader1"))
++            self.capture(cap,"R8")
++            self.assertTrue(e._fader_write_allowed("Fader1"))
++            e.observe(0,40,64);e.tick(.1)
++            self.assertEqual(set(patches(d)[-1][3]),{"brightness"})
++            cap.invalidate(("fixture",2))
++            self.assertFalse(e._fader_write_allowed("Fader1"))
++
++    def test_mixed_or_insufficient_capture_never_qualifies(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            cap=LabelledCapture(load_profile(),Path(tmp),"fixture")
++            cap.begin("Fader1")
++            for v in (0,64,127):cap.observe(0,40,v)
++            cap.observe(1,40,127)
++            self.assertFalse(cap.finish()["ok"])
++            self.assertFalse(cap.qualified("Fader1"))
++            cap.begin("Fader1");cap.observe(0,40,64)
++            self.assertFalse(cap.finish()["ok"])
++
++    def test_capture_overflow_invalidates_instead_of_dropping_evidence_silently(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            cap=LabelledCapture(load_profile(),Path(tmp),"fixture");cap.MAX_EVENTS=2
++            cap.begin("Fader1")
++            for v in (0,64,127):cap.observe(0,40,v)
++            result=cap.finish()
++            self.assertFalse(result["ok"]);self.assertEqual(result["dropped"],1)
++
++    def test_capture_holds_queued_pause_defaults_and_other_faders_without_blackout(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            d=DonorDouble();e=engine(d);cap=LabelledCapture(load_profile(),Path(tmp),"fixture")
++            e.qualification=cap;cap.begin("Fader1")
++            press(e,0,53);e.request_defaults();e.observe(0,41,0);e.observe(0,41,127)
++            self.assertEqual(e.tick(.1)["qualification"],"writes_held")
++            self.assertEqual(patches(d),[]);self.assertTrue(e.state["emission_enabled"])
++            cap.cancel();e.tick(.2);self.assertEqual(patches(d),[])
++
++    def test_raw_capture_happens_before_inbox_coalescing(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            cap=LabelledCapture(load_profile(),Path(tmp),"fixture");cap.begin("Fader1")
++            inbox=GestureInbox({(0,40)},cap)
++            for v in range(128):inbox.receive(SimpleNamespace(type="control_change",channel=0,control=40,value=v))
++            groups=inbox.drain();self.assertLessEqual(len(groups[0][1]),4)
++            result=cap.finish();self.assertTrue(result["ok"]);self.assertEqual(result["events"],128)
++            self.assertEqual(len(Path(result["raw_path"]).read_text().splitlines()),128)
++
++    def test_transport_loss_drops_old_intent_and_new_epoch_reads_before_writing(self):
++        with tempfile.TemporaryDirectory() as tmp:
++            d=DonorDouble();e=engine(d);cap=LabelledCapture(load_profile(),Path(tmp),"fixture")
++            e.qualification=cap;inbox=GestureInbox(set(),cap)
++            transport=SimpleNamespace(close=lambda:None)
++            f=TransportFence(e,inbox,cap,transport)
++            self.assertFalse(f.check(("bluetooth",1),0))
++            self.assertTrue(f.check(("bluetooth",1),.1))
++            press(e,0,53);e.dirty["warmth"]=1
++            self.assertFalse(f.check(None,.2));self.assertFalse(e.ready)
++            self.assertFalse(e.discrete);self.assertFalse(e.dirty)
++            self.assertFalse(f.check(("bluetooth",2),.3))
++            self.assertTrue(f.check(("bluetooth",2),.4))
++            e.tick(.5);self.assertEqual(patches(d),[])
++            self.assertTrue(e.state["emission_enabled"])
++
++if __name__=="__main__": unittest.main()
+--- /dev/null
++++ b/smc/host/titan_control/EMOTISCOPE-OPERATOR-20260929.md
+@@ -0,0 +1,34 @@
++# Emotiscope — running SMC-Mixer control card
++
++THE TITAN MUST ALWAYS BE VISUALISING MUSIC. Normal default output is 100/255; explicit operator dimming/Pause remains available.
++
++Current connection: **SMC-Mixer Bluetooth**, not USB. Dashboard already opened at http://127.0.0.1:8776. The controller starts by reading the board; it does not send defaults or initial fader positions.
++
++| Control | Action |
++|---|---|
++| Faders 1–8 | Donor brightness; softness; speed; background; colour; colour range; saturation; warmth |
++| Knob 1 | Separate output brightness, 0–255 |
++| M1–M7 | Analog; Spectrum; Octave; Metronome; Spectronome; Hype; Bloom |
++| S1–S5 | Mirror; reverse colour range; automatic colour; screensaver; dithering |
++| Previous / Next | Previous/next musical mode, only 0–6 |
++| Play / Pause | Explicit output on/off; does not change the brightness setting |
++| SQ1–SQ8 | Recall compatible saved scene; empty slot does nothing |
++
++Faders and Knob1 use soft pickup: cross the existing value before taking control. For the present native saturation0.75, Fader7 picks up around56% travel. Move through that position, then move farther to change saturation. Knob1's normal default100/255 corresponds to roughly39% travel; subsequent operator input changed the live level. Read the dashboard for the current value. Buttons require a release before a fresh press; the first press after attachment may only establish that release cycle.
++
++**Fader1 and Fader4 are currently blocked** pending isolated labelled evidence for Fader1, Fader4, R5 and R8. Unlabelled movement cannot release that gate. The dashboard contains the capture workflow; its final persistence hardening remains open in the repair closeout, so full release qualification is not claimed.
++
++Speed is meaningful in Analog, not an invented global tempo control; this donor Bloom variant does not use it effectively. Reverse colour range has no visible effect at zero colour range. Donor brightness is not the hardware output gain and zero donor brightness is not blackout.
++
++The UI's scene-SQ1 save button records the confirmed state on the Mac, not MCU storage. Saving does not send a target patch. Physical scene and all-control qualification remain outstanding.
++
++## Exact running invocation
++
++Use this command rather than the older USB command in the status JSON. The admitted broker must already be running; the current controller is already attached.
++
++```sh
++cd /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001
++PYTHONPATH=host/titan_control host/titan_control/.venv/bin/python -m smc_titan_control live --strategy emotiscope --socket /tmp/titan-emotiscope-control/titan-control.sock --port 'SMC-Mixer Bluetooth' --dashboard-port 8776 --status-port 8767
++```
++
++Recorded implementation/target evidence: `/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/captain-host-repair-20260929-01`.
+--- a/firmware/docs/emotiscope-port-001/CURRENT-STATE.md
++++ b/firmware/docs/emotiscope-port-001/CURRENT-STATE.md
+@@ -1,6 +1,18 @@
+ # Titan Emotiscope port — current execution record
+ 
+ THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
++
++## Current controls image and host — supersedes historical sections below
++
++Updated 29 September 2026 from the running broker/controller, not from Git HEAD.
++
++Resident build `393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb`; HEX SHA-256 `73ad9be5401110a06f1e7f728bf592c34c4e6170d147b1c4faaaf7831cf30071`; ELF SHA-256 `ed997e83fee4da3cde1f23fe6acdc49e41e184cd01e71f68e274d9ba3790849f`; schema `5f3c9fa627067bf3357bdb142b4d4efcb8d16211164431864826af9102286f60`. UID `545433931bd25436593630352d068363`. Spectrum, output100/255 and emissionON were verified at the baseline/restoration. Subsequent live Knob1 input set output to255/255; that operator choice was preserved. Normal default100 is unchanged. The earlier port004 image below is preserved history, not current firmware.
++
++Current control interface: typed Emotiscope GET/PATCH under opcode25. Legacy opcode16 mutation and the old performance config are rejected. **Do not use the historical eight-word opcode16 instructions below on this image.** Continuous160/80+80 mapping, P601/P604, DMA allocation and the donor AP/VP are unchanged.
++
++The controller is running on the existing admitted SMC-Mixer Bluetooth endpoint. Dashboard8776, status8767, existing sole broker socket `/tmp/titan-emotiscope-control/titan-control.sock`. No second flash occurred during Captain's host repair. A real synthetic softness change and exact restoration reached accepted/rendered/completed target state. This is not a human gesture or optical result.
++
++155 complete-collection host tests passed in the documented existing-dependency environment; 39 focused checks passed in the production virtualenv. Full physical control qualification is still open. Fader1/Fader4 remain gated. The first 20-second host window had no input; subsequent real mixer CC traffic and advancing accepted/rendered/completed state are retained in the repair evidence. Capture-finalisation hardening remains outstanding. Details, failing historical logs and exact runtime invocation: `evidence/captain-host-repair-20260929-01/CLOSEOUT.md`. Operator card: SMC worktree `host/titan_control/EMOTISCOPE-OPERATOR-20260929.md`.
+ 
+ ## Scope and authority
+ 
+@@ -10,7 +22,7 @@
+ Branch: feat/titan-emotiscope-port-001.
+ Parent commit: 4ced4d1d0001ba22788759eb3318a73179f94d81.
+ 
+-## What is running
++## Historical initial port image — superseded above
+ 
+ Final programmed build: 72773a7461590edbdb53080670f6c61608fb973c889f7bdcc1b9a65da4b8319b.
+ HEX SHA256: 28acf53a54259ac6f8e8d0a2ef3e6fda7aa5d513859310f757de3ba2edd815eb.
+@@ -59,7 +71,7 @@
+ 
+ Programming used E2 Lite 5AS079228B, SWD 1 MHz, probe power OFF, -noquery -run, and the existing permitted range ending before configuration memory. The application returned as UID 545433931bd25436593630352d068363 and the exact build above.
+ 
+-## Controls and continued work
++## Historical pre-controls interface — not valid for the current image
+ 
+ For this profile opcode 16 version 1 selects donor mode 0–6 using the existing queued owner mechanism. Send eight little-endian uint32 words: version=1, palette_a=0, palette_b=0, mode_a=mode, mode_b=mode, flags=5, brightness=100, output_channel=0. Preserve emission. Explicit operator dimming remains possible; the normal boot default stays at least 100.
+ 

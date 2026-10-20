@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.spectrasynq.titan-broker</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/bash</string>
+		<string>/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tools/serial-studio/launchd/titan-broker-launch.sh</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>HOME</key>
+		<string>/Users/spectrasynq</string>
+		<key>LANG</key>
+		<string>en_US.UTF-8</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>PYTHONUNBUFFERED</key>
+		<string>1</string>
+		<key>TITAN_BROKER_PYTHON</key>
+		<string>/opt/homebrew/opt/python@3.14/bin/python3.14</string>
+		<key>TITAN_BROKER_EVIDENCE</key>
+		<string>/tmp/titan-emotiscope-control</string>
+		<key>TITAN_ADMISSION_SOURCE</key>
+		<string>/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/smc-controls-001/accepted-candidate.json</string>
+		<key>TITAN_ADMISSION_SHA256</key>
+		<string>3ce29c4d8e19940c3473181980b21a38b662da45ea0e3e3340e067f41459f1b2</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>StandardOutPath</key>
+	<string>/Users/spectrasynq/Library/Logs/SpectraSynq/com.spectrasynq.titan-broker.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/spectrasynq/Library/Logs/SpectraSynq/com.spectrasynq.titan-broker.log</string>
+</dict>
+</plist>

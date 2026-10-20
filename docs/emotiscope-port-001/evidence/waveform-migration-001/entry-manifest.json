@@ -1,0 +1,95 @@
+{
+  "recorded_at": "2026-10-12T16:13:27.041539+00:00",
+  "repo": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001",
+  "head": "f4ce313fd50f8cfc7b7858adbc887d9420a989a0",
+  "branch": "feat/titan-emotiscope-port-001",
+  "tracked_diff_sha256": "3a9ad32635a641d51f000001962922d1935c8cdd93026cd0f6cfc7020b257298",
+  "files": [
+    {
+      "path": "docs/emotiscope-port-001/CURRENT-STATE.md",
+      "sha256": "6feaaa51495056fcf8894ae4e85f6ddcb10bbfdb86a310caa2edf94975f52858",
+      "bytes": 24096,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "harness/tests/test_continuous_bloom.cpp",
+      "sha256": "a727c50f961b2edbdaa11fddeefcc66ff50c202874938d343cfce127af1bf20f",
+      "bytes": 8128,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "harness/tests/test_continuous_bloom.py",
+      "sha256": "1ba25e3d5e38450c078637561b8fa7bc773a61b00db75f982742123a5beb69ed",
+      "bytes": 3185,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/composed_motion.h",
+      "sha256": "712bdc4eee873bb443753c946bb8e48e80789fa8f04c42dd53c22b72d396d922",
+      "bytes": 14777,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/composed_scene_runtime.h",
+      "sha256": "caf045276d018f52c97e27b33c96b1ad225c7a1a2fd27005822dfda3feb0218d",
+      "bytes": 16022,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/emotiscope_port.cpp",
+      "sha256": "72420291c407bc32e839cdfa2f6504bb465d4cd5034013bde8b4a808cceaf0f7",
+      "bytes": 46767,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/emotiscope_port.h",
+      "sha256": "e9cf1de26f8111cd2eec9d9e815f5e33a3bf2cee3a77b8527bc8ede2df6edf1a",
+      "bytes": 9277,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/emotiscope_secondary.cpp",
+      "sha256": "797876f077f6bd03c6b8bb5dca7bcc926cde151b340d8bf18d7e172f9d15d88d",
+      "bytes": 3666,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/emotiscope_secondary.h",
+      "sha256": "aae12764e3c5bd7f5e1ef7993bae971b8cac3de59b331ff520266766d478a4b2",
+      "bytes": 2519,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "platform/ra8p1/fixture_app.cpp",
+      "sha256": "273c64af65c31eea57b53cce1b7699033b02ec0d3ba69bc91381cf7e17794662",
+      "bytes": 120478,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_ss03_transport.py",
+      "sha256": "e12f45f990c7cb12f0b5d7db5bb61225c8c5c606f108b97455bd550edce3f741",
+      "bytes": 5493,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "tools/serial-studio/titan_broker.py",
+      "sha256": "8bf09381bc1f3330b965c58fd424760566f82dc33365a2854f429f52113cb664",
+      "bytes": 44978,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "tools/serial-studio/titan_transport.py",
+      "sha256": "51e0685deca083b7d1e6a9f64ca16aae318c2bfdf815bdbf19b07818d68c4ae0",
+      "bytes": 10468,
+      "kind": "tracked-dirty"
+    },
+    {
+      "path": "docs/emotiscope-port-001/INHOUSE-WAVEFORM-MIGRATION-20261012.md",
+      "sha256": "bc0ab645f9f2b02b7a55bb1636fdf5d2404071db68cf1e252188acc7691a9979",
+      "bytes": 17281,
+      "kind": "untracked-owned-source-or-assessment"
+    }
+  ],
+  "untracked_scope": "src include platform harness scripts tools plus migration assessment; generated scratch/build evidence excluded",
+  "physical_acceptance": "OPEN; this record is source preservation only"
+}

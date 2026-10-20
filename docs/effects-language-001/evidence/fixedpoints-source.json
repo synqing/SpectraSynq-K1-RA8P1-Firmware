@@ -1,0 +1,66 @@
+{
+  "source": "/Users/spectrasynq/SpectraSynq_K1_Firmware/.pio/libdeps/k1_effect_registry/FixedPoints",
+  "scope": "Host donor arithmetic dependency; not proof of donor shipped binary dependency",
+  "files": [
+    {
+      "path": "tests/reference/vendor/FixedPoints/library.properties",
+      "sha256": "672c1b8260f0462a7f4ee002caf28168234865932ea99afedffa1d38731c07a8"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/Details.h",
+      "sha256": "80a34e05d6ef6ca26fa41be8b75b02fb68214311c30abf30697e5bef366c9627"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/FixedPoints.h",
+      "sha256": "5bf4c49de71e247b9b1f9f9fd7ae8a7b2267dcb1f97fb1a74ee1ccc1d5e63b55"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/SFixed.h",
+      "sha256": "a204c0783c785d9b511aa43f85f09d31f73b98b2538b11893f466fd92e147373"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/SFixedFreeFunctions.h",
+      "sha256": "7a1c411b6886eb3e59ae126c86e45484a92e9d787b7a56431bacc78d0a064929"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/SFixedMemberFunctions.h",
+      "sha256": "105cb342f0307e4c26650da03eb2d60c4c863fe21dbacc218771a1490035aee9"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/UFixed.h",
+      "sha256": "2d90ae5397dc58f59536db036eef5bfa0688a242046d972c0c3232ee976bd6ff"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/UFixedFreeFunctions.h",
+      "sha256": "000e0e531397a0d8acfd63a2c4973bfe083331e36318170212aa58ceab4156b4"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/UFixedMemberFunctions.h",
+      "sha256": "763f1702b65ccec3df57fd1da7cdad3fec97dce778e845900eb4f859fbd5b4d2"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints/Utils.h",
+      "sha256": "835b9b8b0dd1909ba1b1ce369d8d8789acbaa425a0f523c791cb8fe214968c7d"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPoints.h",
+      "sha256": "1d0777259a7215f19756dfdb03375a3bdd1fc1ec50f5b3b5b15ead01bef59053"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPointsCommon/FixedPointsCommon.h",
+      "sha256": "3732af0048a09223e6c87e64433333de7ca494e5c42dfc93ee3577392771827a"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPointsCommon/SFixedCommon.h",
+      "sha256": "b760364d061e347088fda88d2a7cd305aed0964ab8db3fb21620ec4c8c1f6297"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPointsCommon/UFixedCommon.h",
+      "sha256": "aec127f531194bdd71918c278db18be72531b8934f50cc16e76c37c5e5484d87"
+    },
+    {
+      "path": "tests/reference/vendor/FixedPoints/src/FixedPointsCommon.h",
+      "sha256": "aa9c3cc0d07dbb05036b579073a54497cf1c3122aefed8107883086884c51880"
+    }
+  ]
+}

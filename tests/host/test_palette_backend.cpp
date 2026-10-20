@@ -9,7 +9,9 @@ int main() {
   const char* emit_off = k1::titan::runtimePaletteOutputBackend(false);
   const char* emit_on = k1::titan::runtimePaletteOutputBackend(true);
   assert(std::strcmp(emit_off, "disabled") == 0);
-#if defined(K1_PALETTE_GPT_DMA)
+#if defined(K1_PALETTE_WS2816_GPT_PAIR)
+  assert(std::strcmp(configured, "ws2816_gpt_pair") == 0);
+#elif defined(K1_PALETTE_GPT_DMA)
   assert(std::strcmp(configured, "gpt_dma") == 0);
 #elif defined(K1_PALETTE_WS2816)
   assert(std::strcmp(configured, "ws2816_gpio") == 0);

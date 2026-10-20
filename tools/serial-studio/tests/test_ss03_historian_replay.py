@@ -78,8 +78,13 @@ def test_ss02_current_manifest_matches_historian_session():
     assert b"SIMULATED" in joined
 
 
-def test_ss03_live_historian_not_bound_to_current_live_manifest():
-    """Document the exact live-manifest Historian gap without claiming SS-03 closed."""
+def test_ss03_live_historian_bound_but_without_numeric_readings():
+    """Latest live Historian session is bound to the current manifest; numeric replay is still absent.
+
+    Machine-state check on this Mac's Serial Studio database. The binding gap this
+    test used to document closed with session 6 (2026-09-27); SS-03 is not closed
+    because the session carries no numeric readings.
+    """
     assert SS03_LIVE_PROJ.is_file(), f"missing current SS-03 live manifest: {SS03_LIVE_PROJ}"
     live_sha = _sha256(SS03_LIVE_PROJ)
     assert live_sha == "aa96c9eae69cac05056ee113488221def2c6e6206de70a85ea70ef4c1f1decf8"
@@ -95,9 +100,8 @@ def test_ss03_live_historian_not_bound_to_current_live_manifest():
         readings = con.execute("SELECT COUNT(*) FROM readings").fetchone()[0]
     finally:
         con.close()
-    # Current live manifest has drifted from the only stored live Historian session.
-    assert json.dumps(live, sort_keys=True) != json.dumps(hist, sort_keys=True)
-    assert live.get("nextUniqueId") != hist.get("nextUniqueId")
+    # The newest stored live session was recorded with the current manifest.
+    assert json.dumps(live, sort_keys=True) == json.dumps(hist, sort_keys=True)
     # No numeric readings available for field-for-field live replay.
     assert readings == 0
 

@@ -1,0 +1,37 @@
+{
+  "scope": "Existing family006 request/response durations; rejected video is not physical evidence. Cached records deduplicated by request_started. Not microphone-to-light latency.",
+  "passages": {
+    "first": {
+      "source": "_scratch/waveform-migration-001/family-physical-quiet-after-001/first/capture.json",
+      "sha256": "5a5dacc96f97f621376d6f637febdd9792d8361aab2fb690768e6360c1485b1c",
+      "durations": {
+        "17": {
+          "n": 14,
+          "median_ms": 144.27702050306834,
+          "max_ms": 190.92220900347456
+        },
+        "6": {
+          "n": 14,
+          "median_ms": 90.29202099191025,
+          "max_ms": 149.87895800732076
+        }
+      }
+    },
+    "second": {
+      "source": "_scratch/waveform-migration-001/family-physical-quiet-after-001/second/capture.json",
+      "sha256": "999a4e6c71fde1d1a60595fe61566eb83de552380a4438bffd7028115f4ded9c",
+      "durations": {
+        "17": {
+          "n": 14,
+          "median_ms": 164.55097950529307,
+          "max_ms": 204.16141700115986
+        },
+        "6": {
+          "n": 14,
+          "median_ms": 90.34733299631625,
+          "max_ms": 118.88395799905993
+        }
+      }
+    }
+  }
+}

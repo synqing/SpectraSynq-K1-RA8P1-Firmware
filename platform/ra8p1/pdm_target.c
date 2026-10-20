@@ -1,7 +1,7 @@
 /* Dual onboard LMD2718T261-OA1 capture for Titan Mini (U13/U14).
    Shared P502/P812 (PDMDAT2/PDMCLK2). Expected MCU sampling:
    U14 SELECT-low → RISE/ch2 programme; U13 SELECT-high → FALL/ch0 measurement.
-   40 kHz capture admits into 24 kHz/180 via measured-rate ASRC. */
+   Measured-rate ASRC selects legacy 24 kHz/180 or Emotiscope 12.8 kHz/64. */
 #include "pdm_target.h"
 
 #include <limits.h>
@@ -10,6 +10,9 @@
 
 #include "hal_data.h"
 #include "k1_asrc_24k.h"
+#ifdef K1_INHOUSE_ANALYSIS24
+#include "k1_poly24.h"
+#endif
 #include "k1_cycle_clock.h"
 #include "k1/core/audio/k1_audio_hop.h"
 #include "k1_pdm_sensitivity.h"
@@ -18,6 +21,10 @@
 #include "r_dmac.h"
 #include "r_pdm.h"
 #include "titan_onboard_mic.h"
+#ifdef K1_PALETTE_WS2816_GPT_PAIR
+#include "ws281x_gpt_dma_hw_pair.h"
+#endif
+#include "k1_dmac_lane_guard.h"
 
 static void k1_pdm_target_dmac_isr(dmac_callback_args_t *args);
 
@@ -76,8 +83,41 @@ typedef struct {
     uint64_t receipt_cycles;
 } k1_capture_block_meta_t;
 
+#if defined(K1_ASRC_TCM)
+/* Lane P2 measured experiment: resampler state (FIR history, ring) in DTCM.
+   Always initialised by k1_asrc24_reset() before use; no reliance on zeroing. */
+static k1_asrc24_t capture_asrc __attribute__((section(".dtcm"), aligned(32)));
+#else
 static k1_asrc24_t capture_asrc;
+#endif
 static int16_t capture_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
+#ifdef K1_INHOUSE_ANALYSIS24
+static int16_t capture_raw_pcm[K1_PDM_TARGET_SLOT_ELEMENTS];
+#endif
+#ifdef K1_INHOUSE_ANALYSIS24
+/* Lane P4: the same accepted blocks also feed k1_poly24 (24 kHz / 180) for the
+   in-house analysis. Its own epoch and sequence; a full ring flushes only this
+   path (no redesign, no trig) and never resets the donor stream. Fed only while
+   a consumer has asked for it (k1_pdm_target_set_analysis24). */
+static k1_poly24_t capture_poly24;
+static uint8_t capture_a24_wanted;
+static uint64_t capture_a24_epoch;
+static uint64_t capture_a24_sequence;
+static uint64_t capture_a24_source_base;
+static uint32_t capture_a24_drops;
+static uint32_t capture_a24_cycles_sum;
+/* P4 correction 2: filter (re)designs since boot and their cost. Not reset with
+   the capture, so a rate-lock design inside a poll stays visible. */
+static uint32_t capture_a24_designs;
+static uint32_t capture_a24_design_last_cycles;
+static uint32_t capture_a24_design_max_cycles;
+
+static void k1_pdm_target_note_a24_design(uint32_t cycles) {
+    capture_a24_designs += 1u;
+    capture_a24_design_last_cycles = cycles;
+    if (cycles > capture_a24_design_max_cycles) capture_a24_design_max_cycles = cycles;
+}
+#endif
 static k1_capture_block_meta_t capture_meta[K1_CAPTURE_META_CAP];
 static uint32_t capture_meta_head;
 static uint32_t capture_meta_count;
@@ -94,11 +134,16 @@ static uint32_t capture_rate_segment;
 static uint32_t capture_discontinuity_pending;
 static uint32_t capture_discontinuity_reason;
 static uint32_t capture_pair_epoch_drops;
-static uint32_t capture_rate_samples;
+static uint32_t capture_rate_first_sequence;
+static uint8_t capture_rate_provisional;
 static uint64_t capture_rate_t0_us;
 static uint32_t capture_asrc_starved;
 static uint32_t capture_ap_hops;
 static uint32_t capture_asrc_push_drop;
+static k1_pdm_capture_service_t capture_service;
+static uint32_t capture_poll_start_cycles;
+static uint32_t capture_poll_entry_filled;
+static uint32_t capture_poll_pairs;
 static uint64_t capture_last_hop_us;
 static uint32_t capture_last_hop_dt_us;
 static uint32_t capture_last_hop_peak;
@@ -191,6 +236,28 @@ static volatile int capture_initialised;
 static volatile int capture_running;
 static volatile int capture_restart_requested;
 static volatile int32_t capture_last_fsp_error;
+#ifdef K1_EMOTISCOPE_PORT
+static k1_pdm_pcm_drain_t capture_pcm_drain;
+void k1_pdm_target_set_pcm_drain(k1_pdm_pcm_drain_t drain) {
+    capture_pcm_drain = drain;
+}
+int k1_pdm_target_pcm_push_room(void) {
+    return capture_asrc.filled <= K1_ASRC24_RING - K1_PDM_TARGET_SLOT_ELEMENTS;
+}
+static int k1_pdm_target_pair_waiting(void) {
+    /* READY is a producer-published 32-bit state. This is only a look-ahead;
+       the existing acquire still validates the actual ownership token. */
+    uint32_t lane;
+    for (lane = 0u; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
+        uint32_t slot;
+        int ready = capture_owner[lane].valid;
+        for (slot = 0u; !ready && slot < K1_PDM_STREAM_SLOT_COUNT; ++slot)
+            ready = capture_stream[lane].slots[slot].state == K1_PDM_SLOT_READY;
+        if (!ready) return 0;
+    }
+    return 1;
+}
+#endif
 static uint32_t capture_paired_slots;
 static uint32_t capture_pair_skew_drops;
 static uint32_t capture_startup_discard_pairs;
@@ -218,6 +285,38 @@ static uint64_t k1_pdm_target_now_us(void) {
            (uint64_t) SystemCoreClock;
 }
 
+static k1_pdm_hop_cost_t capture_hop_cost;
+
+void k1_pdm_target_take_hop_cost(k1_pdm_hop_cost_t *out) {
+    if (out == 0) return;
+    *out = capture_hop_cost;
+    capture_hop_cost.poll_cycles_sum = 0u;
+    capture_hop_cost.poll_cycles_max = 0u;
+    capture_hop_cost.poll_calls = 0u;
+    capture_hop_cost.asrc_cycles_sum = 0u;
+}
+
+void k1_pdm_target_note_emit_cycles(uint32_t cycles) {
+    capture_hop_cost.emit_cycles_last = cycles;
+}
+
+static void k1_pdm_target_finish_poll(void) {
+    capture_service.poll_last_cycles =
+        (uint32_t)k1_pdm_target_now_cycles() - capture_poll_start_cycles;
+    capture_hop_cost.poll_cycles_sum += capture_service.poll_last_cycles;
+    if (capture_service.poll_last_cycles > capture_hop_cost.poll_cycles_max)
+        capture_hop_cost.poll_cycles_max = capture_service.poll_last_cycles;
+    capture_hop_cost.poll_calls += 1u;
+    if (capture_service.poll_last_cycles > capture_service.poll_max_cycles)
+        capture_service.poll_max_cycles = capture_service.poll_last_cycles;
+    if (capture_poll_pairs > capture_service.poll_max_pairs)
+        capture_service.poll_max_pairs = capture_poll_pairs;
+}
+
+k1_pdm_capture_service_t k1_pdm_target_capture_service(void) {
+    return capture_service;
+}
+
 static void k1_pdm_target_reset_logical_stream(uint32_t reason) {
     const uint32_t discarded = capture_asrc.filled;
     const uint32_t prior_discarded = capture_asrc.discarded_samples;
@@ -233,13 +332,32 @@ static void k1_pdm_target_reset_logical_stream(uint32_t reason) {
     capture_source_base = 0u;
     capture_meta_head = 0u;
     capture_meta_count = 0u;
-    capture_rate_samples = 0u;
-    capture_rate_t0_us = 0u;
-    capture_rate_locked = 0u;
-    capture_measured_hz = 0u;
+    /* ASRC admission loss changes the logical audio epoch, not the raw PDM
+       clock. Preserve its estimate AND the in-progress raw calibration so
+       repeated early drops cannot postpone the first 250ms estimate forever. */
+    if (reason != 2u) {
+        capture_rate_first_sequence = 0u;
+        capture_rate_provisional = 0u;
+        capture_rate_t0_us = 0u;
+        capture_rate_locked = 0u;
+        capture_measured_hz = 0u;
+    }
     capture_discontinuity_pending = reason != 0u ? 1u : 0u;
     capture_discontinuity_reason = reason;
     k1_asrc24_reset(&capture_asrc, (uint32_t)capture_stream_epoch, hz);
+#ifdef K1_INHOUSE_ANALYSIS24
+    /* Redesign only when the rate changed; otherwise an empty ring suffices. */
+    if (capture_poly24.source_hz != hz) {
+        const uint32_t design_t0 = DWT->CYCCNT;
+        k1_poly24_reset(&capture_poly24, hz);
+        k1_pdm_target_note_a24_design(DWT->CYCCNT - design_t0);
+    } else {
+        k1_poly24_flush(&capture_poly24);
+    }
+    capture_a24_epoch += 1u;
+    capture_a24_sequence = 0u;
+    capture_a24_source_base = 0u;
+#endif
     capture_asrc.discarded_samples = prior_discarded + discarded;
     capture_asrc.push_rejected = prior_rejected;
     capture_asrc.consumed_samples = prior_consumed;
@@ -415,6 +533,43 @@ static void k1_pdm_target_release(uint32_t lane) {
     owner->valid = 0;
 }
 
+static void k1_pdm_target_observe_rate(const k1_pdm_owner_t *programme) {
+    uint64_t elapsed_us;
+    uint64_t samples;
+    uint32_t hz;
+    if (capture_rate_locked) return;
+    if (capture_rate_t0_us == 0u || programme->capture_end_us <= capture_rate_t0_us) {
+        capture_rate_t0_us = programme->capture_end_us;
+        capture_rate_first_sequence = programme->sequence;
+        return;
+    }
+    elapsed_us = programme->capture_end_us - capture_rate_t0_us;
+    /* Admit a short raw-clock estimate before the nominal-rate mismatch can
+       accumulate a queue. Keep CALIBRATING until the full two-second interval
+       refines it; neither estimate depends on ASRC acceptance. */
+    if (elapsed_us < 250000ull ||
+        (capture_rate_provisional && elapsed_us < 2000000ull)) return;
+    /* Both endpoints are completed raw blocks. The first block is the time
+       anchor, so only sequence DELTA contributes samples. ASRC admission and
+       staging delay must not change the measured hardware source frequency. */
+    samples = (uint64_t)(programme->sequence - capture_rate_first_sequence) *
+              K1_PDM_TARGET_SLOT_ELEMENTS;
+    hz = (uint32_t)((samples * 1000000ull) / elapsed_us);
+    if (k1_asrc24_set_rate(&capture_asrc, hz) == k1_asrc24_ok) {
+#ifdef K1_INHOUSE_ANALYSIS24
+        {
+            const uint32_t design_t0 = DWT->CYCCNT;
+            if (k1_poly24_set_rate(&capture_poly24, hz) == k1_poly24_ok)
+                k1_pdm_target_note_a24_design(DWT->CYCCNT - design_t0);
+        }
+#endif
+        capture_measured_hz = hz;
+        capture_rate_provisional = 1u;
+        capture_rate_locked = elapsed_us >= 2000000ull ? 1u : 0u;
+        capture_rate_segment += 1u;
+    }
+}
+
 static void k1_pdm_target_process_lane(uint32_t lane) {
     k1_pdm_lane_metrics_t *metrics = &capture_metrics[lane];
     k1_pdm_owner_t const *owner = &capture_owner[lane];
@@ -455,6 +610,9 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
         }
         if (lane == K1_PDM_TARGET_PROGRAMME_LANE) {
             capture_pcm[index] = view.sample;
+#ifdef K1_INHOUSE_ANALYSIS24
+            capture_raw_pcm[index] = view.sample;
+#endif
         }
     }
     metrics->processed_slots++;
@@ -487,24 +645,57 @@ static void k1_pdm_target_process_lane(uint32_t lane) {
             capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
         } else if (capture_meta_count >= K1_CAPTURE_META_CAP) {
             capture_asrc_push_drop++;
-        } else if (k1_asrc24_push(&capture_asrc, capture_pcm,
-                                  K1_PDM_TARGET_SLOT_ELEMENTS) != k1_asrc24_ok) {
-            capture_asrc_push_drop++;
+            capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
+            k1_pdm_target_reset_logical_stream(2u);
         } else {
-            k1_capture_block_meta_t *meta = &capture_meta[capture_meta_head];
-            meta->source_begin = capture_source_write_index;
-            meta->source_end_exclusive =
-                capture_source_write_index + K1_PDM_TARGET_SLOT_ELEMENTS;
-            meta->sequence = owner->sequence;
-            meta->raw_epoch = owner->epoch;
-            meta->receipt_us = owner->capture_end_us;
-            meta->receipt_cycles = k1_pdm_target_now_cycles();
-            capture_source_write_index += K1_PDM_TARGET_SLOT_ELEMENTS;
-            capture_meta_head = (capture_meta_head + 1u) % K1_CAPTURE_META_CAP;
-            capture_meta_count += 1u;
-            capture_rate_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
-            if (capture_rate_t0_us == 0u) {
-                capture_rate_t0_us = owner->capture_end_us;
+            const uint32_t asrc_t0 = DWT->CYCCNT;
+            const int status = k1_asrc24_push(&capture_asrc, capture_pcm,
+                                             K1_PDM_TARGET_SLOT_ELEMENTS);
+            capture_hop_cost.asrc_cycles_sum += DWT->CYCCNT - asrc_t0;
+            if (status != k1_asrc24_ok) {
+                ++capture_service.reject_count;
+                capture_service.reject_poll_entry_filled = capture_poll_entry_filled;
+                capture_service.reject_filled = capture_asrc.filled;
+                capture_service.reject_poll_pair_index = capture_poll_pairs + 1u;
+                capture_service.reject_poll_cycles =
+                    (uint32_t)k1_pdm_target_now_cycles() - capture_poll_start_cycles;
+                /* Never hold up DMA draining on a full ASRC queue. Actual
+                   loss is explicit: account the rejected block and buffered
+                   tail, then tell AP about the new epoch before more PCM. */
+                capture_asrc_push_drop++;
+                if (status != k1_asrc24_err_arg)
+                    capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
+                k1_pdm_target_reset_logical_stream(2u);
+            } else {
+                k1_capture_block_meta_t *meta = &capture_meta[capture_meta_head];
+                meta->source_begin = capture_source_write_index;
+                meta->source_end_exclusive =
+                    capture_source_write_index + K1_PDM_TARGET_SLOT_ELEMENTS;
+                meta->sequence = owner->sequence;
+                meta->raw_epoch = owner->epoch;
+                meta->receipt_us = owner->capture_end_us;
+                meta->receipt_cycles = k1_pdm_target_now_cycles();
+#ifdef K1_INHOUSE_ANALYSIS24
+                if (capture_a24_wanted) {
+                    const uint32_t a24_t0 = DWT->CYCCNT;
+                    if (k1_poly24_push_paired(&capture_poly24, capture_pcm, capture_raw_pcm,
+                                       K1_PDM_TARGET_SLOT_ELEMENTS,
+                                       gain_q8 < K1_PDM_SENSITIVITY_Q8) != k1_poly24_ok) {
+                        /* Consumer fell behind: restart this path at the NEXT
+                           block. The donor stream is untouched. */
+                        capture_a24_drops++;
+                        k1_poly24_flush(&capture_poly24);
+                        capture_a24_epoch += 1u;
+                        capture_a24_sequence = 0u;
+                        capture_a24_source_base =
+                            capture_source_write_index + K1_PDM_TARGET_SLOT_ELEMENTS;
+                    }
+                    capture_a24_cycles_sum += DWT->CYCCNT - a24_t0;
+                }
+#endif
+                capture_source_write_index += K1_PDM_TARGET_SLOT_ELEMENTS;
+                capture_meta_head = (capture_meta_head + 1u) % K1_CAPTURE_META_CAP;
+                capture_meta_count += 1u;
             }
         }
     }
@@ -520,16 +711,20 @@ static void k1_pdm_target_process_pair(void) {
         k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
         k1_pdm_target_release(K1_PDM_TARGET_MEASUREMENT_LANE);
         capture_pair_epoch_drops++;
+        capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
+        k1_pdm_target_reset_logical_stream(3u);
         return;
     }
 
     if (programme->sequence != measurement->sequence) {
         if (programme->sequence < measurement->sequence) {
             k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
+            capture_asrc.discarded_samples += K1_PDM_TARGET_SLOT_ELEMENTS;
         } else {
             k1_pdm_target_release(K1_PDM_TARGET_MEASUREMENT_LANE);
         }
         capture_pair_skew_drops++;
+        k1_pdm_target_reset_logical_stream(3u);
         return;
     }
 
@@ -542,6 +737,7 @@ static void k1_pdm_target_process_pair(void) {
         capture_discard_next_pair = 0u;
         capture_startup_discard_pairs++;
     } else {
+        k1_pdm_target_observe_rate(programme);
         k1_pdm_target_process_lane(K1_PDM_TARGET_PROGRAMME_LANE);
         k1_pdm_target_process_lane(K1_PDM_TARGET_MEASUREMENT_LANE);
         if (capture_metrics[K1_PDM_TARGET_PROGRAMME_LANE].processed_slots == 1u) {
@@ -550,18 +746,7 @@ static void k1_pdm_target_process_pair(void) {
         capture_last_end_us = programme->capture_end_us >= measurement->capture_end_us
                             ? programme->capture_end_us
                             : measurement->capture_end_us;
-        if (capture_rate_locked == 0u && capture_rate_t0_us != 0u) {
-            const uint64_t dt_us = capture_last_end_us - capture_rate_t0_us;
-            if (dt_us >= 2000000ull && capture_rate_samples > 0u) {
-                const uint32_t hz =
-                    (uint32_t)((capture_rate_samples * 1000000ull) / dt_us);
-                if (k1_asrc24_set_rate(&capture_asrc, hz) == k1_asrc24_ok) {
-                    capture_measured_hz = hz;
-                    capture_rate_locked = 1u;
-                    capture_rate_segment += 1u;
-                }
-            }
-        }
+
     }
     capture_paired_slots++;
     k1_pdm_target_release(K1_PDM_TARGET_PROGRAMME_LANE);
@@ -644,6 +829,7 @@ int k1_pdm_target_initialise(void) {
     capture_asrc_starved = 0u;
     capture_ap_hops = 0u;
     capture_asrc_push_drop = 0u;
+    memset(&capture_service, 0, sizeof capture_service);
     capture_last_hop_peak = 0u;
     capture_last_hop_gain_q8 = 0u;
     capture_gain_clip_pos = 0u;
@@ -688,6 +874,9 @@ uint64_t k1_pdm_target_injection_end_us(void) { return capture_injection_end_us;
 void k1_pdm_target_poll(void) {
     uint32_t lane;
     if (!capture_initialised) return;
+    capture_poll_start_cycles = (uint32_t)k1_pdm_target_now_cycles();
+    capture_poll_entry_filled = capture_asrc.filled;
+    capture_poll_pairs = 0u;
     k1_pdm_target_poll_stale(k1_pdm_target_now_us());
 
     if (capture_restart_requested) {
@@ -700,28 +889,48 @@ void k1_pdm_target_poll(void) {
         for (lane = 0; lane < K1_PDM_TARGET_LANE_COUNT; ++lane) {
             if (k1_pdm_stream_context_recover(&capture_stream[lane],
                                               capture_start_us) != K1_PDM_STREAM_OK) {
+                k1_pdm_target_finish_poll();
                 return;
             }
         }
         error = k1_pdm_target_start_drivers();
         if (error != FSP_SUCCESS) {
             capture_last_fsp_error = (int32_t) error;
+            k1_pdm_target_finish_poll();
             return;
         }
         capture_discard_next_pair = 1u;
         capture_restart_requested = 0;
         k1_pdm_target_reset_logical_stream(1u);
         capture_running = 1;
+        k1_pdm_target_finish_poll();
         return;
     }
 
     for (;;) {
+        /* Drain capture promptly. ASRC pressure is an explicit logical
+           discontinuity, never permission to retain completed DMA slots. */
+#ifdef K1_EMOTISCOPE_PORT
+        /* Make room through the existing sole AP/render owner before taking
+           another raw pair. No DMA-owned buffer is held during this call. */
+        if (!k1_pdm_target_pair_waiting()) break;
+        if (capture_pcm_drain && !capture_stale_active &&
+            !capture_owner[K1_PDM_TARGET_PROGRAMME_LANE].valid &&
+            !capture_owner[K1_PDM_TARGET_MEASUREMENT_LANE].valid &&
+            !k1_pdm_target_pcm_push_room()) capture_pcm_drain();
+#endif
         const uint32_t before = capture_paired_slots;
         (void) k1_pdm_target_acquire(K1_PDM_TARGET_PROGRAMME_LANE);
         (void) k1_pdm_target_acquire(K1_PDM_TARGET_MEASUREMENT_LANE);
         k1_pdm_target_process_pair();
         if (capture_paired_slots == before) break;
+        ++capture_poll_pairs;
+#ifdef K1_EMOTISCOPE_PORT
+        /* Bound this producer pass even if DMA completes while AP drains. */
+        if (capture_poll_pairs >= K1_PDM_STREAM_SLOT_COUNT) break;
+#endif
     }
+    k1_pdm_target_finish_poll();
 }
 
 static int k1_pdm_target_lane_valid(uint32_t lane) {
@@ -806,6 +1015,110 @@ uint32_t k1_pdm_target_push_rejected(void) { return capture_asrc.push_rejected; 
 uint64_t k1_pdm_target_stream_epoch(void) { return capture_stream_epoch; }
 uint32_t k1_pdm_target_pair_epoch_drops(void) { return capture_pair_epoch_drops; }
 
+#ifdef K1_INHOUSE_ANALYSIS24
+void k1_pdm_target_set_analysis24(int wanted) {
+    const uint8_t next = wanted ? 1u : 0u;
+    if (next == capture_a24_wanted) return;
+    capture_a24_wanted = next;
+    /* Feeding resumes at the next accepted block, on a fresh epoch. */
+    k1_poly24_flush(&capture_poly24);
+    capture_a24_epoch += 1u;
+    capture_a24_sequence = 0u;
+    capture_a24_source_base = capture_source_write_index;
+}
+
+uint32_t k1_pdm_target_analysis24_drops(void) { return capture_a24_drops; }
+
+void k1_pdm_target_analysis24_status(k1_pdm_analysis24_status_t *out) {
+    if (out == 0) return;
+    out->wanted = capture_a24_wanted;
+    out->epoch = capture_a24_epoch;
+    out->sequence = capture_a24_sequence;
+    out->drops = capture_a24_drops;
+    out->designs = capture_a24_designs;
+    out->design_last_cycles = capture_a24_design_last_cycles;
+    out->design_max_cycles = capture_a24_design_max_cycles;
+    out->source_hz = capture_poly24.source_hz;
+}
+
+uint32_t k1_pdm_target_take_analysis24_cycles(void) {
+    const uint32_t c = capture_a24_cycles_sum;
+    capture_a24_cycles_sum = 0u;
+    return c;
+}
+
+/* 24 kHz / 180 descriptor for the in-house analysis. Contract version 2, as for
+   the 12.8 kHz descriptor; stream_epoch is this path's own counter. The newest
+   sample's content instant is k1_poly24's stream clock (47-sample causal
+   convention, same as the 12.8 kHz FIR), back-projected from the newest
+   accepted block's DMA receipt at the measured rate. */
+k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out) {
+    uint64_t ready_us;
+    uint64_t content_q32;
+    k1_poly24_paired_hop_t paired;
+    const k1_capture_block_meta_t *anchor;
+    if (out == 0) return K1_AUDIO_READ_FAULT;
+    if (!capture_running || capture_stale_active || !capture_a24_wanted)
+        return K1_AUDIO_READ_NOT_READY;
+    if (capture_a24_sequence >= UINT64_MAX / K1_POLY24_OUT_FRAMES)
+        return K1_AUDIO_READ_FAULT;
+    {
+        const uint32_t a24_t0 = DWT->CYCCNT;
+        const int rc = k1_poly24_pull_paired(&capture_poly24, &paired);
+        capture_a24_cycles_sum += DWT->CYCCNT - a24_t0;
+        if (rc == k1_poly24_err_not_ready) return K1_AUDIO_READ_NOT_READY;
+        if (rc != k1_poly24_ok) return K1_AUDIO_READ_FAULT;
+    }
+    memcpy(out->pcm, paired.pcm, sizeof(paired.pcm));
+    ready_us = k1_pdm_target_now_us();
+    out->contract_version = K1_PDM_TARGET_AUDIO_CONTRACT_VERSION;
+    out->samples = K1_POLY24_OUT_FRAMES;
+    out->analysis_rate_hz = K1_POLY24_OUT_HZ;
+    out->stream_epoch = capture_a24_epoch;
+    out->hop_sequence = capture_a24_sequence + 1u;
+    /* Bound to this atomic pull and this path's authoritative identity. */
+    out->paired_level.version = 2u;
+    out->paired_level.guarded_support = paired.guarded_support;
+    out->paired_level.stream_epoch = out->stream_epoch;
+    out->paired_level.hop_sequence = out->hop_sequence;
+    out->paired_level.pre_guard_rms = paired.pre_guard_rms;
+    out->paired_level.pre_guard_peak = paired.pre_guard_peak;
+    out->analysis_begin = capture_a24_sequence * K1_POLY24_OUT_FRAMES;
+    out->analysis_end_exclusive = out->analysis_begin + K1_POLY24_OUT_FRAMES;
+    out->discontinuity_reason = 0u;
+    out->source_rate_hz = capture_poly24.source_hz;
+    out->rate_segment = capture_rate_segment;
+    out->rate_state = capture_rate_locked ? K1_AUDIO_RATE_LOCKED : K1_AUDIO_RATE_CALIBRATING;
+    out->descriptor_ready_us = ready_us;
+    out->timestamp_provenance = K1_AUDIO_TS_DMA_ISR_BACKPROJECTION;
+    out->physical_timestamp_valid = 0;
+    out->uncertainty_known = 0;
+    out->capture_estimate_valid = 0;
+    out->newest_sample_capture_estimate_us = 0;
+    capture_a24_sequence += 1u;
+    content_q32 = k1_poly24_last_output_source_q32(&capture_poly24);
+    anchor = capture_meta_count == 0u ? 0
+        : &capture_meta[(capture_meta_head + K1_CAPTURE_META_CAP - 1u) % K1_CAPTURE_META_CAP];
+    if (anchor != 0 && capture_poly24.source_hz != 0u) {
+        uint64_t delta_q32 = 0u;
+        out->supporting_dma_receipt_cycles = anchor->receipt_cycles;
+        out->supporting_dma_receipt_us = anchor->receipt_us;
+        /* Modular lag (P4 review F9): absolute indices pass 2^32 after ~28.8 h. */
+        if (k1_poly24_capture_lag_q32(anchor->source_end_exclusive - 1ull,
+                                      capture_a24_source_base, content_q32, &delta_q32)) {
+            const uint64_t delta_us = (uint64_t)(((delta_q32 >> 16) * 1000000ull) /
+                                                 ((uint64_t)capture_poly24.source_hz << 16));
+            if (anchor->receipt_us >= delta_us) {
+                out->newest_sample_capture_estimate_us = anchor->receipt_us - delta_us;
+                out->capture_estimate_valid =
+                    out->newest_sample_capture_estimate_us <= ready_us ? 1u : 0u;
+            }
+        }
+    }
+    return K1_AUDIO_READ_OK;
+}
+#endif
+
 k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     uint32_t required;
     uint32_t inc;
@@ -851,9 +1164,9 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     inc = k1_asrc24_phase_increment_q16(capture_asrc.source_hz);
     s = capture_asrc.src_index;
     f = capture_asrc.frac_q16;
-    consume_count = s + ((f + 180ull * (uint64_t)inc) / 65536ull);
+    consume_count = s + ((f + (uint64_t)K1_ASRC24_OUT_FRAMES * inc) / 65536ull);
     first_index = capture_source_base + s;
-    last_index = capture_source_base + s + ((f + 179ull * (uint64_t)inc) / 65536ull);
+    last_index = capture_source_base + s + ((f + (uint64_t)(K1_ASRC24_OUT_FRAMES - 1u) * inc) / 65536ull);
     next_index = capture_source_base + consume_count;
     support_last = last_index + 1ull;
     first_meta = k1_pdm_target_meta_for(first_index);
@@ -862,11 +1175,32 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     if (first_meta == 0 || last_meta == 0 || support_meta == 0) {
         return K1_AUDIO_READ_FAULT;
     }
+#ifdef K1_EMOTISCOPE_PORT
+    /* Deliberately distinct from the sealed 24 kHz/180 AP contract. The
+       larger legacy storage is only a carrier; exactly64 PCM values are valid.
+       Source indices identify causal FIR input coordinates; the backprojected
+       content timestamp below includes the known FIR group delay. */
+    if (capture_hop_sequence >= UINT64_MAX / K1_ASRC24_OUT_FRAMES)
+        return K1_AUDIO_READ_FAULT;
+    memset(out, 0, sizeof(*out));
+    out->contract_version = K1_PDM_TARGET_AUDIO_CONTRACT_VERSION;
+    out->samples = K1_ASRC24_OUT_FRAMES;
+    out->analysis_rate_hz = K1_ASRC24_OUT_HZ;
+    out->stream_epoch = capture_stream_epoch;
+    out->hop_sequence = capture_hop_sequence + 1u;
+    out->analysis_begin = capture_hop_sequence * K1_ASRC24_OUT_FRAMES;
+    out->analysis_end_exclusive = out->analysis_begin + K1_ASRC24_OUT_FRAMES;
+#else
     if (k1_audio_hop_init_interval(out, capture_stream_epoch,
                                    capture_hop_sequence + 1u) != 0) {
         return K1_AUDIO_READ_FAULT;
     }
-    rc = k1_asrc24_pull180(&capture_asrc, out->pcm);
+#endif
+    {
+        const uint32_t filled_at_consume = capture_asrc.filled;
+        rc = k1_asrc24_pull180(&capture_asrc, out->pcm);
+        if (rc == k1_asrc24_ok) capture_hop_cost.queue_filled_at_consume = filled_at_consume;
+    }
     if (rc == k1_asrc24_err_not_ready) {
         return K1_AUDIO_READ_NOT_READY;
     }
@@ -883,9 +1217,9 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     out->source_first_index = first_index;
     out->source_first_frac_q16 = (uint16_t)f;
     out->source_last_index = last_index;
-    out->source_last_frac_q16 = (uint16_t)((f + 179ull * (uint64_t)inc) % 65536ull);
+    out->source_last_frac_q16 = (uint16_t)((f + (uint64_t)(K1_ASRC24_OUT_FRAMES - 1u) * inc) % 65536ull);
     out->source_next_index = next_index;
-    out->source_next_frac_q16 = (uint16_t)((f + 180ull * (uint64_t)inc) % 65536ull);
+    out->source_next_frac_q16 = (uint16_t)((f + (uint64_t)K1_ASRC24_OUT_FRAMES * inc) % 65536ull);
     out->source_support_last_index = support_last;
     out->supporting_block_source_end_exclusive = support_meta->source_end_exclusive;
     out->source_block_first_sequence = first_meta->sequence;
@@ -908,6 +1242,11 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     out->newest_sample_capture_estimate_us = 0;
     if (r >= q_index) {
         delta_q16 = (r - q_index) * 65536ull - q_frac;
+#ifdef K1_EMOTISCOPE_PORT
+        /* Hardware ISR time is still only an estimate. Account for causal
+           FIR latency without claiming a measured acoustic timestamp. */
+        delta_q16 += (uint64_t)K1_ASRC24_FILTER_DELAY_SAMPLES * 65536ull;
+#endif
         if (capture_asrc.source_hz != 0u &&
             delta_q16 <= (UINT64_MAX / 1000000ull)) {
             delta_us = (delta_q16 * 1000000ull) /
@@ -921,7 +1260,7 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
             }
         }
     }
-    for (i = 0; i < 180u; ++i) {
+    for (i = 0; i < K1_ASRC24_OUT_FRAMES; ++i) {
         const int32_t v = out->pcm[i];
         const uint32_t mag = v < 0 ? (uint32_t)(-v) : (uint32_t)v;
         if (mag > hop_peak) hop_peak = mag;
@@ -936,7 +1275,7 @@ k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out) {
     return K1_AUDIO_READ_OK;
 }
 
-int k1_pdm_target_pull_ap_hop(int16_t out180[180]) {
+int k1_pdm_target_pull_ap_hop(int16_t out180[K1_ASRC24_OUT_FRAMES]) {
     k1_audio_hop_t hop;
     if (out180 == 0) return -1;
 #ifdef K1_LIVE_RUNTIME
@@ -944,7 +1283,7 @@ int k1_pdm_target_pull_ap_hop(int16_t out180[180]) {
     return -1;
 #else
     if (k1_pdm_target_try_read_ap_hop(&hop) != K1_AUDIO_READ_OK) return -1;
-    memcpy(out180, hop.pcm, 180u * sizeof(int16_t));
+    memcpy(out180, hop.pcm, K1_ASRC24_OUT_FRAMES * sizeof(int16_t));
     return 0;
 #endif
 }

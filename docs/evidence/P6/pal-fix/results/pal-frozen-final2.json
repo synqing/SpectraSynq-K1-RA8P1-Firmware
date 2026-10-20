@@ -1,0 +1,188 @@
+{
+  "criterion": "TOLERANCE-FROZEN-P6-PAL.json",
+  "rows": [
+    {
+      "input": "boom_source",
+      "board": 0,
+      "offpal_fraction": 0.0,
+      "lit_px": 414220,
+      "median_bins": 13.0,
+      "median_span": 0.3877,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "boom_source",
+      "board": 1,
+      "offpal_fraction": 0.0,
+      "lit_px": 404316,
+      "median_bins": 12.0,
+      "median_span": 0.3752,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "boom_room",
+      "board": 0,
+      "offpal_fraction": 0.0,
+      "lit_px": 737544,
+      "median_bins": 18.0,
+      "median_span": 0.5381,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "boom_room",
+      "board": 1,
+      "offpal_fraction": 0.0,
+      "lit_px": 690360,
+      "median_bins": 17.0,
+      "median_span": 0.5002,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "sonic_room",
+      "board": 0,
+      "offpal_fraction": 0.0,
+      "lit_px": 287236,
+      "median_bins": 16.0,
+      "median_span": 0.5002,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "sonic_room",
+      "board": 1,
+      "offpal_fraction": 0.0,
+      "lit_px": 216266,
+      "median_bins": 12.0,
+      "median_span": 0.3508,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "dopex_room",
+      "board": 0,
+      "offpal_fraction": 0.0,
+      "lit_px": 591134,
+      "median_bins": 15.0,
+      "median_span": 0.4753,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    },
+    {
+      "input": "dopex_room",
+      "board": 1,
+      "offpal_fraction": 0.0,
+      "lit_px": 421796,
+      "median_bins": 11.0,
+      "median_span": 0.3135,
+      "motion": 0.0,
+      "motion_v8": 1.0,
+      "checks": {
+        "a_fidelity": true,
+        "b_spread": true,
+        "c_motion_vs_v8": false
+      }
+    }
+  ],
+  "ladder": [
+    {
+      "song": "boom_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "boom_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "sonic_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 0,
+      "motion_-6_0_+6": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "not_falling": true
+    },
+    {
+      "song": "dopex_room",
+      "board": 1,
+      "motion_-6_0_+6": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "not_falling": true
+    }
+  ],
+  "pass": false
+}

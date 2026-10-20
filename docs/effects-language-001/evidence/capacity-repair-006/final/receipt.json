@@ -1,0 +1,47 @@
+{
+  "compile_command": [
+    "c++",
+    "-std=c++17",
+    "-O1",
+    "-g",
+    "-fsanitize=address,undefined",
+    "-fno-omit-frame-pointer",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Isrc/k1",
+    "src/k1/core/visual/ribbon_material.cpp",
+    "src/k1/core/visual/paired_wave_scene.cpp",
+    "src/k1/core/visual/product_palette_data.cpp",
+    "docs/effects-language-001/evidence/capacity-repair-006/capacity_probe.cpp",
+    "-o",
+    "out/capacity-reproduction-006/final-probe"
+  ],
+  "build_exit": 0,
+  "run_exit": 0,
+  "stderr": "",
+  "observation": {
+    "witness": true,
+    "velocity_px_s": 40.0,
+    "time_us": 4800000,
+    "hop_us": 25000,
+    "onset_period_us": 150000,
+    "vu_level": 1,
+    "before_attacks": 32,
+    "before_omitted": 0,
+    "attack_branch_attacks": 33,
+    "control_branch_attacks": 32,
+    "attack_branch_omitted": 0,
+    "control_branch_omitted": 0,
+    "different_rgb_components": 40,
+    "attack_channel_sum": 540046,
+    "control_channel_sum": 514608
+  },
+  "hashes": {
+    "docs/effects-language-001/evidence/capacity-repair-006/capacity_probe.cpp": "e2269e2a283f6220f203dfa185c1487b7fb987cecdb09f5bdc561c62cdf8db5d",
+    "src/k1/core/visual/paired_wave_scene.cpp": "c20b359f6717b95f1db0f8d40bbb6d8be561b91d052fafb98c4b0fc565cd1bcb",
+    "src/k1/core/visual/paired_wave_scene.h": "84366ece514c9f38ecced1742ab4d2230d5ef2fc80216dc3bbcce92076a1c775",
+    "docs/effects-language-001/evidence/capacity-repair-006/final/attack.rgb16le": "0edafe35e166ad9e66aa38c278a5c022f56542d202f2741c6a750e1135edcb02",
+    "docs/effects-language-001/evidence/capacity-repair-006/final/no_attack.rgb16le": "ad6780dd747f7fdb6437465030c04130aa9df7c57584f082e196c2501d310119"
+  }
+}

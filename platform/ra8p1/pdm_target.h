@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-/* 40 kHz capture + measured-rate ASRC into unchanged 24 kHz/180 AP.
+/* 40 kHz capture + measured-rate ASRC (legacy 24 kHz/180 or Emotiscope 12.8 kHz/64).
    16 kHz diagnostic remains a historical image; do not reflash it to
    repeat that pass. BSP sincdec 124 was 16 kHz at 2 MHz; 49 is 40 kHz. */
 #define K1_PDM_TARGET_SAMPLE_RATE_HZ 40000u
@@ -25,7 +25,13 @@ extern "C" {
 #if (K1_PDM_TARGET_SINCDEC_40K == 49u) && (K1_PDM_TARGET_SINCRNG_40K == 5u)
 #error "SINCRNG 5 is Table 50.7 M=125; M=50 cannot keep that window"
 #endif
+#ifdef K1_EMOTISCOPE_PORT
+#define K1_PDM_TARGET_PROFILE "emotiscope_40k_asrc12800"
+#define K1_PDM_TARGET_AUDIO_CONTRACT_VERSION 2u
+#else
 #define K1_PDM_TARGET_PROFILE "ap_40k_asrc24"
+#define K1_PDM_TARGET_AUDIO_CONTRACT_VERSION K1_AUDIO_HOP_CONTRACT_VERSION
+#endif
 #define K1_PDM_TARGET_LANE_COUNT 2u
 
 /* Titan Mini HW V1.0 onboard LMD2718T261-OA1 (U13/U14), shared P502/P812.
@@ -50,6 +56,41 @@ extern "C" {
 
 int k1_pdm_target_initialise(void);
 void k1_pdm_target_poll(void);
+#ifdef K1_EMOTISCOPE_PORT
+/* Sole-main-loop consumer, never an ISR or a recursive producer poll. It may
+   drain at most three existing AP hops before a raw block needs queue room. */
+typedef void (*k1_pdm_pcm_drain_t)(void);
+void k1_pdm_target_set_pcm_drain(k1_pdm_pcm_drain_t drain);
+int k1_pdm_target_pcm_push_room(void);
+#endif
+
+/* Sole-main-loop observation; cycle durations use unsigned 32-bit subtraction
+   across a counter wrap. Rejection fields describe the last failed ASRC push
+   before its logical-epoch reset; pair index is one-based within that poll. */
+typedef struct {
+    uint32_t poll_last_cycles;
+    uint32_t poll_max_cycles;
+    uint32_t poll_max_pairs;
+    uint32_t reject_count;
+    uint32_t reject_poll_entry_filled;
+    uint32_t reject_filled;
+    uint32_t reject_poll_pair_index;
+    uint32_t reject_poll_cycles;
+} k1_pdm_capture_service_t;
+k1_pdm_capture_service_t k1_pdm_target_capture_service(void);
+/* Per-AP-hop cost witness: instrumentation only, no behaviour change. The sole
+   main-loop owner accumulates between consecutive hop reads; the live runtime
+   takes (and resets the accumulators of) one record per published hop. */
+typedef struct {
+    uint32_t poll_cycles_sum;
+    uint32_t poll_cycles_max;
+    uint32_t poll_calls;
+    uint32_t asrc_cycles_sum;
+    uint32_t queue_filled_at_consume;
+    uint32_t emit_cycles_last;
+} k1_pdm_hop_cost_t;
+void k1_pdm_target_take_hop_cost(k1_pdm_hop_cost_t *out);
+void k1_pdm_target_note_emit_cycles(uint32_t cycles);
 
 int k1_pdm_target_initialised(void);
 int k1_pdm_target_running(void);
@@ -88,7 +129,28 @@ uint32_t k1_pdm_target_gain_clip_neg(void);
 uint32_t k1_pdm_target_measured_hz(void);
 uint32_t k1_pdm_target_rate_locked(void);
 k1_audio_read_result_t k1_pdm_target_try_read_ap_hop(k1_audio_hop_t *out);
-int k1_pdm_target_pull_ap_hop(int16_t out180[180]);
+#ifdef K1_INHOUSE_ANALYSIS24
+/* Lane P4: 24 kHz / 180 in-house analysis descriptors (k1_poly24), fed from the
+   same accepted capture blocks as the 12.8 kHz donor descriptor. */
+void k1_pdm_target_set_analysis24(int wanted);
+k1_audio_read_result_t k1_pdm_target_try_read_analysis24(k1_audio_hop_t *out);
+uint32_t k1_pdm_target_analysis24_drops(void);
+uint32_t k1_pdm_target_take_analysis24_cycles(void);
+/* P4 correction 1/2: the 24 kHz path's own epoch, loss and filter-design cost
+   since boot, for the MIR snapshot. Sole-main-loop observation. */
+typedef struct {
+    uint32_t wanted;
+    uint64_t epoch;
+    uint64_t sequence;
+    uint32_t drops;
+    uint32_t designs;
+    uint32_t design_last_cycles;
+    uint32_t design_max_cycles;
+    uint32_t source_hz;
+} k1_pdm_analysis24_status_t;
+void k1_pdm_target_analysis24_status(k1_pdm_analysis24_status_t *out);
+#endif
+int k1_pdm_target_pull_ap_hop(int16_t out180[K1_ASRC24_OUT_FRAMES]);
 uint32_t k1_pdm_target_asrc_consumed(void);
 uint32_t k1_pdm_target_asrc_discarded(void);
 uint32_t k1_pdm_target_push_rejected(void);

@@ -1,0 +1,100 @@
+{
+  "id": "P6-DBS-PILOT-CRITERIA-v1",
+  "contract": {
+    "path": "/Users/spectrasynq/Downloads/Titan_DBS_Translation.html",
+    "sha256": "bf489d3e032227c7b69dec03574cca9bb87d2438f4f71f9eb01e4fdde8cf13a7"
+  },
+  "question": "Do fresh musical attacks become more legible in lower Hybrid K1 (mode 32, board 0) during dense passages when a deposit-contrast multiplier gain = 1 - s*(1 - attack) is applied to newly deposited amplitude only, and which attack source earns inclusion?",
+  "step1_loss_location": "Frozen as an observation before this file: on BOOM source 55.5-75 s the lower-Hybrid deposit amplitude (gain*level^1.5, level = fixed dB transfer of hop vu_level, ceiling -9 dBFS) is clamped at its maximum in 33.2% of frames (>=0.95 in 46.4%; room recording 15.5%/23.3%) while the raw bank and hop vu_level still carry the ~109 ms hits. The earliest supported loss is the deposit (composition), not the analysis bank. All non-baseline arms are consumer fixes at that operation and differ only in the attack source.",
+  "arms": {
+    "0_baseline": "detail off: exact accepted renderer path",
+    "1_onset_fullbank_pregain": "existing OnsetBeat (K1_ONSET_V2) over pre-gain linear_shape, its own transient_strength contract (0..1), computed on the host over the same accepted publication; no extra calibration",
+    "2_fullbank_raw": "diagnostic simplest arm: full-bank mean positive log change of the raw normalised bank (same tap/calibration as 3 and 4)",
+    "3_static16": "max over 16 static groups (5 channels each) of group mean positive log change, raw normalised tap",
+    "4_adaptive16": "same as 3 with the adaptive partition (455 splits/block, 100 ms descriptor smoothing, reconsider every 4 hops, 10% / two-update hysteresis, start static)"
+  },
+  "tap": "raw normalised magnitudes rawSpectrum().bins[i].normalised_magnitude (before the 0.3/0.7 average, the board Mood LPF and AGC gain). Chosen from step-1 stage evidence (stage-explore.png): linear_shape smooths the dense 60-62 s hits that the raw bank resolves.",
+  "calibration_procedure": {
+    "applies_to": [
+      "2_fullbank_raw",
+      "3_static16",
+      "4_adaptive16"
+    ],
+    "material": "BOOM source replay 0-28 s only (development; outside the scored window), board-0 producer values per accepted non-quiet hop",
+    "rule": "attack = clamp((x - p50) / (p95 - p50), 0, 1) with p50/p95 of that arm's raw strength on the material; constants written into the source before scoring",
+    "unread_generations": "the renderer receives the max raw strength over generations it has not yet read (bounded ring of 8, cursor per board); a repeated read of the same publication carries attack 0 (no replay)"
+  },
+  "strength_s": 0.25,
+  "strength_note": "pilot upper bound of the contract range [0, 0.25]; one value, chosen before results",
+  "inputs": {
+    "boom_source": {
+      "file": "/tmp/p6-product-path-p-inputs/boom_source.s16",
+      "sha256": "45edfd0948c8cc24f99bcde0a8f2d8b4c8fa70413d648c6a6e1cfaa3a4bfbd15",
+      "offset_s": 0.0,
+      "scale": 1.0,
+      "play": "0-75 s",
+      "score_song_s": [
+        28.0,
+        75.0
+      ]
+    },
+    "boom_room": {
+      "file": "/tmp/p6-product-path-p-inputs/boom_room.s16",
+      "sha256": "95c9d9b8595295abbc15c08f93416c1666b9d338736cbe42239868600817cc27",
+      "offset_s": 2.853521,
+      "scale": 1.0,
+      "play": "full room recording",
+      "score_song_s": [
+        28.0,
+        75.0
+      ]
+    },
+    "sonic_room": {
+      "file": "/tmp/p6-product-path-p-inputs/sonic_room.s16",
+      "sha256": "dac2e8c06dce7fdad04244d30772256dabef275c79f7a87cad793629ace6a596",
+      "offset_s": 2.95259901754386,
+      "scale": 1.0010526315789472,
+      "role": "weak transfer check only",
+      "score_song_s": [
+        0.5,
+        23.5
+      ]
+    },
+    "dopex": "excluded from tuning and from this comparison (held out; prior exposure in P6 replays recorded, so not called unseen)"
+  },
+  "reference_onsets": "docs/evidence/P6/dbs/reference/boom-onsets.json and sonic-6-30-onsets.json produced by scripts/p6_dbs_reference_onsets.py with its own plant validation; song-time onsets only, no light data used",
+  "measure": {
+    "signal": "board-0 renderer deposit observation A_k = amplitude actually written by depositV9 at render frame k (10 ms), after the contrast multiplier; 0 when nothing is deposited",
+    "birth": "frame k with A_k >= 0.05, A_k >= A_{k-1}, A_k >= A_{k+1}, and prominence A_k / max(min(A_{k-3..k-1}), min(A_{k+1..k+3})) >= 1.20",
+    "payload_check": "for each birth, the final board-0 payload frame k+3 must show a local luma maximum within +-3 px of the deposit pixel advanced by the actual scroll steps; reported as a consistency rate, not gating",
+    "sensitivity_reported_not_gating": [
+      1.1,
+      1.33
+    ],
+    "matching": "one-to-one greedy in time order; birth frame time t_b matches reference onset t_o when t_o - 0.005 <= t_b <= t_o + 0.045 s (50 ms span, below half the ~109 ms dense spacing); every reference onset in the scored window has an outcome",
+    "false_birth": "a birth in the scored window that matches no reference onset"
+  },
+  "missed_set": "predeclared from the BASELINE run only, before any arm is scored: scored reference onsets in dense context that the baseline does not match AND whose cue is present in the raw bank (raw full-band positive log flux in the first accepted hop with capture time in [t_o, t_o + 0.030] >= 1.5 x the minimum over the preceding 60 ms of hops). Written to missed-set-<input>.json and hashed in STATUS before arms run.",
+  "criteria_per_input_boom_source_and_boom_room": {
+    "M1_recovery": "matched(arm) covers >= 25% of the predeclared missed set and >= 10 events",
+    "M2_retention": ">= 95% of baseline-matched onsets remain matched",
+    "M3_false_births": "false births(arm) <= false births(baseline)"
+  },
+  "transfer_sonic_room": "winner keeps M2 >= 95% and M3 (no recovery requirement)",
+  "probes": "scripts/p6_dbs_probes.py files: sustain (any birth beyond baseline is a false birth), weak_alone / weak_over_sustain / quiet_recovery (planted weak attacks matched >= baseline), spacing_200/100/75 (distinct births per train reported)",
+  "winner_rule": [
+    "An arm is eligible only if it passes M1, M2 and M3 on BOTH boom_source and boom_room and the sonic transfer check and adds no probe false births.",
+    "Among eligible arms, prefer the simpler one unless the more complex arm recovers at least max(3 events, 10% relative) more of the missed set on BOTH BOOM inputs with M2/M3 no worse. Simplicity order: 1_onset (existing, own contract) = 2_fullbank_raw < 3_static16 < 4_adaptive16. Between 1 and 2 the one with more recovered events on both inputs wins; otherwise 1 (existing machinery).",
+    "If no arm is eligible: retain the baseline, report the demonstrated loss location, reject the intervention."
+  ],
+  "metric_validity_plants": {
+    "uniform_dim": "deposit multiplied by a constant 0.75 (quieter output alone): must recover 0 extra events and fail M1",
+    "random_contrast": "attack drawn from a seeded uniform random number each frame: must fail M3 (more false births) or M1",
+    "oracle_contrast": "attack = 1 for frames within 0..30 ms after a reference onset, else 0: must pass M1 (shows the measure can go green)"
+  },
+  "off_path_equivalence": "detail off (and strength 0, and invalid/stale record) must reproduce the existing product frames.bin byte-for-byte for boom_source, boom_room, sonic_room",
+  "board_isolation": "changing board-0 detail control leaves board-1 frames byte-identical",
+  "not_claimed": "No perceptual or physical claim from these host results. Physical evidence is a separate requirement.",
+  "frozen_utc": "2026-10-14T22:48:39Z",
+  "frozen_sha256": "bd48725f35a28e1cd0250e19763566f31587d1debbecea8ab0137511711e1472"
+}

@@ -1,0 +1,37 @@
+{
+  "purpose": "P3 iteration 4 (REVIEW-ITERATION-3.md F1/F2/F7): which musical rates the light and the music carry, BOOM 55.5-75 s",
+  "frozen_utc": "2026-10-14T10:20Z",
+  "disclosure": "Frozen before the lane's own iteration-4 run, but AFTER the reviewer's rate-share numbers (REVIEW-ITERATION-3.md F1) were read. The criterion is therefore not blind to those numbers; the planted synthetic check is what makes it falsifiable.",
+  "window_s": [
+    55.5,
+    75.0
+  ],
+  "rates_hz": {
+    "bar": 0.575,
+    "half_time": 1.15,
+    "accent_3_3_2": 1.725,
+    "beat": 2.3
+  },
+  "rate_share": {
+    "method": "Welch PSD, Hann, 8 s segments, 50% overlap, linear detrend per segment, nfft = 8 x segment (zero-padded, 0.0156 Hz grid at any rate); share = power within +/-0.06 Hz of the rate / power in 0.3-5.0 Hz",
+    "primary_pre_detrend": "none (a 1 s moving-mean detrend keeps only ~21% of the bar-rate power and ~79% of the beat-rate power, so it biases against the bar)",
+    "secondary_pre_detrend": "1 s edge-padded moving mean (p3_q3_alignment.detrend), reported for comparison with the reviewer"
+  },
+  "comb_scan": {
+    "periods_s": "0.300 to 0.655 in 0.005 s steps (72 trial periods)",
+    "score": "mean ACF at k*P minus mean ACF at (k+0.5)*P, k = 1..4, ACF linearly interpolated between samples",
+    "signal": "linear-detrended (primary); 1 s edge-padded detrend (secondary)"
+  },
+  "beat_present_criterion": "comb-scan best period within 0.425-0.445 s AND primary beat-rate share >= 0.08",
+  "planted_check": {
+    "synthetic": "19.5 s at the series' own rate: 3+3+2 accent impulses (eighths 0,3,6 of each 138 BPM bar, amplitude 1) plus every eighth at 0.25, each convolved with exp(-t/0.08 s); plus white noise (std 0.5 x accent std) and a 0.05 Hz drift; seed 404",
+    "with_beat": "add a 2.30 Hz sinusoid of amplitude 0.6 x accent std -> beat_present must be true",
+    "without_beat": "no sinusoid -> beat_present must be false",
+    "rates_checked_hz": [
+      20,
+      30,
+      100
+    ],
+    "rc": "exit 1 if any planted case is wrong; a recorded red run swaps the with-beat signal for the without-beat one"
+  }
+}

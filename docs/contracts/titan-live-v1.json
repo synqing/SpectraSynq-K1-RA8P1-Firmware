@@ -8,8 +8,45 @@
   "hop_samples": 180,
   "spectrum_bins": 80,
   "chroma_bins": 12,
-  "chroma_labels": ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"],
-  "enabled_modes": [3, 7, 8, 9, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 32],
+  "chroma_labels": [
+    "A",
+    "A#",
+    "B",
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#"
+  ],
+  "enabled_modes": [
+    3,
+    7,
+    8,
+    9,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    32
+  ],
   "mode_ordinals": 38,
   "palette_count": 44,
   "stale_publication_us": 30000,
@@ -28,7 +65,24 @@
   "config_opcode": 25,
   "timing_opcode": 26,
   "legacy_mir_json_opcode": 21,
-  "occupied_opcodes_checked": [1, 3, 4, 6, 7, 8, 11, 12, 15, 16, 17, 18, 19, 20, 21, 22],
+  "occupied_opcodes_checked": [
+    1,
+    3,
+    4,
+    6,
+    7,
+    8,
+    11,
+    12,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22
+  ],
   "config_subcommands": {
     "GET_SCHEMA": 1,
     "GET_CONFIG": 2,
@@ -37,7 +91,75 @@
     "APPEND_SET": 5,
     "COMMIT_SET": 6,
     "ABORT_SET": 7,
+    "PATCH": 8,
     "TEST_STALE_SOURCE_120MS": 11
+  },
+  "patch": {
+    "subcommand": 8,
+    "max_entries": 8,
+    "header_bytes": 12,
+    "entry_bytes": 8,
+    "kind_f32": 1,
+    "does_not_call_palette_configure": true,
+    "does_not_change_emission_authority": true,
+    "fields": {
+      "1": {
+        "name": "vp_waveform_fallback_brightness",
+        "type": "f32",
+        "min": 0.0,
+        "max": 1.0,
+        "role": "light"
+      },
+      "2": {
+        "name": "sensitivity",
+        "type": "f32",
+        "min": 0.0,
+        "max": 1.0,
+        "role": "sensitivity"
+      },
+      "3": {
+        "name": "mood",
+        "type": "f32",
+        "min": 0.0,
+        "max": 1.0,
+        "role": "mood"
+      },
+      "4": {
+        "name": "chroma",
+        "type": "f32",
+        "min": 0.0,
+        "max": 1.0,
+        "role": "chroma"
+      },
+      "5": {
+        "name": "saturation",
+        "type": "f32",
+        "min": 0.0,
+        "max": 1.0,
+        "role": "saturation"
+      },
+      "6": {
+        "name": "hue_position",
+        "type": "f32",
+        "min": 0.0,
+        "max": 1.0,
+        "role": "hue"
+      },
+      "7": {
+        "name": "vp_waveform_shift_rate",
+        "type": "f32",
+        "min": 0.0,
+        "max": 240.0,
+        "role": "motion"
+      },
+      "8": {
+        "name": "vp_waveform_idle_fade",
+        "type": "f32",
+        "min": 0.9,
+        "max": 0.999,
+        "role": "persistence"
+      }
+    }
   },
   "history_flags": {
     "EMPTY": 1,
@@ -64,8 +186,323 @@
   },
   "snapshot_bytes": 1184,
   "config_blob_bytes_v1": 896,
-  "config_blob_bytes_v2": 1152,
+  "config_blob_bytes_v2": 1156,
   "visual_controls_bytes": 128,
   "config_version_visual": 2,
-  "note": "AudioFeaturesV1 is not a wire struct. Snapshot, event and timing layouts are packed little-endian without C++ padding. LiveConfigBlob v1 is 896 bytes (focus only). v2 appends 128-byte visual_a then visual_b ChannelVisualControls at offset 896."
+  "config_layout": {
+    "emit_on_offset": 48,
+    "last_patch_request_id_offset": 52,
+    "last_patch_request_id": "uint32 little-endian device-backed PATCH acceptance; 0 if none. This is acceptance, not rendered consumption.",
+    "boot_id_offset": 1152,
+    "boot_id": "uint32 little-endian target-issued monotonic boot generation; 0 is never a valid issued id. Issued from a CRC-protected dual-slot journal. PATCH is denied until issuance succeeds."
+  },
+  "patch_header": {
+    "bytes": 16,
+    "revision_offset": 0,
+    "request_id_offset": 4,
+    "count_offset": 8,
+    "channel_offset": 10,
+    "boot_id_offset": 12,
+    "boot_id": "uint32 little-endian target-issued boot identifier carried in PATCH; the target rejects a mismatch before mutation"
+  },
+  "snapshot_layout": {
+    "last_rendered_request_id_offset": 812,
+    "last_rendered_revision_offset": 816,
+    "last_rendered_frame_offset": 820,
+    "last_rendered_hop_offset": 824,
+    "superseded_request_id_offset": 828,
+    "accepted_request_id_offset": 832,
+    "accepted_revision_offset": 836,
+    "last_emitted_request_id_offset": 840,
+    "last_rendered_publication_us_offset": 844
+  },
+  "patch_receipt": {
+    "acceptance": "config.last_patch_request_id and snapshot.accepted_request_id",
+    "rendered_consumption": "snapshot.last_rendered_request_id with last_rendered_revision, last_rendered_frame, last_rendered_hop and last_rendered_publication_us; latched only when the intended channel/effect render uses the accepted revision (visual_path effect or hold). Preview, no-audio and dwell keep the change pending.",
+    "physical_output": "snapshot.last_emitted_request_id is the request identity stored with the completed pair generation, not the latest renderer state; remains 0 when emit is off",
+    "superseded": "snapshot.superseded_request_id when a later PATCH replaces a pending change before a render",
+    "later_snapshot_is_not_first_consume": true,
+    "wrong_boot": "PATCH status 6; target refuses mutation when the carried boot_id does not match the issued boot"
+  },
+  "note": "AudioFeaturesV1 is not a wire struct. Snapshot, event and timing layouts are packed little-endian without C++ padding. LiveConfigBlob v1 is 896 bytes (focus only). v2 appends 128-byte visual_a then visual_b at offset 896, then uint32 boot_id at offset 1152 (1156 bytes). Offset 52 is last_patch_request_id (acceptance). PATCH header is 16 bytes including boot_id. Snapshot offsets 812-851 are the render/output receipt. Boot identity is a monotonic generation from a dual-slot CRC journal in retained RAM; issuance failure leaves boot_id 0 and denies PATCH. No timer mix.",
+  "performance": {
+    "subcommand": 9,
+    "scene_subcommand": 10,
+    "max_entries": 8,
+    "header_bytes": 16,
+    "entry_bytes": 8,
+    "channel": 0,
+    "target_readback": true,
+    "render_receipt": "ramp towards accepted target consumed; not settled-value proof",
+    "scene_prefix_bytes": 4,
+    "curated_palettes": [
+      33,
+      36,
+      37,
+      38,
+      40,
+      41,
+      42,
+      43
+    ],
+    "scalar_no_reset": true,
+    "fields": {
+      "257": {
+        "name": "focus_a.level_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "263": {
+        "name": "focus_a.tonal_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "4": {
+        "name": "visual_a.chroma",
+        "min": 0,
+        "max": 1,
+        "tau_ms": 120
+      },
+      "1": {
+        "name": "visual_a.vp_waveform_fallback_brightness",
+        "min": 0,
+        "max": 1,
+        "tau_ms": 100
+      },
+      "7": {
+        "name": "visual_a.vp_waveform_shift_rate",
+        "min": 0,
+        "max": 240,
+        "tau_ms": 80
+      },
+      "8": {
+        "name": "visual_a.vp_waveform_idle_fade",
+        "min": 0.9,
+        "max": 0.999,
+        "tau_ms": 120
+      },
+      "513": {
+        "name": "visual_a.incandescent_filter",
+        "min": 0,
+        "max": 1,
+        "tau_ms": 120
+      },
+      "514": {
+        "name": "visual_a.bulb_opacity",
+        "min": 0,
+        "max": 1,
+        "tau_ms": 120
+      },
+      "272": {
+        "name": "focus_a.novelty_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "273": {
+        "name": "focus_a.bass_onset_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "274": {
+        "name": "focus_a.kick_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "275": {
+        "name": "focus_a.snare_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "276": {
+        "name": "focus_a.hihat_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "277": {
+        "name": "focus_a.transient_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      },
+      "278": {
+        "name": "visual_a.mood",
+        "min": 0,
+        "max": 1,
+        "tau_ms": 120
+      },
+      "279": {
+        "name": "focus_a.low_gain",
+        "min": 0,
+        "max": 2,
+        "tau_ms": 100
+      }
+    },
+    "audition_subcommand": 11,
+    "audition_lease_us": 750000,
+    "audition": "Independent bounded leases for level, novelty, kick, snare, hihat and transient; expiry restores original unless superseded.",
+    "selection": {
+      "subcommand": 12,
+      "wire_bytes": 24,
+      "words": [
+        "subcommand",
+        "revision",
+        "request_id",
+        "boot_id",
+        "mode",
+        "palette"
+      ],
+      "modes": [
+        8,
+        7,
+        11,
+        3,
+        9,
+        12,
+        13,
+        14,
+        15,
+        21,
+        24,
+        26,
+        22,
+        23
+      ],
+      "mode_scope": "both render channels; output channel remains 0",
+      "application": "idle RT owner only; reset effect history on mode change, preserve audio and emission",
+      "max_scalar_entries": 8,
+      "bytes": "24 + 8*n, n=0..8; optional scalar entries use Performance field IDs"
+    },
+    "mode_targets": {
+      "3": [
+        "tonal",
+        "colour_floor",
+        "warmth",
+        "bulb",
+        "mood"
+      ],
+      "7": [
+        "level",
+        "tonal",
+        "colour_floor",
+        "fallback",
+        "motion",
+        "tail",
+        "warmth",
+        "bulb"
+      ],
+      "8": [
+        "level",
+        "tonal",
+        "colour_floor",
+        "fallback",
+        "motion",
+        "tail",
+        "warmth",
+        "bulb"
+      ],
+      "9": [
+        "tonal",
+        "colour_floor",
+        "warmth",
+        "bulb",
+        "mood"
+      ],
+      "11": [
+        "level",
+        "tonal",
+        "colour_floor",
+        "fallback",
+        "motion",
+        "warmth",
+        "bulb"
+      ],
+      "12": [
+        "tonal",
+        "colour_floor",
+        "warmth",
+        "bulb",
+        "mood"
+      ],
+      "13": [
+        "warmth",
+        "bulb",
+        "bass_onset",
+        "mood"
+      ],
+      "16": [
+        "level",
+        "tonal",
+        "warmth",
+        "bulb"
+      ],
+      "18": [
+        "level",
+        "tonal",
+        "colour_floor",
+        "warmth",
+        "bulb"
+      ],
+      "21": [
+        "level",
+        "tonal",
+        "warmth",
+        "bulb",
+        "novelty",
+        "transient",
+        "mood"
+      ],
+      "22": [
+        "level",
+        "tonal",
+        "warmth",
+        "bulb",
+        "novelty",
+        "kick"
+      ],
+      "23": [
+        "level",
+        "tonal",
+        "warmth",
+        "bulb",
+        "kick",
+        "low"
+      ],
+      "24": [
+        "level",
+        "tonal",
+        "warmth",
+        "bulb",
+        "novelty",
+        "transient",
+        "mood"
+      ],
+      "25": [
+        "level",
+        "tonal",
+        "warmth",
+        "bulb"
+      ],
+      "26": [
+        "warmth",
+        "bulb",
+        "kick",
+        "snare",
+        "hihat"
+      ],
+      "32": [
+        "level",
+        "tonal",
+        "colour_floor",
+        "warmth",
+        "bulb"
+      ]
+    }
+  }
 }

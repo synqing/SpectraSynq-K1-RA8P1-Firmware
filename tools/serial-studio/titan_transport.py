@@ -26,16 +26,20 @@ OBSERVE_OPS = {
     1: {"payload": b"", "name": "INFO"},
     6: {"payload": b"", "name": "platform_metrics"},
     15: {"payload": None, "name": "palette_catalogue"},
+    16: {"payload": None, "name": "palette_configure"},
     17: {"payload": b"", "name": "palette_status"},
     18: {"payload": None, "name": "palette_frame"},
+    19: {"payload": b"", "name": "palette_wire_snapshot"},
     21: {"payload": b"", "name": "legacy_mir_json"},
     23: {"payload": b"", "name": "live_snapshot"},
     24: {"payload": None, "name": "live_events"},
     25: {"payload": None, "name": "live_config"},
     26: {"payload": None, "name": "live_timing"},
 }
-FORBIDDEN_OPS = {2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 16, 19, 20, 22}
-CAMPAIGN_OPS = {1, 6, 15, 17, 18, 21, 23, 24, 25, 26}
+# Opcode 16 is palette-configure. Campaign admits it only as the Stage B
+# emit arm/disarm (flags bit 2). SET_CONFIG cannot turn emission off.
+FORBIDDEN_OPS = {2, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 20, 22}
+CAMPAIGN_OPS = {1, 6, 15, 16, 17, 18, 19, 21, 23, 24, 25, 26}
 PAIR_FIXTURE_OP = 27
 
 
@@ -117,6 +121,53 @@ class Transport:
         self.quarantine = False
         self._pair_fixture = False
 
+    def native_exchange(self, opcode: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
+        """One K1S1 replacement transaction on the broker's existing serial owner.
+
+        This is not a second port and not a donor opcode. A timeout leaves the
+        transport quarantined so the caller cannot replay a durable save.
+        """
+        if opcode < 0x50524200 or opcode > 0x50524207:
+            raise ObserveDenied(f"opcode {opcode} is not a replacement opcode")
+        return self._native_framed_exchange(opcode, payload, timeout)
+
+    def _isolated_fixture_exchange(self, opcode: int, payload: bytes = b"", timeout: float = 2.0) -> dict:
+        """Private collector seam; the broker verifies the grant and owner first."""
+        if opcode not in {0x50524601, 0x50524602, 0x50524603, 0x50524604}:
+            raise ObserveDenied(f"opcode {opcode} is not an isolated fixture opcode")
+        return self._native_framed_exchange(opcode, payload, timeout)
+
+    def _native_framed_exchange(self, opcode: int, payload: bytes, timeout: float) -> dict:
+        if self.quarantine:
+            raise FramingError("transport quarantined until re-identify")
+        if self.in_flight is not None:
+            raise RuntimeError("one outstanding transaction only")
+        self.next_req += 1
+        sequence = self.next_req
+        body_crc = zlib.crc32(payload) & 0xFFFFFFFF
+        header = struct.pack("<4sIQIII", b"K1S1", opcode, sequence, len(payload), body_crc, 1)
+        frame = header + struct.pack("<I", zlib.crc32(header) & 0xFFFFFFFF) + payload
+        self.in_flight = sequence
+        try:
+            self._write(frame)
+            raw = self._read_exact(HEADER, timeout)
+            magic, code, replied, size, reserved, crc, head_crc = struct.unpack("<4sIQIIII", raw)
+            if magic != b"K1R1" or reserved != 0 or zlib.crc32(raw[:28]) & 0xFFFFFFFF != head_crc or replied != sequence or size > MAX_BODY:
+                self.quarantine = True
+                raise FramingError(f"native header mismatch magic={magic!r} code={code} replied={replied}")
+            body = self._read_exact(size, timeout) if size else b""
+            if zlib.crc32(body) & 0xFFFFFFFF != crc:
+                self.quarantine = True
+                raise FramingError("native body crc mismatch")
+            if code:
+                return {"ok": False, "status": code, "body": body}
+            return {"ok": True, "status": 0, "body": body}
+        except FramingError:
+            self.quarantine = True
+            raise
+        finally:
+            self.in_flight = None
+
     def admit_pair_fixture(self) -> None:
         """Admit opcode 27 for this campaign session only.
 
@@ -158,15 +209,30 @@ class Transport:
             if not self._pair_fixture or not self.campaign:
                 raise ObserveDenied("opcode 27 is not admitted")
         else:
+            if op == 19 and not self.campaign:
+                raise ObserveDenied("wire snapshot requires campaign lease")
             if op in FORBIDDEN_OPS:
                 raise ObserveDenied(f"opcode {op} is not observe-only")
             spec = OBSERVE_OPS.get(op)
             if spec is None or op not in self.allowed:
                 raise ObserveDenied(f"opcode {op} is not admitted")
-            if spec["payload"] is not None and payload != spec["payload"]:
+            diagnostic = (self.campaign and op == 17 and
+                          (payload in (b"LBRQ", b"HWST") or (len(payload) == 8 and payload[:4] == b"LBPG")))
+            model_witness = op == 17 and payload == b"MLST"
+            bloom_witness = self.campaign and op == 17 and payload in (
+                b"BLM1\x00\x00\x00\x00", b"BLM1\x01\x00\x00\x00")
+            wire_selector = self.campaign and op == 19 and payload in (
+                b"\x00\x00\x00\x00", b"\x01\x00\x00\x00")
+            if spec["payload"] is not None and payload != spec["payload"] and not diagnostic and not model_witness and not bloom_witness and not wire_selector:
                 raise ObserveDenied(f"opcode {op} payload not admitted")
             if spec["payload"] is None and not self.campaign:
                 raise ObserveDenied(f"opcode {op} requires campaign lease")
+            if op == 25 and len(payload) >= 4 and struct.unpack_from('<I', payload)[0] in (0x454D0301, 0x454D0302, 0x454D0401, 0x454D0402):
+                import emotiscope_control
+                version = 8 if struct.unpack_from('<I', payload)[0] in (0x454D0401, 0x454D0402) else 7
+                code, _ = emotiscope_control.parse(payload, state_version=version)
+                if code != emotiscope_control.STATUS_OK:
+                    raise ObserveDenied('malformed in-house request')
         if self.in_flight is not None:
             raise RuntimeError("one outstanding transaction only")
         self.next_req += 1
@@ -215,6 +281,11 @@ class Transport:
                 "cycles": cycles,
                 "body": body,
             }
+        except (RuntimeError, OSError):
+            # An incomplete exchange can still deliver a late response. Block
+            # the next write before releasing the outstanding transaction.
+            self.quarantine = True
+            raise
         finally:
             self.in_flight = None
 
@@ -230,7 +301,7 @@ class Transport:
         extra = set(ops) - set(OBSERVE_OPS)
         if extra:
             raise ObserveDenied(f"cannot admit {extra}")
-        if (set(ops) & {15, 18, 21, 23, 24, 25, 26}) and not self.campaign:
+        if (set(ops) & {15, 16, 18, 19, 21, 23, 24, 25, 26}) and not self.campaign:
             raise ObserveDenied("campaign opcodes require campaign=True")
         self.allowed = set(ops)
 

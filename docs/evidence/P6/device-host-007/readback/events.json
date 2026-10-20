@@ -1,0 +1,17 @@
+[
+  {
+    "event": "start",
+    "mono": 327767.429970375,
+    "wall": 1792013541.157266,
+    "mode": "readback",
+    "profile_sha256": "c4a4ac5a2ba13195aa4903d1b6775737a19551f3c7a723fb4c9bf8fd9513a4a4",
+    "expected_build": "28939057530760701db101cf58ed6bbcf79a090c97f79a40a30a797e387dc1d6"
+  },
+  {
+    "event": "completed",
+    "mono": 327767.625535291,
+    "wall": 1792013541.352831,
+    "profile_differences": {},
+    "profile_fields_compared": 127
+  }
+]

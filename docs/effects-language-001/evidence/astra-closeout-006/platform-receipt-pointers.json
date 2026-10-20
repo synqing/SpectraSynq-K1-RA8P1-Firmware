@@ -1,0 +1,65 @@
+{
+  "policy": "Read-only historical receipts; no current resident or optical assertion",
+  "files": [
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/.continue-here.md",
+      "exists": true,
+      "sha256": "8263b9e7329c7fa8ed455e4363c2f5168ec38fc296e0f3036a2ddd1d48b946e5"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/RECEIPT.md",
+      "exists": true,
+      "sha256": "0a8875ea267011b779b1ec3153090d61997ff236feb2f21b47a7d0fa0eaba315"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/acceptance-review.md",
+      "exists": true,
+      "sha256": "993755b1c1653ae06394d009dd2e10b68c2a2c71f2779098c6c2d40c63c07d39"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/target-identity/TIMING-FAILURE.md",
+      "exists": true,
+      "sha256": "057fb235988c2256346387e3427b1b56d466631914a51b0ccd394776dc204346"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/target-identity/clock-source-correspondence.json",
+      "exists": true,
+      "sha256": "57e7689769e9d8e08924dacd51551da0761f95ceaea74973329a5d7367accaa2"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/target-identity/resynchronised-result.json",
+      "exists": true,
+      "sha256": "392179d5278c77d5b1b9ba9f635b241d595667fbbbb5ec47b637f4cadf994483"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/target-identity/timing-read-2/score.json",
+      "exists": true,
+      "sha256": "6663e583ee10694a48535d26fd9f5ede3103c85cba764aba9bc898e2949505ab"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/target-identity/timing-read-2/result.json",
+      "exists": true,
+      "sha256": "df5dd2274807dc11418ab89217cb1d6e40ca93519970a805495cd313b60207fb"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928/target-identity/timing-read-2/summary.json",
+      "exists": true,
+      "sha256": "cc2a71db6eb93a802e83c04990a5d228dabaf7ce6d9db29597a536fb025e0c92"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/docs/evidence/SMC-TITAN-CONTROL-001/release-20260927-rc1/RESULT.md",
+      "exists": true,
+      "sha256": "aba68836f62a5808bc4534fe0ae019e8f6f81d1d4b79fa0280b060d63e34442a"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/docs/evidence/SMC-TITAN-CONTROL-001/release-20260927-rc1/POST-QUALIFICATION-RESTORATION.md",
+      "exists": true,
+      "sha256": "97d4a3af6d2b0a510eb10bfda2df20c566fe0f904a8028e2b3e39a17af080711"
+    },
+    {
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001/docs/evidence/SMC-TITAN-CONTROL-001/release-20260927-rc1/BUILD-AND-RESTORE.md",
+      "exists": true,
+      "sha256": "dafc13622853ba4119532f21cb5b6f479d19909c88bcfe8f9b2d14f25dd78d53"
+    }
+  ]
+}

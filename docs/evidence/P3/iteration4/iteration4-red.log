@@ -1,0 +1,81 @@
+{
+ "red_run": true,
+ "passed": false,
+ "cases": {
+  "20": {
+   "with_beat": {
+    "beat_present": false,
+    "beat_share": 0.01701329396080729,
+    "best_period_s": 0.65
+   },
+   "without_beat": {
+    "beat_present": false,
+    "beat_share": 0.01701329396080729,
+    "best_period_s": 0.65,
+    "accent_share": 0.12973348125229386
+   },
+   "passed": false
+  },
+  "30": {
+   "with_beat": {
+    "beat_present": false,
+    "beat_share": 0.01577765140756556,
+    "best_period_s": 0.65
+   },
+   "without_beat": {
+    "beat_present": false,
+    "beat_share": 0.01577765140756556,
+    "best_period_s": 0.65,
+    "accent_share": 0.1549072860592662
+   },
+   "passed": false
+  },
+  "100": {
+   "with_beat": {
+    "beat_present": false,
+    "beat_share": 0.02756753133185151,
+    "best_period_s": 0.65
+   },
+   "without_beat": {
+    "beat_present": false,
+    "beat_share": 0.02756753133185151,
+    "best_period_s": 0.65,
+    "accent_share": 0.17023342288483048
+   },
+   "passed": false
+  }
+ },
+ "note": "a series' beat_present is admissible only if the planted check passed at that series' own rate"
+}
+room_audio_linear_rms_20hz                   bar   6.8 half   1.5 acc   5.7 beat  16.7 peak 2.297 comb 0.435 (0 above) present=True admissible=False
+                                             peak/nbr rates [3.58, 2.15, 3.01, 8.6] controls max 1.23 all [0.41, 0.95, 0.14, 0.86, 1.23, 0.74, 0.32]
+room_audio_accent_rise_envelope_20hz         bar   0.8 half   1.1 acc   7.7 beat   0.2 peak 1.734 comb 0.650 (42 above) present=False admissible=False
+                                             peak/nbr rates [2.44, 2.34, 5.24, 0.31] controls max 1.52 all [0.52, 0.68, 1.2, 1.52, 0.76, 0.46, 0.21]
+host_luma_song_file_lower_hybrid_k1          bar  11.1 half   4.4 acc   2.5 beat   5.0 peak 2.297 comb 0.420 (5 above) present=False admissible=False
+                                             peak/nbr rates [4.5, 2.47, 1.93, 2.26] controls max 1.79 all [0.36, 0.76, 0.44, 1.47, 1.79, 0.76, 0.09]
+host_luma_song_file_upper_tempo              bar  13.2 half   2.8 acc   4.0 beat  11.2 peak 2.297 comb 0.435 (0 above) present=True admissible=False
+                                             peak/nbr rates [1.26, 1.49, 1.38, 4.57] controls max 1.27 all [0.28, 1.09, 0.19, 0.77, 1.18, 1.27, 0.63]
+host_input_raw_rms_song_file                 bar  10.1 half   3.7 acc   4.3 beat  16.9 peak 2.297 comb 0.435 (0 above) present=True admissible=False
+                                             peak/nbr rates [1.64, 2.95, 1.85, 5.87] controls max 0.93 all [0.18, 0.82, 0.34, 0.58, 0.93, 0.41, 0.58]
+host_luma_room_recording_lower_hybrid_k1     bar  18.5 half   4.0 acc   3.9 beat  11.6 peak 2.297 comb 0.435 (0 above) present=True admissible=False
+                                             peak/nbr rates [6.2, 4.46, 2.36, 5.2] controls max 3.09 all [0.31, 0.89, 0.56, 0.29, 0.38, 3.09, 0.28]
+host_luma_room_recording_upper_tempo         bar  14.5 half   3.6 acc   3.6 beat  13.9 peak 2.312 comb 0.435 (0 above) present=True admissible=False
+                                             peak/nbr rates [2.07, 1.59, 1.29, 6.07] controls max 1.53 all [0.55, 0.9, 0.23, 0.66, 0.66, 1.53, 0.27]
+host_input_raw_rms_room_recording            bar   7.3 half   1.9 acc   5.8 beat  15.3 peak 2.297 comb 0.435 (0 above) present=True admissible=False
+                                             peak/nbr rates [3.98, 2.81, 2.93, 8.0] controls max 1.07 all [0.39, 0.86, 0.14, 0.74, 1.07, 0.64, 0.32]
+camera_lower_edge_band_30hz                  bar  23.4 half   3.9 acc   9.4 beat   2.7 peak 1.734 comb 0.585 (17 above) present=False admissible=False
+                                             peak/nbr rates [4.4, 2.12, 3.7, 3.51] controls max 1.59 all [1.39, 0.56, 0.25, 1.25, 1.59, 0.24, 0.55]
+camera_upper_edge_band_30hz                  bar  10.9 half   8.4 acc   3.2 beat   1.9 peak 2.000 comb 0.510 (39 above) present=False admissible=False
+                                             peak/nbr rates [1.37, 1.2, 1.56, 2.45] controls max 2.25 all [1.19, 0.52, 2.25, 1.88, 0.86, 1.05, 0.83]
+D linear_rms             camera_lower_edge_band             lag r 0.664 @67ms p 0.001 | lead r 0.343 @0ms p 0.172
+D linear_rms             camera_upper_edge_band             lag r 0.045 @500ms p 0.963 | lead r 0.153 @267ms p 0.022
+D linear_rms             host_luma_song_file_lower          lag r 0.383 @400ms p 0.001 | lead r 0.187 @233ms p 0.243
+D linear_rms             host_luma_song_file_upper          lag r 0.367 @500ms p 0.086 | lead r 0.240 @333ms p 0.776
+D linear_rms             host_luma_room_recording_lower     lag r 0.387 @267ms p 0.068 | lead r 0.183 @133ms p 0.981
+D linear_rms             host_luma_room_recording_upper     lag r 0.434 @367ms p 0.001 | lead r 0.327 @133ms p 0.030
+D accent_rise_envelope   camera_lower_edge_band             lag r 0.306 @267ms p 0.001 | lead r 0.297 @367ms p 0.001
+D accent_rise_envelope   camera_upper_edge_band             lag r 0.063 @400ms p 0.847 | lead r 0.067 @33ms p 0.819
+D accent_rise_envelope   host_luma_song_file_lower          lag r 0.281 @433ms p 0.001 | lead r 0.280 @200ms p 0.001
+D accent_rise_envelope   host_luma_song_file_upper          lag r 0.524 @133ms p 0.001 | lead r 0.274 @500ms p 0.101
+D accent_rise_envelope   host_luma_room_recording_lower     lag r 0.301 @300ms p 0.001 | lead r 0.225 @367ms p 0.133
+D accent_rise_envelope   host_luma_room_recording_upper     lag r 0.378 @0ms p 0.001 | lead r 0.455 @33ms p 0.001

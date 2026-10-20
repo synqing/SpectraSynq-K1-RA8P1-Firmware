@@ -1,0 +1,18 @@
+scene tests passed: immutable repeated reads, epoch/stale/future rejection, immediate accents, centre-outward travel, mirror geometry, toggles, silence, NaN; baseline_total=447.999994755 candidate_total=447.999998569 maximum_level=11.195755005
+test_all_impulse_positions_AP_AC04 (__main__.TempoOracle) ... ok
+test_consumer_AP_AC12 (__main__.TempoOracle) ... ok
+test_discontinuity_full_history_AP_AC03_08 (__main__.TempoOracle) ... ok
+test_exact_extended_ratios_AP_AC07 (__main__.TempoOracle) ... ok
+test_fractional_pulse_trains_AP_AC04 (__main__.TempoOracle) ... ok
+test_invalid_derived_AP_AC07 (__main__.TempoOracle) ... ok
+test_invalid_observation_AP_AC09 (__main__.TempoOracle) ... ok
+test_lifecycle_AP_AC06_08_09_10 (__main__.TempoOracle) ... ok
+test_metadata_AP_AC03_08 (__main__.TempoOracle) ... ok
+test_oracle_mutation_sensitivity (__main__.TempoOracle) ... ok
+test_projection_cadence_and_boundary_AP_AC04 (__main__.TempoOracle) ... ok
+test_publication_AP_AC02_03_08_09 (__main__.TempoOracle) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 4.100s
+
+OK

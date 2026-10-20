@@ -1,0 +1,20 @@
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
+Continuous autonomous audio-reactive output must remain ON; no diagnostic ending disarms normal output. Preserve brightness 24/255, UID 545433931bd25436593630352d068363, P601/GPT6 P604/GPT8, microphone DMA1/2 LED DMA0/3, existing mode constraints. This worker must not touch hardware, serial, or external repositories.
+META_TASK: Deliver AP-A publication, AP-B phase-qualified evidence and one causally synchronised baseline/candidate host music audition, under Captain's 28 September directive.
+NOT_THE_TASK: detector rewrite, broad mode redesign, DSP optimisation, SMC controls, hardware repair, plan-only output.
+REFERENCE_ONLY: historical snapshots; use current copied working source.
+SUBJECT: current complete scalar music pipeline in /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001.
+MEDIUM: C++/Python executable product and independent tests.
+MODEL: inherit
+RESEARCH_DONE: main inspected tempo tracker/pipeline/runtime and preserved 96 dirty control-tree changes in source-checkpoint.json. Read AGENTS.md and FULL AP chapter of docs/k1-smc-migration-2026-09-26/reference/K1-Implementation-Handoff.md lines 574-794. Also full /Users/spectrasynq/Downloads/K1-Swarm-Handoff/lanes/02-audio-tempo.md and /Users/spectrasynq/Downloads/K1-Swarm-Handoff/evidence/AP-Fixture-Plan.proposed.json. Main is freezing actual 24k PCM baseline. No .claude/harness/init.sh exists here.
+Full retained assignments are binding; never replace/compress them. You are not alone in the codebase: do not revert others' changes. Use only owned paths; notify main for shared edits. Never claim your own PASS establishes independent approval.
+WAVE_SIZE: 3
+EVIDENCE: /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928
+BUDGET: first code/fixture increment in 15 minutes, then bounded implement-test-repair cycles up to 5; report exact failing witness before repeating.
+JEV/TypeSafe quota use and expansion are unrestricted and authorised; provider refusals remain actual refusals. Do not create new governance session bindings; parent owns workflow admission.
+ONE_WRITER: portable AP contract, publisher, phase tracker and detector metadata.
+OWNERSHIP: src/k1/contract/tempo_field_v1.h; src/k1/core/audio/tempo_field_publisher.{h,cpp}; tempo_phase_tracks.{h,cpp}; tempo_tracker.{h,cpp}; audio_pipeline.{h,cpp}; tempo_acf_slice.{h,cpp}; scripts/tempo_acf_slice_overlay.py. No tests/oracle/build-list edits.
+PRODUCT_OUTPUT: bounded TempoFieldV1 in AudioPipelineOutput, truthful field completion/support/raw-bin observation ages, AP-A phase-invalid fallback and AP-B max four fresh phase observations/eight fixed overlap slots.
+DONE_WHEN: verifier tests and baseline parity pass; new source modules are called by the real AudioPipeline; no heap/format/locks or changed incumbent trajectories.
+First send proposed API/phase convention to parent for independent oracle freeze BEFORE implementing phase. Keep first support step narrow. Main captures baseline first: create new modules/header freely, but WAIT for BASELINE_FROZEN marker in evidence directory before modifying existing portable sources. After marker proceed immediately.
+Preserve incumbent arithmetic/call order, detector bank, pooling, sample rate and scheduling. Actual completion increments metadata once; raw bin ages set at recomputation. Sliced jobs carry original endpoint/epoch/config. Cache reads do not refresh. Stable snapshot per phase update, deterministic separated peaks, bounded correction/coast/stale boundaries. Extended beat ratios preserve half-time parity and reject malformed/overflow/epoch. Uncertainty unknown unless defined numerical quantity. Incumbent actual running BPM + actual wall reference, no invented media projection. Export disabled and phase-disabled controls. Source epoch/config invalidation cannot reset legacy tracker. Provide API and source-only test compile notes to parent promptly.

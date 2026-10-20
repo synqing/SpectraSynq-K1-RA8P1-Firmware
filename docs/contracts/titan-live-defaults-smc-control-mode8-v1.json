@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "profile": "smc-titan-control-001-mode8-emit-off",
+  "reviewed": "2026-09-26",
+  "mode_a": 8,
+  "mode_b": 8,
+  "flags": 1,
+  "emit_default": "off",
+  "automatic_catalogue_cycle": false,
+  "brightness": 24,
+  "palette_a": 33,
+  "palette_b": 43,
+  "transition_ms": 1500,
+  "travel_ms": 4000,
+  "first_control": "visual_a.vp_waveform_shift_rate",
+  "notes": "Explicit SMC first-control candidate. Mode 8 waveform shift rate. Physical emit remains off unless --live-emit is passed. This is not a whole-config SET and is not a hardware authorisation."
+}

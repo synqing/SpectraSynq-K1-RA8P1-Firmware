@@ -1,0 +1,8 @@
+{
+  "python": "/opt/homebrew/opt/python@3.14/bin/python3.14",
+  "pytest": "8.4.2",
+  "mido_source": "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/.venv/lib/python3.13/site-packages/mido/__init__.py",
+  "compiled_backend_imported": false,
+  "exit_code": 0,
+  "packages_installed": false
+}

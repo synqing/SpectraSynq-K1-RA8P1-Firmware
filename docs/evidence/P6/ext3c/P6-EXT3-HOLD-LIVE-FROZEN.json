@@ -1,0 +1,35 @@
+{
+  "lane": "P6 effect mapping EXT v3",
+  "name": "P6 EXT-v3 hold stays alive",
+  "status": "written before any HOLD-LIVE result",
+  "what_this_file_is": "The pass/fail rule for a hold that is still music. It does not replace P6-EXT3-HOLD-FROZEN.json. That file still requires the length to stay at or above 0.90 for 1000 ms. This file requires the lit pixels inside that hold to keep changing with the music. A flat bar that merely stays long fails here.",
+  "why_these_numbers": "The hold that passes P6-EXT3-HOLD-FROZEN paints one colour across the inner pixels of each edge field. On the BOOM file that bar is about pixels 52-106. Measured on the replays already on disk, before this file was frozen: the mean distance between neighbouring lit pixels on the right half, over the hold, is 0.25 to 0.65 of the same distance in the 1 s after the drop with the front switched off. 0.70 sits above every one of those eight rows and at the level of a waveform whose neighbours still differ. The frame-to-frame change of that same flat bar is as low as 0.15 of the switched-off second on some rows and above 1 on one row, because the bar breathes together. 0.35 is above the rows that barely move and below a scrolling waveform. The 20-pixel, 250 ms, \u00b11 count rule is the direct statement of a frozen bar. The breathing bar does not sit still within \u00b11 count, so that clause is not what makes today's hold fail. The neighbour-distance clause is. Both clauses are required.",
+  "clock": "Same eight rows as P6-EXT3-HOLD-FROZEN.json: boom_source 55.7, boom_room 55.7, sonic_source 27.7, sonic_source 54.7, each edge field. The hold window starts at the first frame with t_song >= t_d and t_song <= t_d + 0.15 s whose right-half extent is >= 0.90, and runs for 1000 ms. Extent is the EXT-v3 right-half extent. If no such frame exists the row fails. The reference window is the switched-off replay, frames with t_song from t_d through t_d + 1 s.",
+  "lit": "On the raw probe frame (uint16 channels, before the display warmth). A right-half pixel (80..159) is lit when its largest channel is at least 10 percent of that half's largest channel and that peak is at least 1. This is the same 10 percent idea as extent, read on the stored channels.",
+  "palette_spread": {
+    "measure": "For each frame, the mean L1 distance (sum of absolute channel differences) between neighbouring right-half pixels that are both lit (pixel k and pixel k+1). The row value is the mean of those frame values over the window. Frames with no such pair are skipped. If none remain, the row value is 0.",
+    "fraction": 0.7,
+    "reference": "The same measure on the switched-off replay over the reference window.",
+    "pass": "Hold value >= fraction times the reference. A reference below 50 counts refuses the row."
+  },
+  "frame_change": {
+    "measure": "For each pair of consecutive frames in the window, the mean absolute channel change of pixels that are lit on the earlier frame. The row value is the mean over those pairs.",
+    "fraction": 0.35,
+    "reference": "The same measure on the switched-off replay over the reference window.",
+    "pass": "Hold value >= fraction times the reference. A reference below 50 counts refuses the row."
+  },
+  "static_run": {
+    "min_pixels": 20,
+    "lsb": 1,
+    "duration_ms": 250,
+    "frames": "26 probe frames: a frame and the 25 frames after it. That is 250 ms at the probe's 10 ms step.",
+    "lit": "Every pixel of the run has, on every frame of the 26, a largest channel at least 10 percent of that frame's largest channel on the whole edge field.",
+    "constant": "Every channel of every pixel in the run stays within \u00b11 count of its value on the first of the 26 frames.",
+    "silence": "The run counts only when the probe silence flag is 0 on every one of the 26 frames. A silent stretch is not a failure.",
+    "pass": "No such run on either edge field."
+  },
+  "pass": "Every tuning row passes palette_spread, frame_change and static_run. One failure fails the replay.",
+  "plant": "The hold already rendered with the constant inner fill (the replays that pass P6-EXT3-HOLD-FROZEN and show the flat bar). It must fail this file. The renderer is not changed in order to score that plant.",
+  "frozen_utc": "2026-10-14T22:04:43Z",
+  "frozen_sha256": "871b4494d04a7a9ac138d156d9147e7baf1b34c5c1896a7c362e9f7b36060ddd"
+}

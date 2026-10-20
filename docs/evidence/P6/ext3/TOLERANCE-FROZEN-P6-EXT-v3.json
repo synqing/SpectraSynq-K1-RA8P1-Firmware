@@ -1,0 +1,122 @@
+{
+  "lane": "P6 primary metric EXT v3 (every EXT-v2 clause unchanged; adds TRAVEL). P6 primary metric EXT v2 (amends v1 congruence clause only; v1 failed its own planted case)",
+  "captain_definition_verbatim": "During the build up phase, you can see the waveform length slow and surely contracting from it's state of full extension (edges to middle), and at the peak of the tension build up, the length of the waveform is basically compressed heavily towards the left and right edges, so naturally, when the drop hits, this tension MUST be released with 'an appropriate amount' of 'explosive force'/thrust from the origin to full extension (in this case, left/right edges towards the centre/middle). 'Hits hard/harder' is when the visual impact of that release is congruent with the audio. SIMPLE.",
+  "scope": "Host replay only (not the M85, no packer/gamma/cap/dither). Frozen before any new design. Supersedes DI (TOLERANCE-FROZEN-P6-DI.json) as the primary measure; DI stays secondary and unedited. C2, C3, C4, C5b stay binding and unedited.",
+  "signal": {
+    "per_pixel": "display-stage output x0.25 per pixel (tests/host/p6_effect_probe.cpp), Y = Rec.709 luma",
+    "extent(t)": "per board per 10 ms frame, on the right half of the mirrored frame (pixels 80..159; pixel 159 is the edge, 80 the centre): let Ymax = max Y over 80..159; if Ymax < 1e-5 extent = 0; else i_min = the innermost pixel (smallest index >= 80) with Y >= 0.10 Ymax, and extent = (160 - i_min) / 80, in [0, 1]. 1 = lit from the edge all the way to the centre. Trails scroll outward toward the edge and dim pixels below 10% of the frame peak are ignored, so trails do not inflate extent (CSV column extent_edge)",
+    "mirror_check": "the left half (0..79) is the mirror on both v9 boards; extent is computed on the right half only"
+  },
+  "anchors": "the same audio-derived anchors as DI (t_d drop onset, B* build climax), plus the early-build window E* = [B*_start - 6.0 s, B*_start - 4.5 s]",
+  "cases": {
+    "tuning": {
+      "boom_source": {
+        "t_d": 55.7,
+        "climax": [
+          47.0,
+          48.5
+        ],
+        "early": [
+          41.0,
+          42.5
+        ]
+      },
+      "boom_room": {
+        "t_d": 55.7,
+        "climax": [
+          47.0,
+          48.5
+        ],
+        "early": [
+          41.0,
+          42.5
+        ]
+      },
+      "sonic_source@27.7": {
+        "t_d": 27.7,
+        "climax": [
+          19.7,
+          21.2
+        ],
+        "early": [
+          13.7,
+          15.2
+        ]
+      },
+      "sonic_source@54.7": {
+        "t_d": 54.7,
+        "climax": [
+          45.6,
+          47.1
+        ],
+        "early": [
+          39.6,
+          41.1
+        ]
+      }
+    },
+    "holdout_once": {
+      "carte_source": {
+        "t_d": 27.4,
+        "climax": [
+          24.4,
+          25.9
+        ],
+        "early": [
+          18.4,
+          19.9
+        ]
+      }
+    }
+  },
+  "statistics_per_case_per_board": {
+    "E_pre": "median extent over [t_d - 0.5, t_d)",
+    "E_climax": "median extent over B*",
+    "E_early": "median extent over E*",
+    "E_drop_max": "max extent over [t_d, t_d + 0.3 s]",
+    "T90": "time from t_d to the first frame in [t_d, t_d + 1.0 s] with extent >= 0.90 (inf if none)",
+    "onset": "first frame in [t_d - 0.2, t_d + 0.3 s] where extent >= E_pre + 0.5 (E_drop_max - E_pre); lag = onset - t_d",
+    "speed": "peak expansion speed: max over [t_d - 0.05, t_d + 0.3] of (extent(t) - extent(t - 30 ms)) / 0.03 s, in half-widths per second (reported)",
+    "jump": "J = (E_drop_max - E_climax) / max(1 - E_climax, 0.05): share of the build's contraction released in the first 0.3 s",
+    "contraction": "E_early - E_climax (reported)"
+  },
+  "pass_bars_provisional_pending_captain_eye": {
+    "release_speed": "T90 <= 0.15 s",
+    "congruence": "E_drop_max - E_pre >= min(0.30, 0.8 (1 - E_pre)) AND lag in [-0.05, +0.05] s",
+    "release_size": "J >= 0.80",
+    "build_contraction_kept": "candidate E_climax <= b5595c35 E_climax + 0.10 (same case, same board); reported for v8/b5595c35 themselves",
+    "case_pass": "all of the above on BOTH boards",
+    "overall": "every tuning case passes; the holdout is then evaluated once with the same bars"
+  },
+  "validity_gates": {
+    "b5595c35_must_be_red": "the current device build (Captain: 'still a no') must fail EXT on the tuning cases",
+    "v8_must_be_red": "v8 must fail EXT on the tuning cases",
+    "planted_must_pass": "b5595c35 frames with extent replaced by 1.0 from t_d for 1 s (a synthetic instant full-extension release at the audio drop onset) must pass every release bar on every tuning case (build_contraction_kept is then trivially the b5595c35 value)"
+  },
+  "evaluator": "scripts/p6_ext.py evaluate --criterion v2 (exit status is the verdict)",
+  "amends": {
+    "file": "TOLERANCE-FROZEN-P6-EXT.json",
+    "v1_frozen_sha256": "7bc1f5f620d3c84fa13b9d0544607575591218f3f1b7f1cb2f9e8418af968714",
+    "reason": "v1 validity gate: the planted instant full-extension release failed sonic_source@54.7 board 0 because the pre-drop extent there is already 0.77 (breakdown), so the absolute rise >= 0.30 is unreachable even by a perfect release (results/ext/ext-b5595c35-planted.json). v1 stays on record as INVALID for that case. Amended before any design ran.",
+    "changed": "congruence: rise E_drop_max - E_pre >= min(0.30, 0.8 (1 - E_pre)); everything else identical to v1"
+  },
+  "geometry": {
+    "plate": "ONE light-guide plate fed by TWO 160-pixel edge fields. Source: docs/effects-language-001/DUAL-EDGE-CORRECTION.md (Captain, 28 Sept) and CRITIQUE-v3 C1. The fields are not two plates and are not one continuous 160-pixel strip split 80/80.",
+    "edge_fields": "Probe board 0 is edge field A (mode 32, palette 32, id 31). Probe board 1 is edge field B (mode 18, palette 39, id 38). Both feed the same plate.",
+    "how_scored": "Every EXT-v2 statistic is computed independently on each edge field, on that field's right half, exactly as v2 computed it per board. TRAVEL is computed independently on each edge field, on BOTH halves of that field. A case passes only when both edge fields pass. There is no third combined-plate score: the host replay can separate the fields; a camera of the plate cannot.",
+    "halves": "Each edge field is mirrored. Centre is between pixels 79 and 80. Right half pixels 80..159 (159 is the edge, 80 the centre). Left half pixels 0..79 (0 is the edge, 79 the centre). EXT-v2 extent stays on the right half only."
+  },
+  "travel_clause": {
+    "name": "TRAVEL",
+    "added_by": "EXT-v3. Does not replace or edit any EXT-v2 clause. The EXT-v2 T90 bound stays T90 <= 0.15 s (release_speed). The atlas draft's 0.18 s figure is not used.",
+    "full_extension_threshold": "extent >= 0.90, the same threshold the unchanged EXT-v2 T90 statistic already uses. extent is the unchanged right-half definition.",
+    "window": "frames with t_song >= t_d and t_song <= min(t_d + 0.15 s, time of the first frame with extent >= 0.90). If extent never reaches 0.90 inside 0.15 s, the window is [t_d, t_d + 0.15 s] and full extension fails.",
+    "innermost": "Same 10% of that half's peak display-stage Rec.709 luma as EXT-v2. Right half: smallest index >= 80 at or above 10% of the right-half peak; distance to centre is index - 80. Left half: largest index <= 79 at or above 10% of the left-half peak; distance to centre is 79 - index. An unlit half has distance 80.",
+    "monotonic": "On each half, the window contains at least one run of 3 consecutive frames whose distance to the centre strictly decreases at each step (frame i farther than i+1, farther than i+2).",
+    "pass_on_one_edge_field": "full extension (T90 <= 0.15 s) AND the monotonic run on the left half AND the monotonic run on the right half.",
+    "case_pass_v3": "The unchanged EXT-v2 case_pass (all v2 bars on both edge fields) AND TRAVEL pass_on_one_edge_field on both edge fields."
+  },
+  "evaluator_v3": "scripts/p6_ext.py evaluate --criterion v3 (v2 evaluator string above is unchanged)",
+  "frozen_utc": "2026-10-14T20:29:21Z",
+  "frozen_sha256": "c12890e6b0035e88be14566ae20b93804ff95a3178c1a4a4497281c46c0f0d98"
+}

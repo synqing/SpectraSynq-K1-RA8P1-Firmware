@@ -23,8 +23,41 @@ using k1::core::visual::pushVisualWaveform;
 
 }  // namespace
 
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_INHOUSE_DTCM)
+InhouseAudio& inhouseAudioDtcm() noexcept {
+#ifdef K1_RA8P1_TARGET
+  // .dtcm is NOLOAD zero-fill in fsp.ld, which would drop constant-initialised
+  // member values; .dtcm_from_flash is copied from flash by the FSP startup.
+  static InhouseAudio state __attribute__((section(".dtcm_from_flash"), aligned(32)));
+#else
+  static InhouseAudio state;
+#endif
+  return state;
+}
+#endif
+
+#ifdef K1_EMOTISCOPE_PORT
+void LiveAudioRuntime::setInhouseActive(bool active) noexcept {
+  inhouse_active_ = active;
+#if defined(K1_INHOUSE_ANALYSIS24) && defined(K1_PDM_TARGET)
+  k1_pdm_target_set_analysis24(active ? 1 : 0);
+#endif
+}
+#endif
+
 void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
+#ifdef K1_INHOUSE_ANALYSIS24
+  {
+    // Lane P4: in-house analysis on 24 kHz / 180 (all 80 bins below Nyquist).
+    InhouseAudioConfig config{};
+    config.analysis_rate_hz = kInhouseAnalysis24Rate;
+    (void)inhouse_audio_.configure(config);
+  }
+#endif
   resetAudioOwned();
+#ifdef K1_EMOTISCOPE_PORT
+  donor_cycles_ = inhouse_cycles_ = donor_max_cycles_ = inhouse_max_cycles_ = 0U;
+#endif
   hop_ = {};
   last_hop_ = {};
   last_epoch_ = 0;
@@ -32,6 +65,7 @@ void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
   generation_ = 0;
   hops_consumed_ = 0;
   hops_rejected_ = 0;
+  render_receipt_ = {};
   hops_recorded_ = 0;
   warmup_hops_ = 0;
   publication_deadline_misses_ = 0;
@@ -46,13 +80,28 @@ void LiveAudioRuntime::initialise(std::uint32_t clock_hz) noexcept {
 }
 
 void LiveAudioRuntime::resetAudioOwned() noexcept {
+#ifndef K1_EMOTISCOPE_PORT
   pipeline_.reset();
+#else
+  k1_emotiscope_status(&donor_status_);
+  inhouse_audio_.reset();
+  pcm_rms_ = 0.0F;
+  warmup_complete_us_ = 0U;
+  last_publish_us_ = 0U;
+#endif
+  field_stamp_generation_ = 0;
+  field_stamp_epoch_ = 0;
+  field_stamp_configuration_ = 0;
+  field_stamp_available_us_ = 0;
+#ifndef K1_EMOTISCOPE_PORT
   window_ = {};
+#endif
   waveform_ = {};
   private_ = {};
   committed_ = {};
   warmup_hops_ = 0;
   warming_ = true;
+  capture_stamp_valid_ = false;
 }
 
 std::uint64_t LiveAudioRuntime::nowUs() noexcept {
@@ -63,6 +112,20 @@ std::uint64_t LiveAudioRuntime::nowUs() noexcept {
   const std::uint32_t cycles = host_cycles_;
 #endif
   if (k1_live_clock_sample(&clock_, cycles, &sample) != 0) {
+    return sample.microseconds;
+  }
+  return sample.microseconds;
+}
+
+std::uint64_t LiveAudioRuntime::observeNowUs() const noexcept {
+  auto clock_copy = clock_; // Observation must not advance the owner clock.
+  k1_live_clock_sample_t sample{};
+#ifdef K1_RA8P1_TARGET
+  const std::uint32_t cycles = k1_cycle_count();
+#else
+  const std::uint32_t cycles = host_cycles_;
+#endif
+  if (k1_live_clock_sample(&clock_copy, cycles, &sample) != 0) {
     return sample.microseconds;
   }
   return sample.microseconds;
@@ -99,6 +162,120 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   if (!initialised_) {
     return LiveHopStatus::Fault;
   }
+#ifdef K1_EMOTISCOPE_PORT
+  // Version 2 is the platform's 12.8 kHz / 64-sample capture contract.
+  // Validate the entire descriptor before its PCM can reach the donor.
+  if (hop.contract_version != 2U || hop.samples != K1_EMOTISCOPE_CHUNK ||
+      hop.analysis_rate_hz != K1_EMOTISCOPE_SAMPLE_RATE ||
+      hop.stream_epoch == 0U || hop.hop_sequence == 0U ||
+      hop.hop_sequence > UINT64_MAX / K1_EMOTISCOPE_CHUNK ||
+      hop.analysis_begin != (hop.hop_sequence - 1U) * K1_EMOTISCOPE_CHUNK ||
+      hop.analysis_end_exclusive != hop.hop_sequence * K1_EMOTISCOPE_CHUNK ||
+      hop.discontinuity_reason != 0U) {
+    ++hops_rejected_;
+    invalidate(0xE001U);
+    return LiveHopStatus::Fault;
+  }
+  const bool changed_epoch = last_epoch_ != 0U && last_epoch_ != hop.stream_epoch;
+  if ((last_epoch_ == hop.stream_epoch && hop.hop_sequence <= last_sequence_) ||
+      ((last_epoch_ == 0U || changed_epoch) && hop.hop_sequence != 1U)) {
+    ++hops_rejected_;
+    return LiveHopStatus::Rejected;
+  }
+  if (last_epoch_ == hop.stream_epoch && last_sequence_ != 0U &&
+      hop.hop_sequence != last_sequence_ + 1U) {
+    ++hops_rejected_;
+    invalidate(0xE002U);
+    // This descriptor is discarded, never concatenated across the loss.
+    // Anchor the next expected sequence so recovery need not await a reboot.
+    last_epoch_ = hop.stream_epoch;
+    last_sequence_ = hop.hop_sequence;
+    return LiveHopStatus::Discontinuity;
+  }
+  if (changed_epoch) {
+    k1_emotiscope_audio_gap();
+    resetAudioOwned();
+  }
+  last_epoch_ = hop.stream_epoch;
+  last_sequence_ = hop.hop_sequence;
+  float normalized[K1_EMOTISCOPE_CHUNK];
+  float peak = 0.0F;
+  float energy = 0.0F;
+  for (unsigned i = 0; i < K1_EMOTISCOPE_CHUNK; ++i) {
+    const float x = static_cast<float>(hop.pcm[i]) / 32768.0F;
+    normalized[i] = x;
+    const float magnitude = std::fabs(x);
+    if (magnitude > peak) peak = magnitude;
+    energy += x * x;
+  }
+  pcm_rms_ = std::sqrt(energy / static_cast<float>(K1_EMOTISCOPE_CHUNK));
+  const auto audio_now_us = static_cast<std::uint32_t>(nowUs());
+#ifdef K1_RA8P1_TARGET
+  const std::uint32_t ap_t0 = k1_cycle_count();
+#else
+  const std::uint32_t ap_begin = host_cycles_;
+#endif
+  const bool donor_accepted = k1_emotiscope_push_pcm64(normalized, audio_now_us);
+  k1_emotiscope_status(&donor_status_);
+  if (!donor_accepted) {
+    ++hops_rejected_;
+    invalidate(0xE003U);
+    return LiveHopStatus::Fault;
+  }
+  // Only this timestamp/VU shell is shared with the existing CDC plumbing.
+  // The donor drives VP directly; unsupported K1 feature validity stays unset.
+  private_ = {};
+  private_.valid = donor_status_.valid;
+  private_.features.sequence = static_cast<std::uint32_t>(hop.hop_sequence);
+  private_.features.source_frame_ms =
+      static_cast<std::uint32_t>(hop.hop_sequence * 5U);
+  private_.features.peak_scaled = peak;
+  private_.features.vu_level = donor_status_.vu_level;
+  private_.features.event_flags = peak == 0.0F ? k1::contract::kEventSilence : 0U;
+  // Bind capture chronology before analysing the SAME admitted PCM. This
+  // publication is completed below after both required feature views finish.
+  finalisePublication(private_, hop, nowUs());
+#ifdef K1_RA8P1_TARGET
+  const std::uint32_t inhouse_begin = k1_cycle_count();
+  donor_cycles_ = inhouse_begin - ap_t0;
+#else
+  const std::uint32_t inhouse_begin = host_cycles_;
+  donor_cycles_ = inhouse_begin - ap_begin;
+#endif
+  inhouse_cycles_ = 0U;
+  if (inhouse_active_) {
+#if defined(K1_INHOUSE_ANALYSIS24) && defined(K1_PDM_TARGET)
+    // At most two 7.5 ms descriptors are due per 5 ms donor hop; four bounds a
+    // late service without letting this loop starve capture.
+    for (unsigned n = 0; n < 4U; ++n) {
+      if (k1_pdm_target_try_read_analysis24(&hop24_) != K1_AUDIO_READ_OK) break;
+      int mapped_ok = 0;
+      const auto mapped = k1_live_clock_capture_to_live(&capture_link_,
+          hop24_.newest_sample_capture_estimate_us, &mapped_ok);
+      const bool stamp = hop24_.capture_estimate_valid != 0U && mapped_ok != 0 &&
+          mapped <= private_.features.publish_time_us;
+#if defined(K1_PDM_TARGET)
+      inhouse_audio_.setGuardGain(InhouseAudio::pairedLevelValid(hop24_)
+          ? 0U : k1_pdm_target_last_hop_gain_q8());
+#endif
+      (void)inhouse_audio_.consume(hop24_, stamp ? mapped : 0U, stamp);
+    }
+#else
+#if defined(K1_PDM_TARGET)
+    inhouse_audio_.setGuardGain(k1_pdm_target_last_hop_gain_q8());
+#endif
+    (void)inhouse_audio_.consume(hop, private_.features.capture_time_us,
+        capture_stamp_valid_ && hop.capture_estimate_valid != 0U);
+#endif
+#ifdef K1_RA8P1_TARGET
+    inhouse_cycles_ = k1_cycle_count() - inhouse_begin;
+#else
+    inhouse_cycles_ = host_cycles_ - inhouse_begin;
+#endif
+  }
+  if (donor_cycles_ > donor_max_cycles_) donor_max_cycles_ = donor_cycles_;
+  if (inhouse_cycles_ > inhouse_max_cycles_) inhouse_max_cycles_ = inhouse_cycles_;
+#else
   const int accepted = k1_audio_hop_accept(&last_epoch_, &last_sequence_, &hop);
   if (accepted == -2 || accepted == -3) {
     hops_rejected_ += 1U;
@@ -135,6 +312,8 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
                               ? hop.newest_sample_capture_estimate_us
                               : hop.supporting_dma_receipt_us;
   input.publish_time_us = 0;
+  input.tempo_field_enabled = tempo_field_enabled_;
+  input.tempo_phase_enabled = tempo_phase_enabled_;
   input.peak_scaled = peak;
   input.vu_level = std::sqrt(energy / static_cast<float>(K1_AUDIO_HOP_SAMPLES));
   input.silence = peak == 0.0F;
@@ -144,6 +323,7 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   (void)ap_begin;
 #endif
   private_ = pipeline_.process(input);
+#endif  // K1_EMOTISCOPE_PORT
 #ifdef K1_RA8P1_TARGET
   last_ap_cycles_ = k1_cycle_count() - ap_t0;
 #else
@@ -158,9 +338,14 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
     last_hop_dt_us_ = dt > 0xFFFFFFFFULL ? 0xFFFFFFFFU : static_cast<std::uint32_t>(dt);
   }
   last_publish_us_ = ap_finish_us;
+#ifndef K1_EMOTISCOPE_PORT
   pushVisualWaveform(waveform_, hop.pcm, K1_AUDIO_HOP_SAMPLES, peak * 32768.0F,
                      peak, input.sequence);
+#endif
   finalisePublication(private_, hop, ap_finish_us);
+#ifdef K1_EMOTISCOPE_PORT
+  inhouse_audio_.stampPublication(ap_finish_us);
+#endif
   committed_ = private_;
   last_hop_ = hop;
   generation_ += 1U;
@@ -195,6 +380,22 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   event.beat_confidence = committed_.features.beat_confidence;
   event.tempo_bpm = committed_.tempo.bpm;
   event.mode_id = mode_id_;
+#ifdef K1_EMOTISCOPE_PORT
+  float spec_peak = -1.0F;
+  for (unsigned i = 0; i < K1_EMOTISCOPE_FREQS; ++i) {
+    if (donor_status_.spectrum[i] > spec_peak) {
+      spec_peak = donor_status_.spectrum[i];
+      event.spectrum_peak_bin = static_cast<std::uint16_t>(i);
+    }
+  }
+  float chroma_peak = -1.0F;
+  for (unsigned i = 0; i < 12U; ++i) {
+    if (donor_status_.chromagram[i] > chroma_peak) {
+      chroma_peak = donor_status_.chromagram[i];
+      event.chroma_peak = static_cast<std::uint16_t>(i);
+    }
+  }
+#else
   float spec_peak = -1.0F;
   for (unsigned i = 0; i < 80U; ++i) {
     if (committed_.features.spectrum[i] > spec_peak) {
@@ -209,6 +410,7 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
       event.chroma_peak = static_cast<std::uint16_t>(i);
     }
   }
+#endif
   events_.push(event);
   LiveTimingRecord timing{};
   timing.hop_sequence = hop.hop_sequence;
@@ -219,6 +421,28 @@ LiveHopStatus LiveAudioRuntime::consume(const k1_audio_hop_t& hop) noexcept {
   timing.hop_dt_us = last_hop_dt_us_;
   timing.asrc_starved = asrc_starved_;
   timing.measured_hz = measured_hz_;
+#ifdef K1_PDM_TARGET
+  k1_pdm_hop_cost_t cost{};
+  k1_pdm_target_take_hop_cost(&cost);
+  timing.poll_cycles_sum = cost.poll_cycles_sum;
+  timing.poll_cycles_max = cost.poll_cycles_max;
+  timing.poll_calls = cost.poll_calls;
+  timing.asrc_cycles_sum = cost.asrc_cycles_sum;
+  timing.queue_filled_at_consume = cost.queue_filled_at_consume;
+  timing.emit_cycles_last = cost.emit_cycles_last;
+#ifdef K1_INHOUSE_ANALYSIS24
+  // P4 correction 1: k1_poly24 push + pull cycles since the previous record, in
+  // the v2 record's spare 16-bit field as cycles/16 (saturating at ~1.05 M).
+  {
+    const std::uint32_t a24 = k1_pdm_target_take_analysis24_cycles() / 16U;
+    timing.reserved = static_cast<std::uint16_t>(a24 > 0xFFFFU ? 0xFFFFU : a24);
+  }
+#endif
+#endif
+#ifdef K1_EMOTISCOPE_PORT
+  timing.donor_cycles = donor_cycles_;
+  timing.inhouse_cycles = inhouse_cycles_;
+#endif
   timing_.push(timing);
   return LiveHopStatus::Ok;
 }
@@ -227,16 +451,49 @@ void LiveAudioRuntime::finalisePublication(core::audio::AudioPipelineOutput& out
                                            const k1_audio_hop_t& hop,
                                            std::uint64_t ap_finish_us) noexcept {
   output.features.publish_time_us = ap_finish_us;
-  if (hop.capture_estimate_valid &&
-      hop.newest_sample_capture_estimate_us > ap_finish_us) {
-    output.features.capture_time_us = hop.supporting_dma_receipt_us;
+  auto& field = output.tempo_field;
+  // Completion belongs to the evidence generation, never to a cached copy.
+  if (field.enabled && field.generation != 0U) {
+    if (field.generation != field_stamp_generation_ ||
+        field.epoch != field_stamp_epoch_ ||
+        field.configuration_revision != field_stamp_configuration_) {
+      field_stamp_generation_ = field.generation;
+      field_stamp_epoch_ = field.epoch;
+      field_stamp_configuration_ = field.configuration_revision;
+      field_stamp_available_us_ = ap_finish_us;
+    }
+    field.available_us = field_stamp_available_us_;
+    field.availability_valid = true;
   }
+  // Bind the SAME DWT instant on both clocks. Never pair an old captured
+  // sample with AP completion: that erases real capture-to-publication latency.
+#ifdef K1_RA8P1_TARGET
+  const std::uint32_t since_receipt = clock_.last_cycles -
+      static_cast<std::uint32_t>(hop.supporting_dma_receipt_cycles);
+  const std::uint64_t absolute_now_cycles = hop.supporting_dma_receipt_cycles + since_receipt;
+  capture_link_.capture_origin_us = absolute_now_cycles * 1000000ULL / clock_.clock_hz;
+  capture_link_.live_origin_us = ap_finish_us;
+#else
+  // Host fixtures explicitly supply capture and publication in the same origin.
+  capture_link_.capture_origin_us = 0;
+  capture_link_.live_origin_us = 0;
+#endif
+  capture_link_.bound = 1;
+  int mapped_ok = 0;
+  const auto source_capture = hop.capture_estimate_valid
+      ? hop.newest_sample_capture_estimate_us : hop.supporting_dma_receipt_us;
+  const auto mapped = k1_live_clock_capture_to_live(&capture_link_, source_capture, &mapped_ok);
+  capture_stamp_valid_ = mapped_ok && mapped <= ap_finish_us;
+  output.features.capture_time_us = capture_stamp_valid_ ? mapped : 0U;
   output.predicted_next_beat_valid = false;
   (void)mediaFramesToMicros;
 }
 
 void LiveAudioRuntime::invalidate(std::uint32_t reason) noexcept {
   last_reason_ = reason;
+#ifdef K1_EMOTISCOPE_PORT
+  k1_emotiscope_audio_gap();
+#endif
   committed_.valid = false;
   committed_.predicted_next_beat_valid = false;
   committed_.musical_time_valid = false;
@@ -300,6 +557,10 @@ void LiveAudioRuntime::setControlMeta(std::uint16_t mode_id, std::uint16_t palet
   gain_q8_ = gain_q8;
 }
 
+void LiveAudioRuntime::setRenderReceipt(const LiveRenderReceipt& receipt) noexcept {
+  render_receipt_ = receipt;
+}
+
 void LiveAudioRuntime::setCaptureMeta(std::uint64_t start_us, std::uint64_t end_us,
                                       std::uint32_t starved, std::uint32_t measured_hz,
                                       std::uint32_t hop_dt_us) noexcept {
@@ -361,7 +622,12 @@ void LiveAudioRuntime::fillSnapshotFields(LiveSnapshotFields* fields,
   fields->capture_time_us = committed_.features.capture_time_us;
   fields->publish_time_us = committed_.features.publish_time_us;
   fields->analysis_end_exclusive = last_hop_.analysis_end_exclusive;
+#ifdef K1_EMOTISCOPE_PORT
+  // Each 64-sample hop is exactly 240 ticks in MEDIA_TIME_48K.
+  fields->media_time_48k = last_hop_.hop_sequence * 240U;
+#else
   fields->media_time_48k = k1_audio_hop_media_end_48k(&last_hop_);
+#endif
   fields->musical_pulse = committed_.musical_time.beat_index;
   fields->musical_phase_q32 =
       static_cast<std::uint32_t>(committed_.musical_time.phase_error_q32);
@@ -376,6 +642,18 @@ void LiveAudioRuntime::fillSnapshotFields(LiveSnapshotFields* fields,
   fields->high_energy = committed_.features.high_energy;
   fields->onset_strength = committed_.features.onset_strength;
   fields->flux = committed_.features.novelty;
+#ifdef K1_EMOTISCOPE_PORT
+  // Fixed wire storage has 80 slots. The Emotiscope contract defines only the
+  // first 64; the remaining 16 are zero, not interpolated or invented bins.
+  for (unsigned i = 0; i < K1_EMOTISCOPE_FREQS; ++i)
+    fields->spectrum[i] = donor_status_.spectrum[i];
+  for (unsigned i = 0; i < 12U; ++i)
+    fields->chroma[i] = donor_status_.chromagram[i];
+  fields->rms = pcm_rms_;
+  fields->crest = pcm_rms_ > 1.0e-6F ? fields->peak_scaled / pcm_rms_ : 0.0F;
+  // Centroid/rolloff/HFC, K1 band energies and beat tracking are unsupported
+  // by this donor status contract. Zero does not advertise a measurement.
+#else
   float energy = 0.0F;
   float weighted = 0.0F;
   float hfc = 0.0F;
@@ -419,6 +697,7 @@ void LiveAudioRuntime::fillSnapshotFields(LiveSnapshotFields* fields,
   for (unsigned i = 0; i < 12U; ++i) {
     fields->chroma[i] = committed_.features.chroma_a_origin[i];
   }
+#endif
   fields->bass_onset = committed_.features.bass_onset_strength;
   fields->kick = committed_.features.kick_strength;
   fields->snare = committed_.features.snare_strength;
@@ -439,8 +718,21 @@ void LiveAudioRuntime::fillSnapshotFields(LiveSnapshotFields* fields,
   fields->last_invalidate_reason = last_reason_;
   fields->asrc_starved = asrc_starved_;
   fields->measured_hz = measured_hz_;
+#ifdef K1_EMOTISCOPE_PORT
+  fields->deadline_us = 5000U;
+#else
   fields->deadline_us = 7500U;
+#endif
   fields->publication_deadline_misses = publication_deadline_misses_;
+  fields->last_rendered_request_id = render_receipt_.rendered_request_id;
+  fields->last_rendered_revision = render_receipt_.rendered_revision;
+  fields->last_rendered_frame = render_receipt_.rendered_frame;
+  fields->last_rendered_hop = render_receipt_.rendered_hop;
+  fields->last_rendered_publication_us = render_receipt_.rendered_publication_us;
+  fields->superseded_request_id = render_receipt_.superseded_request_id;
+  fields->accepted_request_id = render_receipt_.accepted_request_id;
+  fields->accepted_revision = render_receipt_.accepted_revision;
+  fields->last_emitted_request_id = render_receipt_.emitted_request_id;
   fields->ap_cycles = last_ap_cycles_;
   fields->vp_cycles = last_vp_cycles_;
   fields->hop_dt_us = last_hop_dt_us_;
@@ -553,6 +845,89 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
     return 0;
   }
   const LiveMirSnapshot row = snapshot();
+#ifdef K1_EMOTISCOPE_PORT
+  const auto& inhouse = inhouse_audio_.latest();
+  // Sample the sole capture owner only while servicing this existing query.
+  // Host-only runs have no peripheral timing to report.
+  std::uint32_t capture_service[8]{};
+  const char* capture_available = "false";
+#ifdef K1_PDM_TARGET
+  const auto capture = k1_pdm_target_capture_service();
+  capture_service[0] = capture.poll_last_cycles;
+  capture_service[1] = capture.poll_max_cycles;
+  capture_service[2] = capture.poll_max_pairs;
+  capture_service[3] = capture.reject_count;
+  capture_service[4] = capture.reject_poll_entry_filled;
+  capture_service[5] = capture.reject_filled;
+  capture_service[6] = capture.reject_poll_pair_index;
+  capture_service[7] = capture.reject_poll_cycles;
+  capture_available = "true";
+#endif
+  InhouseAudioCursor witness_cursor{};
+  core::visual::InhouseWaveformAudio witness{};
+  const bool inhouse_fresh = acquireInhouse(witness_cursor, observeNowUs(), witness);
+  const int n = std::snprintf(
+      out, capacity,
+      "{\"version\":2,\"contract\":\"sr12800.hop64.bins64.emotiscope\","
+      "\"valid\":%s,\"warming\":%s,\"physical_timestamp_valid\":false,"
+      "\"generation\":%llu,\"stream_epoch\":%llu,\"hop_sequence\":%llu,"
+      "\"publish_time_us\":%llu,\"capture_time_us\":%llu,\"warmup_hops\":%lu,"
+      "\"peak\":%.6g,\"vu\":%.6g,\"pcm_rms\":%.6g,"
+      "\"spectrum_bins\":64,\"spectrum_origin_hz\":77.78175,"
+      "\"chroma_origin\":\"D-sharp\",\"beat_locked\":false,"
+      "\"donor_dominant_tempo_bpm\":%.6g,\"donor_tempo_confidence\":%.6g,"
+      "\"audio_gaps\":%lu,\"hops_recorded\":%lu,\"deadline_us\":5000,"
+      "\"processing_cycles\":{\"donor\":%lu,\"inhouse\":%lu,"
+      "\"donor_boot_max\":%lu,\"inhouse_boot_max\":%lu,\"render\":%lu},"
+      "\"capture_service\":{\"available\":%s,\"poll_last_cycles\":%lu,"
+      "\"poll_max_cycles\":%lu,\"poll_max_pairs\":%lu,\"reject_count\":%lu,"
+      "\"reject_poll_entry_filled\":%lu,\"reject_filled\":%lu,"
+      "\"reject_poll_pair_index\":%lu,\"reject_poll_cycles\":%lu},"
+#ifdef K1_INHOUSE_ANALYSIS24
+      "\"inhouse\":{\"contract\":\"sr24000.hop180.bins80.note12\","
+#else
+      "\"inhouse\":{\"contract\":\"sr12800.hop96.bins80.note12\","
+#endif
+      "\"valid\":%s,\"generation\":%llu,\"sample_end\":%llu,"
+      "\"capture_us\":%llu,\"publish_us\":%llu,\"raw_peak_pcm\":%.6g,"
+      "\"drive_floor_pcm\":%.6g,\"peak_scaled\":%.6g,\"vu\":%.6g,"
+      "\"raw_rms\":%.6g,\"silence\":%s,\"mood\":[%.6g,%.6g]}}",
+      row.valid ? "true" : "false", row.warming ? "true" : "false",
+      static_cast<unsigned long long>(row.publication_generation),
+      static_cast<unsigned long long>(row.stream_epoch),
+      static_cast<unsigned long long>(row.hop_sequence),
+      static_cast<unsigned long long>(row.publish_time_us),
+      static_cast<unsigned long long>(row.capture_time_us),
+      static_cast<unsigned long>(row.warmup_hops),
+      static_cast<double>(row.peak_scaled), static_cast<double>(row.vu_level),
+      static_cast<double>(pcm_rms_),
+      static_cast<double>(donor_status_.dominant_tempo_bpm),
+      static_cast<double>(donor_status_.tempo_confidence),
+      static_cast<unsigned long>(donor_status_.audio_gaps),
+      static_cast<unsigned long>(row.hops_recorded),
+      static_cast<unsigned long>(donor_cycles_), static_cast<unsigned long>(inhouse_cycles_),
+      static_cast<unsigned long>(donor_max_cycles_), static_cast<unsigned long>(inhouse_max_cycles_),
+      static_cast<unsigned long>(last_vp_cycles_),
+      capture_available,
+      static_cast<unsigned long>(capture_service[0]),
+      static_cast<unsigned long>(capture_service[1]),
+      static_cast<unsigned long>(capture_service[2]),
+      static_cast<unsigned long>(capture_service[3]),
+      static_cast<unsigned long>(capture_service[4]),
+      static_cast<unsigned long>(capture_service[5]),
+      static_cast<unsigned long>(capture_service[6]),
+      static_cast<unsigned long>(capture_service[7]),
+      inhouse_fresh ? "true" : "false",
+      static_cast<unsigned long long>(inhouse.generation),
+      static_cast<unsigned long long>(inhouse.analysis_end_sample_exclusive),
+      static_cast<unsigned long long>(inhouse.capture_us),
+      static_cast<unsigned long long>(inhouse.publish_us),
+      static_cast<double>(inhouse.raw_peak_pcm),
+      static_cast<double>(inhouse_audio_.config().drive_floor_pcm),
+      static_cast<double>(inhouse.peak_scaled), static_cast<double>(inhouse.vu_level),
+      static_cast<double>(inhouse_audio_.rawRms()), inhouse.silence ? "true" : "false",
+      static_cast<double>(inhouse_audio_.mood(0U)), static_cast<double>(inhouse_audio_.mood(1U)));
+#else
   const int n = std::snprintf(
       out, capacity,
       "{\"version\":1,\"valid\":%s,\"warming\":%s,\"physical_timestamp_valid\":false,"
@@ -572,10 +947,35 @@ std::size_t LiveAudioRuntime::mirJson(char* out, std::size_t capacity) const noe
       static_cast<double>(row.beat_phase), static_cast<double>(row.beat_confidence),
       static_cast<double>(row.tempo_bpm),
       static_cast<unsigned long>(row.hops_recorded));
+#endif
   if (n <= 0 || static_cast<std::size_t>(n) >= capacity) {
     return 0;
   }
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_INHOUSE_ANALYSIS24) && defined(K1_PDM_TARGET)
+  // P4 corrections 1-2: the 24 kHz path's own epoch, loss and filter-design cost
+  // since boot, appended inside the top-level object.
+  if (out[n - 1] != '}') return 0;
+  k1_pdm_analysis24_status_t a24{};
+  k1_pdm_target_analysis24_status(&a24);
+  const std::size_t base = static_cast<std::size_t>(n) - 1U;
+  const int m = std::snprintf(out + base, capacity - base,
+      ",\"analysis24\":{\"wanted\":%lu,\"epoch\":%llu,\"sequence\":%llu,"
+      "\"drops\":%lu,\"source_hz\":%lu,\"designs\":%lu,"
+      "\"design_last_cycles\":%lu,\"design_max_cycles\":%lu}}",
+      static_cast<unsigned long>(a24.wanted),
+      static_cast<unsigned long long>(a24.epoch),
+      static_cast<unsigned long long>(a24.sequence),
+      static_cast<unsigned long>(a24.drops), static_cast<unsigned long>(a24.source_hz),
+      static_cast<unsigned long>(a24.designs),
+      static_cast<unsigned long>(a24.design_last_cycles),
+      static_cast<unsigned long>(a24.design_max_cycles));
+  if (m <= 0 || base + static_cast<std::size_t>(m) >= capacity) {
+    return 0;
+  }
+  return base + static_cast<std::size_t>(m);
+#else
   return static_cast<std::size_t>(n);
+#endif
 }
 
 }  // namespace k1::titan

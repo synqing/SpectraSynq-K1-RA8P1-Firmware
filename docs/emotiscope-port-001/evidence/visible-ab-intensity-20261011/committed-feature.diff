@@ -1,0 +1,787 @@
+commit 0c93d2b0a6802540f751e6e24097cefcfeb0093a
+Author:     SpectraSynq <yeap.elroy@gmail.com>
+AuthorDate: Sun Oct 11 12:19:15 2026 +0800
+Commit:     SpectraSynq <yeap.elroy@gmail.com>
+CommitDate: Sun Oct 11 12:19:15 2026 +0800
+
+    Add independent attenuation for Titan DIN A and B
+
+diff --git a/docs/contracts/titan-emotiscope-v1.json b/docs/contracts/titan-emotiscope-v1.json
+index ac96c96..ed0f233 100644
+--- a/docs/contracts/titan-emotiscope-v1.json
++++ b/docs/contracts/titan-emotiscope-v1.json
+@@ -191,8 +191,12 @@
+     "state_bytes": 160,
+     "state_magic": 1162695508,
+     "engine_id": 1,
+-    "version": 1,
+-    "patch_max_bytes": 168,
++    "version": 2,
++    "patch_max_bytes": 184,
++    "patch_field_count": 20,
++    "patch_field_mask": 1048575,
++    "state_layout": {"unchanged_offsets": "0..143", "output_intensity_a": {"offset": 144, "kind": "f32"}, "output_intensity_b": {"offset": 148, "kind": "f32"}, "reserved_zero": "152..159"},
++    "legacy_state_version": {"version": 1, "intensity_controls_supported": false, "decoded_intensities": null, "reserved_zero": "144..159"},
+     "fields": {
+       "brightness": {"id": 1, "kind": "f32", "min": 0, "max": 1, "default": 1.0},
+       "softness": {"id": 2, "kind": "f32", "min": 0, "max": 1, "default": 0.25},
+@@ -211,7 +215,9 @@
+       "hardware_output_brightness": {"id": 15, "kind": "u32", "min": 0, "max": 255, "default": 100},
+       "emission_enabled": {"id": 16, "kind": "bool", "default": true},
+       "output_precision": {"id": 17, "kind": "bool", "default": false, "state_flag_bit": 6, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire", "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"}, "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."},
+-      "palette": {"id": 18, "kind": "u32", "default": 0, "range": [0, 44], "state_offset": 140, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "native donor HSV colour", "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"}, "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."}
++      "palette": {"id": 18, "kind": "u32", "default": 0, "range": [0, 44], "state_offset": 140, "owner": "realtime frame boundary", "scene": false, "defaults_restore": false, "values": {"0": "native donor HSV colour", "1..44": "K1 product palette id-1, sampled at the donor hue phase; donor saturation and value applied"}, "note": "Applies to every donor mode through hsv(); background colour computed in leds.h stays native. Boot returns 0."},
++      "output_intensity_a": {"id": 19, "kind": "f32", "min": 0, "max": 1, "finite": true, "default": 1.0, "state_offset": 144, "owner": "realtime frame boundary", "scene": false, "note": "Physical DIN-A logical pixels 0..79 only; shared scene and music motion remain unchanged. Cached Q16 gain rounded from value*65535, applied after hardware scale16 as (component*q16+32767)/65535; 1.0 is byte exact."},
++      "output_intensity_b": {"id": 20, "kind": "f32", "min": 0, "max": 1, "finite": true, "default": 1.0, "state_offset": 148, "owner": "realtime frame boundary", "scene": false, "note": "Physical DIN-B logical pixels 80..159 only; same independent output gain law as DIN-A. Boot defaults to 1.0; a patch to one lane preserves the other."}
+     },
+     "statuses": {
+       "ok": 0,
+@@ -273,7 +279,7 @@
+     },
+     "owner": "Queued through the existing idle RT owner; response follows application or rejection.",
+     "scope": "Selects one complete donor scene. Both mode fields must agree. Brightness is the final hardware gain; it does not modify donor brightness.",
+-    "unavailable": "Version 2/3 transition/travel controls, automatic palette cycling, independent channels and legacy performance scalars.",
++    "unavailable": "Version 2/3 transition/travel controls, automatic palette cycling, independent scenes and legacy performance scalars. Physical A/B intensity uses donor_control fields 19/20.",
+     "source": "platform/ra8p1/fixture_app.cpp and PaletteRuntime::configure"
+   },
+   "boot_defaults": {
+diff --git a/platform/ra8p1/emotiscope_control.h b/platform/ra8p1/emotiscope_control.h
+index 834aa5d..df31750 100644
+--- a/platform/ra8p1/emotiscope_control.h
++++ b/platform/ra8p1/emotiscope_control.h
+@@ -11,15 +11,21 @@ namespace k1::emotiscope {
+ inline constexpr std::uint32_t kDonorCfgGetState = 0x454D0101u;
+ inline constexpr std::uint32_t kDonorCfgPatch = 0x454D0102u;
+ inline constexpr std::uint32_t kDonorStateMagic = 0x454D5354u;
+-inline constexpr std::uint32_t kDonorStateVersion = 1u;
++inline constexpr std::uint32_t kDonorStateVersion = 2u;
+ inline constexpr std::uint32_t kDonorEngineId = 1u;
+ inline constexpr std::uint32_t kDonorStateBytes = 160u;
+ inline constexpr std::uint32_t kDonorGetBytes = 16u;
+ inline constexpr std::uint32_t kDonorPatchHeaderBytes = 24u;
+ inline constexpr std::uint32_t kDonorEntryBytes = 8u;
+-inline constexpr std::uint32_t kDonorPatchMaxBytes = 168u;
+-inline constexpr std::uint32_t kDonorFieldCount = 18u;
+-inline constexpr std::uint32_t kDonorFieldMask = 0x3ffffu;
++inline constexpr std::uint32_t kDonorPatchMaxBytes = 184u;
++inline constexpr std::uint32_t kDonorFieldCount = 20u;
++inline constexpr std::uint32_t kDonorFieldMask = 0xfffffu;
++inline constexpr std::uint32_t kDonorFieldOutputIntensityA = 19u;
++inline constexpr std::uint32_t kDonorFieldOutputIntensityB = 20u;
++inline constexpr std::uint32_t kDonorStateIntensityAOffset = 144u;
++inline constexpr std::uint32_t kDonorStateIntensityBOffset = 148u;
++static_assert(kDonorPatchMaxBytes == kDonorPatchHeaderBytes + kDonorFieldCount * kDonorEntryBytes);
++static_assert(kDonorStateIntensityBOffset + sizeof(float) <= kDonorStateBytes);
+ inline constexpr std::uint32_t kDonorFieldPalette = 18u;
+ inline constexpr std::uint32_t kDonorPaletteMax = 44u;  // 0 native, 1..44 K1 palettes
+ inline constexpr std::uint32_t kDonorStatePaletteOffset = 140u;
+@@ -81,13 +87,21 @@ inline float donorGetF32(const std::uint8_t* p) noexcept {
+   std::memcpy(&value, &bits, sizeof(value));
+   return value;
+ }
++inline bool donorValidUnitFloat(float value) noexcept {
++  std::uint32_t bits = 0u;
++  std::memcpy(&bits, &value, sizeof(bits));
++  // IEEE-754 F32 ordering: positive 0..1, or negative zero. Integer validation
++  // also rejects negative subnormals when the processor flushes them to zero.
++  return bits <= 0x3f800000u || bits == 0x80000000u;
++}
+ inline std::uint32_t donorPopcount(std::uint32_t mask) noexcept {
+   std::uint32_t count = 0;
+   while (mask) { count += mask & 1u; mask >>= 1; }
+   return count;
+ }
+ inline std::uint32_t donorFieldKind(std::uint32_t field) noexcept {
+-  if (field >= 1u && field <= 8u) return kDonorKindF32;
++  if ((field >= 1u && field <= 8u) || field == kDonorFieldOutputIntensityA ||
++      field == kDonorFieldOutputIntensityB) return kDonorKindF32;
+   if (field == 9u) return kDonorKindI32;
+   if ((field >= 10u && field <= 14u) || field == 16u || field == 17u) return kDonorKindBool;
+   if (field == 15u || field == 18u) return kDonorKindU32;
+@@ -99,6 +113,7 @@ struct DonorIntent {
+   std::uint32_t mask = 0, payload_crc = 0;
+   float brightness = 0, softness = 0, color = 0, warmth = 0;
+   float color_range = 0, speed = 0, saturation = 0, background = 0;
++  float output_intensity_a = 1.0f, output_intensity_b = 1.0f;
+   std::int32_t mode = 0;
+   std::uint8_t mirror = 0, screensaver = 0, dither = 0, auto_color = 0, reverse = 0;
+   std::uint32_t hardware_brightness = 0, emission = 0, output_precision = 0, palette = 0;
+@@ -119,6 +134,7 @@ struct DonorDedup {
+ struct DonorObserved {
+   std::uint32_t boot_id = 0, revision = 0, hardware_brightness = 0, emission = 0;
+   std::uint32_t output_precision = 0, palette = 0;
++  float output_intensity_a = 1.0f, output_intensity_b = 1.0f;
+   std::uint32_t accepted_request_id = 0, rendered_request_id = 0;
+   std::uint32_t emitted_request_id = 0, rendered_frame = 0;
+   std::uint8_t schema_sha[32]{};
+@@ -126,6 +142,8 @@ struct DonorObserved {
+ struct DonorApplyResult {
+   std::uint32_t status = 0, revision = 0, hardware_brightness = 0, emission = 0;
+   std::uint32_t output_precision = 0, palette = 0;
++  float output_intensity_a = 1.0f, output_intensity_b = 1.0f;
++  std::uint8_t intensity_a_changed = 0, intensity_b_changed = 0;
+   std::uint8_t changed = 0, mode_transition = 0, revision_changed = 0;
+   std::uint8_t output_precision_changed = 0, palette_changed = 0;
+   std::uint8_t brightness_changed = 0, emission_changed = 0, emission_fell = 0;
+@@ -135,7 +153,8 @@ struct DonorApplyResult {
+ };
+ 
+ inline std::uint32_t donorApplicability(const K1EmotiscopeConfig& config) noexcept {
+-  // Bits 0..15 only; output_precision (field 17) is always applicable.
++  // Preserve legacy bits 0..15; precision, palette and DIN intensities are
++  // always applicable in state version 2, with no new applicability bits.
+   std::uint32_t bits = 0xffffu;
+   if (config.current_mode != 0) bits &= ~(1u << 5);
+   if (!(config.color_range > 0.0f)) bits &= ~(1u << 13);
+@@ -184,6 +203,9 @@ inline void donorEncodeState(std::uint8_t out[kDonorStateBytes], const K1Emotisc
+   donorPutU32(out + 104, mode_transition);
+   std::memcpy(out + 108, observed.schema_sha, 32);
+   donorPutU32(out + kDonorStatePaletteOffset, observed.palette);
++  donorPutF32(out + kDonorStateIntensityAOffset, observed.output_intensity_a);
++  donorPutF32(out + kDonorStateIntensityBOffset, observed.output_intensity_b);
++  // Bytes 152..159 remain reserved and zero.
+ }
+ 
+ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, DonorIntent* out) noexcept {
+@@ -223,7 +245,7 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
+     built |= 1u << (field - 1u);
+     if (kind == kDonorKindF32) {
+       const float value = donorGetF32(entry + 4);
+-      if (!(value >= 0.0f && value <= 1.0f)) return kDonorStatusInvalid;
++      if (!donorValidUnitFloat(value)) return kDonorStatusInvalid;
+       float* dest = nullptr;
+       switch (field) {
+         case 1: dest = &out->brightness; break;
+@@ -233,6 +255,8 @@ inline std::uint32_t donorParse(const std::uint8_t* bytes, std::uint32_t size, D
+         case 5: dest = &out->color_range; break;
+         case 6: dest = &out->speed; break;
+         case 7: dest = &out->saturation; break;
++        case 19: dest = &out->output_intensity_a; break;
++        case 20: dest = &out->output_intensity_b; break;
+         default: dest = &out->background; break;
+       }
+       *dest = value;
+@@ -300,6 +324,8 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
+   result->emission = observed.emission;
+   result->output_precision = observed.output_precision;
+   result->palette = observed.palette;
++  result->output_intensity_a = observed.output_intensity_a;
++  result->output_intensity_b = observed.output_intensity_b;
+   auto finish = [&](std::uint32_t status, std::uint32_t dedup_code, std::uint32_t changed,
+                     std::uint32_t mode_transition) {
+     K1EmotiscopeConfig config{};
+@@ -310,6 +336,8 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
+     encoded.emission = result->emission;
+     encoded.output_precision = result->output_precision;
+     encoded.palette = result->palette;
++    encoded.output_intensity_a = result->output_intensity_a;
++    encoded.output_intensity_b = result->output_intensity_b;
+     if (result->revision_changed) encoded.accepted_request_id = intent.request_id;
+     donorEncodeState(result->response, config, encoded, intent.request_id, status, dedup_code,
+                      changed, mode_transition);
+@@ -338,6 +366,14 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
+     finish(kDonorStatusStale, 0, 0, 0);
+     return;
+   }
++  // The owner application boundary also validates direct intents atomically,
++  // before any donor scene patch can mutate state.
++  if (intent.sub == kDonorCfgPatch &&
++      (((intent.mask & (1u << 18)) && !donorValidUnitFloat(intent.output_intensity_a)) ||
++       ((intent.mask & (1u << 19)) && !donorValidUnitFloat(intent.output_intensity_b)))) {
++    finish(kDonorStatusInvalid, 0, 0, 0);
++    return;
++  }
+   std::uint32_t changed = 0, mode_transition = 0;
+   if (intent.sub == kDonorCfgPatch) {
+     K1EmotiscopePatch patch{};
+@@ -389,6 +425,16 @@ inline void donorApply(DonorDedup* dedup, const DonorIntent& intent, DonorObserv
+         changed = 1u;
+       }
+     }
++    if ((intent.mask & (1u << 18)) && intent.output_intensity_a != observed.output_intensity_a) {
++      result->output_intensity_a = intent.output_intensity_a;
++      result->intensity_a_changed = 1u;
++      changed = 1u;
++    }
++    if ((intent.mask & (1u << 19)) && intent.output_intensity_b != observed.output_intensity_b) {
++      result->output_intensity_b = intent.output_intensity_b;
++      result->intensity_b_changed = 1u;
++      changed = 1u;
++    }
+     if (mode_transition) {
+       result->mode_changed = 1u;
+       K1EmotiscopeConfig config{};
+diff --git a/platform/ra8p1/fixture_app.cpp b/platform/ra8p1/fixture_app.cpp
+index b0f2a92..f2e0091 100644
+--- a/platform/ra8p1/fixture_app.cpp
++++ b/platform/ra8p1/fixture_app.cpp
+@@ -1330,6 +1330,8 @@ void donor_apply_pending() {
+   observed.emission = palettes.emitEnabled() ? 1U : 0U;
+   observed.output_precision = palettes.outputPrecision();
+   observed.palette = k1_emotiscope_palette();
++  observed.output_intensity_a = palettes.outputIntensity(0U);
++  observed.output_intensity_b = palettes.outputIntensity(1U);
+   observed.accepted_request_id = live_render_receipt.accepted_request_id;
+   observed.rendered_request_id = live_render_receipt.rendered_request_id;
+   observed.emitted_request_id = live_render_receipt.emitted_request_id;
+@@ -1345,6 +1347,8 @@ void donor_apply_pending() {
+   if (result.mode_changed) palettes.noteDonorMode(static_cast<std::uint32_t>(result.mode));
+   // Realtime owner context; the runtime reads it at the next frame boundary.
+   if (result.output_precision_changed) palettes.setOutputPrecision(result.output_precision);
++  if (result.intensity_a_changed) palettes.setOutputIntensity(0U, result.output_intensity_a);
++  if (result.intensity_b_changed) palettes.setOutputIntensity(1U, result.output_intensity_b);
+   // Realtime owner context; the donor reads it on the next rendered frame.
+   if (result.palette_changed) k1_emotiscope_set_palette(result.palette);
+   if (result.revision_changed) {
+diff --git a/platform/ra8p1/palette_runtime.cpp b/platform/ra8p1/palette_runtime.cpp
+index e5dbec0..d66e40d 100644
+--- a/platform/ra8p1/palette_runtime.cpp
++++ b/platform/ra8p1/palette_runtime.cpp
+@@ -501,6 +501,19 @@ std::size_t PaletteRuntime::catalogueJson(char* out, std::size_t capacity) const
+   return used + 2U;
+ #endif
+ }
++bool PaletteRuntime::setOutputIntensity(unsigned lane, float intensity) noexcept {
++  std::uint32_t bits = 0U;
++  std::memcpy(&bits, &intensity, sizeof(bits));
++  // IEEE-754 F32 ordering accepts 0..1 and negative zero; integer validation
++  // rejects nonfinite and negative subnormal values even with fast-math.
++  if (lane > 1U || (bits > 0x3f800000U && bits != 0x80000000U)) return false;
++  output_intensity_[lane] = intensity;
++  output_intensity_q16_[lane] = static_cast<std::uint16_t>(intensity * 65535.0F + 0.5F);
++  return true;
++}
++float PaletteRuntime::outputIntensity(unsigned lane) const noexcept {
++  return lane < 2U ? output_intensity_[lane] : 0.0F;
++}
+ bool PaletteRuntime::stageWideFrame(unsigned channel_index,
+                                     const Pixel16* pixels,
+                                     std::size_t count) noexcept {
+@@ -524,11 +537,16 @@ std::size_t PaletteRuntime::packBenchGrb48Lane(std::uint8_t* out,
+   // Brightness is applied exactly once to the wire channels. The Emotiscope
+   // profile supplies RGB8 expanded by 257; other profiles may author TRUE16.
+   const auto* source = wide_[channel_index];
++  const std::uint32_t gain = output_intensity_q16_[lane];
++  // Maximum numerator: 65535*65535+32767 = 4294868992, within uint32_t.
++  const auto attenuate = [gain](std::uint16_t component) noexcept {
++    return static_cast<std::uint16_t>((std::uint32_t(component) * gain + 32767U) / 65535U);
++  };
+   for (unsigned i = 0; i < pixels_per_lane; ++i) {
+     const auto pixel = source[lane * kPixelsPerHalf + i];
+-    packPixel(Pixel16{scale16(pixel.red, config_.brightness),
+-                      scale16(pixel.green, config_.brightness),
+-                      scale16(pixel.blue, config_.brightness)},
++    packPixel(Pixel16{attenuate(scale16(pixel.red, config_.brightness)),
++                      attenuate(scale16(pixel.green, config_.brightness)),
++                      attenuate(scale16(pixel.blue, config_.brightness))},
+               out + i * kPackedBytesPerPixel);
+   }
+   return bytes_per_lane;
+diff --git a/platform/ra8p1/palette_runtime.h b/platform/ra8p1/palette_runtime.h
+index 10318e0..91c0f5f 100644
+--- a/platform/ra8p1/palette_runtime.h
++++ b/platform/ra8p1/palette_runtime.h
+@@ -101,6 +101,9 @@ class PaletteRuntime {
+   PaletteRuntime& operator=(const PaletteRuntime&) = delete;
+   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
+   void setHardwareBrightness(std::uint32_t brightness) noexcept;
++  // Physical DIN attenuation after global brightness; owner applies before packing.
++  bool setOutputIntensity(unsigned lane, float intensity) noexcept;
++  float outputIntensity(unsigned lane) const noexcept;
+   bool setEmissionEnabled(bool enabled) noexcept;
+   void noteDonorMode(std::uint32_t mode) noexcept;
+   bool step(std::uint64_t now_us,
+@@ -172,5 +175,7 @@ class PaletteRuntime {
+   core::visual::Pixel16 wide_[2][core::visual::kPixelsPerChannel]{};
+   bool wide_valid_[2]{};
+   std::uint32_t output_precision_ = 0U;
++  float output_intensity_[2]{1.0F, 1.0F};
++  std::uint16_t output_intensity_q16_[2]{65535U, 65535U};
+ };
+ } // namespace k1::titan
+diff --git a/scripts/test_emotiscope_controls.py b/scripts/test_emotiscope_controls.py
+index 9e9cfba..9200cda 100644
+--- a/scripts/test_emotiscope_controls.py
++++ b/scripts/test_emotiscope_controls.py
+@@ -134,9 +134,81 @@ def corpus(codec):
+     add(codec.raw_patch(63, 0x11, 8, 1 << 18, [(19, codec.KIND_U32, 1)]), parse=3)
+     add(codec.encode_patch(17, 0x11, 8, {"palette": 0}),
+         parse=0, apply=0, revision=9, changed=1, dedup=0, palette=0, accepted_request_id=17)
++    # Independent physical gains preserve the donor scene and the other lane.
++    gain_a = codec.encode_patch(100, 0x11, 9, {"output_intensity_a": 0.25})
++    gain_a_index = len(steps)
++    add(gain_a, parse=0, apply=0, revision=10, changed=1, dedup=0,
++        output_intensity_a=0.25, output_intensity_b=1.0, brightness=0.10,
++        output_brightness=80, accepted_request_id=100)
++    add(gain_a, parse=0, apply=0, dedup=1, replay_of=gain_a_index)
++    add(codec.encode_patch(101, 0x11, 10, {"output_intensity_b": 0.75}),
++        parse=0, apply=0, revision=11, changed=1, dedup=0,
++        output_intensity_a=0.25, output_intensity_b=0.75, accepted_request_id=101)
++    add(codec.encode_patch(102, 0x11, 9, {"output_intensity_a": 0.5}),
++        parse=0, apply=5, revision=11, changed=0,
++        output_intensity_a=0.25, output_intensity_b=0.75)
++    add(codec.encode_patch(102, 0x11, 11, {"output_intensity_a": 0.5}),
++        parse=0, apply=0, revision=12, changed=1,
++        output_intensity_a=0.5, output_intensity_b=0.75)
++    for field in (19, 20):
++        for raw in (nan_bits, 0x7F800000, 0xFF800000, 0x3F800001, 0xBF000000, 0x80000001):
++            add(codec.raw_patch(110, 0x11, 12, 1 << (field - 1),
++                                [(field, codec.KIND_F32, raw)]), parse=3)
++    full_fields = dict(scene, output_precision=0, palette=0,
++                       output_intensity_a=0.5, output_intensity_b=0.5)
++    full_packet = codec.encode_patch(120, 0x11, 12, full_fields)
++    if len(full_packet) != 184 or struct.unpack_from("<II", full_packet, 16) != (0xFFFFF, 20):
++        raise RuntimeError("full 20-field packet shape")
++    add(full_packet, parse=0, apply=0, revision=13, changed=1,
++        output_intensity_a=0.5, output_intensity_b=0.5)
++    add(full_packet + b"\x00", parse=3)
+     return steps
+ 
+ 
++def check_state_versions(codec):
++    """Independent byte fixtures exercise legacy support and version-2 rejection."""
++    legacy = bytearray(160)
++    struct.pack_into("<III", legacy, 0, 0x454D5354, 1, 1)
++    state = codec.decode_state(bytes(legacy))
++    if (state["output_intensity_supported"] is not False
++            or state["output_intensity_a"] is not None or state["output_intensity_b"] is not None
++            or state["reserved"] != bytes(16)):
++        raise RuntimeError("legacy state falsely advertises independent intensity")
++    current = bytearray(legacy)
++    struct.pack_into("<I", current, 4, 2)
++    struct.pack_into("<ff", current, 144, 0.25, 0.75)
++    state = codec.decode_state(bytes(current))
++    if (state["output_intensity_supported"] is not True
++            or state["output_intensity_a"] != 0.25 or state["output_intensity_b"] != 0.75
++            or state["reserved"] != bytes(8)):
++        raise RuntimeError("version-2 intensity offsets")
++    malformed = []
++    for offset in (144, 148):
++        for raw in (0x7FC00000, 0x7F800000, 0xFF800000, 0x3F800001, 0xBF000000, 0x80000001):
++            body = bytearray(current)
++            struct.pack_into("<I", body, offset, raw)
++            malformed.append(body)
++    for offset, value in ((0, 0), (4, 3), (152, 1)):
++        body = bytearray(current)
++        struct.pack_into("<I", body, offset, value)
++        malformed.append(body)
++    for body in malformed:
++        try:
++            codec.decode_state(bytes(body))
++        except ValueError:
++            continue
++        raise RuntimeError("malformed version-2 state accepted")
++    for field in ("output_intensity_a", "output_intensity_b"):
++        for invalid in (float("nan"), float("inf"), -0.01, 1.01):
++            try:
++                codec.encode_patch(1, 0x11, 0, {field: invalid})
++            except ValueError:
++                continue
++            raise RuntimeError("invalid intensity encoded")
++    return {"legacy_unsupported": True, "version_2_offsets": True,
++            "malformed_states_rejected": len(malformed), "invalid_patch_values_rejected": 8}
++
++
+ def check_python_parser(codec, steps):
+     mismatches = []
+     for index, (packet, expect) in enumerate(steps):
+@@ -152,7 +224,7 @@ def check_lines(codec, steps, lines):
+     if len(lines) != len(steps):
+         return [{"error": "line count", "got": len(lines), "want": len(steps)}]
+     float_keys = {"brightness", "softness", "color", "warmth", "color_range", "speed",
+-                  "saturation", "background", "effective_hue"}
++                  "saturation", "background", "effective_hue", "output_intensity_a", "output_intensity_b"}
+     for index, ((packet, expect), line) in enumerate(zip(steps, lines)):
+         got = json.loads(line)
+         if got["i"] != index or got["parse"] != expect["parse"]:
+@@ -187,7 +259,8 @@ def check_lines(codec, steps, lines):
+                     failures.append({"i": index, "field": key, "got": got_value, "want": want})
+             elif got_value != want:
+                 failures.append({"i": index, "field": key, "got": got_value, "want": want})
+-        if state["magic"] != codec.STATE_MAGIC or state["reserved"] != b"\x00" * 16:
++        if (state["magic"] != codec.STATE_MAGIC or state["version"] != 2
++                or state["output_intensity_supported"] is not True or state["reserved"] != b"\x00" * 8):
+             failures.append({"i": index, "error": "framing"})
+     return failures
+ 
+@@ -207,6 +280,7 @@ def main():
+     output = args.output.resolve()
+     output.mkdir(parents=True, exist_ok=False)
+     codec = load_codec(root)
++    state_versions = check_state_versions(codec)
+     if codec.golden_patch() != codec.FROZEN_GOLDEN or len(codec.FROZEN_GOLDEN) != 32:
+         raise SystemExit("frozen golden packet does not match the Python encoder")
+     if codec.crc32(b"123456789") != (zlib.crc32(b"123456789") & 0xFFFFFFFF):
+@@ -218,6 +292,14 @@ def main():
+         raise SystemExit("contract discriminators diverged from the codec")
+     if donor["state_bytes"] != 160 or contract["capabilities"]["config"] is not True:
+         raise SystemExit("contract shape is not the donor control surface")
++    if (donor["version"] != 2 or donor["patch_max_bytes"] != 184
++            or donor["patch_field_count"] != 20 or donor["patch_field_mask"] != 0xFFFFF
++            or len(donor["fields"]) != 20):
++        raise SystemExit("independent intensity contract shape")
++    for name, field, offset in (("output_intensity_a", 19, 144), ("output_intensity_b", 20, 148)):
++        item = donor["fields"][name]
++        if (item["id"], item["kind"], item["state_offset"], item["default"]) != (field, "f32", offset, 1.0):
++            raise SystemExit("independent intensity contract field")
+     witness = source_witness(root)
+     if not all(witness.values()):
+         (output / "source-witness.json").write_text(json.dumps(witness, indent=2))
+@@ -259,6 +341,7 @@ def main():
+         "default_state": {},
+         "raw_color_state": {},
+         "corpus_failures": [],
++        "state_versions": state_versions,
+     }
+     if default_line:
+         state = codec.decode_state(bytes.fromhex(default_line))
+@@ -271,6 +354,8 @@ def main():
+             close(state["brightness"], 1) and state["mode"] == 1 and state["flags"] == 39
+             and state["applicability"] == 0xDFDF and state["output_brightness"] == 100
+             and close(state["saturation"], 0.75) and close(state["effective_hue"], 0.33)
++            and state["version"] == 2 and state["output_intensity_supported"] is True
++            and state["output_intensity_a"] == 1.0 and state["output_intensity_b"] == 1.0
+         )
+     if raw_line:
+         state = codec.decode_state(bytes.fromhex(raw_line))
+diff --git a/tests/host/test_emotiscope_controls.cpp b/tests/host/test_emotiscope_controls.cpp
+index 6a3c10d..a25377e 100644
+--- a/tests/host/test_emotiscope_controls.cpp
++++ b/tests/host/test_emotiscope_controls.cpp
+@@ -73,6 +73,8 @@ static void adopt(ec::DonorObserved* observed, const ec::DonorIntent& intent, co
+   if (result.emission_changed) observed->emission = result.emission;
+   if (result.output_precision_changed) observed->output_precision = result.output_precision;
+   if (result.palette_changed) observed->palette = result.palette;
++  if (result.intensity_a_changed) observed->output_intensity_a = result.output_intensity_a;
++  if (result.intensity_b_changed) observed->output_intensity_b = result.output_intensity_b;
+ }
+ 
+ static ec::DonorApplyResult apply_bytes(ec::DonorDedup* dedup, ec::DonorObserved* observed,
+@@ -106,12 +108,13 @@ static ec::DonorObserved fresh_observed() {
+   observed.boot_id = 0x11u;
+   observed.hardware_brightness = 100u;
+   observed.emission = 1u;
++  observed.output_intensity_a = observed.output_intensity_b = 1.0f;
+   return observed;
+ }
+ 
+ static void check_default_body(const std::uint8_t* body) {
+   CHECK(ec::donorGetU32(body + 0) == ec::kDonorStateMagic);
+-  CHECK(ec::donorGetU32(body + 4) == 1u);
++  CHECK(ec::donorGetU32(body + 4) == 2u);
+   CHECK(ec::donorGetU32(body + 8) == 1u);
+   CHECK(ec::donorGetU32(body + 12) == 0x11u);
+   CHECK(ec::donorGetU32(body + 16) == 0u);
+@@ -132,7 +135,10 @@ static void check_default_body(const std::uint8_t* body) {
+   CHECK(ec::donorGetU32(body + 96) == 0u);
+   CHECK(ec::donorGetU32(body + 100) == 0u);
+   CHECK(ec::donorGetU32(body + 104) == 0u);
+-  for (unsigned i = 140; i < 160; ++i) CHECK(body[i] == 0u);
++  CHECK(ec::donorGetU32(body + 140) == 0u);
++  check_f("intensity A", ec::donorGetF32(body + 144), 1.0f);
++  check_f("intensity B", ec::donorGetF32(body + 148), 1.0f);
++  for (unsigned i = 152; i < 160; ++i) CHECK(body[i] == 0u);
+ }
+ 
+ static int behavioral() {
+@@ -472,23 +478,82 @@ static int behavioral() {
+     const Entry f17f{17u, 1u, 0x3f000000u};
+     auto badk = build_patch(46u, observed.revision, 0x11u, &f17f, 1);
+     CHECK(ec::donorParse(badk.data(), std::uint32_t(badk.size()), &intent) == ec::kDonorStatusInvalid);
+-    // All 17 fields fit in the 160-byte maximum.
+-    Entry all[18];
+-    for (int i = 0; i < 18; ++i) {
++    // All 20 fields fit in the explicit 184-byte maximum.
++    Entry all[20];
++    for (int i = 0; i < 20; ++i) {
+       const std::uint16_t f = std::uint16_t(i + 1);
+       const std::uint32_t kind = ec::donorFieldKind(f);
+       all[i] = Entry{f, std::uint16_t(kind), kind == ec::kDonorKindF32 ? 0x3f000000u
+                                             : f == 9u ? 1u : f == 15u ? 100u : f == 16u ? 1u : f == 18u ? 7u : 0u};
+     }
+-    auto full = build_patch(47u, observed.revision, 0x11u, all, 18);
+-    CHECK(full.size() == 168u);
++    auto full = build_patch(47u, observed.revision, 0x11u, all, 20);
++    CHECK(full.size() == 184u);
+     CHECK(ec::donorParse(full.data(), std::uint32_t(full.size()), &intent) == 0u);
+-    CHECK(intent.mask == 0x3ffffu);
++    CHECK(intent.mask == 0xfffffu);
+     std::vector<std::uint8_t> oversize(full);
+     oversize.push_back(0u);
+     CHECK(ec::donorParse(oversize.data(), std::uint32_t(oversize.size()), &intent) == ec::kDonorStatusInvalid);
+   }
+ 
++  // Intensity is independent physical-lane state, not a donor scene control.
++  {
++    ec::DonorDedup gain_dedup{};
++    ec::DonorObserved gain_observed = fresh_observed();
++    K1EmotiscopeConfig scene_before{};
++    k1_emotiscope_get_config(&scene_before);
++    const Entry gain_a{19u, ec::kDonorKindF32, fbits(0.25f)};
++    const Entry gain_b{20u, ec::kDonorKindF32, fbits(0.75f)};
++    const auto packet_a = build_patch(101u, 0u, 0x11u, &gain_a, 1);
++    auto gain = apply_vec(&gain_dedup, &gain_observed, packet_a);
++    CHECK(gain.status == 0u && gain.intensity_a_changed && !gain.intensity_b_changed);
++    CHECK(gain_observed.revision == 1u);
++    check_f("A gain", gain_observed.output_intensity_a, 0.25f);
++    check_f("B preserved", gain_observed.output_intensity_b, 1.0f);
++    CHECK(ec::donorGetU32(gain.response + 4) == 2u);
++    check_f("A response", ec::donorGetF32(gain.response + 144), 0.25f);
++    check_f("B response", ec::donorGetF32(gain.response + 148), 1.0f);
++    for (unsigned i = 152; i < 160; ++i) CHECK(gain.response[i] == 0u);
++    const auto first_gain = gain;
++    gain = apply_vec(&gain_dedup, &gain_observed, packet_a);
++    CHECK(gain.status == 0u && !gain.intensity_a_changed && !gain.intensity_b_changed);
++    CHECK(ec::donorGetU32(gain.response + 96) == 1u && gain_observed.revision == 1u);
++    CHECK(std::memcmp(gain.response, first_gain.response, 96) == 0);
++    CHECK(std::memcmp(gain.response + 100, first_gain.response + 100, 60) == 0);
++    gain = apply_vec(&gain_dedup, &gain_observed, build_patch(102u, 1u, 0x11u, &gain_b, 1));
++    CHECK(gain.status == 0u && !gain.intensity_a_changed && gain.intensity_b_changed);
++    check_f("A preserved", gain_observed.output_intensity_a, 0.25f);
++    check_f("B gain", gain_observed.output_intensity_b, 0.75f);
++    CHECK(gain_observed.revision == 2u);
++    const Entry zero_a{19u, ec::kDonorKindF32, fbits(0.0f)};
++    gain = apply_vec(&gain_dedup, &gain_observed, build_patch(103u, 0u, 0x11u, &zero_a, 1));
++    CHECK(gain.status == ec::kDonorStatusStale && gain_observed.revision == 2u);
++    check_f("stale A preserved", gain_observed.output_intensity_a, 0.25f);
++    check_f("stale B preserved", gain_observed.output_intensity_b, 0.75f);
++    gain = apply_vec(&gain_dedup, &gain_observed, build_patch(103u, 2u, 0x11u, &zero_a, 1));
++    CHECK(gain.status == 0u && gain_observed.revision == 3u);
++    check_f("A zero", gain_observed.output_intensity_a, 0.0f);
++    check_f("zero leaves B", gain_observed.output_intensity_b, 0.75f);
++    for (std::uint16_t field : {19u, 20u}) {
++      for (std::uint32_t raw_bits : {0x7fc00000u, 0x7f800000u, 0xff800000u, 0x3f800001u, 0xbf000000u, 0x80000001u}) {
++        const Entry bad_gain{field, ec::kDonorKindF32, raw_bits};
++        ec::DonorIntent parsed{};
++        const auto bytes = build_patch(104u, 3u, 0x11u, &bad_gain, 1);
++        CHECK(ec::donorParse(bytes.data(), std::uint32_t(bytes.size()), &parsed) == ec::kDonorStatusInvalid);
++      }
++    }
++    // Caller-side bypass of parse must still reject atomically before donor changes.
++    ec::DonorIntent bad_gain{};
++    bad_gain.sub = ec::kDonorCfgPatch; bad_gain.request_id = 105u;
++    bad_gain.boot_id = 0x11u; bad_gain.expected_revision = 3u;
++    bad_gain.mask = 1u | (1u << 18); bad_gain.brightness = 0.99f;
++    bad_gain.output_intensity_a = NAN;
++    ec::donorApply(&gain_dedup, bad_gain, gain_observed, &gain);
++    CHECK(gain.status == ec::kDonorStatusInvalid && !gain.revision_changed);
++    K1EmotiscopeConfig scene_after{};
++    k1_emotiscope_get_config(&scene_after);
++    CHECK(std::memcmp(&scene_before, &scene_after, sizeof(scene_before)) == 0);
++  }
++
+   std::printf("BEHAVIORAL %s %d\n", g_fails ? "FAIL" : "OK", g_fails);
+   return g_fails ? 1 : 0;
+ }
+@@ -522,7 +587,7 @@ static int corpus(const char* path) {
+   int index = 0;
+   while (std::fgets(line, sizeof(line), file)) {
+     if (line[0] == '\n' || line[0] == '#' || line[0] == 0) continue;
+-    std::uint8_t bytes[176];
++    std::uint8_t bytes[192];
+     const int size = parse_hex(line, bytes, static_cast<int>(sizeof(bytes)));
+     if (size < 0) { std::fclose(file); return 2; }
+     ec::DonorIntent intent{};
+diff --git a/tests/host/test_palette_runtime.cpp b/tests/host/test_palette_runtime.cpp
+index 40cc3b2..3fa498f 100644
+--- a/tests/host/test_palette_runtime.cpp
++++ b/tests/host/test_palette_runtime.cpp
+@@ -5,6 +5,8 @@
+ #include <cstdlib>
+ #include <cstring>
+ #include <cstdio>
++#include <cmath>
++#include <limits>
+ using namespace k1;
+ using namespace k1::core;
+ using namespace k1::core::visual;
+@@ -16,7 +18,68 @@ static std::uint16_t scale_expect(std::uint16_t value, unsigned brightness) {
+   return static_cast<std::uint16_t>((std::uint32_t(value) * brightness) / 255U);
+ }
+ 
++static void check_output_intensities() {
++  PaletteRuntime runtime;
++  assert(runtime.outputIntensity(0U) == 1.0F && runtime.outputIntensity(1U) == 1.0F);
++  Pixel16 scene[160]{};
++  for (unsigned i = 0; i < 160U; ++i) {
++    scene[i] = {std::uint16_t(i * 401U), std::uint16_t(65535U - i * 307U),
++                std::uint16_t(i == 79U ? 1U : i == 80U ? 2U : i * 197U)};
++  }
++  for (unsigned brightness : {0U, 100U, 255U}) {
++    PaletteConfig config;
++    config.flags = 1U; config.brightness = brightness;
++    assert(runtime.configure(config, 0U));
++    assert(runtime.stageWideFrame(0U, scene, 160U));
++    assert(runtime.setOutputIntensity(0U, 1.0F));
++    assert(runtime.setOutputIntensity(1U, 1.0F));
++    std::uint8_t baseline[2][480];
++    for (unsigned lane = 0; lane < 2U; ++lane) {
++      assert(runtime.packBenchGrb48Lane(baseline[lane], 480U, lane) == 480U);
++      for (unsigned i = 0; i < 80U; ++i) {
++        const auto pixel = scene[lane * 80U + i];
++        const std::uint16_t expected[]{scale_expect(pixel.green, brightness),
++                                      scale_expect(pixel.red, brightness),
++                                      scale_expect(pixel.blue, brightness)};
++        for (unsigned component = 0; component < 3U; ++component) {
++          const unsigned offset = i * 6U + component * 2U;
++          const unsigned actual = (unsigned(baseline[lane][offset]) << 8) | baseline[lane][offset + 1U];
++          assert(actual == expected[component]); // Default 1.0 preserves every existing byte.
++        }
++      }
++    }
++    for (unsigned changed_lane = 0; changed_lane < 2U; ++changed_lane) {
++      assert(runtime.setOutputIntensity(0U, 1.0F));
++      assert(runtime.setOutputIntensity(1U, 1.0F));
++      assert(runtime.setOutputIntensity(changed_lane, 0.5F));
++      assert(runtime.outputIntensity(changed_lane) == 0.5F);
++      assert(runtime.outputIntensity(1U - changed_lane) == 1.0F);
++      for (unsigned lane = 0; lane < 2U; ++lane) {
++        std::uint8_t packed[480];
++        assert(runtime.packBenchGrb48Lane(packed, sizeof(packed), lane) == 480U);
++        if (lane != changed_lane) assert(std::memcmp(packed, baseline[lane], 480U) == 0);
++        for (unsigned offset = 0; offset < 480U; offset += 2U) {
++          const unsigned original = (unsigned(baseline[lane][offset]) << 8) | baseline[lane][offset + 1U];
++          const unsigned actual = (unsigned(packed[offset]) << 8) | packed[offset + 1U];
++          const unsigned expected = lane == changed_lane ? (original * 32768U + 32767U) / 65535U : original;
++          assert(actual == expected && actual <= original);
++        }
++      }
++      assert(runtime.setOutputIntensity(changed_lane, 0.0F));
++      std::uint8_t muted[480];
++      assert(runtime.packBenchGrb48Lane(muted, sizeof(muted), changed_lane) == 480U);
++      for (auto byte : muted) assert(byte == 0U);
++      for (float invalid : {-0.01F, 1.01F, NAN, INFINITY, -std::numeric_limits<float>::denorm_min()})
++        assert(!runtime.setOutputIntensity(changed_lane, invalid));
++      assert(runtime.outputIntensity(changed_lane) == 0.0F);
++      assert(runtime.outputIntensity(1U - changed_lane) == 1.0F);
++      assert(!runtime.setOutputIntensity(2U, 0.5F));
++    }
++  }
++}
++
+ int main() {
++  check_output_intensities();
+   static_assert(kProductPaletteCount == 44U);
+ #ifndef K1_SNAP_FREEZE_ONLY
+   char text[8192];
+diff --git a/tools/serial-studio/emotiscope_control.py b/tools/serial-studio/emotiscope_control.py
+index 2353df5..9fd1c0a 100644
+--- a/tools/serial-studio/emotiscope_control.py
++++ b/tools/serial-studio/emotiscope_control.py
+@@ -15,9 +15,9 @@ STATE_BYTES = 160
+ GET_BYTES = 16
+ PATCH_HEADER = 24
+ ENTRY_BYTES = 8
+-PATCH_MAX = 168
+-FIELD_COUNT = 18
+-FIELD_MASK = 0x3FFFF
++PATCH_MAX = 184
++FIELD_COUNT = 20
++FIELD_MASK = 0xFFFFF
+ PALETTE_MAX = 44  # 0 = native donor colour, 1..44 = K1 product palettes
+ U32_MAX = {15: 255, 18: PALETTE_MAX}
+ FLAG_OUTPUT_PRECISION = 64
+@@ -48,6 +48,8 @@ FIELDS = {
+     16: ("emission_enabled", KIND_BOOL),
+     17: ("output_precision", KIND_BOOL),
+     18: ("palette", KIND_U32),
++    19: ("output_intensity_a", KIND_F32),
++    20: ("output_intensity_b", KIND_F32),
+ }
+ NAMES = {name: field for field, (name, _kind) in FIELDS.items()}
+ 
+@@ -230,6 +232,19 @@ def decode_state(body: bytes) -> dict:
+         return struct.unpack_from("<I", body, offset)[0]
+     def f32(offset):
+         return struct.unpack_from("<f", body, offset)[0]
++    if u32(0) != STATE_MAGIC or u32(4) not in (1, 2):
++        raise ValueError("unsupported state framing")
++    intensity_supported = u32(4) == 2
++    intensity_a = f32(144) if intensity_supported else None
++    intensity_b = f32(148) if intensity_supported else None
++    if intensity_supported and any(
++        not math.isfinite(value) or not 0.0 <= value <= 1.0
++        for value in (intensity_a, intensity_b)
++    ):
++        raise ValueError("invalid output intensity")
++    reserved = body[152:160] if intensity_supported else body[144:160]
++    if any(reserved):
++        raise ValueError("nonzero reserved state bytes")
+     return {
+         "magic": u32(0),
+         "version": u32(4),
+@@ -260,7 +275,10 @@ def decode_state(body: bytes) -> dict:
+         "mode_transition": u32(104),
+         "schema": body[108:140],
+         "palette": u32(140),
+-        "reserved": body[144:160],
++        "output_intensity_supported": intensity_supported,
++        "output_intensity_a": intensity_a,
++        "output_intensity_b": intensity_b,
++        "reserved": reserved,
+     }
+ 
+ 
+diff --git a/tools/serial-studio/tests/test_titan_control_server.py b/tools/serial-studio/tests/test_titan_control_server.py
+index 35d6260..7e8d957 100644
+--- a/tools/serial-studio/tests/test_titan_control_server.py
++++ b/tools/serial-studio/tests/test_titan_control_server.py
+@@ -18,6 +18,7 @@ from titan_control_server import (  # noqa: E402
+     SocketInUseError,
+     hardware_writes_admitted,
+     load_approval_record,
++    _decode_donor_body,
+ )
+ 
+ UID = "545433931bd25436593630352d068363"
+@@ -328,6 +329,21 @@ def _donor_state(request_id, boot_id=0x11, revision=4, brightness=0.5, mode=1, f
+     return bytes(body)
+ 
+ 
++def test_donor_gain_readback_version_2_and_legacy_support():
++    import struct
++    legacy = _decode_donor_body(_donor_state(1))
++    assert legacy["output_intensity_supported"] is False
++    assert legacy["output_intensity_a"] is None and legacy["output_intensity_b"] is None
++    body = bytearray(_donor_state(2))
++    struct.pack_into("<I", body, 4, 2)
++    struct.pack_into("<ff", body, 144, 0.25, 1.0)
++    state = _decode_donor_body(bytes(body))
++    assert state["output_intensity_supported"] is True
++    assert state["output_intensity_a"] == 0.25 and state["output_intensity_b"] == 1.0
++    body[152] = 1
++    assert _decode_donor_body(bytes(body)) is None
++
++
+ def test_legacy_patch_still_subcommand_8_and_donor_is_separate(tmp_path):
+     evidence = Path(tmp_path)
+     evidence.mkdir(parents=True, exist_ok=True)
+diff --git a/tools/serial-studio/titan_control_server.py b/tools/serial-studio/titan_control_server.py
+index c8c75c5..30b6ede 100644
+--- a/tools/serial-studio/titan_control_server.py
++++ b/tools/serial-studio/titan_control_server.py
+@@ -547,6 +547,9 @@ def donor_public_state(state: dict) -> dict:
+         "reverse_color_range": bool(flags & 16),
+         "emission_enabled": bool(flags & 32),
+         "output_precision": 1 if flags & donor.FLAG_OUTPUT_PRECISION else 0,
++        "output_intensity_supported": state.get("output_intensity_supported", False),
++        "output_intensity_a": state.get("output_intensity_a"),
++        "output_intensity_b": state.get("output_intensity_b"),
+         "palette": state.get("palette", 0),
+         "hardware_output_brightness": state["output_brightness"],
+         "applicability": applicability,
+@@ -577,8 +580,12 @@ _DONOR_STATUS = {
+ def _decode_donor_body(body: bytes) -> dict | None:
+     if len(body) != donor.STATE_BYTES:
+         return None
+-    state = donor.decode_state(body)
+-    if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * 16:
++    try:
++        state = donor.decode_state(body)
++    except (ValueError, TypeError):
++        return None
++    reserved_bytes = 8 if state["version"] == 2 else 16
++    if state["magic"] != donor.STATE_MAGIC or state["reserved"] != b"\x00" * reserved_bytes:
+         return None
+     return donor_public_state(state)
+ 

@@ -1,0 +1,14 @@
+{
+  "uid": "545433931bd25436593630352d068363",
+  "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+  "schema_sha256": "407d24207fa2a7f14c9ccf34ed601bc94bab1e873fc47be3e83850c1c1924688",
+  "ops": [
+    "emotiscope_get",
+    "emotiscope_patch"
+  ],
+  "scope": "Admits donor GET and PATCH, including the output_precision A/B field, for the programmed Emotiscope precision image. Boot output_precision is 0 (reference RGB8). This is not a hardware pass, not an optical result and not an A/B verdict.",
+  "hex_sha256": "5337d52473a599eb42faa3acbf237dcdce1b1756b8d814c1d572a5fecdb10448",
+  "elf_sha256": "89582d0013d8da2ec064cf8bbf61aac1b47fce7f02782c565213ca1411bfaf20",
+  "receipt": "docs/emotiscope-port-001/evidence/arm-precision-001/receipt.json",
+  "programme": "docs/emotiscope-port-001/evidence/programme-precision-001/receipt.json"
+}

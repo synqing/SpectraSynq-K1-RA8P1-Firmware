@@ -1,0 +1,24 @@
+boom_source  b0 off 0.0000 (0/414220) max 0.00264 ok
+boom_source  b1 off 0.0000 (0/404316) max 0.00270 ok
+boom_room    b0 off 0.0000 (0/737544) max 0.00269 ok
+boom_room    b1 off 0.0000 (0/690360) max 0.00276 ok
+sonic_room   b0 off 0.0000 (0/287236) max 0.00270 ok
+sonic_room   b1 off 0.0000 (0/216266) max 0.00268 ok
+dopex_room   b0 off 0.0000 (0/591134) max 0.00267 ok
+dopex_room   b1 off 0.0000 (0/421796) max 0.00270 ok
+motion boom_source  b0 0.000 (v8 1.000) FAIL
+motion boom_source  b1 0.000 (v8 1.000) FAIL
+motion boom_room    b0 0.000 (v8 1.000) FAIL
+motion boom_room    b1 0.000 (v8 1.000) FAIL
+motion sonic_room   b0 0.000 (v8 1.000) FAIL
+motion sonic_room   b1 0.000 (v8 1.000) FAIL
+motion dopex_room   b0 0.000 (v8 1.000) FAIL
+motion dopex_room   b1 0.000 (v8 1.000) FAIL
+ladder boom_room   b0 [0.0, 0.0, 0.0] ok
+ladder boom_room   b1 [0.0, 0.0, 0.0] ok
+ladder sonic_room  b0 [0.0, 0.0, 0.0] ok
+ladder sonic_room  b1 [0.0, 0.0, 0.0] ok
+ladder dopex_room  b0 [0.0, 0.0, 0.0] ok
+ladder dopex_room  b1 [0.0, 0.0, 0.0] ok
+overall FAIL a_hd_fidelity=True c_motion=False
+PALHD_EXIT:1

@@ -3,7 +3,12 @@
 #include <cstdint>
 
 #include "core/audio/audio_pipeline.h"
+#ifndef K1_EMOTISCOPE_PORT
 #include "core/audio/gdft_goertzel.h"
+#else
+#include "emotiscope_port.h"
+#include "inhouse_audio.h"
+#endif
 #include "core/visual/visual_audio_frame.h"
 #include "k1/core/audio/k1_audio_hop.h"
 #include "k1_live_clock.h"
@@ -11,7 +16,17 @@
 
 namespace k1::titan {
 
+#if defined(K1_EMOTISCOPE_PORT) && defined(K1_INHOUSE_DTCM)
+// Lane P4 step 7: the in-house analysis state (window, GDFT and tempo state)
+// lives in DTCM as its own object; the runtime holds a reference to it.
+InhouseAudio& inhouseAudioDtcm() noexcept;
+#endif
+
+#ifdef K1_EMOTISCOPE_PORT
+inline constexpr std::uint32_t kLiveWarmupHops = 64U;
+#else
 inline constexpr std::uint32_t kLiveWarmupHops = 23U;
+#endif
 inline constexpr std::uint64_t kLiveFeatureStaleUs = 30000U;
 inline constexpr std::uint32_t kLiveMirOpcode = 21U;
 
@@ -48,10 +63,32 @@ class LiveAudioRuntime final {
   LiveAudioRuntime& operator=(const LiveAudioRuntime&) = delete;
 
   void initialise(std::uint32_t clock_hz) noexcept;
+  void setTempoEvidence(bool field, bool phase) noexcept {
+    tempo_field_enabled_ = field;
+    tempo_phase_enabled_ = phase;
+  }
   LiveHopStatus serviceOneHop() noexcept;
   LiveHopStatus consume(const k1_audio_hop_t& hop) noexcept;
   void invalidate(std::uint32_t reason) noexcept;
   const core::audio::AudioPipelineOutput* latest() const noexcept;
+#ifdef K1_EMOTISCOPE_PORT
+  // Only selected Waveform consumers pay for the additional analysis. Capture
+  // remains donor-owned; resumption uses the analyser's existing gap reset.
+  void setInhouseActive(bool active) noexcept;
+  bool inhouseActive() const noexcept { return inhouse_active_; }
+  void setInhouseTempoDemand(unsigned board, bool enabled) noexcept {
+    inhouse_audio_.setTempoDemand(board, enabled);
+  }
+  bool acquireInhouse(InhouseAudioCursor& cursor, std::uint64_t now_us,
+      core::visual::InhouseWaveformAudio& output, unsigned board = 0U) const noexcept {
+    if (!inhouse_active_) { output = {}; return false; }
+    return inhouse_audio_.acquire(cursor, now_us, kLiveFeatureStaleUs, output, board);
+  }
+  bool setInhouseMood(unsigned board, float mood) noexcept {
+    return inhouse_audio_.setMood(board, mood);
+  }
+  float inhouseMood(unsigned board) const noexcept { return inhouse_audio_.mood(board); }
+#endif
   const core::visual::VisualWaveformHistory& waveform() const noexcept {
     return waveform_;
   }
@@ -73,6 +110,7 @@ class LiveAudioRuntime final {
   void setIdentity(const std::uint8_t uid[16], const std::uint8_t build_sha[32]) noexcept;
   void setControlMeta(std::uint16_t mode_id, std::uint16_t palette_id, std::uint8_t emit_on,
                       std::uint32_t revision, std::uint16_t gain_q8) noexcept;
+  void setRenderReceipt(const LiveRenderReceipt& receipt) noexcept;
   void setCaptureMeta(std::uint64_t start_us, std::uint64_t end_us, std::uint32_t starved,
                       std::uint32_t measured_hz, std::uint32_t hop_dt_us) noexcept;
   void setStaleMarkers(std::uint64_t injection_start, std::uint64_t injection_end) noexcept;
@@ -82,6 +120,7 @@ class LiveAudioRuntime final {
     return publication_deadline_misses_;
   }
   std::uint64_t nowUs() noexcept;
+  std::uint64_t observeNowUs() const noexcept;
   std::uint64_t eventWriteSeq() const noexcept { return events_.write_seq; }
   std::uint64_t timingWriteSeq() const noexcept { return timing_.write_seq; }
 
@@ -91,14 +130,42 @@ class LiveAudioRuntime final {
                            const k1_audio_hop_t& hop,
                            std::uint64_t ap_finish_us) noexcept;
 
+#ifndef K1_EMOTISCOPE_PORT
   core::audio::AudioPipeline pipeline_{};
+#else
+  K1EmotiscopeStatus donor_status_{};
+#ifdef K1_INHOUSE_DTCM
+  InhouseAudio& inhouse_audio_ = inhouseAudioDtcm();
+#else
+  InhouseAudio inhouse_audio_{};
+#endif
+  bool inhouse_active_ = false;
+#ifdef K1_INHOUSE_ANALYSIS24
+  // Lane P4: 24 kHz / 180 descriptors from k1_poly24, drained after each donor hop.
+  k1_audio_hop_t hop24_{};
+#endif
+  float pcm_rms_ = 0.0F;
+  // Last admitted hop and boot maxima, retained across capture gaps so a
+  // failed analyser cannot erase the cost that caused its discontinuity.
+  std::uint32_t donor_cycles_ = 0, inhouse_cycles_ = 0;
+  std::uint32_t donor_max_cycles_ = 0, inhouse_max_cycles_ = 0;
+#endif
+  bool tempo_field_enabled_ = true;
+  bool tempo_phase_enabled_ = true;
+  std::uint64_t field_stamp_generation_ = 0;
+  std::uint64_t field_stamp_epoch_ = 0;
+  std::uint32_t field_stamp_configuration_ = 0;
+  std::uint64_t field_stamp_available_us_ = 0;
+#ifndef K1_EMOTISCOPE_PORT
   core::audio::GdftSampleWindow window_{};
+#endif
   core::visual::VisualWaveformHistory waveform_{};
   k1_audio_hop_t hop_{};
   k1_audio_hop_t last_hop_{};
   core::audio::AudioPipelineOutput private_{};
   core::audio::AudioPipelineOutput committed_{};
   k1_live_clock_t clock_{};
+  k1_live_clock_link_t capture_link_{};
   std::uint64_t last_epoch_ = 0;
   std::uint64_t last_sequence_ = 0;
   std::uint64_t generation_ = 0;
@@ -114,6 +181,7 @@ class LiveAudioRuntime final {
   std::uint32_t asrc_starved_ = 0;
   std::uint32_t measured_hz_ = 0;
   std::uint32_t config_revision_ = 0;
+  LiveRenderReceipt render_receipt_{};
   std::uint16_t mode_id_ = 32;
   std::uint16_t palette_id_ = 0;
   std::uint16_t gain_q8_ = 256;
@@ -135,6 +203,7 @@ class LiveAudioRuntime final {
   bool warming_ = true;
   bool inflight_ = false;
   bool initialised_ = false;
+  bool capture_stamp_valid_ = false;
 };
 
 }  // namespace k1::titan

@@ -59,3 +59,29 @@ int k1_live_clock_sample(k1_live_clock_t *clock, uint32_t cycles, k1_live_clock_
   out->health = K1_LIVE_CLOCK_OK;
   return 0;
 }
+
+uint64_t k1_live_clock_capture_to_live(const k1_live_clock_link_t *link,
+                                       uint64_t capture_us, int *ok) {
+  if (ok != NULL) {
+    *ok = 0;
+  }
+  if (link == NULL || !link->bound) {
+    return 0;
+  }
+  // A captured sample normally precedes the clock-pair observation. Translate
+  // backwards too, rejecting only genuine underflow before the live origin.
+  if (capture_us < link->capture_origin_us) {
+    const uint64_t prior = link->capture_origin_us - capture_us;
+    if (prior > link->live_origin_us) return 0;
+    if (ok != NULL) *ok = 1;
+    return link->live_origin_us - prior;
+  }
+  const uint64_t elapsed = capture_us - link->capture_origin_us;
+  if (link->live_origin_us > UINT64_MAX - elapsed) {
+    return 0;
+  }
+  if (ok != NULL) {
+    *ok = 1;
+  }
+  return link->live_origin_us + elapsed;
+}

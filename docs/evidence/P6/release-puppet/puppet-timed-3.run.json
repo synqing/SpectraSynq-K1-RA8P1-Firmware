@@ -1,0 +1,35 @@
+{
+  "label": "puppet-timed-3",
+  "clip": "_scratch/waveform-migration-001/runs/P6-RELEASE-PUPPET/boom-40-75-chirps.wav",
+  "drop_s": 17.766,
+  "offset_s": 0.214,
+  "armed": true,
+  "camera_seconds": 44.5,
+  "gain": 0.5,
+  "play_spawn": 334079.91943475,
+  "arm_target": 334091.87543475,
+  "arm": {
+    "value": 0.501,
+    "sent": 334091.874606625,
+    "confirmed": 334091.900700416
+  },
+  "disarm": {
+    "value": 0.5,
+    "sent": 334092.203766583,
+    "confirmed": 334092.219620041
+  },
+  "play_end": 334119.641023291,
+  "camera": {
+    "ok": true,
+    "returncode": 0,
+    "bytes": 64602766,
+    "streams": [
+      "video",
+      "audio"
+    ],
+    "audio_device": "MacBook Pro Microphone",
+    "stderr_tail": "[in#0 @ 0xbd1010000] Selected pixel format (yuv420p) is not supported by the input device.\n[in#0 @ 0xbd1010000] Supported pixel formats:\n[in#0 @ 0xbd1010000]   uyvy422\n[in#0 @ 0xbd1010000]   yuyv422\n[in#0 @ 0xbd1010000]   nv12\n[in#0 @ 0xbd1010000]   0rgb\n[in#0 @ 0xbd1010000]   bgr0\n",
+    "path": "/Volumes/Disk Storage/SpectraSynq-Scratch/titan-lagfree-20261014/camera/puppet-timed-3.mp4",
+    "started_monotonic": 334077.015983875
+  }
+}

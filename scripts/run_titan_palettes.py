@@ -28,7 +28,7 @@ def main():
     parser.add_argument('--palette-b',default='1')
     parser.add_argument('--mode-a',type=int,default=0,help='0: native palette preview; other values: existing K1 mode')
     parser.add_argument('--mode-b',type=int,default=0)
-    parser.add_argument('--brightness',type=int,default=24)
+    parser.add_argument('--brightness',type=int,default=100)
     parser.add_argument('--output-channel',type=int,choices=(0,1),default=0)
     parser.add_argument('--cycle',action='store_true',help='advance through all 44 palettes every four seconds on Titan')
     parser.add_argument('--no-emit',action='store_true',help='render on-device without physical GPIO emission')

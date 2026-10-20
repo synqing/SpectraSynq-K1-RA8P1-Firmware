@@ -1,0 +1,10 @@
+{
+  "status": "Paired C++ frames ready \u00b7 f74edeb5bd5c8607d7ab",
+  "metrics": "1  pair energy 674.337 channel-sum\u00b7s   occupancy 99.5%   peak 5654/6168\n2  pair energy 109.909 channel-sum\u00b7s   occupancy 59.0%   peak 4176/6168\n3  pair energy 95.647 channel-sum\u00b7s   occupancy 66.1%   peak 4299/6168\nCandidate limiter active: 0/3601 frames. Descriptors do not establish visual success.",
+  "identity": "",
+  "playback": {
+    "time": 23.705939,
+    "paused": false
+  },
+  "errors": []
+}

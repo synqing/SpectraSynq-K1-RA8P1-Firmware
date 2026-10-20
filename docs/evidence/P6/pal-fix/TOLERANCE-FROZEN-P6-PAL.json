@@ -1,0 +1,30 @@
+{
+  "lane": "P6 iteration P: K1 per-bin HD palette mapping in v9 (lane owner, after the palette excavation c65b4b0 / 99df4e9), frozen before any P code runs",
+  "scope": "Host replay only. v8 stays bit-identical; P is v9-only. Criteria C2, C3, C4 (TOLERANCE-FROZEN-P6.json) and C5b (TOLERANCE-FROZEN-P6-C5b.json, with the oracle extended by the declared per-pixel mapping below) stay binding and unedited. EXT/DI are not part of this freeze and are reported only.",
+  "design_declared": {
+    "base": "b5595c35 behaviour for intensity (level map -33..-9 dBFS, bounded level emphasis gamma 1.5, width 0.5+3.5 l, max-hold release 0.29/0.125 s, transport, deposit position); accent, luma hold and extent release OFF; the B fold REMOVED",
+    "trail": "per pixel: intensity (Q16) and the deposited palette offset o (float in [0,1)); never RGB",
+    "offset_rule_K1_ae5d90a": "every frame, from the PRE-gate chroma centroid c and strength s (existing stage-4 outputs): if s < 0.08 and a held offset exists: o = wrap(held + delta(c, held) x clamp01(s / 0.08)) (delta = shortest signed circular difference); else o = c and held = c. No tonality-gate dependence, no speed cap, no smoothing (the v8 family rule, inhouse_waveform.cpp familyColour)",
+    "per_pixel_position": "for an output pixel whose source history index is s (80..159 on the mirrored half; s = 159 - i for i < 80): d = (s - 80) / 80, 0 at the centre to 0.9875 at the edge (K1 GDFT freq_prog = LED / half-length); palette position p = wrap(o_s + 1.0 x d), where o_s is the offset deposited into that pixel",
+    "colour": "sampleProductPaletteHd(palette_id, p, 1.0) (authored stops, float interpolation), times the pixel intensity; no RGB blending of palette colours anywhere; compiled_fastled16 not used",
+    "gain": "per-mode gains recalibrated by the frozen matched-average-light method"
+  },
+  "metrics_per_input_per_board": {
+    "frames": "music frames: fresh, not confirmed quiet, at least one lit pixel; inputs: boom_source, boom_room, sonic_room, dopex_room at 0 dB (and the -6/+6 dB room ladder for c)",
+    "lit_pixel": "renderer output max channel >= 0.01 of full scale",
+    "recovered_position": "each lit pixel's max-normalised RGB is matched to the nearest point (L-infinity) of the max-normalised HD stop curve sampled at 4097 positions; its distance is the fidelity error and its position the recovered palette position",
+    "a_fidelity": "off-palette lit pixels (error > 0.03) / lit pixels <= 0.001",
+    "b_spread": "per frame on the right half (80..159): n_bins = distinct 1/32 palette bins among recovered positions of lit pixels; span = circular range of those positions. Pass: median n_bins >= 4 AND median span >= 0.25",
+    "c_motion": "per frame the colour-layer position (observation palette_coordinate: v8 centroid+walk, b5595c35 colour position, P offset o); per 1 s window of music frames, moving if its circular range > 1/32; M = moving windows / windows. Pass: M >= v8's M - 0.02 on every 0 dB input and board, AND on each room song M does not fall as level rises (M(+6) >= M(0) - 0.02 and M(0) >= M(-6) - 0.02)",
+    "d": "C2, C3 (frozen P6) pass; C4 v8 host frame identity and ARM image rule; C5b with the extended oracle (expected colour at pixel i = HD(a + d_i) or HD(b + d_i)) passes with both planted faults red"
+  },
+  "report_on_existing_builds": "(a), (b), (c) on v8 and b5595c35 replays: report which go red (no pass requirement for them; the lane owner asks which produce off-palette mixes and one-colour strips)",
+  "planted_faults_must_go_red": {
+    "rgb_mix": "P with the output colour = 0.5 HD(p) + 0.5 HD(p + 0.25) (per-channel RGB mix of two palette samples): must fail (a)",
+    "slot16": "P with the colour from the 16-entry compiled_fastled16 palette (sampleProductPaletteFastLed16 at uint8(p x 255)) instead of the HD stops: must fail (a) or (b); if it passes both, (a)/(b) are reported NON-DISCRIMINATING for that fault",
+    "frozen_position": "P with the offset never updated (held at colour_offset 0.05): must fail (c)"
+  },
+  "verdict": "P passes when (a), (b), (c) pass on every input and board, the three planted faults are red as stated, and (d) holds; then build arm-p6-v9-host-004",
+  "frozen_utc": "2026-10-14T15:08:46Z",
+  "frozen_sha256": "309b334a8df72eac7203467af2be4a088dfb4ea8a759fd9d95cd42c56d7c58b2"
+}

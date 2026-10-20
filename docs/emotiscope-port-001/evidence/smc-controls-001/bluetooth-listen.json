@@ -1,0 +1,12 @@
+{
+  "port": "SMC-Mixer Bluetooth",
+  "driver": "com.apple.AppleMIDIBluetoothDriver",
+  "unique_id": -2057804531,
+  "offline": 0,
+  "usb_master_present": false,
+  "writes_sent": 0,
+  "window_s": 12,
+  "control_change_count": 0,
+  "distinct_channel_cc": [],
+  "events": []
+}

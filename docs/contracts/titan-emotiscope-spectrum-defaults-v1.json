@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "profile": "titan-emotiscope-spectrum-001",
+  "reviewed": "2026-10-11",
+  "mode_a": 1,
+  "mode_b": 1,
+  "flags": 5,
+  "emit_default": "on",
+  "automatic_catalogue_cycle": false,
+  "brightness": 100,
+  "palette_a": 0,
+  "palette_b": 0,
+  "donor_palette": 1,
+  "palette_metadata": "palette_a/b are retained compatibility configuration fields; the donor boot consumer enforces palette 1 Sunset_Real_gp, not native HSV.",
+  "transition_ms": 0,
+  "travel_ms": 4000,
+  "first_control": "donor GET and masked PATCH via opcode25",
+  "notes": "Emotiscope AP/VP with curated multicolour Spectrum boot defaults, autonomous emission and 100/255 hardware gain once. Bottom continuous 160 splits 80/80 on P601/P604. The optional top profile boots its independent context in Spectrum with top transport disabled until an explicit valid enable."
+}

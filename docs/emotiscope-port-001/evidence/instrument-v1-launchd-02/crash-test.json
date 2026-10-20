@@ -1,0 +1,3978 @@
+{
+ "result": {
+  "old_pid": 45365,
+  "new_pid": 47215,
+  "broker_back_s": 0.02,
+  "controller_ready_again_s": null,
+  "controller_reported_loss": false,
+  "loss_messages": [
+   "None"
+  ]
+ },
+ "samples": [
+  {
+   "t": 1790722691.333958,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 13068,
+    "latched_frames": 6635,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "279",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 45365
+  },
+  {
+   "t": 1790722691.8453429,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.15,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 13068,
+    "latched_frames": 6635,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "281",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 45365
+  },
+  {
+   "t": 1790722692.367915,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 13674,
+    "latched_frames": 6635,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "284",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 45365
+  },
+  {
+   "t": 1790722692.886763,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.15,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 13674,
+    "latched_frames": 6635,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "286",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "before",
+   "broker_pid": 45365
+  },
+  {
+   "tag": "kill",
+   "t": 1790722693.398426,
+   "rc": 0,
+   "pid": 45365
+  },
+  {
+   "t": 1790722693.4092212,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.04,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 13674,
+    "latched_frames": 6938,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "289",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722693.926601,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14004,
+    "latched_frames": 7006,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "2",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722694.454481,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.19,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14004,
+    "latched_frames": 7006,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "4",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722694.973523,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14216,
+    "latched_frames": 7006,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "7",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722695.4891222,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14216,
+    "latched_frames": 7006,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "9",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722696.005016,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14216,
+    "latched_frames": 7209,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "12",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722696.522914,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14216,
+    "latched_frames": 7209,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "15",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722697.038805,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14216,
+    "latched_frames": 7209,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "17",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722697.553965,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14216,
+    "latched_frames": 7209,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "20",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722698.0668118,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14822,
+    "latched_frames": 7209,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "22",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722698.579732,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14822,
+    "latched_frames": 7209,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "25",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722699.093507,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14822,
+    "latched_frames": 7512,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "27",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722699.608448,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14822,
+    "latched_frames": 7512,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "30",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722700.128552,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14822,
+    "latched_frames": 7512,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "32",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722700.642117,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 14822,
+    "latched_frames": 7512,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "35",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722701.1567402,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 15424,
+    "latched_frames": 7512,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "37",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722701.670186,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 15424,
+    "latched_frames": 7512,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "39",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722702.184858,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 15424,
+    "latched_frames": 7815,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "42",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722702.7060869,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 15424,
+    "latched_frames": 7815,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "44",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722703.2192771,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 15424,
+    "latched_frames": 7815,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "47",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722703.735211,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 15424,
+    "latched_frames": 7815,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "49",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722704.251644,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16030,
+    "latched_frames": 7815,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "52",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722704.769424,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16030,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "55",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722705.282592,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16030,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "57",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722705.797945,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16030,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "59",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722706.3170428,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16030,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "62",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722706.835217,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16030,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "64",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722707.352716,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16632,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "67",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722707.8683689,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16632,
+    "latched_frames": 8117,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "69",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722708.38608,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16632,
+    "latched_frames": 8418,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "72",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722708.911146,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.18,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16632,
+    "latched_frames": 8418,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "74",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722709.438984,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 16632,
+    "latched_frames": 8418,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "77",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722709.95699,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.19,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17236,
+    "latched_frames": 8418,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "79",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722710.470585,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17236,
+    "latched_frames": 8418,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "82",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722710.9914172,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17236,
+    "latched_frames": 8721,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "84",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722711.5076869,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17236,
+    "latched_frames": 8721,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "87",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722712.025537,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17236,
+    "latched_frames": 8721,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "90",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722712.5406919,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17236,
+    "latched_frames": 8721,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "92",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722713.062336,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.21,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17844,
+    "latched_frames": 8721,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "94",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722713.5796092,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17844,
+    "latched_frames": 8721,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "97",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722714.089366,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17844,
+    "latched_frames": 9024,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "99",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722714.604339,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17844,
+    "latched_frames": 9024,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "102",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722715.1287968,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17844,
+    "latched_frames": 9024,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "104",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722715.648903,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 17844,
+    "latched_frames": 9024,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "107",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722716.159952,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 18445,
+    "latched_frames": 9024,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "110",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722716.6729221,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 18445,
+    "latched_frames": 9024,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "112",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722717.1986759,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 18445,
+    "latched_frames": 9327,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "115",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722717.716631,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 18445,
+    "latched_frames": 9327,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "117",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722718.227045,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 18445,
+    "latched_frames": 9327,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "120",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722718.7413251,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 18445,
+    "latched_frames": 9327,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "122",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722719.2588968,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19050,
+    "latched_frames": 9327,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "125",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722719.7781062,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.13,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19050,
+    "latched_frames": 9327,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "127",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722720.292477,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19050,
+    "latched_frames": 9628,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "130",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722720.8037271,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.12,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19050,
+    "latched_frames": 9628,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "132",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722721.320436,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19050,
+    "latched_frames": 9628,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "135",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722721.836353,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19050,
+    "latched_frames": 9628,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "137",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722722.351999,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19653,
+    "latched_frames": 9628,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "140",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722722.863868,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19653,
+    "latched_frames": 9628,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "142",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722723.384125,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19653,
+    "latched_frames": 9929,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "145",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722723.904435,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19653,
+    "latched_frames": 9929,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "147",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722724.420992,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19653,
+    "latched_frames": 9929,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "150",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722724.932168,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.05,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 19653,
+    "latched_frames": 9929,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "152",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722725.452201,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20258,
+    "latched_frames": 9929,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "155",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722725.965634,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.09,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20258,
+    "latched_frames": 9929,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "157",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722726.481322,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20258,
+    "latched_frames": 10231,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "160",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722726.998572,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.13,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20258,
+    "latched_frames": 10231,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "162",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722727.525196,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20258,
+    "latched_frames": 10231,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "165",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722728.048318,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20859,
+    "latched_frames": 10231,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "167",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722728.568031,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20859,
+    "latched_frames": 10231,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "170",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722729.082292,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20859,
+    "latched_frames": 10532,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "172",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722729.597127,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20859,
+    "latched_frames": 10532,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "175",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722730.116873,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20859,
+    "latched_frames": 10532,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "177",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722730.633947,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 20859,
+    "latched_frames": 10532,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "180",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722731.151192,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 21463,
+    "latched_frames": 10532,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "182",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722731.660631,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.02,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 21463,
+    "latched_frames": 10532,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "185",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722732.173037,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 21463,
+    "latched_frames": 10835,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "187",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722732.687438,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 21463,
+    "latched_frames": 10835,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "190",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722733.2016032,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.11,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 21463,
+    "latched_frames": 10835,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "192",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722733.711092,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 21463,
+    "latched_frames": 10835,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "194",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722734.225781,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22067,
+    "latched_frames": 10835,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "197",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722734.740355,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.19,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22067,
+    "latched_frames": 10835,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "199",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722735.260576,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.0,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22067,
+    "latched_frames": 11137,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "202",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722735.7754061,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22067,
+    "latched_frames": 11137,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "204",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "bind",
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722736.28905,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22067,
+    "latched_frames": 11137,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "207",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722736.801576,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22067,
+    "latched_frames": 11137,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "209",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722737.316798,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.06,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22670,
+    "latched_frames": 11137,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "212",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722737.8319428,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22670,
+    "latched_frames": 11137,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "214",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722738.346306,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.06,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22670,
+    "latched_frames": 11438,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "217",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "after",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722738.8633301,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.2,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22670,
+    "latched_frames": 11438,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "219",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722739.379483,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.08,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22670,
+    "latched_frames": 11438,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "222",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722739.8950121,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.19,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 22670,
+    "latched_frames": 11438,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "224",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722740.410215,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.07,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23275,
+    "latched_frames": 11438,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "227",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722740.93118,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.01,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23275,
+    "latched_frames": 11438,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "229",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722741.4461598,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.08,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23275,
+    "latched_frames": 11738,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "232",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722741.9609962,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.03,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23275,
+    "latched_frames": 11738,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "234",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722742.480978,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.08,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23275,
+    "latched_frames": 11738,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "237",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722743.0061288,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.06,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23275,
+    "latched_frames": 11738,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "239",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  },
+  {
+   "t": 1790722743.524742,
+   "controller": {
+    "ready": true,
+    "transport_ready": true,
+    "transport_error": null,
+    "last_error": null,
+    "loop_healthy": true,
+    "mode": 1,
+    "mode_name": "Spectrum",
+    "output_brightness": 100,
+    "emission_enabled": true,
+    "accepted_request_id": 1074200587,
+    "rendered_request_id": 1074200587,
+    "emitted_request_id": 1074200587,
+    "faders_armed": false,
+    "endpoint": "SMC-Mixer Bluetooth"
+   },
+   "broker_log_age_s": 0.1,
+   "target": {
+    "uid": "545433931bd25436593630352d068363",
+    "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74",
+    "device_progress": 23873,
+    "latched_frames": 11738,
+    "led_faults": 0,
+    "connection_epoch": 1,
+    "sequence": "242",
+    "capture_rate_hz": 41418.0
+   },
+   "kinds": [
+    "mtime_age_s",
+    "snapshot",
+    "telemetry",
+    "wire"
+   ],
+   "tag": "settled",
+   "broker_pid": 47215
+  }
+ ]
+}

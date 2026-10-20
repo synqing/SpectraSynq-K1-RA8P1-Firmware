@@ -1,0 +1,38 @@
+{
+  "pass": true,
+  "exit": 0,
+  "scope": "Default24k profile exactPCM and state comparison against parked source",
+  "old_source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/platform/ra8p1/k1_asrc_24k.c",
+  "old_sha256": "71ce6fb892f50efa6a105aa56da40a1c6258e56de8d9ca5218bdbd8c7ca23b12",
+  "new_source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/k1_asrc_24k.c",
+  "new_sha256": "005202d73d26e8e3ed2fd49b124ee1d3a702c59788653f3a1fa532d0ee025797",
+  "stdout": "LEGACY_ASRC_BYTE_PARITY=PASS 2368000 input samples across4rates\n",
+  "compile_old": [
+    "cc",
+    "-std=c11",
+    "-O2",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1",
+    "-Dk1_asrc24_reset=legacy_reset",
+    "-Dk1_asrc24_phase_increment_q16=legacy_phase_increment_q16",
+    "-Dk1_asrc24_set_rate=legacy_set_rate",
+    "-Dk1_asrc24_required_for_pull180=legacy_required_for_pull180",
+    "-Dk1_asrc24_push=legacy_push",
+    "-Dk1_asrc24_pull180=legacy_pull180",
+    "-c",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/platform/ra8p1/k1_asrc_24k.c",
+    "-o",
+    "/tmp/legacy-asrc-parity-a2a9_iq3/old.o"
+  ],
+  "compile_current": [
+    "cc",
+    "-std=c11",
+    "-O2",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1",
+    "/tmp/legacy-asrc-parity-a2a9_iq3/parity.c",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/platform/ra8p1/k1_asrc_24k.c",
+    "/tmp/legacy-asrc-parity-a2a9_iq3/old.o",
+    "-o",
+    "/tmp/legacy-asrc-parity-a2a9_iq3/parity"
+  ],
+  "test_source": "\n#include \"k1_asrc_24k.h\"\n#include <assert.h>\n#include <string.h>\n#include <stdio.h>\nvoid legacy_reset(k1_asrc24_t *,uint32_t,uint32_t);\nint legacy_set_rate(k1_asrc24_t *,uint32_t);\nuint32_t legacy_required_for_pull180(const k1_asrc24_t *);\nint legacy_push(k1_asrc24_t *,const int16_t *,uint32_t);\nint legacy_pull180(k1_asrc24_t *,int16_t *);\nint main(void) {\n uint32_t rates[]={36000,40000,41440,44000};\n for(unsigned r=0;r<4;++r) {\n  k1_asrc24_t a,b;\n  int16_t input[296],x[180],y[180];\n  k1_asrc24_reset(&a,7,rates[r]);legacy_reset(&b,7,rates[r]);\n  for(unsigned block=0;block<2000;++block) {\n   for(unsigned i=0;i<296;++i)input[i]=(int16_t)((block*296u+i)*251u);\n   assert(k1_asrc24_push(&a,input,296)==legacy_push(&b,input,296));\n   assert(k1_asrc24_required_for_pull180(&a)==legacy_required_for_pull180(&b));\n   for(;;) {\n    memset(x,0x5a,sizeof x);memset(y,0x5a,sizeof y);\n    int ra=k1_asrc24_pull180(&a,x),rb=legacy_pull180(&b,y);\n    assert(ra==rb && memcmp(x,y,sizeof x)==0);\n    assert(memcmp(&a,&b,sizeof a)==0);\n    if(ra!=0)break;\n   }\n   if(block==1000)assert(k1_asrc24_set_rate(&a,41530)==legacy_set_rate(&b,41530));\n  }\n }\n puts(\"LEGACY_ASRC_BYTE_PARITY=PASS 2368000 input samples across4rates\");\n return 0;\n}\n"
+}

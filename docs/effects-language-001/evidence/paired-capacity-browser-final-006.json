@@ -1,0 +1,26 @@
+{
+  "live": {
+    "status": "Paired C++ frames ready \u00b7 6bdc6ac406a0fd36ab4f",
+    "variant_canvas_sha256": {
+      "current": "a34d4756a9d8a3a0d0ec26b787d980e895853fe577547f78f7ee8cc0f5297757",
+      "previous": "f55b630d95e767a875f9606208e0a2aeee1ce8d9dbec6fceccd5a3cdce338df1",
+      "rejected": "18970007d8025d1f98ba25e4a4151dbd290484d29a773428cca57db6545d613e"
+    },
+    "played_to_s": 23.351534,
+    "errors": [],
+    "http_request_count": 17,
+    "metrics": "1  pair energy 809.169 channel-sum\u00b7s   occupancy 99.5%   peak 5654/6168\n2  pair energy 86.912 channel-sum\u00b7s   occupancy 47.8%   peak 4799/6168\n3  pair energy 89.532 channel-sum\u00b7s   occupancy 45.9%   peak 3990/6168\nCandidate limiter active: 0/4321 frames. Descriptors do not establish visual success."
+  },
+  "offline": {
+    "status": "Paired C++ frames ready \u00b7 64e46c9dd5a58896767d",
+    "variant_canvas_sha256": {
+      "current": "a34d4756a9d8a3a0d0ec26b787d980e895853fe577547f78f7ee8cc0f5297757",
+      "previous": "f55b630d95e767a875f9606208e0a2aeee1ce8d9dbec6fceccd5a3cdce338df1",
+      "rejected": "18970007d8025d1f98ba25e4a4151dbd290484d29a773428cca57db6545d613e"
+    },
+    "played_to_s": 23.358976,
+    "errors": [],
+    "http_request_count": 0,
+    "metrics": "1  pair energy 674.337 channel-sum\u00b7s   occupancy 99.5%   peak 5654/6168\n2  pair energy 109.909 channel-sum\u00b7s   occupancy 59.0%   peak 4176/6168\n3  pair energy 94.512 channel-sum\u00b7s   occupancy 53.9%   peak 4111/6168\nCandidate limiter active: 0/3601 frames. Descriptors do not establish visual success."
+  }
+}

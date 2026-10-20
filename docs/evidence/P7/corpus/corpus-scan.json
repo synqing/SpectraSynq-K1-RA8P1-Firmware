@@ -1,0 +1,1445 @@
+{
+ "librosa": "0.11.0",
+ "tracks": [
+  {
+   "id": "boom",
+   "slot": "required (BOOM)",
+   "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/audio-boom-001/boom-0-75s-pcm16.wav",
+   "offset_s": 0,
+   "seconds": 75.0,
+   "sha256": "09c9a02f439cbeb66f006cf5a973ae7988b5ef2e9ecdcf470c140d6918e63652",
+   "librosa_beat_track_bpm": 136.0,
+   "librosa_tempogram_top3": [
+    [
+     136.0,
+     0.671
+    ],
+    [
+     69.8,
+     0.581
+    ],
+    [
+     143.6,
+     0.546
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      139.5,
+      0.332
+     ],
+     [
+      69.0,
+      0.321
+     ],
+     [
+      135.0,
+      0.258
+     ]
+    ]
+   },
+   "rms_dbfs": -11.1
+  },
+  {
+   "id": "sonic-samba",
+   "slot": "required (Sonic)",
+   "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/sonic-samba.wav",
+   "offset_s": 0,
+   "seconds": 75.0,
+   "sha256": "80e17b13f5f3120a1d148461261298eb1ae4f7b72e8df0b9d8790ea62280e038",
+   "librosa_beat_track_bpm": 143.6,
+   "librosa_tempogram_top3": [
+    [
+     143.6,
+     0.801
+    ],
+    [
+     136.0,
+     0.733
+    ],
+    [
+     71.8,
+     0.732
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      129.0,
+      0.08
+     ],
+     [
+      112.5,
+      0.08
+     ],
+     [
+      99.5,
+      0.077
+     ]
+    ]
+   },
+   "rms_dbfs": -15.6
+  },
+  {
+   "id": "dopex",
+   "slot": "required (Dopex)",
+   "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/dopex.wav",
+   "offset_s": 0,
+   "seconds": 75.0,
+   "sha256": "60929d87b030c92b803e0d734ed297bcf2ad29ac444db801e06c8c51538d3404",
+   "librosa_beat_track_bpm": 76.0,
+   "librosa_tempogram_top3": [
+    [
+     152.0,
+     0.743
+    ],
+    [
+     76.0,
+     0.737
+    ],
+    [
+     99.4,
+     0.733
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      99.5,
+      0.177
+     ],
+     [
+      129.0,
+      0.17
+     ],
+     [
+      156.5,
+      0.159
+     ]
+    ]
+   },
+   "rms_dbfs": -23.4
+  },
+  {
+   "id": "carte-blanche",
+   "slot": "extra trance",
+   "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/carte-blanche.wav",
+   "offset_s": 0,
+   "seconds": 75.0,
+   "sha256": "c9f7a9b9c3597e6935d429da100b803d9ac90df59016d73d4e0bfc69f1fa7c84",
+   "librosa_beat_track_bpm": 143.6,
+   "librosa_tempogram_top3": [
+    [
+     69.8,
+     0.839
+    ],
+    [
+     143.6,
+     0.805
+    ],
+    [
+     92.3,
+     0.785
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      139.5,
+      0.294
+     ],
+     [
+      70.0,
+      0.214
+     ],
+     [
+      132.5,
+      0.099
+     ]
+    ]
+   },
+   "rms_dbfs": -13.6
+  },
+  {
+   "id": "musdb:A Classic Education - NightOwl",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/A Classic Education - NightOwl.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "6f725f03623b6792b7f82806ed76d371ec1359a3bf365cd04563e15a450eea85",
+   "librosa_beat_track_bpm": 152.0,
+   "librosa_tempogram_top3": [
+    [
+     152.0,
+     0.696
+    ],
+    [
+     143.6,
+     0.66
+    ],
+    [
+     161.5,
+     0.658
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      77.0,
+      0.085
+     ],
+     [
+      161.5,
+      0.083
+     ],
+     [
+      97.5,
+      0.08
+     ]
+    ]
+   },
+   "rms_dbfs": -13.0
+  },
+  {
+   "id": "musdb:Aimee Norwich - Child",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Aimee Norwich - Child.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "c1af60e91ece429fbd38240bfb92de0e2725412a9b47990f6adced35ad89cd12",
+   "librosa_beat_track_bpm": 143.6,
+   "librosa_tempogram_top3": [
+    [
+     143.6,
+     0.722
+    ],
+    [
+     95.7,
+     0.639
+    ],
+    [
+     71.8,
+     0.61
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      156.5,
+      0.072
+     ],
+     [
+      143.5,
+      0.064
+     ],
+     [
+      184.5,
+      0.057
+     ]
+    ]
+   },
+   "rms_dbfs": -12.7
+  },
+  {
+   "id": "musdb:Alexander Ross - Goodbye Bolero",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Alexander Ross - Goodbye Bolero.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "ac4b1c994d3fd26b67476e6b67ac7971deb638249c69c7eea9311728d040e01c",
+   "librosa_beat_track_bpm": 112.3,
+   "librosa_tempogram_top3": [
+    [
+     161.5,
+     0.624
+    ],
+    [
+     83.4,
+     0.604
+    ],
+    [
+     107.7,
+     0.602
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      65.5,
+      0.034
+     ],
+     [
+      184.5,
+      0.031
+     ],
+     [
+      147.5,
+      0.028
+     ]
+    ]
+   },
+   "rms_dbfs": -17.9
+  },
+  {
+   "id": "musdb:Alexander Ross - Velvet Curtain",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Alexander Ross - Velvet Curtain.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "ffe793f4775e4d5fa70e28f9c3f7fa315ddc3b31eb93a3c8b6dc2b1ffb69df1c",
+   "librosa_beat_track_bpm": 83.4,
+   "librosa_tempogram_top3": [
+    [
+     83.4,
+     0.585
+    ],
+    [
+     123.0,
+     0.571
+    ],
+    [
+     129.2,
+     0.566
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      83.5,
+      0.05
+     ],
+     [
+      117.5,
+      0.04
+     ],
+     [
+      132.5,
+      0.039
+     ]
+    ]
+   },
+   "rms_dbfs": -28.2
+  },
+  {
+   "id": "musdb:ANiMAL - Clinic A",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/ANiMAL - Clinic A.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "0d1744530aad3f8f94115758704e161f0eb078a456e972ab9bc05d643da64385",
+   "librosa_beat_track_bpm": 103.4,
+   "librosa_tempogram_top3": [
+    [
+     103.4,
+     0.729
+    ],
+    [
+     198.8,
+     0.72
+    ],
+    [
+     69.8,
+     0.712
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      139.5,
+      0.107
+     ],
+     [
+      70.0,
+      0.09
+     ],
+     [
+      105.5,
+      0.082
+     ]
+    ]
+   },
+   "rms_dbfs": -15.5
+  },
+  {
+   "id": "musdb:ANiMAL - Easy Tiger",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/ANiMAL - Easy Tiger.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "7280392aa6b1b75284700e62b2dda7f9ba975a83e9e663d4e08bc7e89e5d53e5",
+   "librosa_beat_track_bpm": 123.0,
+   "librosa_tempogram_top3": [
+    [
+     63.0,
+     0.785
+    ],
+    [
+     123.0,
+     0.682
+    ],
+    [
+     129.2,
+     0.679
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      63.0,
+      0.249
+     ],
+     [
+      101.0,
+      0.149
+     ],
+     [
+      167.0,
+      0.142
+     ]
+    ]
+   },
+   "rms_dbfs": -15.3
+  },
+  {
+   "id": "musdb:ANiMAL - Rockshow",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/ANiMAL - Rockshow.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "290f8793c72258198a4e5713ada06f30de5985c3deaf1d15ef7b7d67894fe25a",
+   "librosa_beat_track_bpm": 129.2,
+   "librosa_tempogram_top3": [
+    [
+     198.8,
+     0.654
+    ],
+    [
+     99.4,
+     0.618
+    ],
+    [
+     129.2,
+     0.616
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      132.5,
+      0.095
+     ],
+     [
+      65.5,
+      0.093
+     ],
+     [
+      199.0,
+      0.09
+     ]
+    ]
+   },
+   "rms_dbfs": -15.7
+  },
+  {
+   "id": "musdb:Arise - Run Run Run",
+   "slot": "reggae (NOT reggaeton/dembow) (MUSDB genre Reggae, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Arise - Run Run Run.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "37c630a4989bea345f82cbfef783f7ab6e4c5df0335292b2b47b9c928c84b2b7",
+   "librosa_beat_track_bpm": 86.1,
+   "librosa_tempogram_top3": [
+    [
+     86.1,
+     0.712
+    ],
+    [
+     172.3,
+     0.659
+    ],
+    [
+     184.6,
+     0.511
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      172.5,
+      0.182
+     ],
+     [
+      86.5,
+      0.175
+     ],
+     [
+      177.0,
+      0.112
+     ]
+    ]
+   },
+   "rms_dbfs": -13.1
+  },
+  {
+   "id": "musdb:Auctioneer - Our Future Faces",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Auctioneer - Our Future Faces.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "92175e394d41d12cc4178e3ee94347fba946ee848e527b60b692fb74643d9926",
+   "librosa_beat_track_bpm": 83.4,
+   "librosa_tempogram_top3": [
+    [
+     83.4,
+     0.759
+    ],
+    [
+     172.3,
+     0.746
+    ],
+    [
+     161.5,
+     0.73
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      156.5,
+      0.077
+     ],
+     [
+      83.5,
+      0.039
+     ],
+     [
+      69.0,
+      0.039
+     ]
+    ]
+   },
+   "rms_dbfs": -13.9
+  },
+  {
+   "id": "musdb:Celestial Shore - Die For Us",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Celestial Shore - Die For Us.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "24c37db55a5b911993201a7cc031195f5354abd7df5d14c29fc1889d521f5441",
+   "librosa_beat_track_bpm": 172.3,
+   "librosa_tempogram_top3": [
+    [
+     172.3,
+     0.75
+    ],
+    [
+     86.1,
+     0.689
+    ],
+    [
+     184.6,
+     0.681
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      172.5,
+      0.18
+     ],
+     [
+      177.0,
+      0.173
+     ],
+     [
+      168.0,
+      0.17
+     ]
+    ]
+   },
+   "rms_dbfs": -14.1
+  },
+  {
+   "id": "musdb:Chris Durban - Celebrate",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Chris Durban - Celebrate.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "774622fec5feafb2c4d3a50d435738a120780c3c1a869e92bd74c6a19794c54b",
+   "librosa_beat_track_bpm": 129.2,
+   "librosa_tempogram_top3": [
+    [
+     129.2,
+     0.716
+    ],
+    [
+     86.1,
+     0.713
+    ],
+    [
+     172.3,
+     0.705
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      64.0,
+      0.087
+     ],
+     [
+      123.0,
+      0.086
+     ],
+     [
+      73.5,
+      0.079
+     ]
+    ]
+   },
+   "rms_dbfs": -15.0
+  },
+  {
+   "id": "musdb:Clara Berry And Wooldog - Air Traffic",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Clara Berry And Wooldog - Air Traffic.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "88f2f26e2cf521eeccc6f33d4f94a7b093802d4971bfd833c680ebc4a78858f3",
+   "librosa_beat_track_bpm": 117.5,
+   "librosa_tempogram_top3": [
+    [
+     117.5,
+     0.661
+    ],
+    [
+     123.0,
+     0.644
+    ],
+    [
+     60.1,
+     0.627
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      60.0,
+      0.116
+     ],
+     [
+      120.0,
+      0.064
+     ],
+     [
+      79.5,
+      0.049
+     ]
+    ]
+   },
+   "rms_dbfs": -17.3
+  },
+  {
+   "id": "musdb:Clara Berry And Wooldog - Stella",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Clara Berry And Wooldog - Stella.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "f693058c516a09650793206b15c8f10e43677190c10c817dcaecdee4a37de8f5",
+   "librosa_beat_track_bpm": 112.3,
+   "librosa_tempogram_top3": [
+    [
+     112.3,
+     0.669
+    ],
+    [
+     73.8,
+     0.635
+    ],
+    [
+     107.7,
+     0.593
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      184.5,
+      0.102
+     ],
+     [
+      147.5,
+      0.08
+     ],
+     [
+      74.0,
+      0.069
+     ]
+    ]
+   },
+   "rms_dbfs": -16.3
+  },
+  {
+   "id": "musdb:Clara Berry And Wooldog - Waltz For My Victims",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Clara Berry And Wooldog - Waltz For My Victims.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "0747afeab90eecd32b3f0b933ce11ce246d2b7be1486c317cb10d558b4b47800",
+   "librosa_beat_track_bpm": 117.5,
+   "librosa_tempogram_top3": [
+    [
+     117.5,
+     0.648
+    ],
+    [
+     123.0,
+     0.604
+    ],
+    [
+     60.1,
+     0.586
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      117.5,
+      0.117
+     ],
+     [
+      172.5,
+      0.107
+     ],
+     [
+      184.5,
+      0.101
+     ]
+    ]
+   },
+   "rms_dbfs": -17.5
+  },
+  {
+   "id": "musdb:Faces On Film - Waiting For Ga",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Faces On Film - Waiting For Ga.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "ccbf0e00f61d1b09d4c848264fc1f4a1afb6fc140e50b9045e545acdebef744d",
+   "librosa_beat_track_bpm": 117.5,
+   "librosa_tempogram_top3": [
+    [
+     117.5,
+     0.848
+    ],
+    [
+     78.3,
+     0.813
+    ],
+    [
+     123.0,
+     0.784
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      117.5,
+      0.092
+     ],
+     [
+      147.5,
+      0.08
+     ],
+     [
+      94.0,
+      0.077
+     ]
+    ]
+   },
+   "rms_dbfs": -16.7
+  },
+  {
+   "id": "musdb:Girls Under Glass - We Feel Alright",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Girls Under Glass - We Feel Alright.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "62d9d3f116bce38273ea9c1c04c5483c8608aa25c0bf4e64eb3e572e392c7a60",
+   "librosa_beat_track_bpm": 123.0,
+   "librosa_tempogram_top3": [
+    [
+     63.0,
+     0.818
+    ],
+    [
+     123.0,
+     0.817
+    ],
+    [
+     83.4,
+     0.757
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      62.5,
+      0.27
+     ],
+     [
+      126.0,
+      0.232
+     ],
+     [
+      166.5,
+      0.115
+     ]
+    ]
+   },
+   "rms_dbfs": -15.1
+  },
+  {
+   "id": "musdb:Giselle - Moss",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Giselle - Moss.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "fdd68957a40e1ae0dc56eaa9e1987bda45598eba29a1758814e61e32ec25e9c4",
+   "librosa_beat_track_bpm": 112.3,
+   "librosa_tempogram_top3": [
+    [
+     112.3,
+     0.882
+    ],
+    [
+     107.7,
+     0.878
+    ],
+    [
+     73.8,
+     0.861
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      73.0,
+      0.113
+     ],
+     [
+      110.0,
+      0.093
+     ],
+     [
+      103.5,
+      0.047
+     ]
+    ]
+   },
+   "rms_dbfs": -20.1
+  },
+  {
+   "id": "musdb:Grants - PunchDrunk",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Grants - PunchDrunk.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "edcba85b42b06064fc8e2a09e161ff148738cdbecb629d9203d6825f91dea628",
+   "librosa_beat_track_bpm": 99.4,
+   "librosa_tempogram_top3": [
+    [
+     99.4,
+     0.613
+    ],
+    [
+     198.8,
+     0.584
+    ],
+    [
+     64.6,
+     0.498
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      97.5,
+      0.152
+     ],
+     [
+      191.5,
+      0.08
+     ],
+     [
+      196.0,
+      0.076
+     ]
+    ]
+   },
+   "rms_dbfs": -15.0
+  },
+  {
+   "id": "musdb:Hezekiah Jones - Borrowed Heart",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Hezekiah Jones - Borrowed Heart.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "3a338329fe85e3f35df767e2afe90b25840cc70e0cb6d368411693cab63ff7d9",
+   "librosa_beat_track_bpm": 107.7,
+   "librosa_tempogram_top3": [
+    [
+     107.7,
+     0.716
+    ],
+    [
+     71.8,
+     0.71
+    ],
+    [
+     198.8,
+     0.672
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      152.0,
+      0.056
+     ],
+     [
+      107.5,
+      0.056
+     ],
+     [
+      123.0,
+      0.054
+     ]
+    ]
+   },
+   "rms_dbfs": -17.0
+  },
+  {
+   "id": "musdb:Invisible Familiars - Disturbing Wildlife",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Invisible Familiars - Disturbing Wildlife.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "bb97248896906093317cd3a59b79915b8b7fda3afbc539ab052eec38a7166bf6",
+   "librosa_beat_track_bpm": 152.0,
+   "librosa_tempogram_top3": [
+    [
+     152.0,
+     0.634
+    ],
+    [
+     76.0,
+     0.57
+    ],
+    [
+     143.6,
+     0.547
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      75.0,
+      0.061
+     ],
+     [
+      166.5,
+      0.06
+     ],
+     [
+      156.5,
+      0.056
+     ]
+    ]
+   },
+   "rms_dbfs": -16.3
+  },
+  {
+   "id": "musdb:Little Chicago's Finest - My Own",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Little Chicago's Finest - My Own.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "2d7cbb8306e13f9176795d56412ccc205dcf8f776c33a9ab6ff6cf3138168a57",
+   "librosa_beat_track_bpm": 107.7,
+   "librosa_tempogram_top3": [
+    [
+     107.7,
+     0.709
+    ],
+    [
+     71.8,
+     0.624
+    ],
+    [
+     112.3,
+     0.529
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      72.0,
+      0.063
+     ],
+     [
+      65.5,
+      0.05
+     ],
+     [
+      126.0,
+      0.024
+     ]
+    ]
+   },
+   "rms_dbfs": -21.8
+  },
+  {
+   "id": "musdb:Lushlife - Toynbee Suite",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Lushlife - Toynbee Suite.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "457bfe455617ec6bd28782346618a3a4ee27b00378524d27744f2d5f8ae8a87c",
+   "librosa_beat_track_bpm": 152.0,
+   "librosa_tempogram_top3": [
+    [
+     152.0,
+     0.756
+    ],
+    [
+     161.5,
+     0.743
+    ],
+    [
+     78.3,
+     0.72
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      152.0,
+      0.091
+     ],
+     [
+      191.5,
+      0.076
+     ],
+     [
+      167.0,
+      0.068
+     ]
+    ]
+   },
+   "rms_dbfs": -12.3
+  },
+  {
+   "id": "musdb:M.E.R.C. Music - Knockout",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/M.E.R.C. Music - Knockout.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "2c07f1dca41065473835a345651a9174e03d8ea84a3e02b95b029252e81371fb",
+   "librosa_beat_track_bpm": 161.5,
+   "librosa_tempogram_top3": [
+    [
+     161.5,
+     0.672
+    ],
+    [
+     80.7,
+     0.659
+    ],
+    [
+     152.0,
+     0.622
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      105.5,
+      0.136
+     ],
+     [
+      79.5,
+      0.073
+     ],
+     [
+      161.5,
+      0.048
+     ]
+    ]
+   },
+   "rms_dbfs": -17.7
+  },
+  {
+   "id": "musdb:Music Delta - Beatles",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Music Delta - Beatles.stem.mp4",
+   "offset_s": 30,
+   "seconds": 6.2,
+   "sha256": "6eea900822c070b0b4f8cc3f27cc01dab0fa17e68c08a3e9f90ca48f5cf954cf",
+   "librosa_beat_track_bpm": 112.3,
+   "librosa_tempogram_top3": [
+    [
+     73.8,
+     0.599
+    ],
+    [
+     112.3,
+     0.581
+    ],
+    [
+     107.7,
+     0.524
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      73.0,
+      0.122
+     ],
+     [
+      136.0,
+      0.069
+     ],
+     [
+      112.5,
+      0.046
+     ]
+    ]
+   },
+   "rms_dbfs": -13.2
+  },
+  {
+   "id": "musdb:Port St Willow - Stay Even",
+   "slot": "ballad < 80 candidate (MUSDB genre Singer/Songwriter, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Port St Willow - Stay Even.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "e9a67e999f36fb33803a34d6d4e07f5610bb89f509348a6615f22f3e573452bf",
+   "librosa_beat_track_bpm": 117.5,
+   "librosa_tempogram_top3": [
+    [
+     172.3,
+     0.747
+    ],
+    [
+     117.5,
+     0.722
+    ],
+    [
+     86.1,
+     0.692
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      87.5,
+      0.159
+     ],
+     [
+      172.5,
+      0.091
+     ],
+     [
+      177.0,
+      0.062
+     ]
+    ]
+   },
+   "rms_dbfs": -18.9
+  },
+  {
+   "id": "musdb:PR - Happy Daze",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/PR - Happy Daze.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "b85e3d05b6f4ca08cb6970eeef37b62667912a61bcb6ffdf6bbc009c83afe5aa",
+   "librosa_beat_track_bpm": 123.0,
+   "librosa_tempogram_top3": [
+    [
+     123.0,
+     0.541
+    ],
+    [
+     117.5,
+     0.486
+    ],
+    [
+     80.7,
+     0.443
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      120.5,
+      0.247
+     ],
+     [
+      64.0,
+      0.166
+     ],
+     [
+      81.0,
+      0.13
+     ]
+    ]
+   },
+   "rms_dbfs": -11.7
+  },
+  {
+   "id": "musdb:PR - Oh No",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/PR - Oh No.stem.mp4",
+   "offset_s": 30,
+   "seconds": 46.0,
+   "sha256": "aeda71bd62e142ef7a36a59c29523a4d29340f655880b4730ebbb57ceb18833f",
+   "librosa_beat_track_bpm": 63.0,
+   "librosa_tempogram_top3": [
+    [
+     63.0,
+     0.599
+    ],
+    [
+     83.4,
+     0.491
+    ],
+    [
+     161.5,
+     0.407
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      63.0,
+      0.578
+     ],
+     [
+      126.0,
+      0.54
+     ],
+     [
+      130.5,
+      0.159
+     ]
+    ]
+   },
+   "rms_dbfs": -15.6
+  },
+  {
+   "id": "musdb:Side Effects Project - Sing With Me",
+   "slot": "hip-hop 85-100 (MUSDB genre Rap, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Side Effects Project - Sing With Me.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "979379c94d1a1da4dc6954ef202989517ed5da23c7432f6d3a19376b08c38686",
+   "librosa_beat_track_bpm": 112.3,
+   "librosa_tempogram_top3": [
+    [
+     112.3,
+     0.641
+    ],
+    [
+     76.0,
+     0.637
+    ],
+    [
+     117.5,
+     0.599
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      76.0,
+      0.283
+     ],
+     [
+      112.5,
+      0.166
+     ],
+     [
+      117.0,
+      0.077
+     ]
+    ]
+   },
+   "rms_dbfs": -16.4
+  },
+  {
+   "id": "musdb:Skelpolu - Human Mistakes",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Skelpolu - Human Mistakes.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "608e9611b2f14bbd28ef6bd3c020c7212b91c99ff56c272b56380171740d5cb3",
+   "librosa_beat_track_bpm": 172.3,
+   "librosa_tempogram_top3": [
+    [
+     172.3,
+     0.749
+    ],
+    [
+     117.5,
+     0.658
+    ],
+    [
+     69.8,
+     0.632
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      117.5,
+      0.351
+     ],
+     [
+      70.0,
+      0.321
+     ],
+     [
+      178.0,
+      0.225
+     ]
+    ]
+   },
+   "rms_dbfs": -13.2
+  },
+  {
+   "id": "musdb:Skelpolu - Resurrection",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/Skelpolu - Resurrection.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "16c75a0ece50eaa88fda80042c3c24e5b2385225151500119be3959979c841e1",
+   "librosa_beat_track_bpm": 89.1,
+   "librosa_tempogram_top3": [
+    [
+     89.1,
+     0.824
+    ],
+    [
+     117.5,
+     0.741
+    ],
+    [
+     172.3,
+     0.705
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      184.5,
+      0.092
+     ],
+     [
+      79.5,
+      0.075
+     ],
+     [
+      65.5,
+      0.073
+     ]
+    ]
+   },
+   "rms_dbfs": -13.4
+  },
+  {
+   "id": "musdb:Skelpolu - Together Alone",
+   "slot": "house 120-128 candidate (MUSDB genre Electronic, train)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/train/Skelpolu - Together Alone.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "8a7410000d3d42e5007133f04912b523b57c6a9a1b973b5887c71d8177ca0b7f",
+   "librosa_beat_track_bpm": 172.3,
+   "librosa_tempogram_top3": [
+    [
+     172.3,
+     0.793
+    ],
+    [
+     86.1,
+     0.759
+    ],
+    [
+     117.5,
+     0.713
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      117.5,
+      0.241
+     ],
+     [
+      87.5,
+      0.212
+     ],
+     [
+      69.5,
+      0.167
+     ]
+    ]
+   },
+   "rms_dbfs": -15.2
+  },
+  {
+   "id": "musdb:The Sunshine Garcia Band - For I Am The Moon",
+   "slot": "reggae (NOT reggaeton/dembow) (MUSDB genre Reggae, test)",
+   "path": "/Users/spectrasynq/SpectraSynq-EdgeAI-Lab/datasets/musdb18/test/The Sunshine Garcia Band - For I Am The Moon.stem.mp4",
+   "offset_s": 30,
+   "seconds": 75.0,
+   "sha256": "ac21bbada33baa0f03d57753c716c49d8377dbbaf315da40df4a9f825af14c21",
+   "librosa_beat_track_bpm": 123.0,
+   "librosa_tempogram_top3": [
+    [
+     123.0,
+     0.664
+    ],
+    [
+     129.2,
+     0.632
+    ],
+    [
+     61.5,
+     0.609
+    ]
+   ],
+   "kick_band": {
+    "top3_bpm_acf": [
+     [
+      97.5,
+      0.052
+     ],
+     [
+      156.5,
+      0.05
+     ],
+     [
+      120.0,
+      0.049
+     ]
+    ]
+   },
+   "rms_dbfs": -15.6
+  }
+ ]
+}

@@ -1,0 +1,46 @@
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. Do not touch hardware or its running show.
+
+CURRENT CAPTAIN ASSIGNMENT — 11 October 2026
+The old 94-task native migration campaign is CLOSED/PARKED. Captain authorises ONE visible firmware release: independent per-channel intensity/envelope on the current working donor, without transport, electrical or wiring changes. Root now only strategises and delegates; source implementation, release/build/hardware execution and independent review are assigned to distinct existing SSAs. This review is explicitly requested for that same concrete visible gain patch. No old campaign lane is restarted.
+Captain specifically requests native Grok 4.7 NON-FAST, reasoning HIGH, existing Heavy account and 500k context where actually supported. Never substitute fast/xhigh/another model or claim provider settings from requested argv. All JEV/TypeSafe quota is authorised, but no such provider is needed here. Use the existing authenticated native route; never expose credentials or change account/security settings.
+
+META_TASK: Review the current independent physical A/B intensity patch before the sole release owner programmes it.
+NOT_THE_TASK: No implementation, hardware/BOM/electrical qualification, migration completion, old campaign reviews or generic audit. No tests/commands that open hardware or run the broker, camera, playback, probe or serial.
+REFERENCE_ONLY: Reported donor build becb0186f0a66fbb04b0e0f4a79c0480b8b963db0fe3f518a91af9bb2dd2b5c7; imported Emotiscope source7f86939bd7c16c4a6dd5789813e9d551246ed134. These are recorded references, not fresh target observations. Historical old massive-parallel order supplies a native CLI route only; its old twelve assignments and xhigh instruction are superseded by THIS high-effort bounded review.
+SUBJECT: Existing editable firmware at /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001, HEAD119ba2c498054fb0206e453cf38f6968222431c9 plus the current visible gain patch.
+MEDIUM: Source/diff review; images N/A. Return concrete source findings with file/line, severity, mechanism and minimal repair. No optical claim from tests.
+MODEL: grok-4.7 non-fast; HIGH reasoning. Report actual model/effort/context/tier only if observable. Unobserved account tier/context remains explicit.
+RESEARCH_DONE: AEL reports/lanes-2026-10-03/titan-build/REPORT.md resolves the editable donor; the current source and reviewed.diff are the review material.
+ONE_WRITER: You have NO write lease. ab_firmware owns the four firmware files; visible_donor_source owns codec/contract/test files; visible_release_owner owns release/build/hardware and host server. You are not alone; do not edit, revert, reset, commit, launch subagents or interfere with their processes.
+HARD_BANS: Read-only review. No shell execution, file writes, hardware, serial, broker, camera, media, playback, electrical/wiring change, purchase, git checkout/worktree, commits, push, provider wrappers, security-setting changes, permission bypass or old lane work. Use normal native read tools only.
+DONE_WHEN: First demonstrate observed consumption of the current authority and source by naming the charter identity and current fields/offsets. Then review the concrete code and return verdict/findings. Prepared prose alone is not a running review; source evidence is required. Stop after the bounded review and report actual limits.
+
+AUTHORITY TO READ FIRST
+1. This current brief (supersedes the parked campaign scope).
+2. Local AGENTS.md, especially the authorised donor-port worktree, continuous160 split80+80 and default100 directives. Preserve UID545433931bd25436593630352d068363; P601/GPT6/DMA0 and P604/GPT8/DMA3; micDMA1/2. Root/release ownership is current above.
+3. /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM/Kx-Titan/docs/product-charter.md and docs/product-charter.lock.json. Expected charter SHA2565c2d54ad5189892c0cd633afa60cffcafb2880c4f74c3916ca6b782f225da74e. Apply SQ01 visible consequence, SQ05 truthful evidence, SQ07 existing architecture and SQ08 bounded work. Do not infer native product-HOLD release from a donor patch.
+4. reviewed.diff in this directory, then the actual changed source files in the existing worktree (source can be repaired by its owners while you read; name the inspected version/findings).
+
+EXACT REVIEW CONTRACT
+fields19 output_intensity_a and20 output_intensity_b are finite F32 in0..1, default1.0; PATCH max184/count20/mask0xfffff. GET stays160bytes, explicit version2; existing offsets0..143 unchanged; A144/B148 F32 and reserved152..159zero. Host decoding version1 MUST report unsupported None values, not invent independent support. Version2 validates gains. Root structs DonorObserved/DonorApplyResult fields output_intensity_a/b default1.0; changed flags intensity_a_changed/intensity_b_changed. PaletteRuntime setOutputIntensity(unsigned,float)->bool and outputIntensity(unsigned)->float. Separate gains apply AFTER existing hardware scale16, cached Q16=rounded float*65535; attenuation=(component*q16+32767)/65535, default1.0byteexact.
+The music engine still renders ONE continuous160scene. Physical laneA is logical0..79 and B80..159; duplicated visual ChannelRenderState A/B is NOT two separately rendered physical scenes. Shared spatial/musical motion remains intact. This release must give a clear physical A/B intensity cue; controls/readback alone do not prove visible output. No new optical acceptance conclusion is expected from you.
+Review finite validation at parser AND setter/application boundaries, whole-packet atomicity, invalid masked values, masked A-only/B-only independence, dedup/replay/stale behaviour, default wire identity and no intensification, state version/offset compatibility and reserved tail, boot defaults, unchanged transport/driver/wiring, and exact-image/schema admission implications.
+
+FILES
+platform/ra8p1/palette_runtime.h
+platform/ra8p1/palette_runtime.cpp
+platform/ra8p1/emotiscope_control.h
+platform/ra8p1/fixture_app.cpp
+tools/serial-studio/emotiscope_control.py
+docs/contracts/titan-emotiscope-v1.json
+tests/host/test_emotiscope_controls.cpp
+scripts/test_emotiscope_controls.py
+tests/host/test_palette_runtime.cpp
+
+RETAINED RED EVIDENCE
+_scratch/visible-ab-20261011/controls-001/behavioral.log failed at test_emotiscope_controls.cpp551/554: direct donorApply intent combined valid brightness0.99 and NaN gain; donorApply had only parser-side gain validation, accepted and mutated donor configuration before invalid application. Firmware owner has now prevalidated masked gains before k1_emotiscope_patch. The failed receipt is preserved; release owner is rerunning in a fresh directory. Do not erase the failed result or call the repair proven before the new actual check.
+
+RETURN FORMAT
+1. Authority/source consumption and actual observable model/settings.
+2. Blocking findings first, with exact functions/lines and mechanisms; distinguish proved defects from remaining uncertainty.
+3. Focused review verdict and any minimal repair required before deployment. No writes or blanket completion claim.

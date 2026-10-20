@@ -1,0 +1,39 @@
+== interpreters
+host:     /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/.venv/bin/python (Python 3.13.11)
+firmware: /opt/homebrew/opt/python@3.14/bin/python3.14 (Python 3.14.7)
+== worktrees
+F /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001 HEAD=3c7eb8e tracked-dirty=1 (feat/titan-emotiscope-port-001)
+S /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001 HEAD=db9fcce tracked-dirty=3 (feat/smc-titan-control-001)
+== output /tmp/check-instrument.LjsqZb
+
+== S host suite (run_tests.py, pytest)
+............................................s........................... [ 42%]
+........................................................................ [ 84%]
+......................s...                                               [100%]
+168 passed, 2 skipped in 1.79s
+
+== F serial-studio broker suite
+........................................................................ [ 25%]
+........................................................................ [ 51%]
+........................................................................ [ 77%]
+...............................................................F         [100%]
+=================================== FAILURES ===================================
+____________________________ test_injected_failure _____________________________
+
+    def test_injected_failure():
+>       assert 1 == 2, "deliberate check_instrument failure proof"
+E       AssertionError: deliberate check_instrument failure proof
+E       assert 1 == 2
+
+tools/serial-studio/tests/test_zz_injected_failure.py:2: AssertionError
+=============================== warnings summary ===============================
+tools/serial-studio/tests/test_ss03_lock.py::test_tiocexcl_scope_on_pty
+  /Users/spectrasynq/Library/Python/3.14/lib/python/site-packages/_pytest/python.py:161: PytestReturnNotNoneWarning: Test functions should return None, but tools/serial-studio/tests/test_ss03_lock.py::test_tiocexcl_scope_on_pty returned <class 'dict'>.
+  Did you mean to use `assert` instead of `return`?
+  See https://docs.pytest.org/en/stable/how-to/assert.html#return-not-none for more information.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tools/serial-studio/tests/test_zz_injected_failure.py::test_injected_failure
+1 failed, 279 passed, 1 warning in 57.81s

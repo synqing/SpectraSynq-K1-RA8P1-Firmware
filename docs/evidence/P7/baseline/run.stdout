@@ -1,0 +1,2 @@
+{"cases": 326, "passed": 0, "failed": 326, "pass": false, "by_criterion_pass_fail": {"LOCK": [0, 323], "BPM": [131, 192], "FLIP": [173, 150], "LOWCONF": [0, 326]}}
+exit=1

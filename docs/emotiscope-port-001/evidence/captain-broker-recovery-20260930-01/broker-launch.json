@@ -1,0 +1,15 @@
+{
+  "argv": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/tools/serial-studio/titan_broker.py",
+    "run",
+    "--evidence",
+    "/tmp/titan-emotiscope-control",
+    "--live-control",
+    "--continuous-output"
+  ],
+  "pid": 32626,
+  "detached_session": true,
+  "time": "2026-09-30T02:40:28.838687+08:00",
+  "admission_file_unchanged": true
+}

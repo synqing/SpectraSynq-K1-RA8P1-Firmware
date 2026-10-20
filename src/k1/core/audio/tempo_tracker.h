@@ -15,6 +15,10 @@ struct TempoTrackerInput final {
     std::uint32_t frame_ms = 0;
     float novelty = 0.0F;
     bool silence = false;
+    std::uint64_t media_frame = 0;
+    std::uint64_t epoch = 0;
+    std::uint32_t configuration_revision = 1;
+    bool media_valid = false;
 };
 
 struct TempoTrackerEvent final {
@@ -42,7 +46,30 @@ struct TempoTrackerBin final {
     float magnitude_raw = 0.0F;
 };
 
+struct TempoEvidenceStamp final {
+    std::uint64_t epoch = 0;
+    std::uint64_t endpoint = 0;
+    std::uint32_t configuration_revision = 1;
+    bool valid = false;
+    std::uint32_t wall_ms = 0;
+};
+struct TempoTrackerEvidence final {
+    TempoEvidenceStamp current{};
+    TempoEvidenceStamp pending{};
+    TempoEvidenceStamp history_source{};
+    TempoEvidenceStamp completed{};
+    TempoNoveltyRing snapshot{};
+    TempoNoveltyRing pending_snapshot{};
+    std::array<std::uint64_t, kTempoTrackerBinCount> raw_observed_frame{};
+    std::array<bool, kTempoTrackerBinCount> raw_observed_valid{};
+    std::uint64_t generation = 0;
+    std::uint32_t phase_reference_wall_ms = 0;
+    std::uint64_t interval_frames = 1080;
+    std::uint16_t history_samples = 0;
+    bool invalid = false;
+};
 struct TempoTrackerState final {
+    TempoTrackerEvidence evidence{};
     std::array<TempoTrackerBin, kTempoTrackerBinCount> bins{};
     std::array<float, kTempoTrackerBinCount> smoothed{};
     std::array<float, kTempoTrackerBinCount> tempo_prior{};
@@ -106,6 +133,9 @@ void resetTempoTracker(TempoTrackerState& state) noexcept;
 void updateTempoTracker(TempoTrackerState& state,
                         const TempoTrackerInput& input) noexcept;
 
+// Metadata-only hooks used by the effective sliced source too.
+void captureTempoEvidence(TempoTrackerState& state) noexcept;
+void completeTempoEvidence(TempoTrackerState& state) noexcept;
 [[nodiscard]] TempoTrackerEvent readTempoTracker(
     const TempoTrackerState& state) noexcept;
 [[nodiscard]] TempoTrackerDebug readTempoTrackerDebug(

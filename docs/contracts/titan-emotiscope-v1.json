@@ -1,0 +1,1865 @@
+{
+  "protocol_version": 1,
+  "max_response_body": 4096,
+  "endian": "little",
+  "event_ring": 256,
+  "event_record_bytes": 192,
+  "event_read_max": 20,
+  "timing_ring": 1024,
+  "timing_record_bytes": 56,
+  "timing_read_max": 64,
+  "history_header_bytes": 64,
+  "snapshot_opcode": 23,
+  "events_opcode": 24,
+  "config_opcode": 25,
+  "timing_opcode": 26,
+  "legacy_mir_json_opcode": 21,
+  "history_flags": {
+    "EMPTY": 1,
+    "GAP": 2,
+    "EXPIRED_CURSOR": 4
+  },
+  "snapshot_flags": {
+    "VALID": 1,
+    "WARMING": 2,
+    "STALE": 4,
+    "LIVE_ORIGIN": 8,
+    "EMIT_ON": 16,
+    "PHYSICAL_TS": 32
+  },
+  "snapshot_bytes": 1184,
+  "schema_version": 1,
+  "schema_id": "titan-emotiscope-v1",
+  "runtime_kind": "live",
+  "contract": "sr12800.hop64.bins64.emotiscope",
+  "capture_contract_version": 2,
+  "binary_layout": "Existing Titan live snapshot/event/timing version 1, unchanged byte offsets. This schema supplies profile-specific semantics; the schema SHA-256 must match before decoding.",
+  "ap_rate_hz": 12800,
+  "hop_samples": 64,
+  "media_time_rate_hz": 48000,
+  "media_ticks_per_hop": 240,
+  "spectrum_bins": 64,
+  "spectrum_wire_slots": 80,
+  "spectrum_padding": {
+    "first_slot": 64,
+    "slots": 16,
+    "value": 0
+  },
+  "spectrum_values": "Native donor spectrogram magnitudes, not K1 magnitudes and not interpolated bins.",
+  "spectrum_frequencies_hz": [
+    77.78175,
+    82.40689,
+    87.30706,
+    92.49861,
+    97.99886,
+    103.8262,
+    110.0,
+    116.5409,
+    123.4708,
+    130.8128,
+    138.5913,
+    146.8324,
+    155.5635,
+    164.8138,
+    174.6141,
+    184.9972,
+    195.9977,
+    207.6523,
+    220.0,
+    233.0819,
+    246.9417,
+    261.6256,
+    277.1826,
+    293.6648,
+    311.127,
+    329.6276,
+    349.2282,
+    369.9944,
+    391.9954,
+    415.3047,
+    440.0,
+    466.1638,
+    493.8833,
+    523.2511,
+    554.3653,
+    587.3295,
+    622.254,
+    659.2551,
+    698.4565,
+    739.9888,
+    783.9909,
+    830.6094,
+    880.0,
+    932.3275,
+    987.7666,
+    1046.502,
+    1108.731,
+    1174.659,
+    1244.508,
+    1318.51,
+    1396.913,
+    1479.978,
+    1567.982,
+    1661.219,
+    1760.0,
+    1864.655,
+    1975.533,
+    2093.005,
+    2217.461,
+    2349.318,
+    2489.016,
+    2637.02,
+    2793.825,
+    2959.956
+  ],
+  "chroma_bins": 12,
+  "chroma_origin": "D#/Eb",
+  "chroma_labels": [
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+    "C",
+    "C#",
+    "D"
+  ],
+  "chroma_values": "Unrotated donor get_chromagram output: spectrogram_smooth bins 0..59 folded modulo 12 and normalized by the donor. Bin 0 corresponds to 77.78175 Hz (D#/Eb2).",
+  "enabled_modes": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    32,
+    18,
+    8,
+    7,
+    11
+  ],
+  "mode_ordinals": 12,
+  "mode_names": {
+    "0": "Analog",
+    "1": "Spectrum",
+    "2": "Octave",
+    "3": "Metronome",
+    "4": "Spectronome",
+    "5": "Hype",
+    "6": "Bloom",
+    "32": "Waveform Hybrid K1",
+    "18": "Waveform Tempo",
+    "8": "Waveform",
+    "7": "Waveform Fast",
+    "11": "Waveform Hybrid"
+  },
+  "palette_count": 44,
+  "palette_ids": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44
+  ],
+  "palette_semantics": "Musical output permanently uses K1 catalogue palettes1..44; SunsetReal1 boots autonomously. Current writes reject0; historical readback remains decoded truthfully.",
+  "stale_publication_us": 30000,
+  "stale_source_test_us": 0,
+  "warmup_hops": 64,
+  "warmup_us": 320000,
+  "deadline_us": 5000,
+  "deadline_semantics": "Nominal 5 ms audio period. AP/VP cycles and measured hop intervals are observations, not a claimed target deadline admission. publication_deadline_misses counts transitions into stale publication, not every AP execution exceeding 5 ms.",
+  "render_period_us": 10000,
+  "render_schedule": "100 Hz is the declared port schedule, not a recovered historical donor frame rate.",
+  "capabilities": {
+    "snapshot": true,
+    "events": true,
+    "timing": true,
+    "legacy_mir_json": true,
+    "config": true,
+    "stale_source_test": false,
+    "mode_control": true,
+    "beat_lock": false,
+    "onset_events": false,
+    "saliency": false,
+    "chord": false,
+    "pitch_hz": false
+  },
+  "config_subcommands": {},
+  "disabled_config": {
+    "opcode": 25,
+    "all_subcommands_rejected": false,
+    "legacy_subcommands_rejected": true,
+    "legacy_status": 3,
+    "reason": "Superseded 2026-09-29. Legacy K1 subcommands 1 through 12 remain rejected. Donor GET 0x454D0101 and masked PATCH 0x454D0102 are the control surface. Bind this schema file to the INFO schema hash.",
+    "superseded_reason": "Legacy K1 focus/performance/PATCH/config/schema commands do not control this donor."
+  },
+  "donor_control": {
+    "opcode": 25,
+    "get_sub": 1162674433,
+    "patch_sub": 1162674434,
+    "state_bytes": 160,
+    "state_magic": 1162695508,
+    "engine_id": 1,
+    "version": 2,
+    "patch_max_bytes": 184,
+    "patch_field_count": 20,
+    "patch_field_mask": 1048575,
+    "state_layout": {
+      "unchanged_offsets": "0..143",
+      "output_intensity_a": {
+        "offset": 144,
+        "kind": "f32"
+      },
+      "output_intensity_b": {
+        "offset": 148,
+        "kind": "f32"
+      },
+      "reserved_zero": "152..159"
+    },
+    "legacy_state_version": {
+      "version": 1,
+      "intensity_controls_supported": false,
+      "decoded_intensities": null,
+      "reserved_zero": "144..159"
+    },
+    "fields": {
+      "brightness": {
+        "id": 1,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 1.0,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "softness": {
+        "id": 2,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.25,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "color": {
+        "id": 3,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.33,
+        "note": "Historical/default value remains readable; current writes are rejected before any mutation.",
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "writable": false,
+        "supported": false
+      },
+      "warmth": {
+        "id": 4,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "color_range": {
+        "id": 5,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0,
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "writable": false,
+        "supported": false,
+        "note": "Historical/default value remains readable; current writes are rejected before any mutation."
+      },
+      "speed": {
+        "id": 6,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.5,
+        "applicable_when": "current_mode == Analog (0). Stored but ineffective in other modes, including this donor Bloom variant.",
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "saturation": {
+        "id": 7,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.75,
+        "wire": "native raw. Host UI uses one sqrt transform.",
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "writable": false,
+        "supported": false,
+        "note": "Historical/default value remains readable; current writes are rejected before any mutation."
+      },
+      "background": {
+        "id": 8,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "default": 0.25,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "current_mode": {
+        "id": 9,
+        "kind": "i32",
+        "min": 0,
+        "max": 32,
+        "default": 1,
+        "scope": "selected board; 32 requires v6 capability128; 18/8/7/11 require v8 capability256",
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          32,
+          18,
+          8,
+          7,
+          11
+        ]
+      },
+      "mirror_mode": {
+        "id": 10,
+        "kind": "bool",
+        "default": true,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "screensaver": {
+        "id": 11,
+        "kind": "bool",
+        "default": true,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "temporal_dithering": {
+        "id": 12,
+        "kind": "bool",
+        "default": true,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "auto_color_cycle": {
+        "id": 13,
+        "kind": "bool",
+        "default": false,
+        "scope": "selected whole-board scene; legacy request selects primary"
+      },
+      "reverse_color_range": {
+        "id": 14,
+        "kind": "bool",
+        "default": false,
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "note": "Reverses curated palette progress on the selected board independently of the obsolete Colour Range value. Applicable in every donor mode; stored range0 does not disable this control."
+      },
+      "hardware_output_brightness": {
+        "id": 15,
+        "kind": "u32",
+        "min": 0,
+        "max": 255,
+        "default": 100
+      },
+      "emission_enabled": {
+        "id": 16,
+        "kind": "bool",
+        "default": true
+      },
+      "output_precision": {
+        "id": 17,
+        "kind": "bool",
+        "default": false,
+        "state_flag_bit": 6,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "defaults_restore": false,
+        "values": {
+          "0": "reference: donor post-gamma floats, temporal-dithered RGB8, x257 on the wire",
+          "1": "candidate: the same validated floats rounded to 16 bits (v*65535+0.5), no dither"
+        },
+        "note": "Same nearest 128->160 mapping and one output gain in both. Boot and reboot return 0."
+      },
+      "palette": {
+        "id": 18,
+        "kind": "u32",
+        "default": 1,
+        "range": [
+          1,
+          44
+        ],
+        "state_offset": 140,
+        "owner": "realtime frame boundary",
+        "scene": true,
+        "defaults_restore": false,
+        "values": {
+          "1..44": "K1 catalogue sampler id-1; permanent authored colour; palette0 rejected"
+        },
+        "note": "SunsetReal1 autonomous boot; both board scenes save palette choice",
+        "min": 1,
+        "scope": "selected whole-board scene; legacy request selects primary",
+        "max": 44
+      },
+      "output_intensity_a": {
+        "id": 19,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "finite": true,
+        "default": 1.0,
+        "state_offset": 144,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "note": "Physical DIN-A logical pixels 0..79 only; shared scene and music motion remain unchanged. Cached Q16 gain rounded from value*65535, applied after hardware scale16 as (component*q16+32767)/65535; 1.0 is byte exact.",
+        "scope": "BOTTOM/PRIMARY DIN-A logical pixels0..79 only"
+      },
+      "output_intensity_b": {
+        "id": 20,
+        "kind": "f32",
+        "min": 0,
+        "max": 1,
+        "finite": true,
+        "default": 1.0,
+        "state_offset": 148,
+        "owner": "realtime frame boundary",
+        "scene": false,
+        "note": "Physical DIN-B logical pixels 80..159 only; same independent output gain law as DIN-A. Boot defaults to 1.0; a patch to one lane preserves the other.",
+        "scope": "BOTTOM/PRIMARY DIN-B logical pixels80..159 only"
+      }
+    },
+    "statuses": {
+      "ok": 0,
+      "invalid": 3,
+      "stale_revision": 5,
+      "wrong_boot": 6,
+      "request_conflict": 7,
+      "reconcile": 9,
+      "busy": 10,
+      "reconcile_versus_timeout": "Owner reconcile status 9 includes the 160-byte state. Transport timeout status 9 has an empty body."
+    },
+    "optional_top_profile": {
+      "build_flag": "K1_TITAN_TOP_OUTPUT",
+      "version": 3,
+      "state_bytes": 176,
+      "patch_max_bytes": 208,
+      "patch_field_count": 23,
+      "patch_field_mask": 8388607,
+      "installed_v2_support": false,
+      "state_layout": {
+        "unchanged_offsets": "0..151",
+        "primary_intensity": 152,
+        "secondary_intensity": 156,
+        "secondary_output_enabled": 160,
+        "board_capabilities": 164,
+        "reserved_zero": "168..175"
+      },
+      "capability_bits": {
+        "0": "primary whole-board intensity is consumed",
+        "1": "secondary transport and whole-board intensity are consumed"
+      },
+      "profile_capabilities": 3,
+      "fields": {
+        "primary_intensity": {
+          "id": 21,
+          "kind": "f32",
+          "min": 0,
+          "max": 1,
+          "default": 1.0,
+          "scope": "BOTTOM/PRIMARY entire160-pixel board"
+        },
+        "secondary_intensity": {
+          "id": 22,
+          "kind": "f32",
+          "min": 0,
+          "max": 1,
+          "default": 1.0,
+          "scope": "TOP/SECONDARY entire160-pixel board"
+        },
+        "secondary_output_enabled": {
+          "id": 23,
+          "kind": "bool",
+          "default": false
+        }
+      },
+      "gain_order": "global hardware scale, whole-board Q16 attenuation, then bottom DIN-half Q16 attenuation; top ignores fields19/20",
+      "scene_semantics": "Historical v3 used one shared rendered160 scene with board gains. v4 consumes isolated primary/secondary visual state and shared immutable audio publication.",
+      "activation": "Optional build capability is distinct from electrical clearance, runtime enabled state and observed physical output. The existing v2 installed image does not support secondary output."
+    },
+    "independent_scene_profile": {
+      "build_flag": "K1_TITAN_TOP_OUTPUT",
+      "version": 4,
+      "state_bytes": 208,
+      "get_bytes": 20,
+      "legacy_get_bytes": 16,
+      "patch_max_bytes": 240,
+      "patch_field_count": 27,
+      "patch_field_mask": 134217727,
+      "profile_capabilities": 7,
+      "capability_bits": {
+        "0": "primary whole-board intensity",
+        "1": "secondary transport and whole-board intensity",
+        "2": "independent board scenes and musical response"
+      },
+      "state_layout": {
+        "unchanged_offsets": "0..175; scene values belong to selected board, globals retain their scope",
+        "selected_board": 176,
+        "response_gain": 180,
+        "edge_response": 184,
+        "edge_depth": 188,
+        "legacy_reserved_zero": "168..175",
+        "reserved_zero": "192..207"
+      },
+      "fields": {
+        "board": {
+          "id": 24,
+          "kind": "u32",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "scope": "packet-local target; no persistent selector or revision change by itself"
+        },
+        "response_gain": {
+          "id": 25,
+          "kind": "f32",
+          "min": 0,
+          "max": 2,
+          "finite": true,
+          "default": 1.0,
+          "scope": "selected board VP-consumed audio magnitudes; raw shared analysis unchanged"
+        },
+        "edge_response": {
+          "id": 26,
+          "kind": "u32",
+          "min": 0,
+          "max": 2,
+          "default": 0,
+          "values": {
+            "0": "off",
+            "1": "novelty",
+            "2": "spectrum"
+          },
+          "scope": "selected board visual response"
+        },
+        "edge_depth": {
+          "id": 27,
+          "kind": "f32",
+          "min": 0,
+          "max": 1,
+          "finite": true,
+          "default": 0.0,
+          "scope": "selected board edge response depth"
+        }
+      },
+      "targeting": "GET16 and PATCH omitting24 select primary0. GET20 selector at16 and PATCH24 select board0/1 per request. Read-only Board1 GET requires actual v4 independent-scene capability, independently of transport readiness. Current outbound Board1 mutations additionally require secondary transport capability. Applicable fields1..14/18/25..27 target that board; fields15..17/21..23 remain global. Fixed HSV fields3/5/7 are unsupported on both boards and rejected atomically. Fields19/20 remain bottom DIN-half gains; board1 with19/20 is rejected atomically.",
+      "atomicity": "One shared revision across scene/global controls. Validate all masked values and target before any scene, palette, response, edge or admission mutation. Replay identity includes payloadCRC and explicit target; reused ID with different target conflicts even for a forged matching CRC.",
+      "rendering": "Separate160-pixel scenes with isolated config, visual history and RNG; common once-per-hop analyser and once-per-frame immutable novelty/tempo publication. Palette and Analog paired-hue rules apply independently to each board.",
+      "legacy_support": "v1/v2/v3 decode retains real old values. v2/v3 do not advertise independent scenes or response/edge controls; these decode as null. Capability advertisement does not prove physical output.",
+      "progress_receipts": "Offsets76/80/84/88 report accepted/rendered/emitted request IDs and rendered frame for the selected board. Shared revision and electrical output words remain global. A primary emit never confirms a secondary request.",
+      "fault_readback": "When secondary transport admission fails, capability bit1 may clear while independent-scenes bit2 remains. Selected secondary scene readback and read-only GET remain valid (caps5, enabled0); no physical-output claim follows."
+    },
+    "unsupported_palette_fields": {
+      "ids": [
+        3,
+        5,
+        7
+      ],
+      "reason": "Fixed HSV Colour, ColourRange and Saturation are ineffective in permanent catalogue colour. All current donor PATCH writes reject them atomically; readback retains historical/default values. Direct config read-modify-write preserves unchanged values but rejects changes."
+    },
+    "feature_profile": {
+      "version": 5,
+      "state_bytes": 320,
+      "get_sub": 1162674689,
+      "patch_sub": 1162674690,
+      "get_bytes": [
+        16,
+        20
+      ],
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 384,
+      "patch_field_count": 44,
+      "patch_field_mask": 17592186044415,
+      "patch_header_offsets": {
+        "sub": 0,
+        "boot_id": 4,
+        "request_id": 8,
+        "expected_revision": 12,
+        "mask_lo": 16,
+        "mask_hi": 20,
+        "count": 24,
+        "reserved_zero": 28
+      },
+      "fields": {
+        "edge_colour_enabled": {
+          "id": 28,
+          "kind": "bool",
+          "default": false,
+          "scope": "selected whole-board scene",
+          "required_capability": 8
+        },
+        "edge_colour_mode": {
+          "id": 29,
+          "kind": "u32",
+          "default": 0,
+          "scope": "selected whole-board scene",
+          "required_capability": 8,
+          "min": 0,
+          "max": 6,
+          "enum": [
+            "OFF",
+            "ANALOGOUS",
+            "COMPLEMENTARY",
+            "SPLIT_COMPLEMENTARY",
+            "SATURATION_VEIL",
+            "TRIADIC",
+            "TETRADIC"
+          ]
+        },
+        "edge_colour_strength": {
+          "id": 30,
+          "kind": "f32",
+          "default": 0,
+          "scope": "selected whole-board scene",
+          "required_capability": 8,
+          "min": 0,
+          "max": 1,
+          "finite": true
+        },
+        "edge_colour_spread": {
+          "id": 31,
+          "kind": "f32",
+          "default": 30,
+          "scope": "selected whole-board scene",
+          "required_capability": 8,
+          "min": 0.0,
+          "max": 60.0,
+          "finite": true,
+          "unit": "degrees"
+        },
+        "edge_colour_spatial": {
+          "id": 32,
+          "kind": "u32",
+          "default": 0,
+          "scope": "selected whole-board scene",
+          "required_capability": 8,
+          "min": 0,
+          "max": 1
+        },
+        "pair_link": {
+          "id": 33,
+          "kind": "u32",
+          "default": 0,
+          "scope": "global pair relationship; independent board settings retained",
+          "required_capability": 8,
+          "min": 0,
+          "max": 3,
+          "enum": [
+            "INDEPENDENT",
+            "ONE_SIDED",
+            "SPLIT",
+            "MIRROR"
+          ]
+        },
+        "pair_colour_enabled": {
+          "id": 34,
+          "kind": "bool",
+          "default": false,
+          "scope": "global pair relationship; independent board settings retained",
+          "required_capability": 8
+        },
+        "pair_colour_mode": {
+          "id": 35,
+          "kind": "u32",
+          "default": 0,
+          "scope": "global pair relationship; independent board settings retained",
+          "required_capability": 8,
+          "min": 0,
+          "max": 6
+        },
+        "pair_colour_strength": {
+          "id": 36,
+          "kind": "f32",
+          "default": 0,
+          "scope": "global pair relationship; independent board settings retained",
+          "required_capability": 8,
+          "min": 0,
+          "max": 1,
+          "finite": true
+        },
+        "pair_colour_spread": {
+          "id": 37,
+          "kind": "f32",
+          "default": 30,
+          "scope": "global pair relationship; independent board settings retained",
+          "required_capability": 8,
+          "min": 0.0,
+          "max": 60.0,
+          "finite": true,
+          "unit": "degrees"
+        },
+        "pair_colour_spatial": {
+          "id": 38,
+          "kind": "u32",
+          "default": 0,
+          "scope": "global pair relationship; independent board settings retained",
+          "required_capability": 8,
+          "min": 0,
+          "max": 1
+        },
+        "musical_role": {
+          "id": 39,
+          "kind": "u32",
+          "default": 0,
+          "scope": "selected whole-board scene",
+          "required_capability": 16,
+          "min": 0,
+          "max": 2,
+          "enum": [
+            "NEUTRAL",
+            "TRANSIENT_BODY",
+            "SUSTAINED_HARMONIC_DETAIL"
+          ]
+        },
+        "musical_strength": {
+          "id": 40,
+          "kind": "f32",
+          "default": 0,
+          "scope": "selected whole-board scene",
+          "required_capability": 16,
+          "min": 0,
+          "max": 1,
+          "finite": true
+        },
+        "musical_attack_ms": {
+          "id": 41,
+          "kind": "f32",
+          "default": 40,
+          "scope": "selected whole-board scene",
+          "required_capability": 16,
+          "min": 1.0,
+          "max": 1000.0,
+          "finite": true,
+          "unit": "ms"
+        },
+        "musical_release_ms": {
+          "id": 42,
+          "kind": "f32",
+          "default": 160,
+          "scope": "selected whole-board scene",
+          "required_capability": 16,
+          "min": 1.0,
+          "max": 3000.0,
+          "finite": true,
+          "unit": "ms"
+        },
+        "ml_enabled": {
+          "id": 43,
+          "kind": "bool",
+          "default": false,
+          "scope": "selected whole-board scene",
+          "required_capability": 32
+        },
+        "ml_strength": {
+          "id": 44,
+          "kind": "f32",
+          "default": 0,
+          "scope": "selected whole-board scene",
+          "required_capability": 32,
+          "min": 0,
+          "max": 1,
+          "finite": true
+        }
+      },
+      "state_layout": {
+        "unchanged_offsets": "0..191 selected scene and existing shared words",
+        "edge_colour_enabled": 192,
+        "edge_colour_mode": 196,
+        "edge_colour_strength": 200,
+        "edge_colour_spread": 204,
+        "edge_colour_spatial": 208,
+        "pair_link": 212,
+        "effective_pair_link": 216,
+        "pair_colour_enabled": 220,
+        "pair_colour_mode": 224,
+        "pair_colour_strength": 228,
+        "pair_colour_spread": 232,
+        "pair_colour_spatial": 236,
+        "musical_role": 240,
+        "musical_strength": 244,
+        "musical_attack_ms": 248,
+        "musical_release_ms": 252,
+        "ml_enabled": 256,
+        "ml_strength": 260,
+        "ml_valid": 264,
+        "ml_result_sequence": 268,
+        "ml_input_sequence": 272,
+        "ml_now_us": 276,
+        "ml_model_id": 280,
+        "ml_inference_count": 284,
+        "ml_last_cycles": 288,
+        "publication_sequence": 292,
+        "event_cursor": 296,
+        "conditioning_value": 300,
+        "ml_max_cycles": 304,
+        "ml_rejected_results": 308,
+        "reserved_zero": "312..319",
+        "legacy_reserved_zero": "168..175"
+      },
+      "capability_bits": {
+        "0": "primary board intensity",
+        "1": "secondary transport/intensity",
+        "2": "independent board scenes",
+        "3": "palette-native Edge colour consumer",
+        "4": "per-board musical conditioning consumer",
+        "5": "executing shared ML with per-board interpretation"
+      },
+      "profile_capabilities": 63,
+      "secondary_transport_fault_capabilities": 61,
+      "legacy_compatibility": "EM0101/EM0102 top replies version4/208/caps7; non-top version2/160; extended GET is explicit read-only negotiation; new writes require observed same-boot v5/capabilities",
+      "targeting": "field24 packet-local defaultprimary, included in CRC/replay identity; per-board musical scene uses selected target; legacy19/20 stay bottom DIN only",
+      "pair_semantics": "Independent colour config retained; linked edits28..32 reject atomically unless explicitly unlinking; complementary requestedMIRROR3 reports effectiveSPLIT2",
+      "ml_semantics": "Experimental unlabelled latent interpretation; no genre/kick/chord classifier claim; enabled/strength per-board, shared inference only once per eligible fresh publication",
+      "preset_scope": "Host-file preset saves both supported board configurations plus pair relationship; excludes physical/global brightness, emission, precision and output gains; multi-request recall reports partial failure truthfully; no device NV persistence claim"
+    },
+    "ml_numerical_witness": {
+      "opcode": 17,
+      "request_hex": "4d4c5354",
+      "response_bytes": 592,
+      "magic": "MLR1",
+      "version": 1,
+      "query_us": 8,
+      "metadata_offsets": {
+        "sequence": 12,
+        "input_sequence": 16,
+        "now_us": 20,
+        "valid": 24,
+        "model_id": 28,
+        "inference_count": 32,
+        "last_cycles": 36,
+        "max_cycles": 40,
+        "rejected_results": 44
+      },
+      "arrays": {
+        "input": {
+          "offset": 48,
+          "count": 64,
+          "kind": "f32"
+        },
+        "latent": {
+          "offset": 304,
+          "count": 8,
+          "kind": "f32"
+        },
+        "reconstruction": {
+          "offset": 336,
+          "count": 64,
+          "kind": "f32"
+        }
+      },
+      "validation": "strictlength/tag/version/BOOL; allarraysfinite0..1; invalidrecordzerosarrayswhilemetadataretained",
+      "host_decoder": "emotiscope_control.decode_ml_state",
+      "truth": "readonly actual inference witness; unlabelled experimental outputs, no classifier claims"
+    },
+    "composed_scene_profile": {
+      "version": 6,
+      "state_bytes": 424,
+      "get_sub": 1162674689,
+      "patch_sub": 1162674690,
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 536,
+      "patch_field_count": 63,
+      "patch_field_mask": 9223372036854775807,
+      "profile_capabilities": 255,
+      "inherits": "feature_profile",
+      "fields": {
+        "scene": {
+          "id": 45,
+          "kind": "u32",
+          "state_offset": 320,
+          "min": 0,
+          "max": 3,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_outgoing_width": {
+          "id": 46,
+          "kind": "f32",
+          "state_offset": 324,
+          "min": 0.02,
+          "max": 0.8,
+          "default": 0.14,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_outgoing_ms": {
+          "id": 47,
+          "kind": "f32",
+          "state_offset": 328,
+          "min": 200.0,
+          "max": 8000.0,
+          "default": 1400.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_separation_ms": {
+          "id": 48,
+          "kind": "f32",
+          "state_offset": 332,
+          "min": 0.0,
+          "max": 5000.0,
+          "default": 350.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_quiet_ms": {
+          "id": 49,
+          "kind": "f32",
+          "state_offset": 336,
+          "min": 0.0,
+          "max": 8000.0,
+          "default": 450.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_width": {
+          "id": 50,
+          "kind": "f32",
+          "state_offset": 340,
+          "min": 0.02,
+          "max": 0.8,
+          "default": 0.1,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_ms": {
+          "id": 51,
+          "kind": "f32",
+          "state_offset": 344,
+          "min": 200.0,
+          "max": 8000.0,
+          "default": 2200.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_strength": {
+          "id": 52,
+          "kind": "f32",
+          "state_offset": 348,
+          "min": 0.0,
+          "max": 0.95,
+          "default": 0.45,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_trail_ms": {
+          "id": 53,
+          "kind": "f32",
+          "state_offset": 352,
+          "min": 0.0,
+          "max": 2000.0,
+          "default": 120.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_trips": {
+          "id": 54,
+          "kind": "u32",
+          "state_offset": 356,
+          "min": 0,
+          "max": 2,
+          "default": 1,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_outgoing_feather": {
+          "id": 55,
+          "kind": "f32",
+          "state_offset": 360,
+          "min": 0.0,
+          "max": 1.0,
+          "default": 0.3,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_return_feather": {
+          "id": 56,
+          "kind": "f32",
+          "state_offset": 364,
+          "min": 0.0,
+          "max": 1.0,
+          "default": 0.5,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_recovery_ms": {
+          "id": 57,
+          "kind": "f32",
+          "state_offset": 368,
+          "min": 0.0,
+          "max": 8000.0,
+          "default": 500.0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_choreography": {
+          "id": 58,
+          "kind": "u32",
+          "state_offset": 372,
+          "min": 0,
+          "max": 2,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "global pair relation"
+        },
+        "scene_initiator": {
+          "id": 59,
+          "kind": "u32",
+          "state_offset": 376,
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "global pair relation"
+        },
+        "scene_answer_delay_ms": {
+          "id": 60,
+          "kind": "f32",
+          "state_offset": 380,
+          "min": 0.0,
+          "max": 8000.0,
+          "default": 180.0,
+          "required_capability": 64,
+          "scope": "global pair relation"
+        },
+        "scene_phrase": {
+          "id": 61,
+          "kind": "u32",
+          "state_offset": 384,
+          "min": 0,
+          "max": 4,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_ml_target": {
+          "id": 62,
+          "kind": "u32",
+          "state_offset": 388,
+          "min": 0,
+          "max": 3,
+          "default": 0,
+          "required_capability": 64,
+          "scope": "selected board"
+        },
+        "scene_quiet_scope": {
+          "id": 63,
+          "kind": "u32",
+          "state_offset": 392,
+          "min": 0,
+          "max": 3,
+          "default": 1,
+          "required_capability": 64,
+          "scope": "selected board"
+        }
+      },
+      "status_layout": {
+        "active_scene": 396,
+        "scene_phase": 400,
+        "scene_pending": 404,
+        "scene_gesture_id": 408,
+        "scene_phrase_state": 412,
+        "scene_quiet": 416
+      },
+      "reserved_zero": [
+        [
+          312,
+          320
+        ],
+        [
+          420,
+          424
+        ]
+      ],
+      "semantics": "Fields45..63 are requested configuration; active_scene/phase/pending report the render-boundary state separately. Validate every field of the merged complete config before applying any mixed patch. Legacy mode is independent. Choreography, initiator and answer delay are pair-owned. Dedup replays the original acknowledgement. Old legacy GET/PATCH remain v4; extended GET/PATCH return v6 on this image. Host retains v5 decoding for older images.",
+      "inhouse_waveform_capability": 128
+    },
+    "renderer_families": {
+      "1": {
+        "id": "emotiscope",
+        "mode_ids": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "2": {
+        "id": "inhouse_waveform",
+        "mode_ids": [
+          32,
+          18,
+          8,
+          7,
+          11
+        ],
+        "required_state_version": 6,
+        "required_capability": 128,
+        "native_pixels": 160,
+        "history_precision": "signed Q16",
+        "selection": "current_mode32 atomically selects family and effect; source ordinal is not a universal effect namespace",
+        "mode_admission": {
+          "32": {
+            "minimum_version": 6,
+            "capability": 128
+          },
+          "18,8,7,11": {
+            "minimum_version": 8,
+            "capability": 256
+          }
+        },
+        "active_controls_by_mode": {
+          "32": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed"
+          ],
+          "18": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed"
+          ],
+          "8": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "inhouse_square_iter",
+            "inhouse_sensitivity",
+            "inhouse_injection_photons"
+          ],
+          "7": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed",
+            "inhouse_square_iter"
+          ],
+          "11": [
+            "brightness",
+            "warmth",
+            "mirror_mode",
+            "response_gain",
+            "palette",
+            "current_mode",
+            "output_brightness",
+            "emission",
+            "primary_intensity",
+            "secondary_intensity",
+            "secondary_output_enabled",
+            "inhouse_mood",
+            "speed",
+            "inhouse_square_iter"
+          ]
+        }
+      }
+    },
+    "inhouse_profile": {
+      "version": 7,
+      "inherits": "composed_scene_profile",
+      "state_bytes": 428,
+      "get_sub": 1162674945,
+      "patch_sub": 1162674946,
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 544,
+      "patch_field_count": 64,
+      "patch_field_mask": 18446744073709551615,
+      "profile_capabilities": 255,
+      "fields": {
+        "inhouse_mood": {
+          "id": 64,
+          "kind": "f32",
+          "state_offset": 424,
+          "min": 0,
+          "max": 1,
+          "default": 0.05,
+          "required_capability": 128,
+          "scope": "selected board retained configuration; storable for any admitted destination mode with capability128 or256; active only for five Waveforms using per-edge spectrum LPF and broadband AGC; donor controls remain inactive"
+        }
+      },
+      "negotiation": "v7 retains428 bytes and capability mask255 for existing clients. Host requests v8 first with explicit unsupported-version fallback; new modes, capability256 and fields65..67 require v8."
+    },
+    "waveform_family_profile": {
+      "version": 8,
+      "inherits": "inhouse_profile",
+      "state_bytes": 440,
+      "get_sub": 1162675201,
+      "patch_sub": 1162675202,
+      "patch_header_bytes": 32,
+      "patch_max_bytes": 568,
+      "patch_field_count": 67,
+      "patch_field_mask": 147573952589676412927,
+      "profile_capabilities": 511,
+      "patch_header_words": [
+        "subcommand",
+        "boot_id",
+        "request_id",
+        "expected_revision",
+        "mask_fields1_32",
+        "mask_fields33_64",
+        "field_count",
+        "mask_fields65_67"
+      ],
+      "extra_mask_valid": 7,
+      "fields": {
+        "inhouse_sensitivity": {
+          "id": 65,
+          "kind": "f32",
+          "state_offset": 428,
+          "min": 0.1,
+          "max": 20.0,
+          "default": 2.4,
+          "required_capability": 256,
+          "applicable_mode_ids": [
+            8
+          ],
+          "scope": "selected board retained configuration; storable for any admitted destination mode, consumed only by applicable_mode_ids; version, capability and finite range checks remain atomic",
+          "source_reference": "system/config_types.h:55-56; system/globals_config.cpp:72"
+        },
+        "inhouse_square_iter": {
+          "id": 66,
+          "kind": "f32",
+          "state_offset": 432,
+          "min": 0.0,
+          "max": 8.0,
+          "default": 1.0,
+          "required_capability": 256,
+          "applicable_mode_ids": [
+            7,
+            8,
+            11
+          ],
+          "scope": "selected board retained configuration; storable for any admitted destination mode, consumed only by applicable_mode_ids; version, capability and finite range checks remain atomic",
+          "source_reference": "control/k1_control_facade.cpp:540; system/globals_config.cpp:59"
+        },
+        "inhouse_injection_photons": {
+          "id": 67,
+          "kind": "f32",
+          "state_offset": 436,
+          "min": 0.05,
+          "max": 1.0,
+          "default": 1.0,
+          "required_capability": 256,
+          "applicable_mode_ids": [
+            8
+          ],
+          "scope": "selected board retained configuration; storable for any admitted destination mode, consumed only by applicable_mode_ids; version, capability and finite range checks remain atomic",
+          "source_reference": "control/k1_control_facade.cpp:512; system/globals_config.cpp:50"
+        }
+      }
+    }
+  },
+  "mode_control": {
+    "rejected_under_donor_profile": true,
+    "superseded_by": "donor_control",
+    "opcode": 16,
+    "version": 1,
+    "request_bytes": 32,
+    "word_type": "u32 little-endian",
+    "fields": {
+      "version": {
+        "offset": 0,
+        "required": 1
+      },
+      "palette_a": {
+        "offset": 4,
+        "required": 0
+      },
+      "palette_b": {
+        "offset": 8,
+        "required": 0
+      },
+      "mode_a": {
+        "offset": 12,
+        "min": 0,
+        "max": 6
+      },
+      "mode_b": {
+        "offset": 16,
+        "constraint": "equals mode_a"
+      },
+      "flags": {
+        "offset": 20,
+        "allowed_mask": 5
+      },
+      "brightness": {
+        "offset": 24,
+        "min": 0,
+        "max": 255
+      },
+      "output_channel": {
+        "offset": 28,
+        "required": 0
+      }
+    },
+    "flags": {
+      "ACTIVE": 1,
+      "EMIT_ON": 4
+    },
+    "owner": "Queued through the existing idle RT owner; response follows application or rejection.",
+    "scope": "Selects one complete donor scene. Both mode fields must agree. Brightness is the final hardware gain; it does not modify donor brightness.",
+    "unavailable": "Version 2/3 transition/travel controls, automatic palette cycling, independent scenes and legacy performance scalars. Physical A/B intensity uses donor_control fields 19/20.",
+    "source": "platform/ra8p1/fixture_app.cpp and PaletteRuntime::configure"
+  },
+  "boot_defaults": {
+    "mode": 1,
+    "palette": 1,
+    "flags": 5,
+    "brightness": 100,
+    "output_channel": 0,
+    "autonomous_output": true
+  },
+  "brightness_authority": "Normal boot/default brightness is at least 100/255. Explicit operator dimming/off remains available.",
+  "snapshot_layout": {
+    "flags": {
+      "offset": 6,
+      "type": "u16"
+    },
+    "publication_generation": {
+      "offset": 8,
+      "type": "u64"
+    },
+    "stream_epoch": {
+      "offset": 16,
+      "type": "u64"
+    },
+    "hop_sequence": {
+      "offset": 24,
+      "type": "u64"
+    },
+    "capture_time_us": {
+      "offset": 32,
+      "type": "u64"
+    },
+    "publish_time_us": {
+      "offset": 40,
+      "type": "u64"
+    },
+    "analysis_end_exclusive": {
+      "offset": 48,
+      "type": "u64"
+    },
+    "media_time_48k": {
+      "offset": 56,
+      "type": "u64"
+    },
+    "musical_pulse": {
+      "offset": 64,
+      "type": "u64"
+    },
+    "musical_phase_q32": {
+      "offset": 72,
+      "type": "u32"
+    },
+    "tempo_bpm": {
+      "offset": 76,
+      "type": "f32"
+    },
+    "beat_phase": {
+      "offset": 80,
+      "type": "f32"
+    },
+    "beat_confidence": {
+      "offset": 84,
+      "type": "f32"
+    },
+    "predicted_next_beat_us": {
+      "offset": 88,
+      "type": "u64"
+    },
+    "peak_scaled": {
+      "offset": 96,
+      "type": "f32"
+    },
+    "vu_level": {
+      "offset": 100,
+      "type": "f32"
+    },
+    "bass_energy": {
+      "offset": 104,
+      "type": "f32"
+    },
+    "mid_energy": {
+      "offset": 108,
+      "type": "f32"
+    },
+    "high_energy": {
+      "offset": 112,
+      "type": "f32"
+    },
+    "onset_strength": {
+      "offset": 116,
+      "type": "f32"
+    },
+    "flux": {
+      "offset": 120,
+      "type": "f32"
+    },
+    "centroid_hz": {
+      "offset": 124,
+      "type": "f32"
+    },
+    "rolloff_hz": {
+      "offset": 128,
+      "type": "f32"
+    },
+    "bandwidth_hz": {
+      "offset": 132,
+      "type": "f32"
+    },
+    "rms": {
+      "offset": 136,
+      "type": "f32"
+    },
+    "crest": {
+      "offset": 140,
+      "type": "f32"
+    },
+    "zcr": {
+      "offset": 144,
+      "type": "f32"
+    },
+    "hfc": {
+      "offset": 148,
+      "type": "f32"
+    },
+    "compactness": {
+      "offset": 152,
+      "type": "f32"
+    },
+    "chroma": {
+      "offset": 156,
+      "type": "f32",
+      "count": 12
+    },
+    "spectrum": {
+      "offset": 204,
+      "type": "f32",
+      "count": 80
+    },
+    "bass_onset": {
+      "offset": 524,
+      "type": "f32"
+    },
+    "kick": {
+      "offset": 528,
+      "type": "f32"
+    },
+    "snare": {
+      "offset": 532,
+      "type": "f32"
+    },
+    "hihat": {
+      "offset": 536,
+      "type": "f32"
+    },
+    "transient": {
+      "offset": 540,
+      "type": "f32"
+    },
+    "saliency": {
+      "offset": 544,
+      "type": "f32"
+    },
+    "harmonic_ratio": {
+      "offset": 548,
+      "type": "f32"
+    },
+    "inharmonicity": {
+      "offset": 552,
+      "type": "f32"
+    },
+    "pitch_hz": {
+      "offset": 556,
+      "type": "f32"
+    },
+    "pitch_confidence": {
+      "offset": 560,
+      "type": "f32"
+    },
+    "mode_id": {
+      "offset": 596,
+      "type": "u16"
+    },
+    "palette_id": {
+      "offset": 598,
+      "type": "u16"
+    },
+    "gain_q8": {
+      "offset": 600,
+      "type": "u16"
+    },
+    "warmup_hops": {
+      "offset": 602,
+      "type": "u16"
+    },
+    "config_revision": {
+      "offset": 604,
+      "type": "u32"
+    },
+    "hops_consumed": {
+      "offset": 608,
+      "type": "u32"
+    },
+    "hops_rejected": {
+      "offset": 612,
+      "type": "u32"
+    },
+    "last_invalidate_reason": {
+      "offset": 616,
+      "type": "u32"
+    },
+    "asrc_starved": {
+      "offset": 620,
+      "type": "u32"
+    },
+    "measured_hz": {
+      "offset": 624,
+      "type": "u32"
+    },
+    "deadline_us": {
+      "offset": 628,
+      "type": "u32"
+    },
+    "ap_cycles": {
+      "offset": 632,
+      "type": "u32"
+    },
+    "vp_cycles": {
+      "offset": 636,
+      "type": "u32"
+    },
+    "hop_dt_us": {
+      "offset": 640,
+      "type": "u32"
+    },
+    "event_mask": {
+      "offset": 644,
+      "type": "u32"
+    },
+    "event_write_seq": {
+      "offset": 648,
+      "type": "u64"
+    },
+    "timing_write_seq": {
+      "offset": 656,
+      "type": "u64"
+    },
+    "freshness_us": {
+      "offset": 664,
+      "type": "u32"
+    },
+    "live_origin": {
+      "offset": 668,
+      "type": "u8"
+    },
+    "physical_ts_valid": {
+      "offset": 669,
+      "type": "u8"
+    },
+    "emit_on": {
+      "offset": 670,
+      "type": "u8"
+    },
+    "capture_start_us": {
+      "offset": 672,
+      "type": "u64"
+    },
+    "capture_end_us": {
+      "offset": 680,
+      "type": "u64"
+    },
+    "injection_start_us": {
+      "offset": 688,
+      "type": "u64"
+    },
+    "injection_end_us": {
+      "offset": 696,
+      "type": "u64"
+    },
+    "stale_entry_us": {
+      "offset": 704,
+      "type": "u64"
+    },
+    "epoch_transition_us": {
+      "offset": 712,
+      "type": "u64"
+    },
+    "warmup_complete_us": {
+      "offset": 720,
+      "type": "u64"
+    },
+    "uid": {
+      "offset": 728,
+      "type": "u8",
+      "count": 16
+    },
+    "build_sha256": {
+      "offset": 744,
+      "type": "u8",
+      "count": 32
+    },
+    "schema_sha256": {
+      "offset": 776,
+      "type": "u8",
+      "count": 32
+    },
+    "publication_deadline_misses": {
+      "offset": 808,
+      "type": "u32"
+    },
+    "last_rendered_request_id": {
+      "offset": 812,
+      "type": "u32"
+    },
+    "last_rendered_revision": {
+      "offset": 816,
+      "type": "u32"
+    },
+    "last_rendered_frame": {
+      "offset": 820,
+      "type": "u32"
+    },
+    "last_rendered_hop": {
+      "offset": 824,
+      "type": "u32"
+    },
+    "superseded_request_id": {
+      "offset": 828,
+      "type": "u32"
+    },
+    "accepted_request_id": {
+      "offset": 832,
+      "type": "u32"
+    },
+    "accepted_revision": {
+      "offset": 836,
+      "type": "u32"
+    },
+    "last_emitted_request_id": {
+      "offset": 840,
+      "type": "u32"
+    },
+    "last_rendered_publication_us": {
+      "offset": 844,
+      "type": "u64"
+    }
+  },
+  "snapshot_field_semantics": {
+    "valid": "64 fresh chunks since boot or the latest audio gap. Host/control/render activity does not establish valid audio.",
+    "warming": "Fewer than 64 fresh accepted chunks.",
+    "capture_time_us": "DMA-based capture estimate transformed into the live clock; includes declared ASRC filter delay. No physical acoustic timestamp claim.",
+    "publish_time_us": "Actual donor AP completion timestamp in the live clock.",
+    "analysis_end_exclusive": "End sample index in the current 12.8 kHz stream epoch.",
+    "media_time_48k": "hop_sequence multiplied by 240.",
+    "peak_scaled": "Maximum absolute normalized PCM sample in the latest accepted 64-sample chunk.",
+    "vu_level": "Native donor smoothed VU, not raw RMS.",
+    "rms": "RMS of the normalized input samples in the latest accepted chunk.",
+    "crest": "Latest chunk peak divided by latest chunk RMS, with a zero guard.",
+    "spectrum": "64 native values followed by 16 zero slots.",
+    "chroma": "12 native D#/Eb-origin chromagram values.",
+    "ap_cycles": "Measured donor push and compact status-copy cost. Does not include raw capture or ASRC work.",
+    "vp_cycles": "Measured platform render slice, as supplied by the fixture.",
+    "measured_hz": "Measured raw capture source rate, not the 12.8 kHz analysis rate.",
+    "event_mask": "Always zero; retained event rows are per-hop observations, not detected attacks.",
+    "legacy_request_receipts": "PATCH/performance request receipts are unsupported because opcode 25 is disabled.",
+    "zero_means_unsupported": "Fields listed in unsupported_zero_fields must not be interpreted as negative detections or measured silence."
+  },
+  "unsupported_zero_fields": [
+    "musical_pulse",
+    "musical_phase_q32",
+    "tempo_bpm",
+    "beat_phase",
+    "beat_confidence",
+    "predicted_next_beat_us",
+    "bass_energy",
+    "mid_energy",
+    "high_energy",
+    "onset_strength",
+    "flux",
+    "centroid_hz",
+    "rolloff_hz",
+    "bandwidth_hz",
+    "zcr",
+    "hfc",
+    "compactness",
+    "bass_onset",
+    "kick",
+    "snare",
+    "hihat",
+    "transient",
+    "saliency",
+    "harmonic_ratio",
+    "inharmonicity",
+    "pitch_hz",
+    "pitch_confidence",
+    "event_mask",
+    "injection_start_us",
+    "injection_end_us"
+  ],
+  "event_type_mask": {},
+  "event_semantics": {
+    "event_mask": 0,
+    "spectrum_peak_bin": "Index 0..63 of the largest native donor spectrum magnitude. An all-zero frame may return 0; no confidence/validity claim.",
+    "chroma_peak": "Index 0..11 in D#/Eb ordering. An all-zero frame may return 0; no pitch-lock claim.",
+    "musical_events": "Unsupported legacy onset/beat/drum/saliency fields remain zero."
+  },
+  "mir_json": {
+    "opcode": 21,
+    "version": 2,
+    "contract": "sr12800.hop64.bins64.emotiscope",
+    "donor_dominant_tempo_bpm": "Largest donor tempo-bin candidate; not a locked or independently qualified beat estimate.",
+    "donor_tempo_confidence": "Native donor tempo statistic; not K1 confidence.",
+    "beat_locked": false,
+    "physical_timestamp_valid": false
+  },
+  "audio_gap_policy": "Call the donor gap adapter once, clear PCM capture history, mark publication invalid and mute new AP deposits during 64 fresh chunks. Preserve existing VP/tempo/LPF/dither/configuration histories; do not initialize the engine again. Loss counters remain visible; this does not recover lost audio.",
+  "output": {
+    "donor_pixels": 128,
+    "logical_pixels": 160,
+    "geometry": "One continuous logical strip. DIN-A receives logical 0..79; DIN-B receives 80..159.",
+    "source_precision": "Donor post-gamma, post-temporal-dither RGB8. Interpolation/16-bit packing does not create native donor colour precision.",
+    "adapter": "Centre-symmetric spatial interpolation 128 to 160, expansion to 16-bit channels, one final global brightness/255 scaling, GRB48 packing.",
+    "pins": {
+      "DIN-A": "P601/GPT6, DMA0",
+      "DIN-B": "P604/GPT8, DMA3"
+    },
+    "microphone_dma": [
+      1,
+      2
+    ]
+  },
+  "donor": {
+    "repository": "Emotiscope.HIL",
+    "variant": "v1.1_build",
+    "commit": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+    "manifest": "docs/emotiscope-port-001/DONOR-SOURCE-MANIFEST.json",
+    "ap_order": [
+      "calculate_magnitudes",
+      "get_chromagram",
+      "run_vu",
+      "update_tempo"
+    ],
+    "vp_order": [
+      "run_gpu",
+      "native RGB8 output",
+      "Titan geometry/brightness/GRB48 adapter"
+    ],
+    "native_defaults": {
+      "brightness": 1.0,
+      "softness": 0.25,
+      "color": 0.33,
+      "warmth": 0.0,
+      "color_range": 0.0,
+      "speed": 0.5,
+      "saturation": 0.75,
+      "background": 0.25,
+      "current_mode": 1,
+      "mirror_mode": true,
+      "screensaver": true,
+      "temporal_dithering": true,
+      "auto_color_cycle": false,
+      "reverse_color_range": false
+    },
+    "excluded_platform_services": [
+      "ESP I2S microphone conditioning",
+      "ESP LED transport",
+      "network",
+      "NVS",
+      "web dashboard",
+      "continuous HIL CSV export",
+      "physical touch"
+    ]
+  },
+  "note": "AudioFeaturesV1 is an internal timestamp/VU carrier only. Legacy spectrum/chroma/onset validity flags are not asserted and the old K1 AP/VP does not drive this profile. Binary packet sizes stay compatible, semantics are selected by this schema identity. Host conformance does not establish target timing, uninterrupted capture or appearance acceptance."
+}

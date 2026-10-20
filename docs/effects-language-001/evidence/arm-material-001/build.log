@@ -1,0 +1,8 @@
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/ribbon_material.cpp: In member function 'const k1::core::visual::RibbonFrame16& k1::core::visual::RibbonMaterial::render(uint64_t, float)':
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/ribbon_material.cpp:193:5: error: this 'if' clause does not guard... [-Werror=misleading-indentation]
+  193 |     if(peak(body)<1e-6F) body={}; if(peak(echo)<1e-6F) echo={};
+      |     ^~
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/ribbon_material.cpp:193:35: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+  193 |     if(peak(body)<1e-6F) body={}; if(peak(echo)<1e-6F) echo={};
+      |                                   ^~
+cc1plus: all warnings being treated as errors

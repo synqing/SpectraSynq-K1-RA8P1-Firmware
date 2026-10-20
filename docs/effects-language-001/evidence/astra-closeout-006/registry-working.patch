@@ -1,0 +1,41 @@
+diff --git a/docs/evidence/K1-RA8P1-002/k1-swarm-20260924/TASK_REGISTRY.json b/docs/evidence/K1-RA8P1-002/k1-swarm-20260924/TASK_REGISTRY.json
+index 89c873c..336e51a 100644
+--- a/docs/evidence/K1-RA8P1-002/k1-swarm-20260924/TASK_REGISTRY.json
++++ b/docs/evidence/K1-RA8P1-002/k1-swarm-20260924/TASK_REGISTRY.json
+@@ -25,10 +25,10 @@
+         "standalone"
+       ],
+       "exit_gate": "G0",
+-      "status": "NOT_STARTED",
++      "status": "BLOCKED_EXTERNAL",
+       "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.",
+       "kind": "TASK",
+-      "state": "PENDING",
++      "state": "BLOCKED_EXTERNAL",
+       "dependencies": [],
+       "source_text": "{\n  \"id\": \"ORCH-0\",\n  \"owner\": \"ORCH\",\n  \"title\": \"Bind current scope, source instructions and exact file/resource owners\",\n  \"depends_on\": [],\n  \"wave\": 0,\n  \"deliverable\": \"Baseline and ownership record; real registry bindings\",\n  \"required_for\": [\n    \"dual\",\n    \"titan\",\n    \"console\",\n    \"standalone\"\n  ],\n  \"exit_gate\": \"G0\",\n  \"status\": \"NOT_STARTED\",\n  \"required_lane_criteria\": \"All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver.\"\n}",
+       "packet_task": {
+@@ -49,7 +49,15 @@
+         "required_lane_criteria": "All mandatory rows applicable to this task deliverable/gate; the complete owner brief applies at lane closeout. The catalogue is a decisive summary, not a waiver."
+       },
+       "lane_brief": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-DualMCU-Firmware/docs/evidence/k1-swarm-20260924/packet/K1-Swarm-Execution-Master.md",
+-      "evidence_refs": []
++      "evidence_refs": [],
++      "verification_contract": {
++        "path": ".worktrees/titan-effects-language-001/docs/effects-language-001/evidence/orch0-case-contract.json",
++        "sha256": "a8de7cb9d549f971930e6a775c192fdbd1924e3c1b703adca7ceb60aac0dc3e4"
++      },
++      "blocker": "Formal ORCH-0 admission is refused by the installed governance service: Incomplete candidate identity. Four observed documentary cases pass; root source coverage is incomplete. Host development continued independently.",
++      "unblocked_by": "Governance owner restores complete candidate source identity for this actual root/project/worktree binding, then the unchanged-scope documentary observer is rerun and admitted. No reduced coverage or trust bypass.",
++      "evidence_ref": ".worktrees/titan-effects-language-001/docs/effects-language-001/evidence/orch0-admission-obstacle-002.json",
++      "evidence_sha256": "29c7fad358f47c195285a5135d3360eac7726ed3fc0547c52bdec51c857f648a"
+     },
+     {
+       "id": "CTL-1",
+@@ -2693,4 +2701,4 @@
+     }
+   ],
+   "existing_project_registry_discovery": "No preexisting TASK_REGISTRY.json, PLAN_TASKS.json or feature_list.json found in bounded project search; existing .planning plans and active canon retained by reference, never superseded."
+-}
+\ No newline at end of file
++}

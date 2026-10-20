@@ -1,0 +1,15 @@
+{
+  "resident_build": "7767c349b9369db81ac0c6260435d1e4c4f19bd0c2b16770f6ff343056b1102d",
+  "records": 64,
+  "ap_over_7500us": 22,
+  "max_ap_us": 8806.584,
+  "raw_publish_minus_capture_min_us": -230296,
+  "raw_publish_minus_capture_max_us": -224960,
+  "clock_hz": 1000000000,
+  "ring_gap": true,
+  "expired_cursor": true,
+  "scope": "Read-only partial resident timing sample. Clock-origin mismatch prevents latency interpretation. Not candidate execution.",
+  "emission_configuration": 1,
+  "brightness_configuration": 24,
+  "optical_observation": false
+}

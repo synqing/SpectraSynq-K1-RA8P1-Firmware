@@ -12,6 +12,11 @@ inline constexpr std::size_t kTempoAcfLagCap = 200;
 // Same MAC order as computeTempoAcfAtRate. Work is split by lag row so a hop
 // can publish the last tempo without waiting for the full nested multiply.
 struct TempoAcfSliceJob final {
+    // Source identity is fixed at job creation, never its later completion.
+    std::uint64_t evidence_endpoint = 0;
+    std::uint64_t evidence_epoch = 0;
+    std::uint32_t evidence_configuration_revision = 1;
+    bool evidence_valid = false;
     bool active = false;
     bool lags_done = false;
     std::uint16_t row = 0;

@@ -1,0 +1,17 @@
+{
+  "device_raw_rms_median_28_75": 0.118652,
+  "inputs": {
+    "recording": {
+      "gain": 89.60454170994046,
+      "host_raw_rms_median_28_75": 0.11865,
+      "clipped_fraction": 0.0019034375,
+      "csv": "agc-trace-boom-recording.csv"
+    },
+    "source": {
+      "gain": 1.154804192940544,
+      "host_raw_rms_median_28_75": 0.118645,
+      "clipped_fraction": 0.0,
+      "csv": "agc-trace-boom-source.csv"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+2026-09-30T06:56:44 bootout broker
+2026-09-30T06:56:44 rc=0
+2026-09-30T06:56:44 programme
+2026-09-30T06:57:03 programme rc=0
+True None
+are/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/arm-precision-001/rtthread.hex" (Size=919472, CRC=AAD6A144)
+
+Connecting the tool (E2 emulator Lite)
+Tool: E2 emulator Lite (5AS079228B)
+Interface: SWD
+Tool Firmware Version: V3.05.00.000
+
+Emulator power supply: OFF
+Connecting the target device
+Speed: 1,000,000 Hz
+Connected to R7KA8P1KFLCAC
+
+Writing data to the target device
+  [Code MRAM 1]        02000000 - 0204FCDF
+Verifying data on the target device
+  [Code MRAM 1]        02000000 - 0204FCDF
+
+
+Disconnecting the tool
+
+Operation successful
+
+2026-09-30T06:57:03 wait for application CDC
+2026-09-30T06:57:13 info-once rc=0
+2026-09-30T06:57:13 identity: MATCH
+2026-09-30T06:57:13 switch admission to /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/docs/emotiscope-port-001/evidence/smc-precision-001/accepted-candidate.json
+/Users/spectrasynq/Library/LaunchAgents/com.spectrasynq.titan-broker.plist: OK
+2026-09-30T06:57:13 bootstrap broker
+2026-09-30T06:57:13 rc=0
+{"t": 1790722634.4782069, "controller": {"ready": true, "transport_ready": true, "transport_error": null, "last_error": null, "loop_healthy": true, "mode": 1, "mode_name": "Spectrum", "output_brightness": 100, "emission_enabled": true, "accepted_request_id": 0, "rendered_request_id": 0, "emitted_request_id": 0, "faders_armed": false, "endpoint": "SMC-Mixer Bluetooth"}, "broker_log_age_s": 0.06, "target": {"uid": "545433931bd25436593630352d068363", "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74", "device_progress": 1994, "latched_frames": 1000, "led_faults": 0, "connection_epoch": 1, "sequence": "5", "capture_rate_hz": 41418.0}, "kinds": ["bind", "mtime_age_s", "snapshot", "telemetry", "wire"]}
+{"t": 1790722639.540437, "controller": {"ready": true, "transport_ready": true, "transport_error": null, "last_error": null, "loop_healthy": true, "mode": 1, "mode_name": "Spectrum", "output_brightness": 100, "emission_enabled": true, "accepted_request_id": 0, "rendered_request_id": 0, "emitted_request_id": 0, "faders_armed": false, "endpoint": "SMC-Mixer Bluetooth"}, "broker_log_age_s": 0.14, "target": {"uid": "545433931bd25436593630352d068363", "build": "c23e1b61f1de37fdc5179548ef2aa350921be23bb9728ab05d3644f6e08acb74", "device_progress": 2816, "latched_frames": 1509, "led_faults": 0, "connection_epoch": 1, "sequence": "29", "capture_rate_hz": 41418.0}, "kinds": ["bind", "mtime_age_s", "snapshot", "telemetry", "wire"]}

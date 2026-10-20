@@ -1,0 +1,57 @@
+{
+  "behavioral_exit": 0,
+  "corpus_exit": 0,
+  "crc_matches_zlib": true,
+  "golden_matches_frozen": true,
+  "default_state": {
+    "brightness": 1.0,
+    "mode": 1,
+    "flags": 39,
+    "applicability": 65419,
+    "output_brightness": 100,
+    "effective_hue": 0.33000001311302185,
+    "saturation": 0.75
+  },
+  "raw_color_state": {
+    "color": 1.399999976158142,
+    "effective_hue": 0.3999999761581421
+  },
+  "corpus_failures": [],
+  "state_versions": {
+    "legacy_unsupported": true,
+    "version_2_offsets": true,
+    "version_3_capabilities": true,
+    "version_4_selected_scene": true,
+    "malformed_states_rejected": 15,
+    "invalid_patch_values_rejected": 8
+  },
+  "feature_codec": {
+    "extended_wire": true,
+    "old_profile_rejected": true,
+    "v5_offsets": true,
+    "finite_and_capability_checks": true,
+    "secondary_fault_readback": true
+  },
+  "ml_witness": {
+    "metadata_offsets": true,
+    "array_offsets": true,
+    "invalid_zero_arrays_retained_metadata": true,
+    "rejected_shapes": 8
+  },
+  "default_ok": true,
+  "raw_ok": true,
+  "source_witness": {
+    "early_reject_without_pair_owner": true,
+    "donor_queue_on_opcode_25": true,
+    "opcode_16_rejected_under_donor_profile": true,
+    "performance_ramp_excluded": true,
+    "production_build_omits_test_seam": true
+  },
+  "pass": true,
+  "ml_runtime": {
+    "result": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/composed-scenes-controls-final/ml-runtime/result.json",
+    "focused_exit": 0,
+    "current_callback_exit": 0,
+    "historical_callback_exit": 2
+  }
+}

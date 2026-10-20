@@ -1,0 +1,37 @@
+{
+  "status": "chosen on the seen set; there is no unseen holdout",
+  "proposal": "PROPOSAL \u2014 NOT APPROVED",
+  "id": "floor_step",
+  "tied_with": [
+    "ratio_gate",
+    "tension_release"
+  ],
+  "residual_tie_break": "smaller operation count, the pass-case clause of the frozen rule",
+  "summary": {
+    "id": "floor_step",
+    "pass": false,
+    "hits": 1,
+    "required": 6,
+    "false": 0,
+    "collar": 0,
+    "cycles_per_hop": 6107
+  },
+  "constants": {
+    "name": "floor_step",
+    "sub_lo_hz": 30.0,
+    "sub_hi_hz": 90.0,
+    "sub_order": 2,
+    "tau_fast_attack_s": 0.012,
+    "tau_fast_release_s": 0.18,
+    "floor_window_s": 2.0,
+    "slack_db": 18.0,
+    "hold_s": 1.0,
+    "step_db": 14.0,
+    "rise_db": 12.0,
+    "rise_hops": 3,
+    "decision_hops": 1,
+    "warmup_s": 1.0,
+    "refractory_s": 1.6
+  },
+  "selection_rule": "Score every candidate on the scored set only: the four tuning windows plus the seen Carte Blanche file. If one or more pass, choose the passing candidate with the fewest collar fires, then the smaller operation count. If none pass, choose the one with the most hit drops, then the fewest false fires, then the fewest collar fires. Write that choice and its constants to v4/CHOSEN.json. There is no unseen holdout to open afterwards. Do not change the choice after it is written."
+}

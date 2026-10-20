@@ -1,0 +1,42 @@
+{
+  "scope": "actual production packer, not independent photons",
+  "command": [
+    "clang++",
+    "-std=c++17",
+    "-O1",
+    "-g",
+    "-Wno-narrowing",
+    "-fsanitize=address,undefined",
+    "-DK1_EMOTISCOPE_PORT=1",
+    "-DK1_TITAN_TOP_OUTPUT=1",
+    "-DK1_PALETTE_MORPH=1",
+    "-Isrc/k1",
+    "-Iplatform/ra8p1",
+    "-Iplatform/ra8p1/emotiscope_donor",
+    "-Iplatform/ra8p1/emotiscope_shims",
+    "harness/tests/test_top_output_mapping.cpp",
+    "platform/ra8p1/palette_runtime.cpp",
+    "platform/ra8p1/emotiscope_port.cpp",
+    "platform/ra8p1/emotiscope_secondary.cpp",
+    "platform/ra8p1/emotiscope_ml.cpp",
+    "src/k1/core/visual/channel_render_state.cpp",
+    "src/k1/core/visual/audio_focus.cpp",
+    "src/k1/core/visual/product_palette.cpp",
+    "src/k1/core/visual/product_palette_data.cpp",
+    "src/k1/core/visual/inhouse_waveform.cpp",
+    "-o",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/top-direction-001/mapping-host/mapping"
+  ],
+  "sources": {
+    "harness/tests/test_top_output_mapping.cpp": "bd1acaa40f604cfac0da8cf8b758660cf4a4b8cee88d1b42455f72961365b9a2",
+    "platform/ra8p1/palette_runtime.cpp": "29da26329fabcaa230629a378594c946977f2c058dd69b80bb3dc4035471ff8d",
+    "platform/ra8p1/emotiscope_port.cpp": "9949e2dd50f47d1542ea055199bd482188a4082b57db728c993d2b95816feabc",
+    "platform/ra8p1/emotiscope_secondary.cpp": "797876f077f6bd03c6b8bb5dca7bcc926cde151b340d8bf18d7e172f9d15d88d",
+    "platform/ra8p1/emotiscope_ml.cpp": "948e1195d69020a59fe006000a0f077f26262480cadc08dcbac8e4ffa4ac8fc8",
+    "src/k1/core/visual/channel_render_state.cpp": "565b601a0a7286d9519b3cce447410b4db699e1204d1dcdcd6e98ff3aa53c15a",
+    "src/k1/core/visual/audio_focus.cpp": "92400bf0d04709cf6aa3cd19b48a186cdee37aa174468b55acb8b77525098fb0",
+    "src/k1/core/visual/product_palette.cpp": "9325af165bc9efb2fbbad71333da1dc030741441a412acf2d0052dbc000360df",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060",
+    "src/k1/core/visual/inhouse_waveform.cpp": "10968d3e82a0f24a6a617aeae2f231dc610d39b2d9ccb9341ba31ed246b88557"
+  }
+}

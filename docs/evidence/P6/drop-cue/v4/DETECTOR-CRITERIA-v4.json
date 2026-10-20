@@ -1,0 +1,258 @@
+{
+  "name": "P6 drop detector v4 \u2014 v2 rule re-anchored on measured drop onsets",
+  "status": "PROPOSAL \u2014 NOT APPROVED. Host research only.",
+  "proposal": "PROPOSAL \u2014 NOT APPROVED",
+  "what_this_file_is": "The v2 criteria, unchanged in every field except the drop anchors (drops_s) and the planted-fault list. v1\u2013v3 anchored the hit window on hand labels written to 0.1 s. scripts/p6_drop_cue_probe.py reference measured the drop in each source file before any detector was re-scored: the sub-bass (30\u2013110 Hz) sustained step lands 42\u201376 ms after the label on all four drops (kick band 34\u201380 ms). The labels are early; the [0, +50 ms] window could not be met for Sonic 54.7 by any causal detector.",
+  "captain_release_direction": "On a fire, the visual release travels from the left and right edges toward the centre. It is not a centre-outward burst.",
+  "stream": {
+    "rate_hz": 24000,
+    "hop_samples": 180,
+    "hop_s": 0.0075,
+    "fire_time": "Song time at the END of the hop that raises the detector output. The decision may use only samples inside that hop and earlier hops."
+  },
+  "hit": {
+    "rule": "A drop is a hit if at least one fire has song time t with t_drop <= t <= t_drop + 0.050 seconds.",
+    "window_s": [
+      0.0,
+      0.05
+    ],
+    "inclusive": true
+  },
+  "false_fire": {
+    "rule": "A fire is a false fire when it lies inside the scored window and outside \u00b10.5 s of every in-window annotated drop.",
+    "exclusion_s": 0.5,
+    "exclusion_interval": "closed. A fire with abs(t - t_drop) == 0.5 is not a false fire.",
+    "rate": "false fires per minute = count / (scored_seconds / 60). The pass uses the count, which must be zero. The rate is reported beside it.",
+    "collar": "A fire inside \u00b10.5 s of a drop but outside that drop's [0, +0.050] hit window is a collar fire. It is not a hit and not a false fire. Collar fires are reported. They do not by themselves fail the pass. A drop with only collar fires is still a miss."
+  },
+  "pass": {
+    "window": "Every annotated drop whose time lies inside the scored window is a hit, and the false-fire count is 0.",
+    "set": "Every scored window passes. The scored set is the four v1 tuning windows plus the Carte Blanche file as seen.",
+    "holdout": "There is no unseen holdout for v2. Carte Blanche was spent in v1 (HOLDOUT-SPENT) and is a seen track here. The next real holdout is a Captain corpus track, which is not supplied and is not named or annotated by this file."
+  },
+  "scored_span": "Song time intersected with [0, 75) seconds and with the audio the recording actually contains. Pre-roll and post-roll outside that span are not scored.",
+  "tuning_windows": [
+    {
+      "id": "boom_file",
+      "role": "tuning",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/audio-boom-001/boom-0-75s-pcm16.wav",
+      "sha256": "09c9a02f439cbeb66f006cf5a973ae7988b5ef2e9ecdcf470c140d6918e63652",
+      "song_start_s": 0.0,
+      "drops_s": [
+        55.766
+      ],
+      "climax_s": [
+        [
+          47.0,
+          48.5
+        ]
+      ],
+      "cut_s": [
+        [
+          49.7,
+          54.0
+        ]
+      ],
+      "notes": "Stereo 44.1 kHz file. Mono is the mean of the two channels. Resampled to 24 kHz for the detector. Climax and cut are labels for the false-fire write-up. A fire there is already a false fire under the \u00b10.5 s rule."
+    },
+    {
+      "id": "boom_room",
+      "role": "tuning",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/boom-admission-fix-candidate-001/original.mov",
+      "sha256": "c2eb13e3ecdaac7f8d61142b3f751b28cb3ae38fde7a19ce3d53a63805e145d5",
+      "movie_offset_s": 2.8535210000000037,
+      "movie_scale": 0.9999999999999997,
+      "song_start_s": 0.0,
+      "song_time": "song = song_start + (movie_time - movie_offset_s) / movie_scale",
+      "drops_s": [
+        55.766
+      ],
+      "climax_s": [
+        [
+          47.0,
+          48.5
+        ]
+      ],
+      "cut_s": [
+        [
+          49.7,
+          54.0
+        ]
+      ],
+      "map_uncertainty_s": 0.020000000000028422,
+      "notes": "P3/P4 iPhone room recording. Same anchors as the file, on the song clock from av_validation source_to_movie_offset_s."
+    },
+    {
+      "id": "sonic_file",
+      "role": "tuning",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/sonic-samba.wav",
+      "sha256": "80e17b13f5f3120a1d148461261298eb1ae4f7b72e8df0b9d8790ea62280e038",
+      "song_start_s": 0.0,
+      "drops_s": [
+        27.742,
+        54.776
+      ],
+      "climax_s": [
+        [
+          19.7,
+          21.2
+        ],
+        [
+          45.6,
+          47.1
+        ]
+      ],
+      "notes": "24 kHz fixture, 75 s. Climax intervals are the EXT v2 anchors, used as labels only."
+    },
+    {
+      "id": "sonic_room",
+      "role": "tuning",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/sonic-6-30-admission-fix-candidate-001/original.mov",
+      "sha256": "1a538fee4394762fea97dd987f032d26ab081aeaa2450c94cd1d27eb58914ec4",
+      "movie_offset_s": 2.95259901754386,
+      "movie_scale": 1.0010526315789472,
+      "song_start_s": 6.0,
+      "song_time": "song = song_start + (movie_time - movie_offset_s) / movie_scale",
+      "drops_s": [
+        27.742
+      ],
+      "drops_outside_recording_s": [
+        54.7
+      ],
+      "climax_s": [
+        [
+          19.7,
+          21.2
+        ]
+      ],
+      "map_uncertainty_s": 0.026666666666669486,
+      "notes": "Room recording of sonic-samba-6-30s.wav (start_s 6, duration 24 s). The 54.7 s drop is not in this recording. It is not a required hit here. The 27.7 s drop is required if the scored span contains it."
+    }
+  ],
+  "seen_windows": [
+    {
+      "id": "carte_file",
+      "role": "seen",
+      "former_role": "v1 holdout, spent (HOLDOUT-SPENT). Seen from v2 onward. Not a holdout.",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/carte-blanche.wav",
+      "sha256": "c9f7a9b9c3597e6935d429da100b803d9ac90df59016d73d4e0bfc69f1fa7c84",
+      "song_start_s": 0.0,
+      "drops_s": [
+        27.442
+      ],
+      "climax_s": [
+        [
+          24.4,
+          25.9
+        ]
+      ],
+      "notes": "Same file, same drop at 27.4 s, same climax label as v1. Anchors were not moved. Scored with the tuning windows. Reported as seen. There is no Carte Blanche room recording; none is synthesised."
+    }
+  ],
+  "not_scored": [
+    {
+      "id": "dopex_file",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/tests/fixtures/tempo_field/v1/trance/dopex.wav",
+      "why": "Located. Left unopened. Dopex is held out of estimator tuning by the trance/EDM rule and by the audio-windows manifest lineage policy."
+    },
+    {
+      "id": "dopex_room",
+      "path": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/canonical-audio-v01/dopex-admission-fix-holdout-001/original.mov",
+      "why": "Located. Left unopened. Same hold-out."
+    }
+  ],
+  "full_song_false_fire_rate": {
+    "role": "report_only",
+    "rule": "For each song file, count fires over the file's full duration whose song time lies outside the closed \u00b10.5 s exclusion of every annotated drop on that file. Rate = count / (file_duration_seconds / 60). This rate is reported beside the scored-span count. It does not decide the pass. The pass still requires the scored-span false-fire count to be zero. The scored span stays [0, 75) intersected with the audio the recording contains. This line does not widen the hit window, the collar, or the pass.",
+    "song_file_ids": [
+      "boom_file",
+      "sonic_file",
+      "carte_file"
+    ],
+    "does_not_widen_the_pass": true
+  },
+  "selection_rule": "Score every candidate on the scored set only: the four tuning windows plus the seen Carte Blanche file. If one or more pass, choose the passing candidate with the fewest collar fires, then the smaller operation count. If none pass, choose the one with the most hit drops, then the fewest false fires, then the fewest collar fires. Write that choice and its constants to v4/CHOSEN.json. There is no unseen holdout to open afterwards. Do not change the choice after it is written.",
+  "planted_faults": {
+    "purpose": "The scorer must reject these three before any candidate result is trusted. They are not design candidates.",
+    "always_on": {
+      "definition": "A rising edge on every hop inside the scored window, including the first scored hop.",
+      "expected": "RED. False-fire count is greater than zero on every window, and drops are not selectively hit."
+    },
+    "broadband_loudness": {
+      "definition": "The failing P6 family: a causal broadband loudness surge against a 2 s baseline. Constants below are part of the fault and are not fitted.",
+      "tau_fast_s": 0.08,
+      "tau_slow_s": 2.0,
+      "surge_db": 6.0,
+      "warmup_s": 2.0,
+      "refractory_s": 0.3,
+      "power_eps": 1e-12,
+      "expected": "RED on the tuning windows. A loudness surge also happens at build climaxes and risers, so the false-fire count is not zero, or a real drop is missed."
+    },
+    "delayed": {
+      "definition": "One fire at each in-window annotated drop plus 0.200 s, and nowhere else.",
+      "delay_s": 0.2,
+      "expected": "RED. Every drop is a miss because 0.200 s is outside [0, +0.050]. The false-fire count is zero because 0.200 s is inside the \u00b10.5 s exclusion. This separates the hit window from the exclusion."
+    },
+    "label_anchored": {
+      "definition": "One fire at each old hand-label time (v1\u2013v3 anchors).",
+      "expected": "RED. Every label lies 42\u201376 ms before its measured anchor, so it is a collar fire, not a hit, and every window fails."
+    }
+  },
+  "candidates_named_before_scores": [
+    "floor_step: fast 30\u201390 Hz envelope minus its causal trailing minimum over a declared window of 0.5\u20133 s. Fire when that step reaches a declared dB size within 3 hops after the floor has sat low for a declared time. Refractory 1\u20132 s. No click gate.",
+    "ratio_gate: floor_step, and the sub-bass to broadband ratio must also be rising on that step.",
+    "tension_release: a tension accumulator that earlier sub-bass presence raises and a sub-bass gap holds, released only by the same sub-bass return step.",
+    "v4 adds no candidate. The three v2 candidates are re-scored with their v2 constants unchanged."
+  ],
+  "hash_method": "Frozen by scripts/freeze_tolerance.py. Body sha256 is canonical JSON of every field except frozen_utc and frozen_sha256. The tool also records a file sha256, sets mode 0444, and appends one STATUS line. No candidate is scored before that stamp.",
+  "anchors": {
+    "source": "scripts/p6_drop_cue_probe.py reference, run folder runs/P6-DROP-CUE-FEASIBILITY/reference-onsets.json and .png (inspected by the lane owner)",
+    "method": "Zero-phase Butterworth order 4, 30\u2013110 Hz; 10 ms mean-square window at a 2 ms step. Step(t) = median level over the next 150 ms minus the median over the previous 150 ms, searched in label \u00b1250 ms. The anchor is the first frame in the 30 ms before the step peak that reaches halfway from the pre median to the post median.",
+    "ruler_error_ms": {
+      "planted_steps": 40,
+      "mean": -7.1,
+      "min": -17.7,
+      "max": -1.2,
+      "meaning": "The ruler reads 1\u201318 ms early and never late. An early anchor makes the [0, +50 ms] window stricter on a detector, never looser."
+    },
+    "label_drops_s": {
+      "boom_file": [
+        55.7
+      ],
+      "boom_room": [
+        55.7
+      ],
+      "sonic_file": [
+        27.7,
+        54.7
+      ],
+      "sonic_room": [
+        27.7
+      ],
+      "carte_file": [
+        27.4
+      ]
+    },
+    "measured_drops_s": {
+      "boom_file": [
+        55.766
+      ],
+      "boom_room": [
+        55.766
+      ],
+      "sonic_file": [
+        27.742,
+        54.776
+      ],
+      "sonic_room": [
+        27.742
+      ],
+      "carte_file": [
+        27.442
+      ]
+    },
+    "room_windows": "Room recordings use the same song-time anchors through their recorded movie offset and scale."
+  },
+  "frozen_utc": "2026-10-14T22:28:32Z",
+  "frozen_sha256": "adc0496256ae52add6d91ddc085deb83b535499ea2ea19d7a2011cc89cf5c335"
+}

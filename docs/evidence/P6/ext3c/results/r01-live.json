@@ -1,0 +1,225 @@
+{
+  "pass": true,
+  "rows": [
+    {
+      "case": "boom_source",
+      "drop_s": 55.7,
+      "edge_field": 0,
+      "reached": true,
+      "t_full": 55.74,
+      "palette_spread": {
+        "value": 5675.048415367417,
+        "reference": 7243.3295178476465,
+        "ratio": 0.7834861580415516,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1797.9003647050286,
+        "reference": 2817.2342162115597,
+        "ratio": 0.6381792306650075,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_source",
+      "drop_s": 55.7,
+      "edge_field": 1,
+      "reached": true,
+      "t_full": 55.76,
+      "palette_spread": {
+        "value": 9357.291262188264,
+        "reference": 6532.088567047965,
+        "ratio": 1.4325113883777434,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1684.2031985064052,
+        "reference": 1432.2774276136063,
+        "ratio": 1.1758917413873833,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_room",
+      "drop_s": 55.7,
+      "edge_field": 0,
+      "reached": true,
+      "t_full": 55.74647900000002,
+      "palette_spread": {
+        "value": 5060.033281627294,
+        "reference": 7015.811563169591,
+        "ratio": 0.7212327805653436,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1590.1297880789593,
+        "reference": 3361.106732656894,
+        "ratio": 0.4730970821691195,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "boom_room",
+      "drop_s": 55.7,
+      "edge_field": 1,
+      "reached": true,
+      "t_full": 55.75647900000002,
+      "palette_spread": {
+        "value": 8414.495617859564,
+        "reference": 6633.815523199853,
+        "ratio": 1.2684247230620593,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1504.0023817676283,
+        "reference": 1687.6314460382116,
+        "ratio": 0.8911912522715427,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 27.7,
+      "edge_field": 0,
+      "reached": true,
+      "t_full": 27.740000000000002,
+      "palette_spread": {
+        "value": 4520.5843938970975,
+        "reference": 4356.801408207713,
+        "ratio": 1.037592483646566,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1218.8460826453572,
+        "reference": 1250.0926562349453,
+        "ratio": 0.9750045939125048,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 54.7,
+      "edge_field": 0,
+      "reached": true,
+      "t_full": 54.730000000000004,
+      "palette_spread": {
+        "value": 4089.2800640530763,
+        "reference": 5309.898195676287,
+        "ratio": 0.7701240048976591,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1141.4218847727018,
+        "reference": 1688.1314851963962,
+        "ratio": 0.6761451313372723,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 27.7,
+      "edge_field": 1,
+      "reached": true,
+      "t_full": 27.76,
+      "palette_spread": {
+        "value": 7921.2747337783685,
+        "reference": 7675.59960000125,
+        "ratio": 1.0320072888868614,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1111.0008040068483,
+        "reference": 2029.1097534795854,
+        "ratio": 0.5475311535522743,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    },
+    {
+      "case": "sonic_source",
+      "drop_s": 54.7,
+      "edge_field": 1,
+      "reached": true,
+      "t_full": 54.74,
+      "palette_spread": {
+        "value": 8098.293905247521,
+        "reference": 6925.586388288688,
+        "ratio": 1.1693297074370348,
+        "pass": true,
+        "refused": false
+      },
+      "frame_change": {
+        "value": 1249.085670629571,
+        "reference": 1752.3408932823888,
+        "ratio": 0.7128097480450007,
+        "pass": true,
+        "refused": false
+      },
+      "static_run": {
+        "pass": true,
+        "longest": 0,
+        "faults": []
+      },
+      "pass": true
+    }
+  ],
+  "criterion": "P6-EXT3-HOLD-LIVE-FROZEN.json",
+  "frozen_sha256": "871b4494d04a7a9ac138d156d9147e7baf1b34c5c1896a7c362e9f7b36060ddd",
+  "replay": "/tmp/p6-ext3c/r01",
+  "off": "/tmp/p6-ext3b/off"
+}

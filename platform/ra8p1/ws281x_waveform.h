@@ -17,6 +17,8 @@ extern "C" {
    WS2816 80 pixels per GPT lane (48-bit). Duty cap is the larger table. */
 
 #define K1_WS281X_WAVE_MAX_PIXELS_WS2812 128u
+// One continuous 160-pixel strip has two 80-pixel DIN segments.
+// Renderer selection must never change the physical transfer geometry.
 #define K1_WS281X_WAVE_MAX_PIXELS_WS2816 80u
 #define K1_WS281X_WAVE_MAX_PIXELS K1_WS281X_WAVE_MAX_PIXELS_WS2812
 #define K1_WS281X_GPT_DUTY_CAP                                             \

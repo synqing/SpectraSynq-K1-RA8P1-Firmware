@@ -24,7 +24,7 @@ def test_payload_never_writes_serial():
     thread = threading.Thread(target=broker.loop, daemon=True)
     thread.start()
     time.sleep(0.2)
-    client = socket.create_connection(BIND, timeout=2)
+    client = socket.create_connection(broker.publisher.sock.getsockname(), timeout=2)
     client.sendall(b"K1S1" + b"\x00" * 28)
     time.sleep(0.4)
     client.close()

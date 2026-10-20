@@ -1,0 +1,26 @@
+{
+  "scope": "Root independently inspected six extracted actual plate frames; not full-speed audiovisual review",
+  "recording": "original.mov",
+  "audio_gain": 0.25,
+  "offset_seconds": {
+    "before": 7.59891676902771,
+    "after": 51.10667896270752
+  },
+  "viewed": [
+    "before-cue12.png",
+    "after-cue12.png",
+    "after-cue24.png",
+    "after-cue28.png",
+    "after-cue31.png",
+    "after-cue33.png"
+  ],
+  "observed": {
+    "cue12": "Before broad multicolour field. Candidate bright bilateral lower orange lobes separated by darker centre; upper pink/orange retained.",
+    "cue24": "Lower violet outer lobes with sustained upper pink/orange field.",
+    "cue28": "Only faint lower pink residual or fresh material visible; cannot distinguish cause from still alone.",
+    "cue31": "Plate unlit.",
+    "cue33": "Small lower bilateral violet light returns; correlate actual admission/input before attributing."
+  },
+  "judgement": "NOT ACCEPTED for M13: sampled colour separation and quiet darkness visible, but lower bright lobes and motion need full-speed review. No claim of better rhythmic performance or blanket room-noise rejection.",
+  "blocked_operation": "Inspect complete physical comparison with music at playback speed; current model tools expose stills, camera MOV has no audio stream."
+}

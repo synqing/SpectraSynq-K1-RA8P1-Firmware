@@ -1,0 +1,85 @@
+[
+  {
+    "command": [
+      "c++",
+      "-std=c++17",
+      "-O1",
+      "-g",
+      "-fsanitize=address,undefined",
+      "-fno-omit-frame-pointer",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Isrc/k1",
+      "src/k1/core/visual/ribbon_material.cpp",
+      "src/k1/core/visual/product_palette_data.cpp",
+      "tests/host/test_ribbon_material.cpp",
+      "-o",
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/material-test"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "",
+    "expected_failure": false
+  },
+  {
+    "command": [
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/material-test"
+    ],
+    "exit": 0,
+    "stdout": "ribbon: persistence, dense attacks, edits, symmetry, cap, quiet interval, weak return, invalid inputs PASS\n",
+    "stderr": "",
+    "expected_failure": false
+  },
+  {
+    "command": [
+      "/opt/homebrew/bin/g++-15",
+      "-std=c++17",
+      "-O2",
+      "-Isrc/k1",
+      "-Itests/reference",
+      "tests/reference/test_bloom_donors.cpp",
+      "-o",
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/donor-test"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "",
+    "expected_failure": false
+  },
+  {
+    "command": [
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/donor-test"
+    ],
+    "exit": 0,
+    "stdout": "Donor kernel split and palette-history distinction PASS (declared adaptations)\n",
+    "stderr": "",
+    "expected_failure": false
+  },
+  {
+    "command": [
+      "/opt/homebrew/bin/g++-15",
+      "-std=c++17",
+      "-O2",
+      "-Isrc/k1",
+      "-Itests/reference",
+      "-DMUTATE_HISTORY_EXPECTATION",
+      "tests/reference/test_bloom_donors.cpp",
+      "-o",
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/donor-mutation"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": "",
+    "expected_failure": false
+  },
+  {
+    "command": [
+      "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-003/donor-mutation"
+    ],
+    "exit": -6,
+    "stdout": "",
+    "stderr": "Assertion failed: (rg>0 && rr==0), function main, file test_bloom_donors.cpp, line 19.\n",
+    "expected_failure": true
+  }
+]

@@ -1,0 +1,38 @@
+{
+  "argv_redacted": [
+    "/tmp/paired-hierarchy-negative-005"
+  ],
+  "claim": "This command executed with the recorded outcome; domain acceptance is not inferred from exit alone",
+  "ended": "2026-09-28T16:17:02.512610+00:00",
+  "exit_code": -6,
+  "label": "FX paired hierarchy retained failure: articulation at loud attack",
+  "project": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+  "schema": "executed-verification.v1",
+  "session_key": "31b71435bd49aaa2805452dc",
+  "source_after": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "source_before": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "started": "2026-09-28T16:17:01.680028+00:00",
+  "stderr": "Assertion failed: (attack_output[1]>attack_output[0]*2), function main, file test_paired_wave_scene.cpp, line 59.\n",
+  "stderr_sha256": "7c8a266b2a9723647e9105c1a78be73bace8a198d9a1ea1431ee4e2af0a4d253",
+  "stdout": "",
+  "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "timed_out": false
+}

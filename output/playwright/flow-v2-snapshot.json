@@ -1,0 +1,81 @@
+{
+  "settings": {
+    "velocity": 90,
+    "spread": 0.12,
+    "lifetime": 1.6,
+    "width": 2,
+    "spacing": 0.7,
+    "gap": 0.32,
+    "return_strength": 0.24,
+    "injection": 1,
+    "persistence": 0,
+    "palette": 33,
+    "recolour": 0,
+    "knee": 0
+  },
+  "fixture": "synthetic",
+  "time": 40.5,
+  "comparison": "authored",
+  "receipt": {
+    "key": "6ffe16e765bf6bfbd33a",
+    "base": "/data/6ffe16e765bf6bfbd33a/",
+    "identity": {
+      "fixture": "synthetic",
+      "input_sha256": "declared-six-studies-v1",
+      "settings": {
+        "velocity": 90,
+        "spread": 0.12,
+        "lifetime": 1.6,
+        "width": 2,
+        "spacing": 0.7,
+        "gap": 0.32,
+        "return_strength": 0.24,
+        "injection": 1,
+        "persistence": 0,
+        "palette": 33,
+        "recolour": 0,
+        "knee": 0
+      },
+      "executable_sha256": "20f65d8c89c25ee0cae90a1df38e1f951788d6aa47ee46aa91418e034c90250e",
+      "command": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-verification-002/build/ribbon_replay",
+        "--output",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/out/ribbon-flow-review-002/6ffe16e765bf6bfbd33a/frames",
+        "--synthetic",
+        "1",
+        "--velocity",
+        "90",
+        "--spread",
+        "0.12",
+        "--lifetime",
+        "1.6",
+        "--width",
+        "2",
+        "--spacing",
+        "0.7",
+        "--gap",
+        "0.32",
+        "--return",
+        "0.24",
+        "--injection",
+        "1",
+        "--persistence",
+        "0",
+        "--palette",
+        "33",
+        "--recolour",
+        "0",
+        "--knee",
+        "0"
+      ],
+      "files": {
+        "frames.native-grb16": "a3b344022cb6e661fc6091c726ce410365ff67de149eb85d035a6d61d7843d5d",
+        "frames.matched.rgb16le": "b774bafc445a9e6e98e39889c415626352bedf904b7e3ca0e2f60af00ec8d06c",
+        "frames.json": "f4250452f4f30397d04ab5661c1f1ae1b5a156ab57c32aecfeb2edfdd13358bb",
+        "frames.rgb16le": "66d10440e6f4ab9c2d1a691fb16f6cdf9bc616810ba08e9cee340daf3964d26d",
+        "replay.log": "56d7ae2be7be412d789be6ef1cdb97ae2f6e3ab3c54e72f02a2c4d5f46140a56"
+      },
+      "physical_execution": false
+    }
+  }
+}

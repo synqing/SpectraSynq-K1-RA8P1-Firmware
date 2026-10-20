@@ -1,0 +1,38 @@
+{
+  "command": [
+    "/Users/spectrasynq/Workspace_Management/Software/toolchains/arm-gnu-toolchain-13.3.rel1-darwin-arm64-arm-none-eabi/bin/arm-none-eabi-g++",
+    "-std=c++17",
+    "-O2",
+    "-march=armv8.1-m.main+fp.dp",
+    "-mthumb",
+    "-mfpu=fpv5-sp-d16",
+    "-mfloat-abi=hard",
+    "-ffp-contract=off",
+    "-fno-fast-math",
+    "-fno-tree-vectorize",
+    "-fno-tree-slp-vectorize",
+    "-fstack-usage",
+    "-fno-exceptions",
+    "-fno-rtti",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1",
+    "-c",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/ribbon_material.cpp",
+    "-o",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/docs/effects-language-001/evidence/arm-material-004/ribbon.o"
+  ],
+  "source_sha256": "33cc6e1ae9569df55cec2615bcd79269cc7c36b2c89c678fbeefafed299b5cfa",
+  "header_sha256": "98791ff14223c924aee5a5136b218f666af884f8223d2589ed95e3c856978c2c",
+  "object_sha256": "ccd6e7a305f039a89279ed58225cdd961367c9e405a4ca9a1467ba20f4aad6a6",
+  "object_size": "   text\t   data\t    bss\t    dec\t    hex\tfilename\n   7128\t      0\t      0\t   7128\t   1bd8\t/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/docs/effects-language-001/evidence/arm-material-004/ribbon.o\n",
+  "state_bytes": 13912,
+  "steady_state_heap_symbols": false,
+  "target_executed": false,
+  "remaining": [
+    "Whole-image integration",
+    "Target timing and resource admission",
+    "Optical judgement"
+  ]
+}

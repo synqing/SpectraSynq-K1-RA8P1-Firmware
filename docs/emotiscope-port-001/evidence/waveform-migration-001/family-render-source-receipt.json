@@ -1,0 +1,115 @@
+{
+  "pass": true,
+  "sources": {
+    "harness/tests/test_inhouse_waveform.cpp": "124cf1ab3aba9078de699803c023076187e136803557b7bae6d63cebea171488",
+    "src/k1/core/visual/inhouse_waveform.cpp": "10968d3e82a0f24a6a617aeae2f231dc610d39b2d9ccb9341ba31ed246b88557",
+    "src/k1/core/visual/product_palette.cpp": "9325af165bc9efb2fbbad71333da1dc030741441a412acf2d0052dbc000360df",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060",
+    "platform/ra8p1/inhouse_audio.cpp": "a51e6ebc6c76c459ad92e28148817d2da04037f3bc8e27bc98f569c46349bf28",
+    "src/k1/core/audio/gdft_goertzel.cpp": "284d8ab56e235b5ebdaf780edae633e0ca726daf37e98ead8ac4622987ad8084",
+    "src/k1/core/audio/tempo_tracker.cpp": "8a27516c98c0cdd3f83a8dfb6c6683a334808165b1fdf8773b99dd02e816ad24",
+    "src/k1/core/audio/tempo_acf.cpp": "c70a9bfa30a7c716fa4028791ba845b2d3837f11db35f7ab7f7bd35d97caaceb",
+    "src/k1/core/visual/inhouse_waveform.h": "31515c5e991001457689e91e1849e7c0b152e7df20c38d4dbb86f5834fa7c38e",
+    "harness/tests/test_inhouse_waveform.py": "a3f179af5d0ebe706b5c974a12ded5249cf7ef613119602ab1dd2ddb6f59efa2"
+  },
+  "reference_effect_sha256": "b9841b91d577efbf8bf448c983bc9c4cbced1b054c860636652f37e3b1b42f4f",
+  "family_references": {
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/effects/light_mode_waveform_hybrid_k1.cpp": "b9841b91d577efbf8bf448c983bc9c4cbced1b054c860636652f37e3b1b42f4f",
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/effects/light_mode_waveform_tempo.cpp": "5f46d0d47653eed84ea234dcf5f1cea07c677bd51b36622c2ebf5448549a3e07",
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/effects/light_mode_waveform.cpp": "4d23b353a10a0af4a80fb5568b91c020a3c783b0fab0f5400d342507941285f0",
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/effects/light_mode_waveform_fast.cpp": "a0c459fc2a725a5e8587c3e5ddf2bed8f412da774d442ca8925b5ce8d500c90c",
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/effects/light_mode_waveform_hybrid.cpp": "a74045d91dc9800d8f1906f9a0596cc61d1230da1c58d723c129c6a117861247",
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/visual/lightshow_modes.h": "b4215cc45202e9b64d9fc04a04ce0bbc0f1c74218064de860d93f0b87b1e23d9",
+    "/Users/spectrasynq/SpectraSynq_K1_Firmware/SPECTRASYNQ_K1_FIRMWARE/visual/led_utilities.h": "3fdfb1d64cbeb73d9553ce1a2cfe6db397292c2c97753a2259aa0c0c07262b77"
+  },
+  "family_results": [
+    {
+      "mode": 18,
+      "code": 0,
+      "stdout": "mode 18: actual source exact 700 audible frames; 200 intentional confirmed-quiet differences (16181 channels); subbyte 38617; stale drainage and peer independence verified\n",
+      "stderr": "",
+      "planted_corruption_exit": 2
+    },
+    {
+      "mode": 8,
+      "code": 0,
+      "stdout": "mode 8: actual source exact 700 audible frames; 200 intentional confirmed-quiet differences (1371 channels); subbyte 26098; stale drainage and peer independence verified\n",
+      "stderr": "",
+      "planted_corruption_exit": 2
+    },
+    {
+      "mode": 7,
+      "code": 0,
+      "stdout": "mode 7: actual source exact 700 audible frames; 200 intentional confirmed-quiet differences (12678 channels); subbyte 14547; stale drainage and peer independence verified\n",
+      "stderr": "",
+      "planted_corruption_exit": 2
+    },
+    {
+      "mode": 11,
+      "code": 0,
+      "stdout": "mode 11: actual source exact 700 audible frames; 200 intentional confirmed-quiet differences (88798 channels); subbyte 69938; stale drainage and peer independence verified\n",
+      "stderr": "",
+      "planted_corruption_exit": 2
+    }
+  ],
+  "reconstruction": {
+    "render_hz": 100,
+    "first_dt_ms": 10,
+    "per_render_followers": "elapsed-time conversion against100Hz; exact oracle at100Hz",
+    "flags": [
+      "K1_PALETTE_VIBRANCY_V1",
+      "K1_FALLBACK_HELD_U_V1",
+      "K1_POSITION_SMOOTH_V1",
+      "K1_EMO_WAVEFORMS_V1",
+      "ENABLE_WAVEFORM_CHROMAGRAM_COLOR=1"
+    ],
+    "quiet": "confirmed silence and invalidity prohibit birth; intentional divergence from old source peak veto",
+    "controls": "mode8 sensitivity0.1..20 default2.4, square_iter0..8 default1 for7/8/11, mode8photons.05..1 default1; speed8 inert"
+  },
+  "mode11_variant": "unflagged PCM radius contract; K1_WAVEFORM_HYBRID_TRAIL_DEPOSIT_V1 disabled deliberately per M04",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/g++-16",
+        "-std=c++17",
+        "-O1",
+        "-g",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "-ffp-contract=off",
+        "-Iplatform/ra8p1",
+        "-Isrc",
+        "-Isrc/k1",
+        "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/family-host-001",
+        "-I/Users/spectrasynq/SpectraSynq_K1_Firmware/.pio/libdeps/k1_bench_scheduling_gdft_cross80_probe/FixedPoints/src",
+        "harness/tests/test_inhouse_waveform.cpp",
+        "src/k1/core/visual/inhouse_waveform.cpp",
+        "src/k1/core/visual/product_palette.cpp",
+        "src/k1/core/visual/product_palette_data.cpp",
+        "platform/ra8p1/inhouse_audio.cpp",
+        "src/k1/core/audio/gdft_goertzel.cpp",
+        "src/k1/core/audio/tempo_tracker.cpp",
+        "src/k1/core/audio/tempo_acf.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/family-host-001/check"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/family-host-001/check",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/family-host-001/frames.rgb16"
+      ],
+      "code": 0,
+      "stdout": "PCM wake: .079 remains quiet; .081 clears after 3 analyses / 20000 us at this hop alignment\nactual source effect: 900 frames, exact audible comparison 700 frames, deliberate quiet divergence 200 frames; max audible u16 error=0; subbyte=23468; quiet differing channels=3706; confirmed quiet stops births, weak wake, PCM classifier and peer state verified\n",
+      "stderr": ""
+    }
+  ],
+  "audible_frames_exact": 700,
+  "quiet_frames_intentional_deviation": 200,
+  "reference_oracle_unchanged": true,
+  "output_fault_rejected": true,
+  "scope": "host arithmetic/output and PCM classifier only; no physical quiet or weak-music qualification"
+}

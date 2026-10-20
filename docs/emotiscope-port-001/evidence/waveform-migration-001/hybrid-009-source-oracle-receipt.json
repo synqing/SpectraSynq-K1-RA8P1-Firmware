@@ -1,0 +1,55 @@
+{
+  "pass": true,
+  "sources": {
+    "harness/tests/test_inhouse_waveform.cpp": "4d6aad555a736a08c89d87bd98b6e17a9d5826aab74d04a0451ae8c1245fd9ad",
+    "src/k1/core/visual/inhouse_waveform.cpp": "3aec8ca76a3e8030548ce3ededd2ff57bb140ea9cc1293404d70c2c71317a225",
+    "src/k1/core/visual/product_palette.cpp": "9325af165bc9efb2fbbad71333da1dc030741441a412acf2d0052dbc000360df",
+    "src/k1/core/visual/product_palette_data.cpp": "f4df31d112f587c39a4d23bb34799b7cff937ae54207a1ec7dc984c85d609060",
+    "platform/ra8p1/inhouse_audio.cpp": "b2fc3e25b1e9acb63435076680c0530c405f858677f172eed8eb897d0b878e15",
+    "src/k1/core/audio/gdft_goertzel.cpp": "284d8ab56e235b5ebdaf780edae633e0ca726daf37e98ead8ac4622987ad8084"
+  },
+  "reference_effect_sha256": "b9841b91d577efbf8bf448c983bc9c4cbced1b054c860636652f37e3b1b42f4f",
+  "commands": [
+    {
+      "argv": [
+        "/opt/homebrew/bin/g++-16",
+        "-std=c++17",
+        "-O1",
+        "-g",
+        "-fsanitize=undefined",
+        "-fno-sanitize-recover=all",
+        "-ffp-contract=off",
+        "-Iplatform/ra8p1",
+        "-Isrc",
+        "-Isrc/k1",
+        "-I/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/titan-admission-oracle-001",
+        "-I/Users/spectrasynq/SpectraSynq_K1_Firmware/.pio/libdeps/k1_bench_scheduling_gdft_cross80_probe/FixedPoints/src",
+        "harness/tests/test_inhouse_waveform.cpp",
+        "src/k1/core/visual/inhouse_waveform.cpp",
+        "src/k1/core/visual/product_palette.cpp",
+        "src/k1/core/visual/product_palette_data.cpp",
+        "platform/ra8p1/inhouse_audio.cpp",
+        "src/k1/core/audio/gdft_goertzel.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/titan-admission-oracle-001/check"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/titan-admission-oracle-001/check",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/waveform-migration-001/titan-admission-oracle-001/frames.rgb16"
+      ],
+      "code": 0,
+      "stdout": "PCM wake: .079 remains quiet; .081 clears after 3 analyses / 20000 us at this hop alignment\nactual source effect: 900 frames, exact audible comparison 700 frames, deliberate quiet divergence 200 frames; max audible u16 error=0; subbyte=23468; quiet differing channels=3706; confirmed quiet stops births, weak wake, PCM classifier and peer state verified\n",
+      "stderr": ""
+    }
+  ],
+  "audible_frames_exact": 700,
+  "quiet_frames_intentional_deviation": 200,
+  "reference_oracle_unchanged": true,
+  "output_fault_rejected": true,
+  "scope": "host arithmetic/output and PCM classifier only; no physical quiet or weak-music qualification"
+}

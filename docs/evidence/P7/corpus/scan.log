@@ -1,0 +1,37 @@
+{"id": "boom", "librosa_beat_track_bpm": 136.0, "librosa_tempogram_top3": [[136.0, 0.671], [69.8, 0.581], [143.6, 0.546]]}
+{"id": "sonic-samba", "librosa_beat_track_bpm": 143.6, "librosa_tempogram_top3": [[143.6, 0.801], [136.0, 0.733], [71.8, 0.732]]}
+{"id": "dopex", "librosa_beat_track_bpm": 76.0, "librosa_tempogram_top3": [[152.0, 0.743], [76.0, 0.737], [99.4, 0.733]]}
+{"id": "carte-blanche", "librosa_beat_track_bpm": 143.6, "librosa_tempogram_top3": [[69.8, 0.839], [143.6, 0.805], [92.3, 0.785]]}
+{"id": "musdb:A Classic Education - NightOwl", "librosa_beat_track_bpm": 152.0, "librosa_tempogram_top3": [[152.0, 0.696], [143.6, 0.66], [161.5, 0.658]]}
+{"id": "musdb:Aimee Norwich - Child", "librosa_beat_track_bpm": 143.6, "librosa_tempogram_top3": [[143.6, 0.722], [95.7, 0.639], [71.8, 0.61]]}
+{"id": "musdb:Alexander Ross - Goodbye Bolero", "librosa_beat_track_bpm": 112.3, "librosa_tempogram_top3": [[161.5, 0.624], [83.4, 0.604], [107.7, 0.602]]}
+{"id": "musdb:Alexander Ross - Velvet Curtain", "librosa_beat_track_bpm": 83.4, "librosa_tempogram_top3": [[83.4, 0.585], [123.0, 0.571], [129.2, 0.566]]}
+{"id": "musdb:ANiMAL - Clinic A", "librosa_beat_track_bpm": 103.4, "librosa_tempogram_top3": [[103.4, 0.729], [198.8, 0.72], [69.8, 0.712]]}
+{"id": "musdb:ANiMAL - Easy Tiger", "librosa_beat_track_bpm": 123.0, "librosa_tempogram_top3": [[63.0, 0.785], [123.0, 0.682], [129.2, 0.679]]}
+{"id": "musdb:ANiMAL - Rockshow", "librosa_beat_track_bpm": 129.2, "librosa_tempogram_top3": [[198.8, 0.654], [99.4, 0.618], [129.2, 0.616]]}
+{"id": "musdb:Arise - Run Run Run", "librosa_beat_track_bpm": 86.1, "librosa_tempogram_top3": [[86.1, 0.712], [172.3, 0.659], [184.6, 0.511]]}
+{"id": "musdb:Auctioneer - Our Future Faces", "librosa_beat_track_bpm": 83.4, "librosa_tempogram_top3": [[83.4, 0.759], [172.3, 0.746], [161.5, 0.73]]}
+{"id": "musdb:Celestial Shore - Die For Us", "librosa_beat_track_bpm": 172.3, "librosa_tempogram_top3": [[172.3, 0.75], [86.1, 0.689], [184.6, 0.681]]}
+{"id": "musdb:Chris Durban - Celebrate", "librosa_beat_track_bpm": 129.2, "librosa_tempogram_top3": [[129.2, 0.716], [86.1, 0.713], [172.3, 0.705]]}
+{"id": "musdb:Clara Berry And Wooldog - Air Traffic", "librosa_beat_track_bpm": 117.5, "librosa_tempogram_top3": [[117.5, 0.661], [123.0, 0.644], [60.1, 0.627]]}
+{"id": "musdb:Clara Berry And Wooldog - Stella", "librosa_beat_track_bpm": 112.3, "librosa_tempogram_top3": [[112.3, 0.669], [73.8, 0.635], [107.7, 0.593]]}
+{"id": "musdb:Clara Berry And Wooldog - Waltz For My Victims", "librosa_beat_track_bpm": 117.5, "librosa_tempogram_top3": [[117.5, 0.648], [123.0, 0.604], [60.1, 0.586]]}
+{"id": "musdb:Faces On Film - Waiting For Ga", "librosa_beat_track_bpm": 117.5, "librosa_tempogram_top3": [[117.5, 0.848], [78.3, 0.813], [123.0, 0.784]]}
+{"id": "musdb:Girls Under Glass - We Feel Alright", "librosa_beat_track_bpm": 123.0, "librosa_tempogram_top3": [[63.0, 0.818], [123.0, 0.817], [83.4, 0.757]]}
+{"id": "musdb:Giselle - Moss", "librosa_beat_track_bpm": 112.3, "librosa_tempogram_top3": [[112.3, 0.882], [107.7, 0.878], [73.8, 0.861]]}
+{"id": "musdb:Grants - PunchDrunk", "librosa_beat_track_bpm": 99.4, "librosa_tempogram_top3": [[99.4, 0.613], [198.8, 0.584], [64.6, 0.498]]}
+{"id": "musdb:Hezekiah Jones - Borrowed Heart", "librosa_beat_track_bpm": 107.7, "librosa_tempogram_top3": [[107.7, 0.716], [71.8, 0.71], [198.8, 0.672]]}
+{"id": "musdb:Invisible Familiars - Disturbing Wildlife", "librosa_beat_track_bpm": 152.0, "librosa_tempogram_top3": [[152.0, 0.634], [76.0, 0.57], [143.6, 0.547]]}
+{"id": "musdb:Little Chicago's Finest - My Own", "librosa_beat_track_bpm": 107.7, "librosa_tempogram_top3": [[107.7, 0.709], [71.8, 0.624], [112.3, 0.529]]}
+{"id": "musdb:Lushlife - Toynbee Suite", "librosa_beat_track_bpm": 152.0, "librosa_tempogram_top3": [[152.0, 0.756], [161.5, 0.743], [78.3, 0.72]]}
+{"id": "musdb:M.E.R.C. Music - Knockout", "librosa_beat_track_bpm": 161.5, "librosa_tempogram_top3": [[161.5, 0.672], [80.7, 0.659], [152.0, 0.622]]}
+{"id": "musdb:Music Delta - Beatles", "librosa_beat_track_bpm": 112.3, "librosa_tempogram_top3": [[73.8, 0.599], [112.3, 0.581], [107.7, 0.524]]}
+{"id": "musdb:Port St Willow - Stay Even", "librosa_beat_track_bpm": 117.5, "librosa_tempogram_top3": [[172.3, 0.747], [117.5, 0.722], [86.1, 0.692]]}
+{"id": "musdb:PR - Happy Daze", "librosa_beat_track_bpm": 123.0, "librosa_tempogram_top3": [[123.0, 0.541], [117.5, 0.486], [80.7, 0.443]]}
+{"id": "musdb:PR - Oh No", "librosa_beat_track_bpm": 63.0, "librosa_tempogram_top3": [[63.0, 0.599], [83.4, 0.491], [161.5, 0.407]]}
+{"id": "musdb:Side Effects Project - Sing With Me", "librosa_beat_track_bpm": 112.3, "librosa_tempogram_top3": [[112.3, 0.641], [76.0, 0.637], [117.5, 0.599]]}
+{"id": "musdb:Skelpolu - Human Mistakes", "librosa_beat_track_bpm": 172.3, "librosa_tempogram_top3": [[172.3, 0.749], [117.5, 0.658], [69.8, 0.632]]}
+{"id": "musdb:Skelpolu - Resurrection", "librosa_beat_track_bpm": 89.1, "librosa_tempogram_top3": [[89.1, 0.824], [117.5, 0.741], [172.3, 0.705]]}
+{"id": "musdb:Skelpolu - Together Alone", "librosa_beat_track_bpm": 172.3, "librosa_tempogram_top3": [[172.3, 0.793], [86.1, 0.759], [117.5, 0.713]]}
+{"id": "musdb:The Sunshine Garcia Band - For I Am The Moon", "librosa_beat_track_bpm": 123.0, "librosa_tempogram_top3": [[123.0, 0.664], [129.2, 0.632], [61.5, 0.609]]}
+exit=0

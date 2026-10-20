@@ -1,0 +1,646 @@
+{
+  "ready": false,
+  "fault": null,
+  "last_error": "transport epoch changed; reconciling",
+  "boot_id": 1,
+  "revision": 2160,
+  "schema_sha256": "5f3c9fa627067bf3357bdb142b4d4efcb8d16211164431864826af9102286f60",
+  "mode": 5,
+  "mode_name": "Hype",
+  "donor_brightness": 1.0,
+  "output_brightness": 253,
+  "emission_enabled": true,
+  "effective_hue": 0.4251968562602997,
+  "color_reference": 0.4251968562602997,
+  "auto_color_cycle": false,
+  "speed_applicable": false,
+  "reverse_applicable": true,
+  "applicability_notes": [
+    "Speed changes Analog only",
+    "Turning the screensaver off does not clear retained mix history"
+  ],
+  "accepted_request_id": 1073810140,
+  "rendered_request_id": 1073810140,
+  "emitted_request_id": 1073810140,
+  "unknown": [],
+  "faders_armed": false,
+  "pending_fields": [],
+  "pending_actions": 0,
+  "recent": [
+    {
+      "channel": 0,
+      "cc": 52,
+      "value": 127,
+      "name": "Play"
+    },
+    {
+      "channel": 0,
+      "cc": 52,
+      "value": 0,
+      "name": "Play"
+    },
+    {
+      "channel": 0,
+      "cc": 52,
+      "value": 127,
+      "name": "Play"
+    },
+    {
+      "channel": 0,
+      "cc": 52,
+      "value": 0,
+      "name": "Play"
+    },
+    {
+      "channel": 0,
+      "cc": 52,
+      "value": 127,
+      "name": "Play"
+    },
+    {
+      "channel": 0,
+      "cc": 52,
+      "value": 0,
+      "name": "Play"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 127,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 0,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 127,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 0,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 127,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 58,
+      "value": 0,
+      "name": "Next"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 127,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 0,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 127,
+      "name": "Previous"
+    },
+    {
+      "channel": 0,
+      "cc": 57,
+      "value": 0,
+      "name": "Previous"
+    }
+  ],
+  "controls": [
+    {
+      "control": "Fader1",
+      "label": "Donor brightness",
+      "channel": 0,
+      "cc": 40,
+      "field": "brightness",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": false,
+      "evidence": "configured",
+      "qualified": false
+    },
+    {
+      "control": "Fader2",
+      "label": "Softness",
+      "channel": 0,
+      "cc": 41,
+      "field": "softness",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Fader3",
+      "label": "Speed",
+      "channel": 0,
+      "cc": 42,
+      "field": "speed",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Fader4",
+      "label": "Background",
+      "channel": 0,
+      "cc": 43,
+      "field": "background",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": false,
+      "evidence": "configured",
+      "qualified": false
+    },
+    {
+      "control": "Fader5",
+      "label": "Color",
+      "channel": 0,
+      "cc": 44,
+      "field": "color",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Fader6",
+      "label": "Color range",
+      "channel": 0,
+      "cc": 45,
+      "field": "color_range",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Fader7",
+      "label": "Saturation",
+      "channel": 0,
+      "cc": 46,
+      "field": "saturation",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "bluetooth-captured",
+      "qualified": false
+    },
+    {
+      "control": "Fader8",
+      "label": "Warmth",
+      "channel": 0,
+      "cc": 47,
+      "field": "warmth",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Knob1",
+      "label": "Output brightness /255",
+      "channel": 0,
+      "cc": 30,
+      "field": "hardware_output_brightness",
+      "picked_up": false,
+      "release_needed": false,
+      "writes_armed": true,
+      "evidence": "bluetooth-captured",
+      "qualified": false
+    },
+    {
+      "control": "M1",
+      "label": "Analog",
+      "channel": 0,
+      "cc": 20,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "M2",
+      "label": "Spectrum",
+      "channel": 0,
+      "cc": 21,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "M3",
+      "label": "Octave",
+      "channel": 0,
+      "cc": 22,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "M4",
+      "label": "Metronome",
+      "channel": 0,
+      "cc": 23,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "M5",
+      "label": "Spectronome",
+      "channel": 0,
+      "cc": 24,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "M6",
+      "label": "Hype",
+      "channel": 0,
+      "cc": 25,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "M7",
+      "label": "Bloom",
+      "channel": 0,
+      "cc": 26,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "S1",
+      "label": "Mirror",
+      "channel": 0,
+      "cc": 28,
+      "field": "mirror_mode",
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "S2",
+      "label": "Reverse color range",
+      "channel": 0,
+      "cc": 29,
+      "field": "reverse_color_range",
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "S3",
+      "label": "Auto color",
+      "channel": 1,
+      "cc": 30,
+      "field": "auto_color_cycle",
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "S4",
+      "label": "Screensaver",
+      "channel": 1,
+      "cc": 31,
+      "field": "screensaver",
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "S5",
+      "label": "Temporal dithering",
+      "channel": 1,
+      "cc": 32,
+      "field": "temporal_dithering",
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Previous",
+      "label": "Previous mode",
+      "channel": 0,
+      "cc": 57,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "Next",
+      "label": "Next mode",
+      "channel": 0,
+      "cc": 58,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "bluetooth-captured",
+      "qualified": false
+    },
+    {
+      "control": "Play",
+      "label": "Emission on",
+      "channel": 0,
+      "cc": 52,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "bluetooth-captured",
+      "qualified": false
+    },
+    {
+      "control": "Pause",
+      "label": "Emission off",
+      "channel": 0,
+      "cc": 53,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ1",
+      "label": "Scene 1",
+      "channel": 1,
+      "cc": 44,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ2",
+      "label": "Scene 2",
+      "channel": 1,
+      "cc": 45,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ3",
+      "label": "Scene 3",
+      "channel": 1,
+      "cc": 46,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ4",
+      "label": "Scene 4",
+      "channel": 1,
+      "cc": 47,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ5",
+      "label": "Scene 5",
+      "channel": 0,
+      "cc": 48,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ6",
+      "label": "Scene 6",
+      "channel": 0,
+      "cc": 49,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ7",
+      "label": "Scene 7",
+      "channel": 0,
+      "cc": 51,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    },
+    {
+      "control": "SQ8",
+      "label": "Scene 8",
+      "channel": 1,
+      "cc": 51,
+      "field": null,
+      "picked_up": false,
+      "release_needed": true,
+      "writes_armed": true,
+      "evidence": "configured-common-map",
+      "qualified": false
+    }
+  ],
+  "scenes": [],
+  "store_error": null,
+  "qualification": {
+    "active": false,
+    "label": null,
+    "events": 0,
+    "qualified": [],
+    "last_result": {
+      "ok": false,
+      "reason": "transport epoch changed; fresh labelled capture required"
+    },
+    "collision_required": [
+      "Fader1",
+      "Fader4",
+      "R5",
+      "R8"
+    ]
+  },
+  "optical_proof": false,
+  "endpoint": "SMC-Mixer Bluetooth",
+  "launch": "cd /Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001\nPYTHONPATH=host/titan_control host/titan_control/.venv/bin/python -m smc_titan_control live --strategy emotiscope --socket /tmp/titan-emotiscope-control/titan-control.sock --port 'SINCO SMC-Mixer-Master'",
+  "transport_ready": false,
+  "transport_error": "[Errno 61] Connection refused",
+  "loop_healthy": true,
+  "loop_error": null
+}

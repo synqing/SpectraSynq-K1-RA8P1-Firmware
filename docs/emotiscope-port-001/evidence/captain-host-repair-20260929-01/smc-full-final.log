@@ -1,0 +1,160 @@
+test_assignments (unittest.loader._FailedTest.test_assignments) ... ERROR
+test_ble_requires_fresh_powered_on_exact_peripheral_and_epoch (test_captain_emotiscope_repairs.Repairs.test_ble_requires_fresh_powered_on_exact_peripheral_and_epoch) ... ok
+test_capture_holds_queued_pause_defaults_and_other_faders_without_blackout (test_captain_emotiscope_repairs.Repairs.test_capture_holds_queued_pause_defaults_and_other_faders_without_blackout) ... ok
+test_capture_overflow_invalidates_instead_of_dropping_evidence_silently (test_captain_emotiscope_repairs.Repairs.test_capture_overflow_invalidates_instead_of_dropping_evidence_silently) ... ok
+test_defaults_then_next_uses_defaults_not_prior_mode (test_captain_emotiscope_repairs.Repairs.test_defaults_then_next_uses_defaults_not_prior_mode) ... ok
+test_duplicate_down_needs_release_before_a_second_toggle (test_captain_emotiscope_repairs.Repairs.test_duplicate_down_needs_release_before_a_second_toggle) ... ok
+test_mixed_or_insufficient_capture_never_qualifies (test_captain_emotiscope_repairs.Repairs.test_mixed_or_insufficient_capture_never_qualifies) ... ok
+test_only_four_labelled_isolated_captures_arm_collision_faders (test_captain_emotiscope_repairs.Repairs.test_only_four_labelled_isolated_captures_arm_collision_faders) ... ok
+test_raw_capture_happens_before_inbox_coalescing (test_captain_emotiscope_repairs.Repairs.test_raw_capture_happens_before_inbox_coalescing) ... ok
+test_request_ids_never_restart_at_one_or_overlap_reserved_blocks (test_captain_emotiscope_repairs.Repairs.test_request_ids_never_restart_at_one_or_overlap_reserved_blocks) ... ok
+test_scene_then_next_uses_the_confirmed_scene_mode (test_captain_emotiscope_repairs.Repairs.test_scene_then_next_uses_the_confirmed_scene_mode) ... ok
+test_transport_loss_drops_old_intent_and_new_epoch_reads_before_writing (test_captain_emotiscope_repairs.Repairs.test_transport_loss_drops_old_intent_and_new_epoch_reads_before_writing) ... ok
+test_writer_busy_is_not_a_successful_attachment (test_captain_emotiscope_repairs.Repairs.test_writer_busy_is_not_a_successful_attachment) ... ok
+test_checksums_and_master_grid (test_capture_verify.CaptureVerifyTests.test_checksums_and_master_grid) ... ok
+test_dashboard_browser (unittest.loader._FailedTest.test_dashboard_browser) ... ERROR
+test_mode8_only_motion_is_written (test_eight_controls.ModeApplicabilityTests.test_mode8_only_motion_is_written) ... ok
+test_attach_learns_boot_from_wrong_boot_and_sends_no_patch (test_emotiscope_strategy.AttachAndIdentityTests.test_attach_learns_boot_from_wrong_boot_and_sends_no_patch) ... ok
+test_channel_1_cc40_is_r5_and_never_brightness (test_emotiscope_strategy.AttachAndIdentityTests.test_channel_1_cc40_is_r5_and_never_brightness) ... ok
+test_duplicate_identity_and_aliased_witness_are_rejected (test_emotiscope_strategy.AttachAndIdentityTests.test_duplicate_identity_and_aliased_witness_are_rejected) ... ok
+test_fader1_and_fader4_never_arm_from_unlabelled_traffic (test_emotiscope_strategy.AttachAndIdentityTests.test_fader1_and_fader4_never_arm_from_unlabelled_traffic) ... ok
+test_profile_loads_and_keeps_both_collision_hashes (test_emotiscope_strategy.AttachAndIdentityTests.test_profile_loads_and_keeps_both_collision_hashes) ... ok
+test_schema_mismatch_refuses_to_patch (test_emotiscope_strategy.AttachAndIdentityTests.test_schema_mismatch_refuses_to_patch) ... ok
+test_abandon_overflow_remap_and_save_do_not_change_emission_or_send_defaults (test_emotiscope_strategy.ButtonAndSceneTests.test_abandon_overflow_remap_and_save_do_not_change_emission_or_send_defaults) ... ok
+test_button_is_ignored_until_release_and_two_presses_toggle_opposite_ways (test_emotiscope_strategy.ButtonAndSceneTests.test_button_is_ignored_until_release_and_two_presses_toggle_opposite_ways) ... ok
+test_empty_and_wrong_schema_scenes_send_nothing_and_emission_is_stripped (test_emotiscope_strategy.ButtonAndSceneTests.test_empty_and_wrong_schema_scenes_send_nothing_and_emission_is_stripped) ... ok
+test_neutral_and_self_test_are_never_sent (test_emotiscope_strategy.ButtonAndSceneTests.test_neutral_and_self_test_are_never_sent) ... ok
+test_nine_dirty_fields_share_two_ticks_and_a_button_is_not_starved (test_emotiscope_strategy.ButtonAndSceneTests.test_nine_dirty_fields_share_two_ticks_and_a_button_is_not_starved) ... ok
+test_play_is_idempotent_and_pause_is_explicit (test_emotiscope_strategy.ButtonAndSceneTests.test_play_is_idempotent_and_pause_is_explicit) ... ok
+test_previous_and_next_use_queued_mode_and_wrap_inside_0_to_6 (test_emotiscope_strategy.ButtonAndSceneTests.test_previous_and_next_use_queued_mode_and_wrap_inside_0_to_6) ... ok
+test_scene_recall_is_one_fifteen_field_patch_and_defaults_are_one_sixteen_field_patch (test_emotiscope_strategy.ButtonAndSceneTests.test_scene_recall_is_one_fifteen_field_patch_and_defaults_are_one_sixteen_field_patch) ... ok
+test_timeout_then_the_next_press_reads_before_toggling_confirmed_state (test_emotiscope_strategy.ButtonAndSceneTests.test_timeout_then_the_next_press_reads_before_toggling_confirmed_state) ... ok
+test_cli_keeps_performance_and_parses_emotiscope_paths (test_emotiscope_strategy.PersistenceDashboardAndLaunchTests.test_cli_keeps_performance_and_parses_emotiscope_paths) ... ok
+test_dashboard_get_does_not_write_and_post_only_enqueues (test_emotiscope_strategy.PersistenceDashboardAndLaunchTests.test_dashboard_get_does_not_write_and_post_only_enqueues) ... ok
+test_endpoint_admission_refuses_private_wrong_id_and_ambiguous_rows (test_emotiscope_strategy.PersistenceDashboardAndLaunchTests.test_endpoint_admission_refuses_private_wrong_id_and_ambiguous_rows) ... ok
+test_patch_is_single_attempt_and_get_is_not (test_emotiscope_strategy.PersistenceDashboardAndLaunchTests.test_patch_is_single_attempt_and_get_is_not) ... ok
+test_store_rejects_bad_checksum_version_and_legacy_names_and_a_missing_file_does_not_write (test_emotiscope_strategy.PersistenceDashboardAndLaunchTests.test_store_rejects_bad_checksum_version_and_legacy_names_and_a_missing_file_does_not_write) ... ok
+test_unix_broker_does_not_retry_a_donor_patch (test_emotiscope_strategy.PersistenceDashboardAndLaunchTests.test_unix_broker_does_not_retry_a_donor_patch) ... ok
+test_auto_color_readback_does_not_move_the_sampled_hue_or_chase (test_emotiscope_strategy.TransformAndPickupTests.test_auto_color_readback_does_not_move_the_sampled_hue_or_chase) ... ok
+test_output_brightness_rounds_half_up_and_is_not_donor_brightness (test_emotiscope_strategy.TransformAndPickupTests.test_output_brightness_rounds_half_up_and_is_not_donor_brightness) ... ok
+test_pickup_accepts_one_step_or_a_crossing_and_ignores_a_distant_fader (test_emotiscope_strategy.TransformAndPickupTests.test_pickup_accepts_one_step_or_a_crossing_and_ignores_a_distant_fader) ... ok
+test_saturation_square_root_is_applied_once_and_a_held_fader_does_not_resend (test_emotiscope_strategy.TransformAndPickupTests.test_saturation_square_root_is_applied_once_and_a_held_fader_does_not_resend) ... ok
+test_fader7_mode8_shift_rate_with_readback (test_fader_path.FirstFaderPathTests.test_fader7_mode8_shift_rate_with_readback) ... ok
+test_cc20_still_unbound (test_h1_cc_fader.H1CcFaderTests.test_cc20_still_unbound) ... ok
+test_cc46_is_slider_7_motion (test_h1_cc_fader.H1CcFaderTests.test_cc46_is_slider_7_motion) ... ok
+test_replay_operator_slider_7_sweep (test_h1_cc_fader.H1CcFaderTests.test_replay_operator_slider_7_sweep) ... ok
+test_all_storage_capped_and_overflow_visible (test_midi_bounded.BoundedMidiTests.test_all_storage_capped_and_overflow_visible) ... ok
+test_burst_preserves_pickup_extrema_and_latest (test_midi_bounded.BoundedMidiTests.test_burst_preserves_pickup_extrema_and_latest) ... ok
+test_finite_snapshot_under_continued_production (test_midi_bounded.BoundedMidiTests.test_finite_snapshot_under_continued_production) ... ok
+test_oversized_sysex_is_counted_without_retention (test_midi_bounded.BoundedMidiTests.test_oversized_sysex_is_counted_without_retention) ... ok
+test_all_or_nothing_validation (test_negatives.NegativeTests.test_all_or_nothing_validation) ... ok
+test_ambiguous_cc_unbound (test_negatives.NegativeTests.test_ambiguous_cc_unbound) ... ok
+test_encoder_reversal_is_not_silently_bound (test_negatives.NegativeTests.test_encoder_reversal_is_not_silently_bound) ... ok
+test_forbidden_field (test_negatives.NegativeTests.test_forbidden_field) ... ok
+test_merged_inputs_refused (test_negatives.NegativeTests.test_merged_inputs_refused) ... ok
+test_nonzero_lsb_is_explicit (test_negatives.NegativeTests.test_nonzero_lsb_is_explicit) ... ok
+test_relative_ticks_and_bounds (test_negatives.NegativeTests.test_relative_ticks_and_bounds) ... ok
+test_stale_revision (test_negatives.NegativeTests.test_stale_revision) ... ok
+test_stale_session (test_negatives.NegativeTests.test_stale_session) ... ok
+test_stationary_fader_does_not_write_others (test_negatives.NegativeTests.test_stationary_fader_does_not_write_others) ... ok
+test_synthetic_d3_port_refused (test_negatives.NegativeTests.test_synthetic_d3_port_refused) ... ok
+test_takeover_holds_until_cross (test_negatives.NegativeTests.test_takeover_holds_until_cross) ... ok
+test_whole_config_refused (test_negatives.NegativeTests.test_whole_config_refused) ... ok
+test_wrong_port_rejected (test_negatives.NegativeTests.test_wrong_port_rejected) ... ok
+test_zero_unsolicited_writes (test_negatives.NegativeTests.test_zero_unsolicited_writes) ... ok
+test_import_help_and_replay_do_not_load_serial_or_mido (test_no_hw_io.NoHardwareImportTests.test_import_help_and_replay_do_not_load_serial_or_mido) ... ok
+test_package_does_not_import_midi_or_serial_at_module_level (test_no_hw_io.NoHardwareImportTests.test_package_does_not_import_midi_or_serial_at_module_level) ... ok
+test_absolute_excursion_retains_pickup_crossing (test_performance.IngressTests.test_absolute_excursion_retains_pickup_crossing) ... ok
+test_queue_bounded_fault_explicit (test_performance.IngressTests.test_queue_bounded_fault_explicit) ... ok
+test_ticks_accumulate_across_modifier_boundaries (test_performance.IngressTests.test_ticks_accumulate_across_modifier_boundaries) ... ok
+test_unknown_and_unverified_never_enabled (test_performance.IngressTests.test_unknown_and_unverified_never_enabled) ... ok
+test_absolute_knob_fine_chord (test_performance.PerformanceTests.test_absolute_knob_fine_chord) ... ok
+test_absolute_knob_pickup (test_performance.PerformanceTests.test_absolute_knob_pickup) ... ok
+test_all_61_assignments_no_unsupported_writes (test_performance.PerformanceTests.test_all_61_assignments_no_unsupported_writes) ... ok
+test_attach_no_defaults_or_writes (test_performance.PerformanceTests.test_attach_no_defaults_or_writes) ... ok
+test_audition_restore_and_stale_release (test_performance.PerformanceTests.test_audition_restore_and_stale_release) ... ok
+test_bad_ack_blocks (test_performance.PerformanceTests.test_bad_ack_blocks) ... ok
+test_burst_bound_rate (test_performance.PerformanceTests.test_burst_bound_rate) ... ok
+test_condition_warmth (test_performance.PerformanceTests.test_condition_warmth) ... ok
+test_cross_effect_scene_applies_mode_palette_and_values_atomically (test_performance.PerformanceTests.test_cross_effect_scene_applies_mode_palette_and_values_atomically) ... ok
+test_curves_monotone_roundtrip (test_performance.PerformanceTests.test_curves_monotone_roundtrip) ... ok
+test_disabled_targets_and_effects_send_nothing (test_performance.PerformanceTests.test_disabled_targets_and_effects_send_nothing) ... ok
+test_duplicate_press_once (test_performance.PerformanceTests.test_duplicate_press_once) ... ok
+test_effect_stage_apply_and_return_to_mode8 (test_performance.PerformanceTests.test_effect_stage_apply_and_return_to_mode8) ... ok
+test_every_parameter_has_a_proven_effect_and_real_binding_path (test_performance.PerformanceTests.test_every_parameter_has_a_proven_effect_and_real_binding_path) ... ok
+test_external_revision_and_reboot_not_overwritten (test_performance.PerformanceTests.test_external_revision_and_reboot_not_overwritten) ... ok
+test_held_audition_renews_bounded_lease (test_performance.PerformanceTests.test_held_audition_renews_bounded_lease) ... ok
+test_independent_percussion_auditions_and_release (test_performance.PerformanceTests.test_independent_percussion_auditions_and_release) ... ok
+test_lock_is_input_only (test_performance.PerformanceTests.test_lock_is_input_only) ... ok
+test_nonfinite_intent_fails_not_clamps (test_performance.PerformanceTests.test_nonfinite_intent_fails_not_clamps) ... ok
+test_palette_stage_cancel_zero_writes (test_performance.PerformanceTests.test_palette_stage_cancel_zero_writes) ... ok
+test_pickup_crossing_and_endpoints (test_performance.PerformanceTests.test_pickup_crossing_and_endpoints) ... ok
+test_production_absolute_knob_is_admitted_with_pickup (test_performance.PerformanceTests.test_production_absolute_knob_is_admitted_with_pickup) ... ok
+test_production_palette_binding_reaches_owner (test_performance.PerformanceTests.test_production_palette_binding_reaches_owner) ... ok
+test_relative_sum_and_fine (test_performance.PerformanceTests.test_relative_sum_and_fine) ... ok
+test_release_after_unsent_scene (test_performance.PerformanceTests.test_release_after_unsent_scene) ... ok
+test_scene_single_atomic_transaction_and_successor (test_performance.PerformanceTests.test_scene_single_atomic_transaction_and_successor) ... ok
+test_shift_select_resets_knob (test_performance.PerformanceTests.test_shift_select_resets_knob) ... ok
+test_store_hold_and_roundtrip (test_performance.PerformanceTests.test_store_hold_and_roundtrip) ... ok
+test_unknown_reply_never_resends_reconciles_without_overwrite (test_performance.PerformanceTests.test_unknown_reply_never_resends_reconciles_without_overwrite) ... ok
+test_r2_1_status5_retries_final_without_new_gesture (test_r2_path.R2PathTests.test_r2_1_status5_retries_final_without_new_gesture) ... ok
+test_r2_2_persistent_unix_hello_config (test_r2_path.R2PathTests.test_r2_2_persistent_unix_hello_config) ... ok
+test_r2_3_inprocess_wrong_applied (test_r2_path.R2PathTests.test_r2_3_inprocess_wrong_applied) ... ok
+test_r2_3_wrong_readback_is_not_confirmed (test_r2_path.R2PathTests.test_r2_3_wrong_readback_is_not_confirmed) ... ok
+test_r2_5_auto_colour_from_flags (test_r2_path.R2PathTests.test_r2_5_auto_colour_from_flags) ... ok
+test_r2_5_mode_change_cancels_motion (test_r2_path.R2PathTests.test_r2_5_mode_change_cancels_motion) ... ok
+test_r2_6_schema_required (test_r2_path.R2PathTests.test_r2_6_schema_required) ... ok
+test_failed_initial_read_refuses_writes (test_review_regressions.ReviewRegressions.test_failed_initial_read_refuses_writes) ... ok
+test_false_ack_without_readback_is_rejected (test_review_regressions.ReviewRegressions.test_false_ack_without_readback_is_rejected) ... ok
+test_missing_emit_readback_is_error (test_review_regressions.ReviewRegressions.test_missing_emit_readback_is_error) ... ok
+test_mode32_does_not_claim_eight_controls (test_review_regressions.ReviewRegressions.test_mode32_does_not_claim_eight_controls) ... ok
+test_request_ids_increment (test_review_regressions.ReviewRegressions.test_request_ids_increment) ... ok
+test_stale_reply_keeps_final_gesture (test_review_regressions.ReviewRegressions.test_stale_reply_keeps_final_gesture) ... ok
+test_wrong_boot_cancels_without_apply (test_review_regressions.ReviewRegressions.test_wrong_boot_cancels_without_apply) ... ok
+test_all_controls_and_unique_identities (test_surface_viewer.SurfaceViewerTests.test_all_controls_and_unique_identities) ... ok
+test_disconnect_clears_held_and_positions (test_surface_viewer.SurfaceViewerTests.test_disconnect_clears_held_and_positions) ... ok
+test_duplicate_binding_rejected (test_surface_viewer.SurfaceViewerTests.test_duplicate_binding_rejected) ... ok
+test_f7_absolute_endpoints_and_no_initial_guess (test_surface_viewer.SurfaceViewerTests.test_f7_absolute_endpoints_and_no_initial_guess) ... ok
+test_new_button_channel_does_not_move_knob (test_surface_viewer.SurfaceViewerTests.test_new_button_channel_does_not_move_knob) ... ok
+test_short_press_release_survives_snapshot (test_surface_viewer.SurfaceViewerTests.test_short_press_release_survives_snapshot) ... ok
+test_snapshots_do_not_alias_mutable_state (test_surface_viewer.SurfaceViewerTests.test_snapshots_do_not_alias_mutable_state) ... ok
+test_unknown_traffic_bounded_and_invalid_rejected (test_surface_viewer.SurfaceViewerTests.test_unknown_traffic_bounded_and_invalid_rejected) ... ok
+test_render_stream_buttons_disconnect_and_mobile (test_surface_viewer_browser.BrowserSurfaceTests.test_render_stream_buttons_disconnect_and_mobile) ... skipped 'Run separately with system Python + Playwright'
+test_connection_reset_recovers_without_replaying (test_unix_broker_lease.UnixBrokerLeaseTests.test_connection_reset_recovers_without_replaying) ... ok
+test_rate_loop_fault_is_visible (test_unix_broker_lease.UnixBrokerLeaseTests.test_rate_loop_fault_is_visible) ... ok
+test_three_requests_use_one_connection (test_unix_broker_lease.UnixBrokerLeaseTests.test_three_requests_use_one_connection) ... ok
+
+======================================================================
+ERROR: test_assignments (unittest.loader._FailedTest.test_assignments)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_assignments
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.13/3.13.11_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.11_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/tests/test_assignments.py", line 10, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+======================================================================
+ERROR: test_dashboard_browser (unittest.loader._FailedTest.test_dashboard_browser)
+----------------------------------------------------------------------
+ImportError: Failed to import test module: test_dashboard_browser
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.13/3.13.11_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/loader.py", line 396, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/opt/homebrew/Cellar/python@3.13/3.13.11_1/Frameworks/Python.framework/Versions/3.13/lib/python3.13/unittest/loader.py", line 339, in _get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/tests/test_dashboard_browser.py", line 7, in <module>
+    import pytest
+ModuleNotFoundError: No module named 'pytest'
+
+
+----------------------------------------------------------------------
+Ran 125 tests in 1.202s
+
+FAILED (errors=2, skipped=1)

@@ -1,0 +1,37 @@
+{
+  "epoch": 1,
+  "bound": {
+    "ok": false,
+    "identified": true,
+    "accepted": false,
+    "reason": "no accepted checkpoint bound",
+    "uid": "545433931bd25436593630352d068363",
+    "build": "393527e4ff81eb5c4fe54e8be3bf874bc37dce9fd89a2d9fec3d4b3e7ac8c4cb",
+    "source": "7f86939bd7c16c4a6dd5789813e9d551246ed134",
+    "contract": "sr12800.hop64.bins64.emotiscope",
+    "schema": null,
+    "schema_sha256": "5f3c9fa627067bf3357bdb142b4d4efcb8d16211164431864826af9102286f60",
+    "protocol": 1,
+    "clock_hz": 1000000000,
+    "device_sequence": 0,
+    "boot_id": 1,
+    "runtime_kind": "live",
+    "hop_samples": 64,
+    "admitted_rate_hz": 12800,
+    "unsupported": false
+  },
+  "checkpoint": null,
+  "admitted": [
+    1,
+    6,
+    16,
+    17,
+    19,
+    23,
+    25
+  ],
+  "poll_ops": [
+    6,
+    17
+  ]
+}

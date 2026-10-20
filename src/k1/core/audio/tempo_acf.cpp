@@ -27,6 +27,36 @@ constexpr float kNoveltyRateHz =
 constexpr int kCombTeeth = 4;
 constexpr float kCombWeights[kCombTeeth] = {1.0F, 0.8F, 0.7F, 0.6F};
 
+inline void correlateFourLags(const float* work, int lag, float* rows) noexcept {
+    // Each row retains the source's ascending-sample multiply/add order.
+    // The shorter lags have three, two and one terms before their common span.
+    // Named independent sums and sliding samples avoid repeatedly loading the
+    // same uncached work buffer; no reassociation or fused operation is used.
+    float sum0 = 0.0F, sum1 = 0.0F, sum2 = 0.0F, sum3 = 0.0F;
+    sum0 += work[lag] * work[0];
+    sum0 += work[lag + 1] * work[1];
+    sum0 += work[lag + 2] * work[2];
+    sum1 += work[lag + 1] * work[0];
+    sum1 += work[lag + 2] * work[1];
+    sum2 += work[lag + 2] * work[0];
+    float delayed1 = work[2], delayed2 = work[1], delayed3 = work[0];
+    for (int sample = lag + 3; sample < static_cast<int>(kTempoAcfHistoryLength); ++sample) {
+        const float current = work[sample];
+        const float delayed0 = work[sample - lag];
+        sum0 += current * delayed0;
+        sum1 += current * delayed1;
+        sum2 += current * delayed2;
+        sum3 += current * delayed3;
+        delayed3 = delayed2;
+        delayed2 = delayed1;
+        delayed1 = delayed0;
+    }
+    rows[0] = sum0;
+    rows[1] = sum1;
+    rows[2] = sum2;
+    rows[3] = sum3;
+}
+
 float acfAt(const std::array<float, kAcfTableLength>& acf,
             int lag_count,
             int lag_low,
@@ -95,7 +125,13 @@ void computeTempoAcfAtRate(const TempoNoveltyRing& novelty_ring,
     if (lag_count > static_cast<int>(kAcfTableLength)) lag_count = kAcfTableLength;
     if (lag_count < 1) lag_count = 1;
     std::array<float, kAcfTableLength> acf{};
-    for (int row = 0; row < lag_count; ++row) {
+    int row = 0;
+    for (; row + 3 < lag_count && minimum_lag + row >= 0 &&
+           minimum_lag + row + 3 < static_cast<int>(kTempoAcfHistoryLength); row += 4) {
+        correlateFourLags(work.data(), minimum_lag + row, acf.data() + row);
+    }
+    // Preserve the scalar source behaviour for remaining or out-of-range lags.
+    for (; row < lag_count; ++row) {
         const int lag = minimum_lag + row;
         float sum = 0.0F;
         for (std::uint16_t sample = static_cast<std::uint16_t>(lag);

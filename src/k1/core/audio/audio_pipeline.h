@@ -9,6 +9,7 @@
 #include "core/audio/musical_time.h"
 #include "core/audio/onset_beat.h"
 #include "core/audio/tempo_tracker.h"
+#include "core/audio/tempo_field_publisher.h"
 
 namespace k1::core::audio {
 
@@ -26,11 +27,15 @@ struct AudioPipelineInput final {
     // callers may omit it; production derives it from hop_end_sample_index.
     AudioTime media_time{};
     bool media_time_valid = false;
+    std::uint32_t tempo_configuration_revision = 1;
+    bool tempo_field_enabled = true;
+    bool tempo_phase_enabled = true;
 };
 
 struct AudioPipelineOutput final {
     contract::AudioFeaturesV1 features{};
     TempoTrackerEvent tempo{};
+    contract::TempoFieldV1 tempo_field{};
     OnsetBeatFrame onset{};
     SaliencyUpdate saliency{};
     MusicalTime musical_time{};
@@ -39,6 +44,9 @@ struct AudioPipelineOutput final {
     bool predicted_next_beat_valid = false;
     std::uint32_t gdft_overflow_count = 0;
     bool valid = false;
+    // Internal visual sidecar: post-filter magnitudes before AGC/clipping.
+    // Owned and committed with this publication; AudioFeaturesV1 is unchanged.
+    std::array<float, kGdftBinCount> visual_magnitudes{};
 };
 
 // Single-owner RT1062 AP composition. AudioFeaturesV1 remains the local
@@ -48,6 +56,8 @@ class AudioPipeline final {
     AudioPipeline() noexcept;
 
     void reset() noexcept;
+    void setTempoFieldEnabled(bool enabled) noexcept { tempo_field_enabled_ = enabled; }
+    void setTempoPhaseEnabled(bool enabled) noexcept { tempo_phase_enabled_ = enabled; }
     [[nodiscard]] AudioPipelineOutput process(
         const AudioPipelineInput& input) noexcept;
 
@@ -55,6 +65,9 @@ class AudioPipeline final {
     GdftConfiguration gdft_configuration_{};
     GdftPostprocessState gdft_state_{};
     TempoTrackerState tempo_state_{};
+    TempoFieldPublisher tempo_field_publisher_{};
+    bool tempo_field_enabled_ = true;
+    bool tempo_phase_enabled_ = true;
     OnsetBeat onset_{};
     MusicalSaliency saliency_{};
     MusicalTime musical_time_{};

@@ -1,3 +1,35 @@
+<!-- BEGIN CAPTAIN PERMANENT MULTICOLOUR PALETTE MANDATE 2026-10-11 -->
+## Permanent multicolour palettes — Captain's current visualiser requirement
+
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. Captain now requires:
+"visualiser shall NEVER display a single colour; PALETTE use permanent default,
+single-colour visualiser modes prohibited."
+
+This newer directive supersedes the original Emotiscope transplant instruction
+to preserve native donor HSV/sourcecolour and not apply Titan palettes. Retain
+that assignment and its receipts as historical evidence; it no longer authorises
+palette0/native HSV defaults, presets, fallbacks or selectable single-colour
+visualiser modes. Use the existing curated multicolour product palettes through
+the real render/background/screensaver path. No rainbow cycling or hue-wheel
+sweep is authorised. Do not add a cosmetic colour floor at silence. Enforce the
+requirement in actual boot/default, preset, control and fallback consumers, not
+only in host selectors or documentation. Preserve centre-origin motion, music
+response, existing transport, current brightness100 and the authorised two-board
+requested intensity envelope. Source/host proof and actual physical appearance
+remain separate claims. No new registry or old campaign is reopened.
+<!-- END CAPTAIN PERMANENT MULTICOLOUR PALETTE MANDATE 2026-10-11 -->
+
+<!-- BEGIN EMOTISCOPE PORT PIVOT 2026-09-29 -->
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS.
+Latest user assignment, 29 September 2026 13:57 Australia/Perth: park the current Titan AP/VP and attempt a complete known-working firmware port from /Users/spectrasynq/Workspace_Management/Software/Emotiscope.HIL.
+This isolated worktree is authorised for that port: feat/titan-emotiscope-port-001. The older effects worktree and its original assignments remain parked and preserved, not completed.
+The new runtime uses Emotiscope v1.1_build AP and VP together; the legacy K1 analysis/effects do not compute or drive the new show. Keep hardware capture/clock/USB identity and P601/GPT6 DMA0 plus P604/GPT8 DMA3, micDMA1/2.
+Keep a single continuous160 logical output, split80+80, one brightness100/255 scale at output, emission autonomous on boot/applicationreturn. Original Emotiscope128 finalpixels map to160 in an explicit output adapter; do not set NUM_LEDS160 and index64-bin arrays outofbounds.
+The donor source is read-only. Copied source, exact provenance and bounded defined-behaviour repairs live in this worktree. ESP32 deployment instructions, donor Wi-Fi/HIL overhead permissions, older24/255 and boot-off requirements do not apply to Titan.
+Existing standing authority covers this in-scope repair/port deployment after actual checks and image/UID matching via E2Lite powerOFF. No blanket approval pause. Failed required checks or uncertain hardware identity still stop affected writes.
+Read docs/emotiscope-port-001/EXECUTION.md. Preserve old contracts and receipts; this new experiment does not close them.
+<!-- END EMOTISCOPE PORT PIVOT 2026-09-29 -->
+
 <!-- BEGIN DEFAULT BRIGHTNESS MANDATE 2026-09-29 -->
 **Latest user directive, 29 September 2026:** Normal default LED brightness must
 remain **100/255 minimum**. Current boot and audition default is **100/255**.
@@ -19,6 +51,11 @@ Titan must boot with visual output ON and run continuous, autonomous, audio-reac
 
 Preserve the current maximum brightness **24/255**, mode/control constraints, Titan UID **545433931bd25436593630352d068363**, **P601/GPT6 and P604/GPT8**, microphone **DMA1/2**, and LED **DMA0/3** unless Captain separately changes them. Report genuine hardware faults immediately and truthfully; do not hide faults or claim repaired/continuous optical output from software counters alone. This instruction does not promise physically uninterrupted light during power loss, programming or reset: disclose unavoidable interruption and restore autonomous music visualisation when the application returns. Preserve existing programming identity checks and probe target-power OFF. Historical observations, receipts and original plan assignments below remain historical evidence; conflicting boot-off, timed-disarm or normal-output permission clauses are not current authority.
 <!-- END TITAN CONTINUOUS MUSIC MANDATE 2026-09-27 -->
+
+## SMC-Mixer / Titan control: load the `smc-titan-mixer` skill first
+
+Before touching the mixer, broker, controller, dashboard, fader captures or a Titan deploy, load the `smc-titan-mixer` skill (`/Users/spectrasynq/Workspace_Management/Software/agent-skills/skills/smc-titan-mixer/SKILL.md`). First command: `python3 ~/.claude/skills/smc-titan-mixer/scripts/smc_titan.py health`. It covers launchd start/stop, symptom->fix, labelled captures, host deploy and `deploy_titan_image.sh` (flash + admission switch).
+
 
 <!-- BEGIN TRANCE-EDM PLAYBACK ONLY 2026-09-29 -->
 **Captain directive — 29 September 2026.** Song-0 is banned. Do not play it, mux it, serve it, or ask Captain to listen to it. Demonstration, reconstruction, comparison and review audio must be trance or EDM only. Retained local excerpts: Armin van Buuren — Sonic Samba (Rising Star Remix), Veracocha — Carte Blanche (Mixed), and held-out Gareth Emery — Dopex. Dopex stays out of estimator tuning. Synthetic clicks, silence and a named test tone may be used for an engineering check, not as a review soundtrack. Historical song-0 frame files may remain on disk; they are not the review. Ledger: `~/.claude/memory/spectrasynq/L1/CANONICAL_DECISIONS.md` §11.
@@ -69,6 +106,7 @@ This mandate is to be written, on execution, to every agent surface that binds t
 13. Before platform investigation or edits, load the retained Titan knowledge from `/Users/spectrasynq/Workspace_Management/Software/agent-skills/packages/ra8p1-titan-engineering/skills/ra8p1-titan-engineering/references/PLATFORM_MEMORY.md`. Run that skill's `scripts/platform_memory.py --check` and recall the relevant topic (`pins`, `clocks`, `dma`, `ws2816`, etc.). Use canonical source, not a stale generated plugin cache. If the package is unavailable, state that and use the linked source receipts; do not invent platform facts.
 14. Reuse settled source facts while rechecking actual build, applicability, resource ownership and live identity. Reopen an architectural question for changed or contradictory evidence, not merely a fresh session. Record new reusable facts in the existing Titan skill/domain module with source identity and a regression check before handback. Keep build/campaign observations out of timeless silicon rules; a proposed GPT/DMA backend remains unimplemented until its execution evidence exists.
 15. Before Titan onboard-microphone or LED2/PHY work, read `docs/evidence/K1-RA8P1-002/TITAN-MIC-LED2-SESSION-CANON.md`. It is the closeout inventory for the 2026-09-13 bring-up and supersedes the open conclusions in `LED2-MDIO-RECOVERY-HANDOVER.md` where the evidence-bound final receipt says so.
+16. Before Titan lag-free work (analysis rate, resamplers, DTCM/ITCM placement, deploy/readback/capture, or any claim that the light carries beat, bar or latency), read `/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-PRISM/Kx-Titan/docs/migration/TITAN-PRODUCT-LANE-LESSONS-2026-10-14.md` (PL14). Use its tools: `scripts/freeze_tolerance.py` for any frozen criterion, the `build_scalar.py` DTCM guards, and the lightshow skill's `scripts/rhythm_evidence.py`.
 
 ## Titan live-programming operator protocol — load-bearing
 

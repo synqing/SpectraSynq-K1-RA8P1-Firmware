@@ -11,6 +11,8 @@ typedef int fsp_err_t; typedef int bsp_io_port_pin_t;
 #define VECTOR_NUMBER_GPT1_COUNTER_OVERFLOW 47
 #define DMAC0_INT_IRQn 14
 #define VECTOR_NUMBER_DMAC0_INT 14
+#define DMAC1_INT_IRQn 73
+#define VECTOR_NUMBER_DMAC1_INT 73
 #define DMAC2_INT_IRQn 74
 #define VECTOR_NUMBER_DMAC2_INT 74
 #define DMAC3_INT_IRQn 77
@@ -38,6 +40,9 @@ typedef int fsp_err_t; typedef int bsp_io_port_pin_t;
 #define ELC_EVENT_GPT6_CAPTURE_COMPARE_A 0x1b7
 #define ELC_EVENT_GPT7_COUNTER_OVERFLOW 0x1c6
 #define ELC_EVENT_GPT7_CAPTURE_COMPARE_A 0x1c0
+#define ELC_EVENT_GPT8_COUNTER_OVERFLOW 0x1cf
+#define ELC_EVENT_GPT8_CAPTURE_COMPARE_A 0x1c9
+#define ELC_EVENT_GPT8_CAPTURE_COMPARE_B 0x1ca
 #define ELC_EVENT_GPT0_COUNTER_OVERFLOW 0x187
 #define ELC_EVENT_GPT1_COUNTER_OVERFLOW 0x190
 #define ELC_PERIPHERAL_GPT_A 0
@@ -92,7 +97,7 @@ static struct {uint32_t MSTPCRC;} mstp;
 static uint32_t SystemCoreClock=1000000000u,irq_mask;
 static int g_ioport_ctrl,elc_started,fail_start,fail_reset;
 static void *irq_contexts[128];
-static gpt_regs_t gpt_regs[8]; static dma_regs_t dma_channel_regs[8];
+static gpt_regs_t gpt_regs[9]; static dma_regs_t dma_channel_regs[8];
 #define dma_regs dma_channel_regs[2]
 static void module_start(int ip,int channel) {(void)ip;(void)channel;elc_started=1;mstp.MSTPCRC=0;}
 #define R_BSP_MODULE_START module_start
@@ -105,16 +110,30 @@ static void R_BSP_PinAccessEnable(void) {} static void R_BSP_PinAccessDisable(vo
 static void *R_FSP_IsrContextGet(int n) {return irq_contexts[n];}
 static uint32_t NVIC_GetPendingIRQ(int n) {(void)n;return 0;}
 static void R_BSP_IrqClearPending(int n) {(void)n;}
+static uint32_t pin_cfg_hits[16][16];
 static int R_IOPORT_PinCfg(void*c,bsp_io_port_pin_t p,uint32_t config) {
  (void)c; unsigned port=(unsigned)((p>>8)&0xff), pin=(unsigned)(p&0xff);
- if(port<16u&&pin<16u) mock_pfs.PORT[port].PIN[pin].PmnPFS=config; return 0;
+ if(port<16u&&pin<16u) {
+  pin_cfg_hits[port][pin]+=1u;
+  mock_pfs.PORT[port].PIN[pin].PmnPFS=config;
+ }
+ return 0;
 }
 static int R_GPT_Open(gpt_instance_ctrl_t*c,const timer_cfg_t*q) {c->p_reg=&gpt_regs[q->channel];c->p_cfg=q;c->p_reg->GTPR=q->period_counts-1;c->p_reg->GTUPSR=q->p_extend->count_up_source;if(q->cycle_end_irq>=0)irq_contexts[q->cycle_end_irq]=c;return 0;}
 static int R_GPT_Close(gpt_instance_ctrl_t*c) {(void)c;return 0;}
 static int R_GPT_InfoGet(gpt_instance_ctrl_t*c,timer_info_t*i) {(void)c;i->clock_frequency=300000000;return 0;}
 static int R_GPT_Stop(gpt_instance_ctrl_t*c) {c->p_reg->GTCR=0;return 0;}
-static int R_GPT_Reset(gpt_instance_ctrl_t*c) {c->p_reg->GTCNT=0;c->p_reg->GTCCR[0]=c->p_reg->GTCCR[2];return fail_reset;}
-static int R_GPT_PeriodSet(gpt_instance_ctrl_t*c,uint32_t p) {c->p_reg->GTPR=p-1;return 0;}
+static int R_GPT_Reset(gpt_instance_ctrl_t*c) {
+ c->p_reg->GTCNT=0;
+ c->p_reg->GTCCR[0]=c->p_reg->GTCCR[2];
+ c->p_reg->GTCCR[1]=c->p_reg->GTCCR[3];
+ return fail_reset;
+}
+static int R_GPT_PeriodSet(gpt_instance_ctrl_t*c,uint32_t p) {
+ c->p_reg->GTPR=p-1;
+ c->p_reg->GTBER=0x550000u;
+ return 0;
+}
 static int R_GPT_Enable(gpt_instance_ctrl_t*c) {c->p_reg->GTPSR=c->p_cfg->p_extend->stop_source;return 0;}
 static int R_GPT_Start(gpt_instance_ctrl_t*c) {if(fail_start)return 9;c->p_reg->GTCR=1;return 0;}
 static int R_DMAC_Open(dmac_instance_ctrl_t*c,const transfer_cfg_t*q) {

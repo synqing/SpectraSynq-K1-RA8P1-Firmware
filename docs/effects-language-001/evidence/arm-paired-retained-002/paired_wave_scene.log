@@ -1,0 +1,11 @@
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.cpp: In member function 'void k1::core::visual::PairedWaveScene::deposit(float)':
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.cpp:50:11: error: no match for 'operator=' (operand types are 'k1::core::visual::PairedWaveScene::Knot' and '<brace-enclosed initializer list>')
+   50 |     knot={};knot.active=true;knot.amplitude=unit(strength);
+      |           ^
+In file included from /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.cpp:4:
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.h:36:10: note: candidate: 'constexpr k1::core::visual::PairedWaveScene::Knot& k1::core::visual::PairedWaveScene::Knot::operator=(const k1::core::visual::PairedWaveScene::Knot&)'
+   36 |   struct Knot {
+      |          ^~~~
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.h:36:10: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'const k1::core::visual::PairedWaveScene::Knot&'
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.h:36:10: note: candidate: 'constexpr k1::core::visual::PairedWaveScene::Knot& k1::core::visual::PairedWaveScene::Knot::operator=(k1::core::visual::PairedWaveScene::Knot&&)'
+/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-effects-language-001/src/k1/core/visual/paired_wave_scene.h:36:10: note:   no known conversion for argument 1 from '<brace-enclosed initializer list>' to 'k1::core::visual::PairedWaveScene::Knot&&'

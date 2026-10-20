@@ -1,0 +1,631 @@
+{
+  "frozen_sha256": "7841d4fb4b851166512e2e80bd4548937dea6d5f61c8b899e976054d0ffac317",
+  "frozen_purpose": "P4 step 3: the in-house analysis at 24 kHz / 180 (k1_poly24 output) against the current 12.8 kHz / 96 analysis (k1_asrc24 Emotiscope profile output), same PCM, host probe tests/host/p4_analysis24_probe.cpp",
+  "gains": {
+    "boom_song": 1.154804192940544,
+    "boom_room": 89.60454170994046,
+    "dopex_room": 72.02187479676554
+  },
+  "real": {
+    "boom_song": {
+      "probe": {
+        "poly24_produced": 1799820,
+        "poly24_rejected": 0,
+        "legacy_generations": 9999,
+        "a24_generations": 9999
+      },
+      "lag_generations": 0,
+      "iii": {
+        "raw_rms": {
+          "median_ratio_24k_over_12k8": 1.01256681255031,
+          "spearman": 0.9779948750691969
+        },
+        "vu_level": {
+          "median_ratio_24k_over_12k8": 1.01256681255031,
+          "spearman": 0.9779948750691969
+        },
+        "peak_scaled": {
+          "spearman": 0.9807685273896721,
+          "median_abs_diff": 0.015291999999999972
+        },
+        "silence_agreement": 1.0,
+        "pass": true
+      },
+      "i": {
+        "bins_tested": 67,
+        "min_r": 0.48453852128511243,
+        "median_r": 0.7969437769812051,
+        "worst_bin": 66,
+        "transition_band_r": {
+          "67": 0.4581335111595387,
+          "68": 0.3143605134979651,
+          "69": 0.2976793467112658,
+          "70": 0.30886952776025245
+        },
+        "pass": false
+      },
+      "iv": {
+        "median_12k8": 138.0,
+        "median_24k": 138.0,
+        "abs_diff": 0.0,
+        "pass": true
+      },
+      "ii": {
+        "bins": [
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79
+        ],
+        "mean_magnitude": {
+          "71": 3.275199648898819,
+          "72": 3.247223731248005,
+          "73": 3.2212102457708265,
+          "74": 3.1386360357484837,
+          "75": 3.0801214650494737,
+          "76": 3.026292227896585,
+          "77": 3.0755401372486437,
+          "78": 3.0584184487711457,
+          "79": 2.849273858921162
+        },
+        "reference_mean_below_5120": 9.9127841975885,
+        "nonzero_pass": true,
+        "hp_envelope_r": 0.7260451829547885,
+        "hp_lag_generations": 0,
+        "real_pass": true,
+        "pass": true
+      }
+    },
+    "boom_room": {
+      "probe": {
+        "poly24_produced": 1919700,
+        "poly24_rejected": 0,
+        "legacy_generations": 10665,
+        "a24_generations": 10665
+      },
+      "lag_generations": 0,
+      "iii": {
+        "raw_rms": {
+          "median_ratio_24k_over_12k8": 1.0097902846137385,
+          "spearman": 0.9660834107098811
+        },
+        "vu_level": {
+          "median_ratio_24k_over_12k8": 1.0097902846137385,
+          "spearman": 0.9660834107098811
+        },
+        "peak_scaled": {
+          "spearman": 0.9840807548135786,
+          "median_abs_diff": 0.015338999999999992
+        },
+        "silence_agreement": 1.0,
+        "pass": true
+      },
+      "i": {
+        "bins_tested": 67,
+        "min_r": 0.4640315585845176,
+        "median_r": 0.7576326006926428,
+        "worst_bin": 66,
+        "transition_band_r": {
+          "67": 0.3800498638909013,
+          "68": 0.28016043910610683,
+          "69": 0.28898188848725487,
+          "70": 0.3310142070360417
+        },
+        "pass": false
+      },
+      "iv": {
+        "median_12k8": 140.0,
+        "median_24k": 140.0,
+        "abs_diff": 0.0,
+        "pass": true
+      }
+    },
+    "dopex_room": {
+      "probe": {
+        "poly24_produced": 2087640,
+        "poly24_rejected": 0,
+        "legacy_generations": 11598,
+        "a24_generations": 11598
+      },
+      "lag_generations": 0,
+      "iii": {
+        "raw_rms": {
+          "median_ratio_24k_over_12k8": 1.0016826386000444,
+          "spearman": 0.9611957585507264
+        },
+        "vu_level": {
+          "median_ratio_24k_over_12k8": 1.0016826386000444,
+          "spearman": 0.9611957585507264
+        },
+        "peak_scaled": {
+          "spearman": 0.9750382893987106,
+          "median_abs_diff": 0.013797000000000004
+        },
+        "silence_agreement": 0.9999137782376272,
+        "post_roll_first_silence_s": {
+          "12k8": 79.95,
+          "24k": 79.95
+        },
+        "pass": true
+      }
+    }
+  },
+  "planted": {
+    "rate": {
+      "caught": {
+        "i": true,
+        "iv": true
+      },
+      "detail": {
+        "boom_song": {
+          "probe": {
+            "poly24_produced": 1714140,
+            "poly24_rejected": 0,
+            "legacy_generations": 9999,
+            "a24_generations": 9523
+          },
+          "lag_generations": -3,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 1.05895227035968,
+              "spearman": 0.37842037149168145
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 1.05895227035968,
+              "spearman": 0.37842037149168145
+            },
+            "peak_scaled": {
+              "spearman": 0.2188477020237266,
+              "median_abs_diff": 0.20172850000000003
+            },
+            "silence_agreement": 1.0,
+            "pass": false
+          },
+          "i": {
+            "bins_tested": 67,
+            "min_r": 0.0640950946645841,
+            "median_r": 0.10121925949281634,
+            "worst_bin": 28,
+            "transition_band_r": {
+              "67": 0.14065734114897563,
+              "68": 0.13774964821594043,
+              "69": 0.12900216978118292,
+              "70": 0.11908097269593901
+            },
+            "pass": false
+          },
+          "iv": {
+            "median_12k8": 138.0,
+            "median_24k": 145.0,
+            "abs_diff": 7.0,
+            "pass": false
+          },
+          "ii": {
+            "bins": [
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79
+            ],
+            "mean_magnitude": {
+              "71": 3.2352943158230882,
+              "72": 3.235856602267284,
+              "73": 3.1749626057799776,
+              "74": 3.18936586300495,
+              "75": 3.260507552291234,
+              "76": 3.1453041832987387,
+              "77": 3.1775247165894935,
+              "78": 2.972297620948427,
+              "79": 2.8113124700622705
+            },
+            "reference_mean_below_5120": 10.172853182753007,
+            "nonzero_pass": true,
+            "hp_envelope_r": 0.15446527068865123,
+            "hp_lag_generations": -4,
+            "real_pass": false,
+            "pass": false
+          }
+        },
+        "boom_room": {
+          "probe": {
+            "poly24_produced": 1828260,
+            "poly24_rejected": 0,
+            "legacy_generations": 10665,
+            "a24_generations": 10157
+          },
+          "lag_generations": -3,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 1.0268211155263374,
+              "spearman": 0.27982360360563285
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 1.0268211155263374,
+              "spearman": 0.27982360360563285
+            },
+            "peak_scaled": {
+              "spearman": 0.18819464969937452,
+              "median_abs_diff": 0.20444800000000002
+            },
+            "silence_agreement": 1.0,
+            "pass": false
+          },
+          "i": {
+            "bins_tested": 67,
+            "min_r": 0.04436914729569525,
+            "median_r": 0.08214971666243824,
+            "worst_bin": 57,
+            "transition_band_r": {
+              "67": 0.10054892704393159,
+              "68": 0.08735015410771675,
+              "69": 0.09782111152003202,
+              "70": 0.09196115802631101
+            },
+            "pass": false
+          },
+          "iv": {
+            "median_12k8": 140.0,
+            "median_24k": 146.0,
+            "abs_diff": 6.0,
+            "pass": false
+          }
+        },
+        "dopex_room": {
+          "probe": {
+            "poly24_produced": 1988280,
+            "poly24_rejected": 0,
+            "legacy_generations": 11598,
+            "a24_generations": 11046
+          },
+          "lag_generations": -1,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 0.9586659895039783,
+              "spearman": 0.6382936590445284
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 0.9586659895039783,
+              "spearman": 0.6382936590445284
+            },
+            "peak_scaled": {
+              "spearman": 0.22158879621762517,
+              "median_abs_diff": 0.14452300000000007
+            },
+            "silence_agreement": 0.9123911356385273,
+            "post_roll_first_silence_s": {
+              "12k8": 79.95,
+              "24k": 76.38
+            },
+            "pass": false
+          }
+        }
+      }
+    },
+    "upsample": {
+      "caught": {
+        "ii": true
+      },
+      "detail": {
+        "boom_song": {
+          "probe": {
+            "poly24_produced": 0,
+            "poly24_rejected": 0,
+            "legacy_generations": 9999,
+            "a24_generations": 9999
+          },
+          "lag_generations": 0,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 0.9934925838120328,
+              "spearman": 0.9998605144045749
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 0.9934925838120328,
+              "spearman": 0.9998605144045749
+            },
+            "peak_scaled": {
+              "spearman": 0.9992416902989592,
+              "median_abs_diff": 0.002874999999999961
+            },
+            "silence_agreement": 1.0,
+            "pass": true
+          },
+          "i": {
+            "bins_tested": 67,
+            "min_r": 0.9695702446376753,
+            "median_r": 0.9990087327035878,
+            "worst_bin": 64,
+            "transition_band_r": {
+              "67": 0.8545982768913137,
+              "68": 0.9929466799018285,
+              "69": 0.9937886682548971,
+              "70": 0.9924101903593553
+            },
+            "pass": true
+          },
+          "iv": {
+            "median_12k8": 138.0,
+            "median_24k": 138.0,
+            "abs_diff": 0.0,
+            "pass": true
+          },
+          "ii": {
+            "bins": [
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79
+            ],
+            "mean_magnitude": {
+              "71": 1.9324451324609,
+              "72": 1.8961506862432176,
+              "73": 1.9442779763804658,
+              "74": 2.0358902330035114,
+              "75": 2.0483771145866583,
+              "76": 2.0223208107245454,
+              "77": 2.0524831152250242,
+              "78": 1.9358841366102777,
+              "79": 1.8611155442068306
+            },
+            "reference_mean_below_5120": 9.674779374830283,
+            "nonzero_pass": true,
+            "hp_envelope_r": 0.3342048165395027,
+            "hp_lag_generations": 0,
+            "real_pass": false,
+            "pass": false
+          }
+        },
+        "boom_room": {
+          "probe": {
+            "poly24_produced": 0,
+            "poly24_rejected": 0,
+            "legacy_generations": 10665,
+            "a24_generations": 10665
+          },
+          "lag_generations": 0,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 0.9902391509481823,
+              "spearman": 0.9996585737090519
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 0.9902391509481823,
+              "spearman": 0.9996585737090519
+            },
+            "peak_scaled": {
+              "spearman": 0.9995348088328677,
+              "median_abs_diff": 0.0026439999999999797
+            },
+            "silence_agreement": 1.0,
+            "pass": true
+          },
+          "i": {
+            "bins_tested": 67,
+            "min_r": 0.9527556072875043,
+            "median_r": 0.998100548360102,
+            "worst_bin": 61,
+            "transition_band_r": {
+              "67": 0.8685178399046581,
+              "68": 0.9925458607420014,
+              "69": 0.9942676505981742,
+              "70": 0.9928048443739834
+            },
+            "pass": true
+          },
+          "iv": {
+            "median_12k8": 140.0,
+            "median_24k": 140.0,
+            "abs_diff": 0.0,
+            "pass": true
+          }
+        },
+        "dopex_room": {
+          "probe": {
+            "poly24_produced": 0,
+            "poly24_rejected": 0,
+            "legacy_generations": 11598,
+            "a24_generations": 11598
+          },
+          "lag_generations": 0,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 0.9947410693796375,
+              "spearman": 0.999934356288653
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 0.9947410693796375,
+              "spearman": 0.999934356288653
+            },
+            "peak_scaled": {
+              "spearman": 0.9995842258583411,
+              "median_abs_diff": 0.0018080000000000318
+            },
+            "silence_agreement": 0.9999137782376272,
+            "post_roll_first_silence_s": {
+              "12k8": 79.95,
+              "24k": 79.95
+            },
+            "pass": true
+          }
+        }
+      }
+    },
+    "gain": {
+      "caught": {
+        "iii": true
+      },
+      "detail": {
+        "boom_song": {
+          "probe": {
+            "poly24_produced": 1799820,
+            "poly24_rejected": 0,
+            "legacy_generations": 9999,
+            "a24_generations": 9999
+          },
+          "lag_generations": 0,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 1.2713317895568954,
+              "spearman": 0.9779937689058489
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 1.2713317895568954,
+              "spearman": 0.9779937689058489
+            },
+            "peak_scaled": {
+              "spearman": 0.9804568204810513,
+              "median_abs_diff": 0.015047999999999992
+            },
+            "silence_agreement": 1.0,
+            "pass": false
+          },
+          "i": {
+            "bins_tested": 67,
+            "min_r": 0.4848676359479582,
+            "median_r": 0.7969385037582097,
+            "worst_bin": 66,
+            "transition_band_r": {
+              "67": 0.45818608014332085,
+              "68": 0.3144934268622085,
+              "69": 0.2977986323222057,
+              "70": 0.309209765367053
+            },
+            "pass": false
+          },
+          "iv": {
+            "median_12k8": 138.0,
+            "median_24k": 138.0,
+            "abs_diff": 0.0,
+            "pass": true
+          },
+          "ii": {
+            "bins": [
+              71,
+              72,
+              73,
+              74,
+              75,
+              76,
+              77,
+              78,
+              79
+            ],
+            "mean_magnitude": {
+              "71": 4.093972741781041,
+              "72": 4.056647765719758,
+              "73": 4.027188509415895,
+              "74": 3.92646769869135,
+              "75": 3.851892451324609,
+              "76": 3.782458011490584,
+              "77": 3.8472252792850306,
+              "78": 3.8258378550909673,
+              "79": 3.5628391318225345
+            },
+            "reference_mean_below_5120": 12.391469611406741,
+            "nonzero_pass": true,
+            "hp_envelope_r": 0.7260395240028508,
+            "hp_lag_generations": 0,
+            "real_pass": true,
+            "pass": true
+          }
+        },
+        "boom_room": {
+          "probe": {
+            "poly24_produced": 1919700,
+            "poly24_rejected": 0,
+            "legacy_generations": 10665,
+            "a24_generations": 10665
+          },
+          "lag_generations": 0,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 1.2597541803630126,
+              "spearman": 0.9661412267280596
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 1.2597541803630126,
+              "spearman": 0.9661412267280596
+            },
+            "peak_scaled": {
+              "spearman": 0.9708522299112183,
+              "median_abs_diff": 0.039810999999999985
+            },
+            "silence_agreement": 1.0,
+            "pass": false
+          },
+          "i": {
+            "bins_tested": 67,
+            "min_r": 0.4626606604977036,
+            "median_r": 0.7592052445142747,
+            "worst_bin": 66,
+            "transition_band_r": {
+              "67": 0.3695913294655042,
+              "68": 0.2683522169235073,
+              "69": 0.2737269745750457,
+              "70": 0.31632094851658416
+            },
+            "pass": false
+          },
+          "iv": {
+            "median_12k8": 140.0,
+            "median_24k": 140.0,
+            "abs_diff": 0.0,
+            "pass": true
+          }
+        },
+        "dopex_room": {
+          "probe": {
+            "poly24_produced": 2087640,
+            "poly24_rejected": 0,
+            "legacy_generations": 11598,
+            "a24_generations": 11598
+          },
+          "lag_generations": 0,
+          "iii": {
+            "raw_rms": {
+              "median_ratio_24k_over_12k8": 1.2527562167531325,
+              "spearman": 0.9611979213767483
+            },
+            "vu_level": {
+              "median_ratio_24k_over_12k8": 1.2527562167531325,
+              "spearman": 0.9611979213767483
+            },
+            "peak_scaled": {
+              "spearman": 0.9729363508047142,
+              "median_abs_diff": 0.016908499999999937
+            },
+            "silence_agreement": 0.9500775995861356,
+            "post_roll_first_silence_s": {
+              "12k8": 79.95,
+              "24k": 82.98
+            },
+            "pass": false
+          }
+        }
+      }
+    }
+  },
+  "real_pass": {
+    "i": false,
+    "ii": true,
+    "iii": true,
+    "iv": true
+  },
+  "planted_all_caught": true,
+  "overall_pass": false
+}

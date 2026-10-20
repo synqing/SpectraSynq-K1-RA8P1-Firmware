@@ -1,0 +1,39 @@
+{
+  "argv_redacted": [
+    "python3",
+    "/tmp/check_schema_binding_006.py"
+  ],
+  "claim": "This command executed with the recorded outcome; domain acceptance is not inferred from exit alone",
+  "ended": "2026-09-28T17:06:54.071623+00:00",
+  "exit_code": 0,
+  "label": "FX final compiler schema dependency mutation guard",
+  "project": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+  "schema": "executed-verification.v1",
+  "session_key": "31b71435bd49aaa2805452dc",
+  "source_after": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "source_before": {
+    "dirty": true,
+    "git": true,
+    "head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf",
+    "source_coverage_complete": false,
+    "status_sha256": "ec64db50c0b0123c002dba08d3b8d46382320674cdda11d56ebbc4cf4e871f82",
+    "tracked_diff_sha256": "854cd5386013973144388e610f8ef9de12203c339f5c4a60590c0c548f914f35",
+    "untracked_file_count": 2577,
+    "untracked_manifest_sha256": "e243d65c7590a93f1d1dee91a1e271b6d12b9c50177866786900b03c50453992"
+  },
+  "started": "2026-09-28T17:06:53.854185+00:00",
+  "stderr": "",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout": "{\"build_inputs\": 139, \"schema_sha256\": \"be842590544d84297f6753812a031f0cbb8eed9ebfa8c1e8c4a1b73bd84d88da\", \"dependency_method\": \"GCC -MMD per translation unit; project/non-system closure\", \"mutation_refusal\": \"Rebuild required: source changed: platform/ra8p1/k1_live_schema.inc\", \"live_sources_modified\": false}\n",
+  "stdout_sha256": "ac269d489c697178980fa4388b171caf198d6d8041020a2ed91d3af78b8a5a87",
+  "timed_out": false
+}

@@ -1,0 +1,7 @@
+{
+  "session": "31b71435bd49aaa2805452dc",
+  "host_receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/9dc97c3da9b0b136f7dc268ba9e9571942fbc84f0b166041ceb66e2a1d4b681e.json",
+  "arm_receipt": "/Users/spectrasynq/.local/state/spectrasynq-agents/verification/b5febf40312be428d7cf969caaf379fb20db4c9081fd12c8fa9e14d082f14f6e.json",
+  "admission": "Refused: Explicit observed case results are required; command success is insufficient",
+  "physical_execution": false
+}

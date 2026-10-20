@@ -1,0 +1,39 @@
+{
+  "utc": "2026-10-11T13:29:51.909282+00:00",
+  "target": "host only",
+  "records": [
+    {
+      "argv": [
+        "clang++",
+        "-std=c++17",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-fno-exceptions",
+        "-fno-rtti",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-I.",
+        "harness/tests/test_composed_timing.cpp",
+        "-o",
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_timing/test_composed_timing"
+      ],
+      "exit_code": 0,
+      "output": ""
+    },
+    {
+      "argv": [
+        "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-emotiscope-port-001/_scratch/test_composed_timing/test_composed_timing"
+      ],
+      "exit_code": 0,
+      "output": "timing checks complete; stable grid boundaries=9; wrap boundaries=4; clock_bytes=440\n"
+    }
+  ],
+  "sha256_inputs": {
+    "platform/ra8p1/composed_timing.h": "85797c63a8c65502892d2fd9a7b1513828743603847aa2fcc86f6d342c5e0d1e",
+    "harness/tests/test_composed_timing.cpp": "943241d3d2463e43f8b2645dce18a64734702017977c7417025311fd4220b613",
+    "harness/tests/test_composed_timing.py": "39d23950b25204c022010141fac08fa8aa1225271ddf8e6b2699986bbdb15b7b",
+    "platform/ra8p1/emotiscope_donor/tempo.h": "68e4d078ca1f7d9446c613cf05850f3d5c7b99716e409653737c4ac529207ddf",
+    "platform/ra8p1/emotiscope_donor/global_defines.h": "2e6e192c3cda889e41fca9fb4cd2bb0e9cda796723cf37792f2c0de4a44a1247"
+  }
+}

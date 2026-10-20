@@ -1,0 +1,18 @@
+{
+  "material": "BOOM source replay 0-28 s, board-0 producer, valid primed non-quiet hops",
+  "hops": 3722,
+  "source": "_scratch/waveform-migration-001/runs/P6-DBS-20261015/arms/boom_source/arm0.hops.csv",
+  "source_sha256": "60ac6b418b498e3f3be3fa33133b00a964e8f4458e8be2840d9fbaf1dbfd728f",
+  "full_bank": {
+    "p50": 0.304692655,
+    "p95": 0.7052579969999997
+  },
+  "static16": {
+    "p50": 0.94784307,
+    "p95": 2.735351925
+  },
+  "adaptive16": {
+    "p50": 1.0177177,
+    "p95": 2.929533744999999
+  }
+}

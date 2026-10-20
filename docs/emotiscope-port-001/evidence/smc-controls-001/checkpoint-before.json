@@ -1,0 +1,14 @@
+{
+  "head": "2ef4fe5d961ebe37c7b560007e46ce5fc0966b2a",
+  "branch": "feat/titan-emotiscope-port-001",
+  "note": "Checkpoint before SMC controls edits. arm-port-004 and resident image are recovery inputs, not reset targets.",
+  "files": {
+    "platform/ra8p1/emotiscope_port.h": "53f317ce9dbc857cef13a2c75e8df6a30c195ed9c56d26a46f487ac034a12bb6",
+    "platform/ra8p1/emotiscope_port.cpp": "ad593908618d945aad60f5fbdcf97fc559edc0a17d6da4e10dc8f485ade41da6",
+    "platform/ra8p1/fixture_app.cpp": "342dd2a2d820357c751faefe12044f008b54a8d10f301ffda4857111159217cb",
+    "platform/ra8p1/palette_runtime.h": "d98d93d62e5f1b443595ff61f04b32cd290dd18c4043b8d405b39926b47c9ef0",
+    "platform/ra8p1/palette_runtime.cpp": "c79bd832dc5c3a67fccacefaa12ec3b26d8278c781695b59380ca0d8a157667d",
+    "platform/ra8p1/k1_live_protocol.h": "f987c275f7bb43b04c6b37317169919cb33d1973fd22fdfb7e7faeb7e5ff6f4d",
+    "docs/contracts/titan-emotiscope-v1.json": "c7b67f1eecbe836721c97331eef895813857191e273999c96b1f3fbf41bce39a"
+  }
+}

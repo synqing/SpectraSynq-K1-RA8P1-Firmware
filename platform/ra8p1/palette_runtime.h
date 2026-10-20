@@ -4,12 +4,30 @@
 #include "core/visual/channel_render_state.h"
 #include "core/visual/visual_audio_frame.h"
 #include "core/visual/ws2816_pack.h"
+#if defined(K1_TITAN_TOP_OUTPUT) && defined(K1_EMOTISCOPE_PORT)
+#include "emotiscope_port.h"
+#include "composed_scene_runtime.h"
+#include "core/visual/inhouse_waveform.h"
+#if defined(K1_V9_RELEASE_PUPPET)
+#include "core/visual/v9_release_puppet.h"
+#endif
+#if defined(K1_BOOT_PALETTE_RANDOM)
+#include "core/visual/boot_palette_random.h"
+#endif
+#endif
 #ifdef K1_PALETTE_MORPH
 #include "palette_transition.h"
 #include "centre_palette_engine.h"
 #endif
 
 namespace k1::titan {
+#ifndef K1_LIVE_BOOT_BRIGHTNESS
+#define K1_LIVE_BOOT_BRIGHTNESS 100U
+#endif
+// User directive 29 September 2026: normal boot default is at least 100/255.
+inline constexpr std::uint32_t kDefaultPaletteBrightness = K1_LIVE_BOOT_BRIGHTNESS;
+static_assert(kDefaultPaletteBrightness >= 100U && kDefaultPaletteBrightness <= 255U);
+
 inline constexpr std::uint32_t kPaletteCatalogueOpcode = 15U;
 inline constexpr std::uint32_t kPaletteConfigureOpcode = 16U;
 inline constexpr std::uint32_t kPaletteStatusOpcode = 17U;
@@ -24,8 +42,12 @@ inline constexpr std::uint32_t kPaletteWireSnapshotOpcode = 19U; // WS2816 only;
 #if defined(K1_PALETTE_WS2816_GPT_PAIR) && defined(K1_PALETTE_WS2816)
 #error "K1_PALETTE_WS2816_GPT_PAIR and K1_PALETTE_WS2816 are mutually exclusive"
 #endif
-#ifdef K1_PALETTE_WS2816
-// Two sequential 80-pixel GRB48 transfers need more than an 8.333 ms slot.
+#if defined(K1_EMOTISCOPE_PORT)
+inline constexpr std::uint32_t kPalettePeriodUs = 10000U;
+#elif defined(K1_DUAL_EDGE_DONOR) || defined(K1_PALETTE_WS2816)
+// Keep the donor audition at 60 Hz. Its two DINs now emit 80 pixels each
+// concurrently; donor selection does not imply two physical strips. The
+// legacy GPIO backend sends two 80-pixel segments sequentially.
 inline constexpr std::uint32_t kPalettePeriodUs = 16667U;
 #else
 inline constexpr std::uint32_t kPalettePeriodUs = 8333U;
@@ -79,7 +101,7 @@ struct PaletteConfig {
   std::uint32_t version = 1U;
   std::uint32_t palette_a = 0U, palette_b = 1U;
   std::uint32_t mode_a = 0U, mode_b = 0U; // 0 = preview; 64 = palette bounce.
-  std::uint32_t flags = 0U, brightness = 24U, output_channel = 0U;
+  std::uint32_t flags = 0U, brightness = kDefaultPaletteBrightness, output_channel = 0U;
   std::uint32_t transition_ms = 0U; // Versions 2/3; 0 is an immediate cut.
   std::uint32_t travel_ms = 4000U; // Version 3: centre-to-edge travel duration.
 };
@@ -89,12 +111,55 @@ class PaletteRuntime {
   PaletteRuntime(const PaletteRuntime&) = delete;
   PaletteRuntime& operator=(const PaletteRuntime&) = delete;
   bool configure(const PaletteConfig& config, std::uint64_t now_us) noexcept;
+  void setHardwareBrightness(std::uint32_t brightness) noexcept;
+  // Physical DIN attenuation after global brightness; owner applies before packing.
+  bool setOutputIntensity(unsigned lane, float intensity) noexcept;
+  float outputIntensity(unsigned lane) const noexcept;
+#ifdef K1_TITAN_TOP_OUTPUT
+#ifdef K1_EMOTISCOPE_PORT
+  void setInhouseAudio(unsigned board,const core::visual::InhouseWaveformAudio& audio) noexcept {
+    if(board<2U)inhouse_audio_[board]=audio;
+  }
+  bool setInhouseParameters(unsigned board, float sensitivity, float square_iter, float photons) noexcept;
+  core::visual::InhouseWaveformControls inhouseParameters(unsigned board) const noexcept {
+    return board<2U?inhouse_controls_[board]:core::visual::InhouseWaveformControls{};
+  }
+  bool inhouseAdmissionOpen(unsigned board) const noexcept {
+    return board<2U && k1_emotiscope_is_inhouse_mode(board?config_.mode_b:config_.mode_a) &&
+        inhouse_renderer_[board].observation().input_fresh && !inhouse_observed_audio_[board].silence;
+  }
+  bool inhouseSourceSilence(unsigned board) const noexcept {
+    return board<2U?inhouse_source_silence_[board]:true;
+  }
+  std::uint32_t inhouseDonorSequence() const noexcept { return donor_publication_.sequence; }
+  float inhouseDonorPeakSquared() const noexcept { return donor_publication_.pcm_peak_squared; }
+#endif
+  bool setBoardIntensity(unsigned board, float intensity) noexcept;
+  float boardIntensity(unsigned board) const noexcept;
+  void setSecondaryOutputEnabled(bool enabled) noexcept { secondary_output_enabled_ = enabled; }
+  bool secondaryOutputEnabled() const noexcept { return secondary_output_enabled_; }
+  std::uint64_t lastBoardFrameUs(unsigned board) const noexcept {return board<2U?board_frame_us_[board]:0U;}
+  bool lastBoardRenderValid(unsigned board) const noexcept {
+    return board<2U && board_frame_valid_[board];
+  }
+  std::size_t packBoardGrb48Lane(std::uint8_t* destination, std::size_t capacity,
+                               unsigned board, unsigned lane) const noexcept;
+#endif
+  bool setEmissionEnabled(bool enabled) noexcept;
+  void noteDonorMode(std::uint32_t mode, unsigned board = 0U) noexcept;
+  bool frameDue(std::uint64_t now_us) const noexcept { return active() && now_us>=next_us_; }
   bool step(std::uint64_t now_us,
             const core::visual::VisualAudioFrameView* audio) noexcept;
+  void selectPerformanceMode(std::uint32_t mode) noexcept;
   void resetAudioState() noexcept;
   void stop() noexcept { config_.flags = 0U; }
   bool active() const noexcept { return (config_.flags & 1U) != 0U; }
   bool emitEnabled() const noexcept { return (config_.flags & 4U) != 0U; }
+  // Owner-only A/B output precision: 0 = reference RGB8 (boot), 1 = 16-bit
+  // candidate. Takes effect at the next rendered frame. Not part of any scene
+  // or defaults restore; a reboot returns to 0.
+  void setOutputPrecision(std::uint32_t precision) noexcept { output_precision_ = precision ? 1U : 0U; }
+  std::uint32_t outputPrecision() const noexcept { return output_precision_; }
   const PaletteConfig& config() const noexcept { return config_; }
   core::visual::ChannelRenderState& channel(unsigned i) noexcept {
     return i ? b_ : a_;
@@ -114,8 +179,11 @@ class PaletteRuntime {
                                unsigned lane) const noexcept;
   std::size_t catalogueJson(char* out, std::size_t capacity) const noexcept;
   std::size_t statusJson(char* out, std::size_t capacity) const noexcept;
+  // Owner-only same-mode palette selection; retain audio/presence/history clocks.
+  void selectPerformancePalette(std::uint32_t id, std::uint64_t now_us) noexcept;
   void recordEmit(int result, std::uint32_t cycles) noexcept;
   const char* visualPath() const noexcept { return visual_path_ ? visual_path_ : "none"; }
+  std::uint64_t lastPublicationUs() const noexcept { return last_publication_us_; }
   std::uint64_t skippedReleases() const noexcept { return skipped_; }
   std::uint64_t frames() const noexcept { return frames_; }
  private:
@@ -148,5 +216,35 @@ class PaletteRuntime {
   std::uint64_t dwell_reinits_ = 0U;
   core::visual::Pixel16 wide_[2][core::visual::kPixelsPerChannel]{};
   bool wide_valid_[2]{};
+  std::uint32_t output_precision_ = 0U;
+  float output_intensity_[2]{1.0F, 1.0F};
+  std::uint16_t output_intensity_q16_[2]{65535U, 65535U};
+#ifdef K1_TITAN_TOP_OUTPUT
+#ifdef K1_EMOTISCOPE_PORT
+  core::visual::InhouseWaveformRenderer inhouse_renderer_[2]{};
+  core::visual::InhouseWaveformControls inhouse_controls_[2]{};
+  composed_scene::BloomAdmission inhouse_admission_[2]{};
+  core::visual::InhouseWaveformAudio inhouse_audio_[2]{};
+  core::visual::InhouseWaveformAudio inhouse_observed_audio_[2]{};
+  bool inhouse_source_silence_[2]{true,true};
+  std::uint64_t inhouse_render_us_[2]{};
+#if defined(K1_V9_RELEASE_PUPPET)
+  core::visual::V9PuppetState puppet_{};  // TEST IMAGE ONLY
+#endif
+#if defined(K1_BOOT_PALETTE_RANDOM)
+  core::visual::BootPaletteSeed boot_palette_{};
+  std::uint32_t boot_palette_start_[2]{};
+#endif
+  bool renderInhouse(unsigned board,std::uint64_t now_us) noexcept;
+#endif
+  float board_intensity_[2]{1.0F, 1.0F};
+  std::uint16_t board_intensity_q16_[2]{65535U, 65535U};
+  bool secondary_output_enabled_ = false;
+  bool board_frame_valid_[2]{};
+  std::uint64_t board_frame_us_[2]{};
+#ifdef K1_EMOTISCOPE_PORT
+  K1EmotiscopeAudioPublication donor_publication_{};
+#endif
+#endif
 };
 } // namespace k1::titan

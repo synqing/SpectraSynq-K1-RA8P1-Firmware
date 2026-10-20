@@ -1,0 +1,2450 @@
+{
+  "schema": "tempo-field-pcm-fixtures.v1",
+  "sample_rate_hz": 24000,
+  "hop_samples": 180,
+  "media_rate_hz": 48000,
+  "format": "mono signed16 little endian",
+  "generator_sha256": "9165804d755eae7d1fd99caf0bcdff4c12b5a6a90de6540f61732f7502fd88f2",
+  "rounding": "floor(exact event seconds * 24000 + 0.5); no resampling of existing PCM",
+  "scoring_frozen": {
+    "incumbent_parity": "all serialised fields exactly identical",
+    "tempo": "exact absolute BPM error separate from min(error to half/double family); no real-song truth available",
+    "attack": "nearest unused annotated attack, causal detection within 0..150ms; report misses/false positives, no detector accuracy admission threshold",
+    "appearance": "same fixed scene/palette; paired total output level matched; preference requires operator judgement",
+    "held_out": "song-1 never used for tuning"
+  },
+  "fixtures": [
+    {
+      "id": "clear120",
+      "path": "clear120.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 60000,
+          "media_frame_48k": 120000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 72000,
+          "media_frame_48k": 144000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 84000,
+          "media_frame_48k": 168000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 96000,
+          "media_frame_48k": 192000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 108000,
+          "media_frame_48k": 216000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 120000,
+          "media_frame_48k": 240000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 132000,
+          "media_frame_48k": 264000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 144000,
+          "media_frame_48k": 288000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 156000,
+          "media_frame_48k": 312000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 168000,
+          "media_frame_48k": 336000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 180000,
+          "media_frame_48k": 360000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 192000,
+          "media_frame_48k": 384000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 204000,
+          "media_frame_48k": 408000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 216000,
+          "media_frame_48k": 432000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 228000,
+          "media_frame_48k": 456000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 240000,
+          "media_frame_48k": 480000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 252000,
+          "media_frame_48k": 504000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 264000,
+          "media_frame_48k": 528000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 276000,
+          "media_frame_48k": 552000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 288000,
+          "media_frame_48k": 576000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 300000,
+          "media_frame_48k": 600000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 312000,
+          "media_frame_48k": 624000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 324000,
+          "media_frame_48k": 648000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 336000,
+          "media_frame_48k": 672000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 348000,
+          "media_frame_48k": 696000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 360000,
+          "media_frame_48k": 720000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 372000,
+          "media_frame_48k": 744000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 384000,
+          "media_frame_48k": 768000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 396000,
+          "media_frame_48k": 792000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 408000,
+          "media_frame_48k": 816000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 420000,
+          "media_frame_48k": 840000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 432000,
+          "media_frame_48k": 864000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 444000,
+          "media_frame_48k": 888000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 456000,
+          "media_frame_48k": 912000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 468000,
+          "media_frame_48k": 936000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 480000,
+          "media_frame_48k": 960000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 492000,
+          "media_frame_48k": 984000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 504000,
+          "media_frame_48k": 1008000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 516000,
+          "media_frame_48k": 1032000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 528000,
+          "media_frame_48k": 1056000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 540000,
+          "media_frame_48k": 1080000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 552000,
+          "media_frame_48k": 1104000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 564000,
+          "media_frame_48k": 1128000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 576000,
+          "media_frame_48k": 1152000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 588000,
+          "media_frame_48k": 1176000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 600000,
+          "media_frame_48k": 1200000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 612000,
+          "media_frame_48k": 1224000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 624000,
+          "media_frame_48k": 1248000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 636000,
+          "media_frame_48k": 1272000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 648000,
+          "media_frame_48k": 1296000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 660000,
+          "media_frame_48k": 1320000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 672000,
+          "media_frame_48k": 1344000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 684000,
+          "media_frame_48k": 1368000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 696000,
+          "media_frame_48k": 1392000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 708000,
+          "media_frame_48k": 1416000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 720000,
+          "media_frame_48k": 1440000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 732000,
+          "media_frame_48k": 1464000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 744000,
+          "media_frame_48k": 1488000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 756000,
+          "media_frame_48k": 1512000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 768000,
+          "media_frame_48k": 1536000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 780000,
+          "media_frame_48k": 1560000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 792000,
+          "media_frame_48k": 1584000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 804000,
+          "media_frame_48k": 1608000,
+          "amplitude": 0.7
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": 120,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "aaa08632ff29b9efc478583e5494ae1cb8f9ce0a31a540ae5abe6c6c08c7de70"
+    },
+    {
+      "id": "syncopation",
+      "path": "syncopation.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 66000,
+          "media_frame_48k": 132000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 78000,
+          "media_frame_48k": 156000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 84000,
+          "media_frame_48k": 168000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 96000,
+          "media_frame_48k": 192000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 114000,
+          "media_frame_48k": 228000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 126000,
+          "media_frame_48k": 252000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 132000,
+          "media_frame_48k": 264000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 144000,
+          "media_frame_48k": 288000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 162000,
+          "media_frame_48k": 324000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 174000,
+          "media_frame_48k": 348000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 180000,
+          "media_frame_48k": 360000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 192000,
+          "media_frame_48k": 384000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 210000,
+          "media_frame_48k": 420000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 222000,
+          "media_frame_48k": 444000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 228000,
+          "media_frame_48k": 456000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 240000,
+          "media_frame_48k": 480000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 258000,
+          "media_frame_48k": 516000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 270000,
+          "media_frame_48k": 540000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 276000,
+          "media_frame_48k": 552000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 288000,
+          "media_frame_48k": 576000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 306000,
+          "media_frame_48k": 612000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 318000,
+          "media_frame_48k": 636000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 324000,
+          "media_frame_48k": 648000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 336000,
+          "media_frame_48k": 672000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 354000,
+          "media_frame_48k": 708000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 366000,
+          "media_frame_48k": 732000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 372000,
+          "media_frame_48k": 744000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 384000,
+          "media_frame_48k": 768000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 402000,
+          "media_frame_48k": 804000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 414000,
+          "media_frame_48k": 828000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 420000,
+          "media_frame_48k": 840000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 432000,
+          "media_frame_48k": 864000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 450000,
+          "media_frame_48k": 900000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 462000,
+          "media_frame_48k": 924000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 468000,
+          "media_frame_48k": 936000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 480000,
+          "media_frame_48k": 960000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 498000,
+          "media_frame_48k": 996000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 510000,
+          "media_frame_48k": 1020000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 516000,
+          "media_frame_48k": 1032000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 528000,
+          "media_frame_48k": 1056000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 546000,
+          "media_frame_48k": 1092000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 558000,
+          "media_frame_48k": 1116000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 564000,
+          "media_frame_48k": 1128000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 576000,
+          "media_frame_48k": 1152000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 594000,
+          "media_frame_48k": 1188000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 606000,
+          "media_frame_48k": 1212000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 612000,
+          "media_frame_48k": 1224000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 624000,
+          "media_frame_48k": 1248000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 642000,
+          "media_frame_48k": 1284000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 654000,
+          "media_frame_48k": 1308000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 660000,
+          "media_frame_48k": 1320000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 672000,
+          "media_frame_48k": 1344000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 690000,
+          "media_frame_48k": 1380000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 702000,
+          "media_frame_48k": 1404000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 708000,
+          "media_frame_48k": 1416000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 720000,
+          "media_frame_48k": 1440000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 738000,
+          "media_frame_48k": 1476000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 750000,
+          "media_frame_48k": 1500000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 756000,
+          "media_frame_48k": 1512000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 768000,
+          "media_frame_48k": 1536000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 786000,
+          "media_frame_48k": 1572000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 798000,
+          "media_frame_48k": 1596000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 804000,
+          "media_frame_48k": 1608000,
+          "amplitude": 0.7
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": 120,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "27306f97be9312ed6f93878fa6563d19ac1f3916da485a24b01cd263543c7576"
+    },
+    {
+      "id": "half_time",
+      "path": "half_time.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 56000,
+          "media_frame_48k": 112000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 64000,
+          "media_frame_48k": 128000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 72000,
+          "media_frame_48k": 144000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 80000,
+          "media_frame_48k": 160000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 88000,
+          "media_frame_48k": 176000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 96000,
+          "media_frame_48k": 192000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 104000,
+          "media_frame_48k": 208000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 112000,
+          "media_frame_48k": 224000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 120000,
+          "media_frame_48k": 240000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 128000,
+          "media_frame_48k": 256000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 136000,
+          "media_frame_48k": 272000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 144000,
+          "media_frame_48k": 288000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 152000,
+          "media_frame_48k": 304000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 160000,
+          "media_frame_48k": 320000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 168000,
+          "media_frame_48k": 336000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 176000,
+          "media_frame_48k": 352000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 184000,
+          "media_frame_48k": 368000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 192000,
+          "media_frame_48k": 384000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 200000,
+          "media_frame_48k": 400000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 208000,
+          "media_frame_48k": 416000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 216000,
+          "media_frame_48k": 432000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 224000,
+          "media_frame_48k": 448000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 232000,
+          "media_frame_48k": 464000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 240000,
+          "media_frame_48k": 480000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 248000,
+          "media_frame_48k": 496000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 256000,
+          "media_frame_48k": 512000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 264000,
+          "media_frame_48k": 528000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 272000,
+          "media_frame_48k": 544000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 280000,
+          "media_frame_48k": 560000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 288000,
+          "media_frame_48k": 576000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 296000,
+          "media_frame_48k": 592000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 304000,
+          "media_frame_48k": 608000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 312000,
+          "media_frame_48k": 624000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 320000,
+          "media_frame_48k": 640000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 328000,
+          "media_frame_48k": 656000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 336000,
+          "media_frame_48k": 672000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 344000,
+          "media_frame_48k": 688000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 352000,
+          "media_frame_48k": 704000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 360000,
+          "media_frame_48k": 720000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 368000,
+          "media_frame_48k": 736000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 376000,
+          "media_frame_48k": 752000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 384000,
+          "media_frame_48k": 768000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 392000,
+          "media_frame_48k": 784000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 400000,
+          "media_frame_48k": 800000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 408000,
+          "media_frame_48k": 816000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 416000,
+          "media_frame_48k": 832000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 424000,
+          "media_frame_48k": 848000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 432000,
+          "media_frame_48k": 864000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 440000,
+          "media_frame_48k": 880000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 448000,
+          "media_frame_48k": 896000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 456000,
+          "media_frame_48k": 912000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 464000,
+          "media_frame_48k": 928000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 472000,
+          "media_frame_48k": 944000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 480000,
+          "media_frame_48k": 960000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 488000,
+          "media_frame_48k": 976000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 496000,
+          "media_frame_48k": 992000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 504000,
+          "media_frame_48k": 1008000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 512000,
+          "media_frame_48k": 1024000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 520000,
+          "media_frame_48k": 1040000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 528000,
+          "media_frame_48k": 1056000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 536000,
+          "media_frame_48k": 1072000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 544000,
+          "media_frame_48k": 1088000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 552000,
+          "media_frame_48k": 1104000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 560000,
+          "media_frame_48k": 1120000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 568000,
+          "media_frame_48k": 1136000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 576000,
+          "media_frame_48k": 1152000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 584000,
+          "media_frame_48k": 1168000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 592000,
+          "media_frame_48k": 1184000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 600000,
+          "media_frame_48k": 1200000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 608000,
+          "media_frame_48k": 1216000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 616000,
+          "media_frame_48k": 1232000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 624000,
+          "media_frame_48k": 1248000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 632000,
+          "media_frame_48k": 1264000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 640000,
+          "media_frame_48k": 1280000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 648000,
+          "media_frame_48k": 1296000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 656000,
+          "media_frame_48k": 1312000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 664000,
+          "media_frame_48k": 1328000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 672000,
+          "media_frame_48k": 1344000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 680000,
+          "media_frame_48k": 1360000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 688000,
+          "media_frame_48k": 1376000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 696000,
+          "media_frame_48k": 1392000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 704000,
+          "media_frame_48k": 1408000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 712000,
+          "media_frame_48k": 1424000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 720000,
+          "media_frame_48k": 1440000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 728000,
+          "media_frame_48k": 1456000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 736000,
+          "media_frame_48k": 1472000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 744000,
+          "media_frame_48k": 1488000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 752000,
+          "media_frame_48k": 1504000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 760000,
+          "media_frame_48k": 1520000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 768000,
+          "media_frame_48k": 1536000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 776000,
+          "media_frame_48k": 1552000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 784000,
+          "media_frame_48k": 1568000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 792000,
+          "media_frame_48k": 1584000,
+          "amplitude": 0.35
+        },
+        {
+          "sample": 800000,
+          "media_frame_48k": 1600000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 808000,
+          "media_frame_48k": 1616000,
+          "amplitude": 0.35
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": 90,
+      "ambiguity": [
+        90,
+        180
+      ],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "19a35e34ae7125fecf64900adbee5fdf9c944a90400dbf1e4773b665228cd974"
+    },
+    {
+      "id": "sparse_reentry",
+      "path": "sparse_reentry.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 60000,
+          "media_frame_48k": 120000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 72000,
+          "media_frame_48k": 144000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 84000,
+          "media_frame_48k": 168000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 96000,
+          "media_frame_48k": 192000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 108000,
+          "media_frame_48k": 216000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 120000,
+          "media_frame_48k": 240000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 132000,
+          "media_frame_48k": 264000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 144000,
+          "media_frame_48k": 288000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 156000,
+          "media_frame_48k": 312000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 168000,
+          "media_frame_48k": 336000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 180000,
+          "media_frame_48k": 360000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 192000,
+          "media_frame_48k": 384000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 204000,
+          "media_frame_48k": 408000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 216000,
+          "media_frame_48k": 432000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 228000,
+          "media_frame_48k": 456000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 240000,
+          "media_frame_48k": 480000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 252000,
+          "media_frame_48k": 504000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 264000,
+          "media_frame_48k": 528000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 276000,
+          "media_frame_48k": 552000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 528000,
+          "media_frame_48k": 1056000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 540000,
+          "media_frame_48k": 1080000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 552000,
+          "media_frame_48k": 1104000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 564000,
+          "media_frame_48k": 1128000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 576000,
+          "media_frame_48k": 1152000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 588000,
+          "media_frame_48k": 1176000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 600000,
+          "media_frame_48k": 1200000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 612000,
+          "media_frame_48k": 1224000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 624000,
+          "media_frame_48k": 1248000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 636000,
+          "media_frame_48k": 1272000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 648000,
+          "media_frame_48k": 1296000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 660000,
+          "media_frame_48k": 1320000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 672000,
+          "media_frame_48k": 1344000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 684000,
+          "media_frame_48k": 1368000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 696000,
+          "media_frame_48k": 1392000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 708000,
+          "media_frame_48k": 1416000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 720000,
+          "media_frame_48k": 1440000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 732000,
+          "media_frame_48k": 1464000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 744000,
+          "media_frame_48k": 1488000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 756000,
+          "media_frame_48k": 1512000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 768000,
+          "media_frame_48k": 1536000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 780000,
+          "media_frame_48k": 1560000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 792000,
+          "media_frame_48k": 1584000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 804000,
+          "media_frame_48k": 1608000,
+          "amplitude": 0.7
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": 120,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "8290c278b35f9fac71552d4d04835530aec6b0c7a9581fb6a8fb33c37a6ea78e"
+    },
+    {
+      "id": "dense",
+      "path": "dense.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 60000,
+          "media_frame_48k": 120000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 72000,
+          "media_frame_48k": 144000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 84000,
+          "media_frame_48k": 168000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 96000,
+          "media_frame_48k": 192000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 108000,
+          "media_frame_48k": 216000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 120000,
+          "media_frame_48k": 240000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 132000,
+          "media_frame_48k": 264000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 144000,
+          "media_frame_48k": 288000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 156000,
+          "media_frame_48k": 312000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 168000,
+          "media_frame_48k": 336000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 180000,
+          "media_frame_48k": 360000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 192000,
+          "media_frame_48k": 384000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 204000,
+          "media_frame_48k": 408000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 216000,
+          "media_frame_48k": 432000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 228000,
+          "media_frame_48k": 456000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 240000,
+          "media_frame_48k": 480000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 252000,
+          "media_frame_48k": 504000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 264000,
+          "media_frame_48k": 528000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 276000,
+          "media_frame_48k": 552000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 288000,
+          "media_frame_48k": 576000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 300000,
+          "media_frame_48k": 600000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 312000,
+          "media_frame_48k": 624000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 324000,
+          "media_frame_48k": 648000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 336000,
+          "media_frame_48k": 672000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 348000,
+          "media_frame_48k": 696000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 360000,
+          "media_frame_48k": 720000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 372000,
+          "media_frame_48k": 744000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 384000,
+          "media_frame_48k": 768000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 396000,
+          "media_frame_48k": 792000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 408000,
+          "media_frame_48k": 816000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 420000,
+          "media_frame_48k": 840000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 432000,
+          "media_frame_48k": 864000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 444000,
+          "media_frame_48k": 888000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 456000,
+          "media_frame_48k": 912000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 468000,
+          "media_frame_48k": 936000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 480000,
+          "media_frame_48k": 960000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 492000,
+          "media_frame_48k": 984000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 504000,
+          "media_frame_48k": 1008000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 516000,
+          "media_frame_48k": 1032000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 528000,
+          "media_frame_48k": 1056000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 540000,
+          "media_frame_48k": 1080000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 552000,
+          "media_frame_48k": 1104000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 564000,
+          "media_frame_48k": 1128000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 576000,
+          "media_frame_48k": 1152000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 588000,
+          "media_frame_48k": 1176000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 600000,
+          "media_frame_48k": 1200000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 612000,
+          "media_frame_48k": 1224000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 624000,
+          "media_frame_48k": 1248000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 636000,
+          "media_frame_48k": 1272000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 648000,
+          "media_frame_48k": 1296000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 660000,
+          "media_frame_48k": 1320000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 672000,
+          "media_frame_48k": 1344000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 684000,
+          "media_frame_48k": 1368000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 696000,
+          "media_frame_48k": 1392000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 708000,
+          "media_frame_48k": 1416000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 720000,
+          "media_frame_48k": 1440000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 732000,
+          "media_frame_48k": 1464000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 744000,
+          "media_frame_48k": 1488000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 756000,
+          "media_frame_48k": 1512000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 768000,
+          "media_frame_48k": 1536000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 780000,
+          "media_frame_48k": 1560000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 792000,
+          "media_frame_48k": 1584000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 804000,
+          "media_frame_48k": 1608000,
+          "amplitude": 0.7
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": 120,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "20006c160b8bafe64f46a7302ffb6275e98127d02a516d1d141a8e1d06aaeed5"
+    },
+    {
+      "id": "tempo_step",
+      "path": "tempo_step.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 64000,
+          "media_frame_48k": 128000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 80000,
+          "media_frame_48k": 160000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 96000,
+          "media_frame_48k": 192000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 112000,
+          "media_frame_48k": 224000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 128000,
+          "media_frame_48k": 256000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 144000,
+          "media_frame_48k": 288000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 160000,
+          "media_frame_48k": 320000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 176000,
+          "media_frame_48k": 352000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 192000,
+          "media_frame_48k": 384000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 208000,
+          "media_frame_48k": 416000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 224000,
+          "media_frame_48k": 448000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 240000,
+          "media_frame_48k": 480000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 256000,
+          "media_frame_48k": 512000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 272000,
+          "media_frame_48k": 544000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 288000,
+          "media_frame_48k": 576000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 304000,
+          "media_frame_48k": 608000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 320000,
+          "media_frame_48k": 640000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 336000,
+          "media_frame_48k": 672000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 352000,
+          "media_frame_48k": 704000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 368000,
+          "media_frame_48k": 736000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 384000,
+          "media_frame_48k": 768000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 400000,
+          "media_frame_48k": 800000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 416000,
+          "media_frame_48k": 832000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 432000,
+          "media_frame_48k": 864000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 442667,
+          "media_frame_48k": 885334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 453333,
+          "media_frame_48k": 906666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 464000,
+          "media_frame_48k": 928000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 474667,
+          "media_frame_48k": 949334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 485333,
+          "media_frame_48k": 970666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 496000,
+          "media_frame_48k": 992000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 506667,
+          "media_frame_48k": 1013334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 517333,
+          "media_frame_48k": 1034666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 528000,
+          "media_frame_48k": 1056000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 538667,
+          "media_frame_48k": 1077334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 549333,
+          "media_frame_48k": 1098666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 560000,
+          "media_frame_48k": 1120000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 570667,
+          "media_frame_48k": 1141334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 581333,
+          "media_frame_48k": 1162666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 592000,
+          "media_frame_48k": 1184000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 602667,
+          "media_frame_48k": 1205334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 613333,
+          "media_frame_48k": 1226666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 624000,
+          "media_frame_48k": 1248000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 634667,
+          "media_frame_48k": 1269334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 645333,
+          "media_frame_48k": 1290666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 656000,
+          "media_frame_48k": 1312000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 666667,
+          "media_frame_48k": 1333334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 677333,
+          "media_frame_48k": 1354666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 688000,
+          "media_frame_48k": 1376000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 698667,
+          "media_frame_48k": 1397334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 709333,
+          "media_frame_48k": 1418666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 720000,
+          "media_frame_48k": 1440000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 730667,
+          "media_frame_48k": 1461334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 741333,
+          "media_frame_48k": 1482666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 752000,
+          "media_frame_48k": 1504000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 762667,
+          "media_frame_48k": 1525334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 773333,
+          "media_frame_48k": 1546666,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 784000,
+          "media_frame_48k": 1568000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 794667,
+          "media_frame_48k": 1589334,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 805333,
+          "media_frame_48k": 1610666,
+          "amplitude": 0.7
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": null,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "4e7a5b39b0ff47147abf79d6e67ccea58a2b1bde0e1e833ab83b3379893b18c3"
+    },
+    {
+      "id": "silence",
+      "path": "silence.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [],
+      "duration_seconds": 36,
+      "reference_bpm": null,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "75c4124e7b4e22b53b59f9208d359b0cc16157ae1e4beba52159c5a6b801dd2b"
+    },
+    {
+      "id": "fractional12743",
+      "path": "fractional12743.pcm",
+      "kind": "synthetic PCM full-chain",
+      "split": "development",
+      "events": [
+        {
+          "sample": 48000,
+          "media_frame_48k": 96000,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 59300,
+          "media_frame_48k": 118600,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 70601,
+          "media_frame_48k": 141202,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 81901,
+          "media_frame_48k": 163802,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 93201,
+          "media_frame_48k": 186402,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 104502,
+          "media_frame_48k": 209004,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 115802,
+          "media_frame_48k": 231604,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 127102,
+          "media_frame_48k": 254204,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 138403,
+          "media_frame_48k": 276806,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 149703,
+          "media_frame_48k": 299406,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 161003,
+          "media_frame_48k": 322006,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 172304,
+          "media_frame_48k": 344608,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 183604,
+          "media_frame_48k": 367208,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 194904,
+          "media_frame_48k": 389808,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 206205,
+          "media_frame_48k": 412410,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 217505,
+          "media_frame_48k": 435010,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 228805,
+          "media_frame_48k": 457610,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 240105,
+          "media_frame_48k": 480210,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 251406,
+          "media_frame_48k": 502812,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 262706,
+          "media_frame_48k": 525412,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 274006,
+          "media_frame_48k": 548012,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 285307,
+          "media_frame_48k": 570614,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 296607,
+          "media_frame_48k": 593214,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 307907,
+          "media_frame_48k": 615814,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 319208,
+          "media_frame_48k": 638416,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 330508,
+          "media_frame_48k": 661016,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 341808,
+          "media_frame_48k": 683616,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 353109,
+          "media_frame_48k": 706218,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 364409,
+          "media_frame_48k": 728818,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 375709,
+          "media_frame_48k": 751418,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 387010,
+          "media_frame_48k": 774020,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 398310,
+          "media_frame_48k": 796620,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 409610,
+          "media_frame_48k": 819220,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 420911,
+          "media_frame_48k": 841822,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 432211,
+          "media_frame_48k": 864422,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 443511,
+          "media_frame_48k": 887022,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 454812,
+          "media_frame_48k": 909624,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 466112,
+          "media_frame_48k": 932224,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 477412,
+          "media_frame_48k": 954824,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 488713,
+          "media_frame_48k": 977426,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 500013,
+          "media_frame_48k": 1000026,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 511313,
+          "media_frame_48k": 1022626,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 522614,
+          "media_frame_48k": 1045228,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 533914,
+          "media_frame_48k": 1067828,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 545214,
+          "media_frame_48k": 1090428,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 556514,
+          "media_frame_48k": 1113028,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 567815,
+          "media_frame_48k": 1135630,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 579115,
+          "media_frame_48k": 1158230,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 590415,
+          "media_frame_48k": 1180830,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 601716,
+          "media_frame_48k": 1203432,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 613016,
+          "media_frame_48k": 1226032,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 624316,
+          "media_frame_48k": 1248632,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 635617,
+          "media_frame_48k": 1271234,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 646917,
+          "media_frame_48k": 1293834,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 658217,
+          "media_frame_48k": 1316434,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 669518,
+          "media_frame_48k": 1339036,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 680818,
+          "media_frame_48k": 1361636,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 692118,
+          "media_frame_48k": 1384236,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 703419,
+          "media_frame_48k": 1406838,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 714719,
+          "media_frame_48k": 1429438,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 726019,
+          "media_frame_48k": 1452038,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 737320,
+          "media_frame_48k": 1474640,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 748620,
+          "media_frame_48k": 1497240,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 759920,
+          "media_frame_48k": 1519840,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 771221,
+          "media_frame_48k": 1542442,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 782521,
+          "media_frame_48k": 1565042,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 793821,
+          "media_frame_48k": 1587642,
+          "amplitude": 0.7
+        },
+        {
+          "sample": 805122,
+          "media_frame_48k": 1610244,
+          "amplitude": 0.7
+        }
+      ],
+      "duration_seconds": 36,
+      "reference_bpm": 127.43,
+      "ambiguity": [],
+      "annotation": "generated attacks; correlation phase is not a calibrated beat instant",
+      "sha256": "7feb082bb40f4094d3a93d785cedbddfb74472a89dc2bc987250454b09979141"
+    },
+    {
+      "id": "song-0",
+      "path": "song-0.pcm",
+      "kind": "authorised local MUSDB mixture",
+      "title": "Cristina Vane - So Easy",
+      "split": "development",
+      "events": null,
+      "reference_bpm": null,
+      "duration_seconds": 30.0,
+      "annotation": "NONE: musical accuracy pending independent attack/beat annotations",
+      "source_receipt": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/host-product-01/receipt.json",
+      "sha256": "1b4d69d1145e3f1888835d5951d46ad39caf1cc32f16fa38cec51f2afa75b9be"
+    },
+    {
+      "id": "song-1",
+      "path": "song-1.pcm",
+      "kind": "authorised local MUSDB mixture",
+      "title": "Louis Cressy Band - Good Time",
+      "split": "held-out",
+      "events": null,
+      "reference_bpm": null,
+      "duration_seconds": 30.0,
+      "annotation": "NONE: musical accuracy pending independent attack/beat annotations",
+      "source_receipt": "/Users/spectrasynq/Workspace_Management/EdgeAI_Artifacts/Titan/k1-ra8p1-002/host-product-01/receipt.json",
+      "sha256": "d3369dff46bdf2d710c78b103caca6c0bfcc3a37259224d402ea02c867ba121a"
+    }
+  ]
+}

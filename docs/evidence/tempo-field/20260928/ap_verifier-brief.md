@@ -1,0 +1,19 @@
+THE TITAN MUST ALWAYS BE VISUALISING MUSIC. ALWAYS. IT MUST NEVER NOT BE VISUALISING MUSIC EVER!
+Continuous autonomous audio-reactive output must remain ON; no diagnostic ending disarms normal output. Preserve brightness 24/255, UID 545433931bd25436593630352d068363, P601/GPT6 P604/GPT8, microphone DMA1/2 LED DMA0/3, existing mode constraints. This worker must not touch hardware, serial, or external repositories.
+META_TASK: Deliver AP-A publication, AP-B phase-qualified evidence and one causally synchronised baseline/candidate host music audition, under Captain's 28 September directive.
+NOT_THE_TASK: detector rewrite, broad mode redesign, DSP optimisation, SMC controls, hardware repair, plan-only output.
+REFERENCE_ONLY: historical snapshots; use current copied working source.
+SUBJECT: current complete scalar music pipeline in /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001.
+MEDIUM: C++/Python executable product and independent tests.
+MODEL: inherit
+RESEARCH_DONE: main inspected tempo tracker/pipeline/runtime and preserved 96 dirty control-tree changes in source-checkpoint.json. Read AGENTS.md and FULL AP chapter of docs/k1-smc-migration-2026-09-26/reference/K1-Implementation-Handoff.md lines 574-794. Also full /Users/spectrasynq/Downloads/K1-Swarm-Handoff/lanes/02-audio-tempo.md and /Users/spectrasynq/Downloads/K1-Swarm-Handoff/evidence/AP-Fixture-Plan.proposed.json. Main is freezing actual 24k PCM baseline. No .claude/harness/init.sh exists here.
+Full retained assignments are binding; never replace/compress them. You are not alone in the codebase: do not revert others' changes. Use only owned paths; notify main for shared edits. Never claim your own PASS establishes independent approval.
+WAVE_SIZE: 3
+EVIDENCE: /Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-music-intelligence-001/docs/evidence/tempo-field/20260928
+BUDGET: first code/fixture increment in 15 minutes, then bounded implement-test-repair cycles up to 5; report exact failing witness before repeating.
+JEV/TypeSafe quota use and expansion are unrestricted and authorised; provider refusals remain actual refusals. Do not create new governance session bindings; parent owns workflow admission.
+ONE_WRITER: independent oracle/scorer/acceptance fixtures.
+OWNERSHIP: tests/audio/*tempo*; tools/audio/score_tempo_field.py; tools/audio/phase_oracle.py; scripts/test_tempo_field.py; tests/fixtures/tempo_field/v1/oracle-*; docs/evidence/tempo-field/20260928/oracle-* and acceptance-review.md. No AP implementation files, baseline PCM manifest, replay files, or visual files.
+PRODUCT_OUTPUT: independent double direct sinusoidal correlation oracle, predeclared error budget, executable lifecycle/phase/derived-ratio/consumer contract tests, honest AP-AC01..12 evidence dispositions.
+DONE_WHEN: your test command can go red under phase sign/time/freshness mutation and reports actual passing/failing contract rows; implementation cannot self-approve copied recurrence as oracle.
+Wait for implementation API from parent, but freeze phase specification/error budget and synthetic oracle fixtures now. Read API header when created; communicate interface needs. Direct correlation independent from recurrence, ring impulse positions and fractional BPM, zero/NaN/Inf, exact coast/stale/correction boundaries, extended half/double/3:2 parity, generation/rank/epoch changes. Do not enlarge epsilon after observing failure. Mathematical tolerance derive from arithmetic/window/conditioning (float vs double); musical beat-accuracy remains NOT TESTED without annotations. Main owns real PCM freeze and replay parity scorer; coordinate no overlapping writes. Independently review publication freshness/cached copies/sliced support plus fixed allocation/capacity. No target claims.

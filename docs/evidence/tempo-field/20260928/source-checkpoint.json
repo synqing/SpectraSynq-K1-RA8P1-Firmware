@@ -1,0 +1,391 @@
+{
+  "source": "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware/.worktrees/titan-live-control-001",
+  "source_head": "67d6810965f7d692d51874f629da93cc1cdf55de",
+  "copied_working_changes": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "ac6f00eb890131724f056ff54a6fee57b43c9e97211b763a80d51a6ae243ba5c"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "77c6dd54a727e83bcf39fe3f6765cc3c47ce35ea2bc38e88eb55f4106b8be056"
+    },
+    {
+      "path": "README.md",
+      "sha256": "2612d1ad4470fee6c9c6d7eafdc617b8abc9681d7e1429c870736b74b3f816bc"
+    },
+    {
+      "path": "docs/BRIEF-2026-09-10-uncapped-ap-timing.md",
+      "sha256": "c9eaf07d0406c648f487688a9747bbf25595f6a9c696c85073bc211542713898"
+    },
+    {
+      "path": "docs/E2Lite-macOS-host-lock-recovery-20260922/README.md",
+      "sha256": "7d14647fda9bad0e0763794a742c9e05d0dfa945c8b257fd7fa3979c69dc6a90"
+    },
+    {
+      "path": "docs/EXECUTION-BRIEF.md",
+      "sha256": "ded80f18600481820935074bbc24ef6b8d973bdd9af54274d61807d1b67950a4"
+    },
+    {
+      "path": "docs/REALTIME_OWNERSHIP.md",
+      "sha256": "86192f7d6e296508f1a5a2ab9d3696f440fea5ef79220046c4ac3f4833ea0141"
+    },
+    {
+      "path": "docs/Titan-E2Lite-CLI-Handover-20260921/Titan-E2Lite-Execution-Brief.md",
+      "sha256": "0b262cee6ffb026498b9cba40d52c54c8375920e95461a9e0a3bcc4e7ece703d"
+    },
+    {
+      "path": "docs/Titan_Live_K1_Runtime_Implementation_Plan_2026-09-20.md",
+      "sha256": "4b57ead9adebeecec467219a6111fe54986acc713d476700caebdcebd598dbb9"
+    },
+    {
+      "path": "docs/Titan_Live_Runtime_Acceptance_and_MIR_Execution_Brief_2026-09-20.md",
+      "sha256": "5180474f48459bd80bccd5a1d848ad4de65409203ee6de966f067d8b2ba7a087"
+    },
+    {
+      "path": "docs/Titan_Parallel_Swarm_Execution_2026-09-22.plan.md",
+      "sha256": "617403929acfdce374cccf535586cbb963ded642ed68d18ec9b80778afe3433b"
+    },
+    {
+      "path": "docs/Titan_RA8P1_Takeover_Execution_Brief_2026-09-20.md",
+      "sha256": "354264da3cc1bfed5ed2f97f8ba6ae1954a2c07b0e9f1becf682a1f3c12c4fba"
+    },
+    {
+      "path": "docs/Titan_Swarm_Launch_2026-09-22.md",
+      "sha256": "530337ed1321d61a987e0bbcc431cdba7d9f9c65730fca4c71639ed4b6697abd"
+    },
+    {
+      "path": "docs/contracts/titan-live-defaults-smc-continuous-mode8-v1.json",
+      "sha256": "552e31bb361c27dc79379adee2385f1423984a3c50ba72ba828b30f8712ff167"
+    },
+    {
+      "path": "docs/contracts/titan-live-defaults-smc-control-mode8-v1.json",
+      "sha256": "d1998017c3fb8263483f4b57191f293189dddfa08b11dabea3796d8b21641581"
+    },
+    {
+      "path": "docs/contracts/titan-live-v1.json",
+      "sha256": "229c40d80d70915acd2ef5645bbd687477889b40f807ec847c2d2a384130fb10"
+    },
+    {
+      "path": "docs/contracts/titan-realtime-regressions.json",
+      "sha256": "19796e25d36dd9c8b6f06f8844e81662737b866f9a55f6bd65fb79a4f004f49e"
+    },
+    {
+      "path": "docs/contracts/titan-smc-release-rc1.json",
+      "sha256": "4bfaa502b1173c8786ec23c4b615fce3b6f682fc7007026e5793f16d62ca476c"
+    },
+    {
+      "path": "docs/evidence/K1-RA8P1-002/LED-HANDOVER.md",
+      "sha256": "360e349a26ecbbe216c44cc23a604365f014639ad1e3d0281849d32f6aaa9ab2"
+    },
+    {
+      "path": "docs/evidence/K1-RA8P1-002/LED2-MDIO-RECOVERY-HANDOVER.md",
+      "sha256": "aa3fafb9b008ae8943b52d5a7b029c7a598b34a036dc6d17df3e5ac5f9d56f95"
+    },
+    {
+      "path": "docs/evidence/K1-RA8P1-002/LIVE-RUNTIME-HANDBACK-2026-09-20.md",
+      "sha256": "06cae9c776a164cdd977f5213530366274843fb14c023849e3d036bfaa9aaf68"
+    },
+    {
+      "path": "docs/evidence/K1-RA8P1-002/PCM1808-HANDOVER.md",
+      "sha256": "33b5baafba682c2a4330f61a2ae4cf95b32e082099a46f0b318d21f597a03db1"
+    },
+    {
+      "path": "docs/evidence/K1-RA8P1-002/TITAN-MIC-LED2-SESSION-CANON.md",
+      "sha256": "c13b2e226ea470f8a619e58d8f5726f5dda4246f42b494f718fc3d75762aecca"
+    },
+    {
+      "path": "docs/evidence/K1-RA8P1-002/plugin-pdm/adapter-k1-ra8p1-pdm-capture-v1.json",
+      "sha256": "d3c03e9591585c1adb28fca41af111b7fa25452c9a689608cd08edc0e5c8cff7"
+    },
+    {
+      "path": "docs/research/bloom-return/README.md",
+      "sha256": "cfa847fdfb06ad1a5b7e5d108a447d062ddfa950696cc7fd1cf543aa0858daa6"
+    },
+    {
+      "path": "platform/ra8p1/README.md",
+      "sha256": "570237d08fb7177a347b4b2300a01cc130665a984eddcedd226d77cc87c4cc56"
+    },
+    {
+      "path": "platform/ra8p1/SConscript",
+      "sha256": "d40743da846430eaf7c39cbf60775356bb6d4d255b0c0d302e00bac3759b2e82"
+    },
+    {
+      "path": "platform/ra8p1/fixture_app.cpp",
+      "sha256": "90888cc5781fc9eaac5255e37906aed36515759c4789392ab036fa9e8ab67857"
+    },
+    {
+      "path": "platform/ra8p1/fixture_app.h",
+      "sha256": "96eaeee293cf73151add1f2deb15667726d97435de837722074678633c430647"
+    },
+    {
+      "path": "platform/ra8p1/hal_entry.c",
+      "sha256": "242a16dc7e078419ef475988e19e8a9b0258551c288d528a5ab44ce17495b13a"
+    },
+    {
+      "path": "platform/ra8p1/k1_dmac_lane_guard.h",
+      "sha256": "db223b1c52aad5e27e7b037ee870f124b779758c623fa5b3ad207299ee2a0666"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_boot_identity.cpp",
+      "sha256": "f1e8dbf1e99ed003b18a52f883cd0646833e15947265ba2d0a2fa57ec0a734b1"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_boot_identity.h",
+      "sha256": "1848370627f80fb7c1bb574147baa9c8d4ac5fde4163a8fa0590417bab4c5cda"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_protocol.cpp",
+      "sha256": "301a455162e0b51df82a44135ecfb43092feeaf6ac37594e0ef491a0c81e15eb"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_protocol.h",
+      "sha256": "4e901c5c3bdcc43120bc4d5ed6e6c1dfa6f60e363a4aab23388600ae60c116f8"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_runtime.cpp",
+      "sha256": "f47248b51742fd9eb8715689ab4e7ecd5c15e83cf9210b7584f2a3e21fe15030"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_runtime.h",
+      "sha256": "729b46eac43ccf29cfc32ad544253f4179c0ef3689a63e7600118082f7bb0e64"
+    },
+    {
+      "path": "platform/ra8p1/k1_live_schema.inc",
+      "sha256": "be842590544d84297f6753812a031f0cbb8eed9ebfa8c1e8c4a1b73bd84d88da"
+    },
+    {
+      "path": "platform/ra8p1/k1_performance_control.h",
+      "sha256": "0a90a11460173e61e4965cdbfa8ffa86157d7729fdbfd67ddc014e48a6097aac"
+    },
+    {
+      "path": "platform/ra8p1/palette_runtime.cpp",
+      "sha256": "9b37cf1595acc71b50ad9346e2a09e2d14d0645e679bb1d6a29c3cac26a83d3f"
+    },
+    {
+      "path": "platform/ra8p1/palette_runtime.h",
+      "sha256": "d1d784cb17e198559d6e0c466469e87904f21afd66b36ae9ffa3d23168199cd3"
+    },
+    {
+      "path": "platform/ra8p1/pdm_capture.c",
+      "sha256": "ddc413767a55753f4b42d1e656f89389d427e809d2f55f59eee1966ed7550184"
+    },
+    {
+      "path": "platform/ra8p1/pdm_capture.h",
+      "sha256": "0059638c94ef7c413096dc7ef49d8086cb10532452c69ea7838ea61e5f7dfeb8"
+    },
+    {
+      "path": "platform/ra8p1/pdm_target.c",
+      "sha256": "9b7591e66c35a69218a1d76895f4bb4db6ef6f6bce973f8b704337b8b586ba6b"
+    },
+    {
+      "path": "platform/ra8p1/ws281x_gpt_dma_hw_pair.c",
+      "sha256": "76a58faac619f7764becf2ac71c844b4b76337ad47fb6a2f20e6d59700b0eb6b"
+    },
+    {
+      "path": "platform/ra8p1/ws281x_gpt_dma_hw_pair.h",
+      "sha256": "d8da696d03162dbe74a3f0524878e89fad64b6586ff439ad5a231253e45252c0"
+    },
+    {
+      "path": "platform/ra8p1/ws281x_p601_loopback.c",
+      "sha256": "2ae77a88e66518199dbfd19760a13bb978bf30c8074ed0f4dc836069480b1ae1"
+    },
+    {
+      "path": "platform/ra8p1/ws281x_p601_loopback.h",
+      "sha256": "e0b3826fc8c5b90a28522540ab4ee4660cc69ac8656776bd0f111e9df6d8b98c"
+    },
+    {
+      "path": "scripts/build_scalar.py",
+      "sha256": "e8fd3f2120bbedc32d433ddc27d8279247abb08027716f118ddc2bd7fd0fdf94"
+    },
+    {
+      "path": "scripts/gen_live_schema.py",
+      "sha256": "ad7849fe5cf956e9dd2d97caf0f0e8d4f929881ca1cb528c6ace2938b347c72c"
+    },
+    {
+      "path": "scripts/palette_wire_snapshot.py",
+      "sha256": "0e46aaa0a6e881f742df2ee28ee0c11f3aec5416ca5b5e57a95dd8d5ba3fd2e7"
+    },
+    {
+      "path": "scripts/repo_layout.py",
+      "sha256": "d764b0714b21c11ed055aaf7a0340655139f908402043f98f8679c73b0bb6d9b"
+    },
+    {
+      "path": "scripts/score_p601_loopback.py",
+      "sha256": "a7402291aa3b018edd3220d71845c81264cf24d99b7ccd3460a661baecea1cd9"
+    },
+    {
+      "path": "scripts/test_control_owner.py",
+      "sha256": "3a834e6d3310bd1db48a904b441276ed3a79a6a14e60eb9f0a3ff2799f0629e2"
+    },
+    {
+      "path": "scripts/test_live_protocol.py",
+      "sha256": "11f88a1ba33ab6971f4c91f984730a1545e1899d033c0579ea1ba4bfd54ad4cd"
+    },
+    {
+      "path": "scripts/test_palette_runtime.py",
+      "sha256": "075d61e6614f071ad8f4bbe01abfc24c754f94787a85d1a92011ba92a0be5616"
+    },
+    {
+      "path": "scripts/test_palette_wire_snapshot.py",
+      "sha256": "775ab8034362cbbcc38ff0fca8114d3976ac17de5f89031f57b9b6d616ef043f"
+    },
+    {
+      "path": "scripts/test_performance_consumers.py",
+      "sha256": "38578f016c79f8c52d6d97e4d432455d330170d0987b6fb02e55ecb58eb059dc"
+    },
+    {
+      "path": "scripts/test_score_p601_loopback.py",
+      "sha256": "b3d5ff34646cd62c9aa6d2795bbbc5b6a7bfe703c980a67ef3ebbf2ac53d1151"
+    },
+    {
+      "path": "scripts/test_ws281x_gpt_dma_hw_pair.py",
+      "sha256": "982a5f854cc826249cec992e33f7d1bd03f2148a84d4786ae4bf681816d558e0"
+    },
+    {
+      "path": "scripts/verify_imports.py",
+      "sha256": "26db01a70f6e71e88e14adc5bbda235135e2bf82ac53ba3f746a6cdbdcb0952f"
+    },
+    {
+      "path": "scripts/verify_realtime_isolation.py",
+      "sha256": "9ae4f5a9f8493d189e16bc45eb0a04d89d3c2c248f8cc27be32c838b4cbdda83"
+    },
+    {
+      "path": "tests/host/apply_patch_hex.cpp",
+      "sha256": "2625374d4cfec02f0cb5876d7e3af5f51e3f2c60f5e19d86be25d7bef79b6922"
+    },
+    {
+      "path": "tests/host/test_control_owner.cpp",
+      "sha256": "749fa45a5c1493027a6deb0656d6b8e3ae3e54cb94374dd850816fc6750d31c4"
+    },
+    {
+      "path": "tests/host/test_dmac_lane_guard.py",
+      "sha256": "d62079d43a846571961a8eb74af384d9af50b5bacc1480438598269c769f7e8e"
+    },
+    {
+      "path": "tests/host/test_live_boot_identity.cpp",
+      "sha256": "5f18b2f9e4b68df31938c642882432c5a7baed8f2148939d2eacd79397c9b75d"
+    },
+    {
+      "path": "tests/host/test_live_protocol.cpp",
+      "sha256": "2961526b06819a7926197e46a708e0dfff0f77ed5b15fcda31db43d4551ed0f0"
+    },
+    {
+      "path": "tests/host/test_palette_backend.cpp",
+      "sha256": "a3956bf82c4b24bb25fdad632e6006c7e8b83246142ee3fc5a781734eeb4afcf"
+    },
+    {
+      "path": "tests/host/test_pdm_capture.py",
+      "sha256": "dbe1571997adf92d32cdeb9771c1320d688368773cc386914fc3bc94cb12582b"
+    },
+    {
+      "path": "tests/host/test_pdm_performance_headroom.c",
+      "sha256": "7c93cd8e1805953b4d211ec86d8496ad9c04f9434ff0ef525fd16211f805127a"
+    },
+    {
+      "path": "tests/host/test_pdm_performance_headroom.py",
+      "sha256": "63f56b3364b58c5d00dac0fc000b7c3303003c9cc95e4749b5838c8ea7e8d4f4"
+    },
+    {
+      "path": "tests/host/test_performance_consumers.cpp",
+      "sha256": "0b342bd35937f82fd1e9043793c438ef251afcf5da62bae307e33fb2ffdf15b0"
+    },
+    {
+      "path": "tests/host/test_r4_consumption.cpp",
+      "sha256": "d3683eb933754185a423d13d935f638f28f15a7a90e29774281bcf04f0909666"
+    },
+    {
+      "path": "tests/host/test_usb_idle_dispatch.py",
+      "sha256": "d2bb449f52a78eefa4c56bfb31f9479a941c1a15d4d143fd84cb252f7f6ecc87"
+    },
+    {
+      "path": "tests/target_mock/ws281x_hw_mock.h",
+      "sha256": "32cb2d4e11aad0bf87b35f141320626b22b67374da088efca9d1319ee206859c"
+    },
+    {
+      "path": "tests/test_ws281x_gpt_dma_hw_pair.c",
+      "sha256": "cfb110a8e500c27241d371794239d5913821e5964446cc1856ea0b2fa2250d40"
+    },
+    {
+      "path": "tools/serial-studio/README.md",
+      "sha256": "a1bce6e960d5ff4d9f396dda6a53dd0a572483cca95ee33fc61f55dcc126457a"
+    },
+    {
+      "path": "tools/serial-studio/live_protocol.py",
+      "sha256": "71900f085efac2d561806427425863f2483b40ea1b37c4937ff5c100a4135b07"
+    },
+    {
+      "path": "tools/serial-studio/run_bounded_diagnostic.py",
+      "sha256": "2e9c6970085fd15352bc4c2b6ed0aa314fe71c3a5779a805ca34a50b5cfdd4d8"
+    },
+    {
+      "path": "tools/serial-studio/tests/conftest.py",
+      "sha256": "d8315aaba8483b4049ecf35a76adf2ed827e0f0d9bbfe959a8f1a0b0f2aed704"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_continuous_output.py",
+      "sha256": "5b0cf1d9975c1109351b447f34035b3920ec4bf93e70f4e300efb24031b42455"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_diagnostic_capture.py",
+      "sha256": "78d3da3d8c221c7c6bada1a904b87cb4884da650fb451f10065f41ea3301d8ad"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_live_control_path.py",
+      "sha256": "32dd8ecfb8838e09d450c0c1f0fe5f24bcf4842666a03640bdb2acbf5ffd8e21"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_performance_control.py",
+      "sha256": "21da4f6e9d42820ca2c664dc81ce514914bdb47acfe9742b55ff0c755cf269de"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_ss03_broker.py",
+      "sha256": "6bd6f35eaee147fb084121b9fffd6c8f621c8ef4105e6d36067194d51f63f2d1"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_titan_control_server.py",
+      "sha256": "5a398aff222bd5a369ef94ec4b228ab6f168c4fc9b8ec9a780cc947dbd9cb544"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_titan_register_snapshot.py",
+      "sha256": "b3a4c48fd25e038fda5a6933fbff572284082f1aee29856b7ac31862a27849fe"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_window_health.py",
+      "sha256": "0b692f73bf9d0daf834a1eba9aa438e6c0f5a0e38d5c579a1f6efd98ccd8bc23"
+    },
+    {
+      "path": "tools/serial-studio/tests/test_wire_snapshot_access.py",
+      "sha256": "c525bc1087dcea316fb6ff1a14553b69c5763482495337283942526d7bf2f9fe"
+    },
+    {
+      "path": "tools/serial-studio/titan_broker.py",
+      "sha256": "83694db38c62e18e1cc5c38d9142084e43d36d5aea2b06e3812bf3f32185b750"
+    },
+    {
+      "path": "tools/serial-studio/titan_control_server.py",
+      "sha256": "bd8eae909a33af0460d734e4697615866a1ccd14c5cdfb2f73400437af9da290"
+    },
+    {
+      "path": "tools/serial-studio/titan_live_device.py",
+      "sha256": "d6e3a6614f3097aaddafa251eb8fddd700ccccff65349797b990c6a4b119f8e9"
+    },
+    {
+      "path": "tools/serial-studio/titan_register_snapshot.py",
+      "sha256": "7813bf2bd5e672321f465df7371e4adccc88d1faa89abc53b0cb6d5224740185"
+    },
+    {
+      "path": "tools/serial-studio/titan_snapshot.py",
+      "sha256": "91ca174fe398392a9628704ae4f6a64b878da9dbc9e51716c367ae4ba8b08004"
+    },
+    {
+      "path": "tools/serial-studio/titan_transport.py",
+      "sha256": "b37f1498e5f7cf4f9519a6d94cae32e9e6795fef43f9fb09881e412b034eef60"
+    },
+    {
+      "path": "tools/serial-studio/titan_window_health.py",
+      "sha256": "14f6de1e9f64c15d007f3f40fd72c67656b3f3da706199002065e39dd8bd935d"
+    }
+  ],
+  "root_head": "8427fccfb1c3b7fface2c2ba0a56a6017b785acf"
+}

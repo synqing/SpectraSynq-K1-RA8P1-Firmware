@@ -1,0 +1,32 @@
+{
+  "schema": "case-verifier-contract.v1",
+  "adapter": "pytest",
+  "argv": [
+    "python3",
+    "-m",
+    "pytest",
+    "--rootdir",
+    "/Users/spectrasynq/Workspace_Management/Software/SpectraSynq-K1-RA8P1-Firmware",
+    "-q",
+    "-s",
+    ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py"
+  ],
+  "cases": {
+    "ORCH-0": [
+      ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_retained_inputs_and_protected_base_ORCH0",
+      ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_full_assignments_and_explicit_owners_ORCH0",
+      ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_actual_native_binding_ORCH0",
+      ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py::test_wrong_source_and_session_rejected_ORCH0"
+    ]
+  },
+  "inputs": {
+    ".worktrees/titan-effects-language-001/tests/host/test_effects_operation_binding.py": "f1d0c3339f5d79148f6ee538a630c721c70b70254941a4bef7e51dbfab40a403",
+    ".worktrees/titan-effects-language-001/docs/effects-language-001/evidence/operation-baseline-001.json": "6b5e12d83b2135aa3e7f73bab9f0d6dfe948221efad4a39f9a22d21fa866a053",
+    ".worktrees/titan-effects-language-001/docs/effects-language-001/evidence/original-registry.json": "f1ef7203f720caaa31dec2f9d319c75db3c9a98cbcd16d7f35ff4b826522d9a8",
+    ".worktrees/titan-effects-language-001/docs/effects-language-001/evidence/actual-binding-001.json": "1e100bfbb99fd721dff6c6e3407be3f0e89dff882ce78dd78c88d05d7d386883",
+    ".worktrees/titan-effects-language-001/docs/effects-language-001/lane-inputs.json": "11bf9cf42dc9a7a2bc7e578aa568406c1ace3e636910da2365b2beb7c05cef0d",
+    ".worktrees/titan-effects-language-001/docs/effects-language-001/START-HERE.md": "b762df70d28d248e6d1b1b8038b059ff0a61c9e20cb1d07e0a48072dc5e5077e",
+    ".worktrees/titan-effects-language-001/docs/effects-language-001/DUAL-EDGE-CORRECTION.md": "35730207bb16d0589e553fbdfa9b2f772e4a1ab34bfa2c6aa8cf9abafac0d6ca",
+    ".worktrees/titan-effects-language-001/AGENTS.md": "ac6f00eb890131724f056ff54a6fee57b43c9e97211b763a80d51a6ae243ba5c"
+  }
+}

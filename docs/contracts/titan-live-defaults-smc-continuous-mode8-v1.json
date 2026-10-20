@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "profile": "smc-titan-continuous-mode8",
+  "reviewed": "2026-09-29",
+  "mode_a": 8,
+  "mode_b": 8,
+  "flags": 5,
+  "emit_default": "on",
+  "automatic_catalogue_cycle": false,
+  "brightness": 100,
+  "palette_a": 33,
+  "palette_b": 43,
+  "transition_ms": 1500,
+  "travel_ms": 4000,
+  "first_control": "visual_a.vp_waveform_shift_rate",
+  "notes": "User mandates autonomous continuous music and default brightness minimum100/255. Current default100. One160-pixel strip split80/80 across P601/P604. Build with --live-emit."
+}

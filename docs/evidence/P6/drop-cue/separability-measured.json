@@ -1,0 +1,242 @@
+{
+  "plant": null,
+  "features": {
+    "F1_sub_vs_median": {
+      "drops": [
+        {
+          "window": "boom_file",
+          "anchor_s": 55.766,
+          "value_db": 21.01975403610216,
+          "at_ms": 34.0
+        },
+        {
+          "window": "boom_room",
+          "anchor_s": 55.766,
+          "value_db": 10.116585185840677,
+          "at_ms": 15.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 27.742,
+          "value_db": 15.461298849298398,
+          "at_ms": 45.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 54.776,
+          "value_db": 20.576966309310567,
+          "at_ms": 49.0
+        },
+        {
+          "window": "sonic_room",
+          "anchor_s": 27.742,
+          "value_db": 8.564817251112657,
+          "at_ms": 40.0
+        },
+        {
+          "window": "carte_file",
+          "anchor_s": 27.442,
+          "value_db": 27.648296274896403,
+          "at_ms": 45.5
+        }
+      ],
+      "worst_non_drop": {
+        "window": "boom_file",
+        "t_s": 3.63,
+        "value_db": 81.01301317998669
+      },
+      "margin_db": -72.44819592887403,
+      "feasible": false
+    },
+    "F2_sub_vs_max": {
+      "drops": [
+        {
+          "window": "boom_file",
+          "anchor_s": 55.766,
+          "value_db": 12.03931971875592,
+          "at_ms": 34.0
+        },
+        {
+          "window": "boom_room",
+          "anchor_s": 55.766,
+          "value_db": -6.464912728924716,
+          "at_ms": 15.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 27.742,
+          "value_db": 11.013380109039819,
+          "at_ms": 45.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 54.776,
+          "value_db": 10.412188259039919,
+          "at_ms": 49.0
+        },
+        {
+          "window": "sonic_room",
+          "anchor_s": 27.742,
+          "value_db": -0.832385007396951,
+          "at_ms": 40.0
+        },
+        {
+          "window": "carte_file",
+          "anchor_s": 27.442,
+          "value_db": 14.571893814574423,
+          "at_ms": 45.5
+        }
+      ],
+      "worst_non_drop": {
+        "window": "boom_file",
+        "t_s": 47.093,
+        "value_db": 21.667816515660338
+      },
+      "margin_db": -28.132729244585054,
+      "feasible": false
+    },
+    "F3_kick_vs_max": {
+      "drops": [
+        {
+          "window": "boom_file",
+          "anchor_s": 55.766,
+          "value_db": 9.225267620785456,
+          "at_ms": 19.0
+        },
+        {
+          "window": "boom_room",
+          "anchor_s": 55.766,
+          "value_db": -9.021706345388928,
+          "at_ms": 8.0
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 27.742,
+          "value_db": 9.607581179527148,
+          "at_ms": 38.0
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 54.776,
+          "value_db": 9.048722539824748,
+          "at_ms": 49.0
+        },
+        {
+          "window": "sonic_room",
+          "anchor_s": 27.742,
+          "value_db": -2.299166772987199,
+          "at_ms": 40.0
+        },
+        {
+          "window": "carte_file",
+          "anchor_s": 27.442,
+          "value_db": 15.89840967926911,
+          "at_ms": 45.5
+        }
+      ],
+      "worst_non_drop": {
+        "window": "boom_file",
+        "t_s": 47.093,
+        "value_db": 18.809341723004565
+      },
+      "margin_db": -27.831048068393493,
+      "feasible": false
+    },
+    "F4_broad_vs_max": {
+      "drops": [
+        {
+          "window": "boom_file",
+          "anchor_s": 55.766,
+          "value_db": 7.16769250195561,
+          "at_ms": 11.5
+        },
+        {
+          "window": "boom_room",
+          "anchor_s": 55.766,
+          "value_db": -8.616482130331143,
+          "at_ms": 8.0
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 27.742,
+          "value_db": 0.15801209478754075,
+          "at_ms": 45.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 54.776,
+          "value_db": 7.737647845319103,
+          "at_ms": 41.5
+        },
+        {
+          "window": "sonic_room",
+          "anchor_s": 27.742,
+          "value_db": -3.10570958020228,
+          "at_ms": 32.5
+        },
+        {
+          "window": "carte_file",
+          "anchor_s": 27.442,
+          "value_db": 10.4049555305022,
+          "at_ms": 45.5
+        }
+      ],
+      "worst_non_drop": {
+        "window": "boom_file",
+        "t_s": 31.402,
+        "value_db": 17.22890103529972
+      },
+      "margin_db": -25.845383165630864,
+      "feasible": false
+    },
+    "F5_sub_vs_p90_2s": {
+      "drops": [
+        {
+          "window": "boom_file",
+          "anchor_s": 55.766,
+          "value_db": 17.324924199621613,
+          "at_ms": 34.0
+        },
+        {
+          "window": "boom_room",
+          "anchor_s": 55.766,
+          "value_db": 3.899512640109357,
+          "at_ms": 15.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 27.742,
+          "value_db": 6.46006135100065,
+          "at_ms": 45.5
+        },
+        {
+          "window": "sonic_file",
+          "anchor_s": 54.776,
+          "value_db": 3.8551083583345225,
+          "at_ms": 49.0
+        },
+        {
+          "window": "sonic_room",
+          "anchor_s": 27.742,
+          "value_db": 2.335348453959618,
+          "at_ms": 40.0
+        },
+        {
+          "window": "carte_file",
+          "anchor_s": 27.442,
+          "value_db": 17.364072645632465,
+          "at_ms": 45.5
+        }
+      ],
+      "worst_non_drop": {
+        "window": "boom_file",
+        "t_s": 47.115,
+        "value_db": 30.229097411653488
+      },
+      "margin_db": -27.89374895769387,
+      "feasible": false
+    }
+  },
+  "best": "F4_broad_vs_max",
+  "any_feasible": false
+}

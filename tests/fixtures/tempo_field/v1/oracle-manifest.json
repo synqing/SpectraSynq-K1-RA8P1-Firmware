@@ -1,0 +1,28 @@
+{
+  "schema": "k1.tempo.independent-oracle-fixtures.v1",
+  "owner": "independent AP verifier",
+  "layer": "direct novelty and typed publication/consumer seams, distinct from PCM replay",
+  "generator": "scripts/test_tempo_field.py",
+  "oracle": "tools/audio/phase_oracle.py",
+  "frozen_rules": "docs/evidence/tempo-field/20260928/oracle-freeze.md",
+  "input_rate_hz": 44.44444444444444,
+  "exact_interval_media_frames": 1080,
+  "media_rate_hz": 48000,
+  "history_samples": 512,
+  "impulses": {
+    "positions_inclusive": [0, 511],
+    "amplitudes": [0.0009765625, 1.0, 1024.0],
+    "bpm": [60, 90, 120, 155, 127.43, 89.5],
+    "vectors": 9216,
+    "frequency_input_rule": "Convert BPM to binary32 as required by the public API; oracle evaluates that represented value exactly. Input quantisation is not hidden in numerical tolerance."
+  },
+  "pulse_trains": {
+    "bpm": [60, 90, 120, 155, 127.43, 89.5],
+    "sample_offsets": [0, 1, 2, 17],
+    "rounding": "Each event independently computed as rational offset+n*period; nearest integer with half ties upward."
+  },
+  "extended_ratios": [[1, 2], [2, 1], [3, 2]],
+  "negative_controls": ["phase_sign", "time_endpoint", "freshness"],
+  "source_and_result_hashes": "docs/evidence/tempo-field/20260928/oracle-results.json",
+  "excluded_claims": ["musical beat accuracy", "target deadline admission", "physical light", "PCM spectral parity"]
+}

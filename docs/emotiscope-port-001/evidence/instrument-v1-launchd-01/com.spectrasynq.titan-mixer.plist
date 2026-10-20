@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.spectrasynq.titan-mixer</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001/host/titan_control/.venv/bin/python</string>
+		<string>-m</string>
+		<string>smc_titan_control</string>
+		<string>live</string>
+		<string>--strategy</string>
+		<string>emotiscope</string>
+		<string>--socket</string>
+		<string>/tmp/titan-emotiscope-control/titan-control.sock</string>
+		<string>--port</string>
+		<string>SMC-Mixer Bluetooth</string>
+		<string>--dashboard-port</string>
+		<string>8776</string>
+		<string>--status-port</string>
+		<string>8767</string>
+	</array>
+	<key>WorkingDirectory</key>
+	<string>/Users/spectrasynq/Workspace_Management/Software/SMC-Mixer/.worktrees/titan-control-001</string>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>HOME</key>
+		<string>/Users/spectrasynq</string>
+		<key>LANG</key>
+		<string>en_US.UTF-8</string>
+		<key>PATH</key>
+		<string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<key>PYTHONPATH</key>
+		<string>host/titan_control</string>
+		<key>PYTHONUNBUFFERED</key>
+		<string>1</string>
+	</dict>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>KeepAlive</key>
+	<dict>
+		<key>SuccessfulExit</key>
+		<false/>
+	</dict>
+	<key>ThrottleInterval</key>
+	<integer>10</integer>
+	<key>ProcessType</key>
+	<string>Interactive</string>
+	<key>StandardOutPath</key>
+	<string>/Users/spectrasynq/Library/Logs/SpectraSynq/com.spectrasynq.titan-mixer.log</string>
+	<key>StandardErrorPath</key>
+	<string>/Users/spectrasynq/Library/Logs/SpectraSynq/com.spectrasynq.titan-mixer.log</string>
+</dict>
+</plist>

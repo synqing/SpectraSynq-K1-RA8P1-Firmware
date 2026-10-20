@@ -1,0 +1,24 @@
+{
+  "video": "/Volumes/Disk Storage/SpectraSynq-Scratch/titan-lagfree-20261014/camera/puppet-cal-1.mp4",
+  "clip": "_scratch/waveform-migration-001/runs/P6-RELEASE-PUPPET/boom-40-75.wav",
+  "drop_s": 15.766,
+  "sound": {
+    "start_s": 5.7815,
+    "sharpness": 1.0466785131385214,
+    "audio_minus_video_start_s": 0.0
+  },
+  "t_drop_video_s": 21.5475,
+  "plate_x": [
+    36,
+    588
+  ],
+  "centre_x": [
+    256,
+    367
+  ],
+  "centre_pre": 86.26699829101562,
+  "centre_post_max": 109.81102752685547,
+  "contrast": 0.21440496247138657,
+  "t_release_video_s": 21.162263573209444,
+  "light_minus_sound_ms": -385.2364267905557
+}
