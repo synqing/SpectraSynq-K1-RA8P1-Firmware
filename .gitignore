@@ -38,3 +38,6 @@ tools/serial-studio.zip
 tools/serial-studio/.locks/
 platform/ra8p1/Archive.zip
 *.sconsign.dblite
+
+# Linked git worktrees are checkouts, not repository content.
+.worktrees/
