@@ -357,7 +357,8 @@ class RestrictedControlPlane:
             if not isinstance(raw, bytes) or len(raw) not in (640, 768):
                 raise ValueError('fixture_status_length')
             version, actual_boot, actual_epoch, state = struct.unpack_from('<4I', raw)
-            if (version, len(raw)) not in ((4, 640), (5, 768), (6, 768)) or (actual_boot, actual_epoch) != (boot, epoch):
+            # v7 (21 Oct 2026): the v6 field map with 3,840-bit lanes; same 768-byte length.
+            if (version, len(raw)) not in ((4, 640), (5, 768), (6, 768), (7, 768)) or (actual_boot, actual_epoch) != (boot, epoch):
                 raise ValueError('fixture_status_identity')
             if epoch == 0:
                 if state != 0 or struct.unpack_from('<I', raw, 16)[0] != 0:
