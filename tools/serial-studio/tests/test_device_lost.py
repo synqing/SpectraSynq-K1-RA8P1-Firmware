@@ -7,6 +7,7 @@ from titan_broker import Broker
 def _broker(tmp_path, device):
     b = Broker.__new__(Broker)
     b.replay_only = False
+    b.bound = None  # Production __init__ establishes this before any attach.
     b.evidence = tmp_path
     b.transport = SimpleNamespace(allowed={1, 6, 17})
     b.poll_i = 0

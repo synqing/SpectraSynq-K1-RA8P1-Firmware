@@ -221,18 +221,24 @@ def test_c3c_lost_reply_after_apply_does_not_double_apply():
             assert adapter.in_flight is None or adapter.in_flight.get("outcome") == "unknown"
             assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 240.0) < 1e-4
             applies = int(device.patch_applies)
+            # A serial timeout leaves an uncertain stream: even readback must
+            # wait for a newly identified transport. Never replay or invent an
+            # acknowledgement from the fake device's out-of-band state.
+            assert broker.transport.quarantine is True
+            sent = bytes(device.tx)
             second = adapter.flush()
-            assert device.patch_applies == applies
+            assert second == []
+            assert bytes(device.tx) == sent
+            assert device.patch_applies == applies == 1
             assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 240.0) < 1e-4
-            if second:
-                assert abs(second[0]["acknowledged"] - 240.0) < 1e-4
-            assert adapter.in_flight is None or adapter.in_flight.get("outcome") == "confirmed"
+            assert adapter.in_flight is not None
+            assert adapter.in_flight["outcome"] == "unknown"
         finally:
             transport.close()
             broker.shutdown()
 
 
-def test_c3c_drop_before_dispatch_resends_same_request():
+def test_c3c_drop_before_dispatch_does_not_replay_uncertain_request():
     with tempfile.TemporaryDirectory() as raw:
         tmp = Path(raw)
         device = LiveDeviceSerial()
@@ -245,10 +251,17 @@ def test_c3c_drop_before_dispatch_resends_same_request():
             assert first == []
             assert device.patch_applies == 0
             assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 0.0) < 1e-4
+            # The host cannot distinguish a lost request from a lost reply.
+            # Both timeouts must quarantine before another serial write.
+            assert broker.transport.quarantine is True
+            sent = bytes(device.tx)
             second = adapter.flush()
-            assert second
-            assert device.patch_applies == 1
-            assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 240.0) < 1e-4
+            assert second == []
+            assert bytes(device.tx) == sent
+            assert device.patch_applies == 0
+            assert abs(device.cfg["visual_a"]["vp_waveform_shift_rate"] - 0.0) < 1e-4
+            assert adapter.in_flight is not None
+            assert adapter.in_flight["outcome"] == "unknown"
         finally:
             transport.close()
             broker.shutdown()
@@ -483,7 +496,7 @@ if __name__ == "__main__":
     test_c3b_same_image_restart_via_poll_once_drops_queue()
     test_c3b_restore_admitted_schema_allows_new_session_write()
     test_c3c_lost_reply_after_apply_does_not_double_apply()
-    test_c3c_drop_before_dispatch_resends_same_request()
+    test_c3c_drop_before_dispatch_does_not_replay_uncertain_request()
     test_c3c_quiesce_blocks_patch_and_does_not_replay()
     test_c3c_delayed_reply_confirms_once()
     test_c3c_wrong_applied_is_not_confirmed()
